@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>{{subject}}</title>
+    <style>
+        img { border: none; -ms-interpolation-mode: bicubic; max-width: 100%; }
+        body { background-color: #f6f6f6; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+        table { border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; }
+        table td { font-family: sans-serif; font-size: 14px; vertical-align: top; }
+        .body { background-color: #f6f6f6; width: 100%; }
+        .container { display: block; margin: 0 auto !important; max-width: 580px; padding: 10px; width: 580px; }
+        .content { box-sizing: border-box; display: block; margin: 0 auto; max-width: 580px; padding: 10px; }
+        .main { background: #ffffff; border-radius: 3px; width: 100%; }
+        .wrapper { box-sizing: border-box; padding: 20px; }
+        .content-block { padding-bottom: 10px; padding-top: 10px; }
+        .footer { clear: both; margin-top: 10px; text-align: center; width: 100%; }
+        .footer td, .footer p, .footer span, .footer a { color: #999999; font-size: 12px; text-align: center; }
+        h1, h2, h3, h4 { color: #000000; font-family: sans-serif; font-weight: 400; line-height: 1.4; margin: 0; margin-bottom: 15px; }
+        h1 { font-size: 24px; font-weight: 300; text-align: center; margin-bottom: 40px; }
+        .label { width: 120px; }
+        .details-table { margin: 0 0 0 auto; width: 85%; }
+        p, ul, ol { font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px; }
+        p li, ul li, ol li { list-style-position: inside; margin-left: 5px; }
+        a { color: #429A82; text-decoration: underline; }
+        .btn { box-sizing: border-box; width: 100%; }
+        .btn > tbody > tr > td { padding-bottom: 15px; }
+        .btn table { width: auto; }
+        .btn table td { background-color: #ffffff; border-radius: 5px; text-align: center; }
+        .btn a { background-color: #ffffff; border: solid 1px #429A82; border-radius: 5px; box-sizing: border-box; color: #429A82; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; }
+        .btn-primary table td { background-color: #429A82; }
+        .btn-primary a { background-color: #429A82; border-color: #429A82; color: #ffffff; }
+        .align-center { text-align: center; }
+        hr { border: 0; border-bottom: 1px solid #f6f6f6; margin: 20px 0; }
+        @media only screen and (max-width: 620px) {
+            table.body h1 { font-size: 28px !important; margin-bottom: 10px !important; }
+            table.body p, table.body ul, table.body ol, table.body td, table.body span, table.body a { font-size: 16px !important; }
+            table.body .wrapper, table.body .article { padding: 10px !important; }
+            table.body .content { padding: 0 !important; }
+            table.body .container { padding: 0 !important; width: 100% !important; }
+            table.body .main { border-left-width: 0 !important; border-radius: 0 !important; border-right-width: 0 !important; }
+            table.body .btn table { width: 100% !important; }
+            table.body .btn a { width: 100% !important; }
+        }
+    </style>
+</head>
+<body>
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
+    <tr>
+        <td>&nbsp;</td>
+        <td class="container">
+            <div class="content">
+                <table role="presentation" class="main">
+                    <tr>
+                        <td class="wrapper">
+                            <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <img src="cid:logo.png" alt="Logo" style="display:block;max-width:67px; margin: auto auto 24px;">
+
+                                        <h1 style="text-align: center;">{{subject}}</h1>
+
+                                        {{#if message}}
+                                        <p style="text-align: center;">{{message}}</p>
+                                        {{/if}}
+
+                                        <h2 style="text-align: center;">Randevu Detayları</h2>
+
+                                        <table class="details-table" align="center">
+                                        <tbody>
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Hizmet</td>
+                                                <td style="padding: 3px;">{{service_name}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Personel</td>
+                                                <td style="padding: 3px;">{{provider_name}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Başlangıç</td>
+                                                <td style="padding: 3px;">{{appointment_start}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Bitiş</td>
+                                                <td style="padding: 3px;">{{appointment_end}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Saat Dilimi</td>
+                                                <td style="padding: 3px;">{{appointment_timezone}}</td>
+                                            </tr>
+                                            <!--{{#if appointment_status}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Durum</td>
+                                                <td style="padding: 3px;">{{appointment_status}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                            <!--{{#if service_description}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Açıklama</td>
+                                                <td style="padding: 3px;">{{service_description}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                            <!--{{#if appointment_location}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Konum</td>
+                                                <td style="padding: 3px;">{{appointment_location}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                            <!--{{#if appointment_meeting_link}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Toplantı Linki</td>
+                                                <td style="padding: 3px;">{{appointment_meeting_link}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                            <!--{{#if appointment_notes}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Notlar</td>
+                                                <td style="padding: 3px;">{{appointment_notes}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                        </tbody>
+                                        </table>
+
+                                        <br>
+
+                                        <h2 style="text-align: center;">Müşteri Bilgileri</h2>
+
+                                        <table class="details-table" align="center">
+                                        <tbody>
+                                            <!--{{#if customer_name}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Ad Soyad</td>
+                                                <td style="padding: 3px;">{{customer_name}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                            <!--{{#if customer_email}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">E-posta</td>
+                                                <td style="padding: 3px;">{{customer_email}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                            <!--{{#if customer_phone}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Telefon</td>
+                                                <td style="padding: 3px;">{{customer_phone}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                            <!--{{#if customer_address}}-->
+                                            <tr>
+                                                <td class="label" style="padding: 3px;font-weight: bold;">Adres</td>
+                                                <td style="padding: 3px;">{{customer_address}}</td>
+                                            </tr>
+                                            <!--{{/if}}-->
+                                        </tbody>
+                                        </table>
+
+                                        <br><br>
+
+                                        <table class="btn btn-primary" role="presentation" border="0" cellpadding="0" cellspacing="0">
+                                            <tbody>
+                                                <tr>
+                                                    <td align="center">
+                                                        <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>
+                                                                        <a href="{{appointment_link}}" target="_blank">Randevuyu Ertele / İptal Et</a>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="footer">
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="content-block powered-by">
+                                <a href="{{company_link}}" style="text-decoration: none;">{{company_name}}</a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </td>
+        <td>&nbsp;</td>
+    </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ki Reservation - Admin</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f5f6f8; margin: 0; color: #222; }
+        header { background: #1b1f24; color: #fff; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.1rem; margin: 0; }
+        header a { color: #ccc; text-decoration: none; font-size: .85rem; }
+        main { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        button.primary { background: #1b1f24; color: #fff; border: none; border-radius: 6px; padding: .6rem 1rem; font-weight: 600; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        th, td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid #eee; font-size: .88rem; }
+        th { background: #fafafa; font-weight: 600; color: #555; }
+        .badge { padding: .15rem .5rem; border-radius: 12px; font-size: .75rem; font-weight: 600; }
+        .badge.active { background: #e3f7e9; color: #1e8a4c; }
+        .badge.suspended { background: #fdeaea; color: #c0392b; }
+        .badge.expired { background: #fff4e0; color: #b3720a; }
+        .actions button { background: none; border: 1px solid #d7d9dd; border-radius: 6px; padding: .3rem .6rem; font-size: .78rem; cursor: pointer; margin-right: .3rem; }
+        .actions button.danger { border-color: #f0b9b9; color: #c0392b; }
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; z-index: 10; }
+        .modal-backdrop.open { display: flex; }
+        .modal { background: #fff; border-radius: 10px; padding: 1.5rem; width: 100%; max-width: 420px; }
+        .modal h2 { margin: 0 0 1rem; font-size: 1.05rem; }
+        .modal label { display: block; font-size: .82rem; font-weight: 600; margin: .7rem 0 .3rem; }
+        .modal input { width: 100%; padding: .5rem .6rem; border: 1px solid #d7d9dd; border-radius: 6px; font-size: .9rem; }
+        .modal .row { display: flex; gap: 1.5rem; margin-top: 1.2rem; }
+        .modal .row button { flex: 1; padding: .6rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; }
+        .modal .row button.cancel { background: #eee; color: #333; }
+        .modal .row button.confirm { background: #1b1f24; color: #fff; }
+        .msg { font-size: .82rem; color: #c0392b; margin-top: .5rem; display: none; }
+        .success-box { background: #e3f7e9; border: 1px solid #b7e5c6; border-radius: 8px; padding: 1rem; font-size: .85rem; margin-bottom: 1rem; display: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Ki Reservation — SaaS Yönetimi</h1>
+        <div>
+            <span style="margin-right:1rem"><?= e(vars('superadmin_username')) ?></span>
+            <a href="<?= site_url('superadmin_auth/logout') ?>">Çıkış</a>
+        </div>
+    </header>
+
+    <main>
+        <div id="success-box" class="success-box"></div>
+
+        <div class="toolbar">
+            <div><?= count(vars('tenants')) ?> kiracı</div>
+            <button class="primary" onclick="document.getElementById('create-modal').classList.add('open')">+ Yeni Kiracı</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Subdomain</th>
+                    <th>Custom Domain</th>
+                    <th>Plan</th>
+                    <th>Durum</th>
+                    <th>Deneme Bitişi</th>
+                    <th>Lisans Bitişi</th>
+                    <th>Randevu</th>
+                    <th>Oluşturma</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach (vars('tenants') as $tenant): ?>
+                <?php
+                $now = date('Y-m-d H:i:s');
+                $expired = (!empty($tenant['license_expires_at']) && $tenant['license_expires_at'] < $now)
+                    || (!empty($tenant['trial_ends_at']) && $tenant['trial_ends_at'] < $now);
+                $badge_class = $expired ? 'expired' : $tenant['status'];
+                $badge_label = $expired ? 'süresi doldu' : $tenant['status'];
+                ?>
+                <tr data-tenant-id="<?= e($tenant['id']) ?>" data-subdomain="<?= e($tenant['subdomain']) ?>">
+                    <td><?= e($tenant['subdomain']) ?>-reservationapp.kibusiness.co</td>
+                    <td><?= e($tenant['custom_domain'] ?? '—') ?></td>
+                    <td><?= e($tenant['plan'] ?? '—') ?></td>
+                    <td><span class="badge <?= e($badge_class) ?>"><?= e($badge_label) ?></span></td>
+                    <td><?= e($tenant['trial_ends_at'] ?? '—') ?></td>
+                    <td><?= e($tenant['license_expires_at'] ?? '—') ?></td>
+                    <td><?= $tenant['appointment_count'] === null ? '?' : e($tenant['appointment_count']) ?></td>
+                    <td><?= e($tenant['created_at']) ?></td>
+                    <td class="actions">
+                        <?php if ($tenant['status'] === 'active'): ?>
+                            <button onclick="setStatus(<?= e($tenant['id']) ?>, 'suspended')">Askıya Al</button>
+                        <?php else: ?>
+                            <button onclick="setStatus(<?= e($tenant['id']) ?>, 'active')">Aktifleştir</button>
+                        <?php endif; ?>
+                        <button onclick="openPlanModal(<?= e($tenant['id']) ?>, '<?= e($tenant['plan'] ?? '') ?>', '<?= e($tenant['trial_ends_at'] ?? '') ?>', '<?= e($tenant['license_expires_at'] ?? '') ?>')">Plan/Lisans</button>
+                        <button class="danger" onclick="openDeleteModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Sil</button>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Create modal -->
+    <div class="modal-backdrop" id="create-modal">
+        <div class="modal">
+            <h2>Yeni Kiracı Oluştur</h2>
+            <form id="create-form">
+                <label>Subdomain</label>
+                <input type="text" id="c-subdomain" placeholder="orn: acme" required>
+                <label>Custom Domain (opsiyonel)</label>
+                <input type="text" id="c-custom-domain" placeholder="rezervasyon.acme.com">
+                <label>Plan (opsiyonel)</label>
+                <input type="text" id="c-plan" placeholder="temel / genel">
+                <label>Deneme Süresi (gün, opsiyonel)</label>
+                <input type="number" id="c-trial-days" placeholder="14">
+                <div class="msg" id="create-msg"></div>
+                <div class="row">
+                    <button type="button" class="cancel" onclick="document.getElementById('create-modal').classList.remove('open')">Vazgeç</button>
+                    <button type="submit" class="confirm">Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Plan/license modal -->
+    <div class="modal-backdrop" id="plan-modal">
+        <div class="modal">
+            <h2>Plan / Lisans Düzenle</h2>
+            <form id="plan-form">
+                <input type="hidden" id="p-tenant-id">
+                <label>Plan</label>
+                <input type="text" id="p-plan">
+                <label>Deneme Bitişi (YYYY-MM-DD HH:MM:SS, boş = yok)</label>
+                <input type="text" id="p-trial-ends-at">
+                <label>Lisans Bitişi (YYYY-MM-DD HH:MM:SS, boş = süresiz)</label>
+                <input type="text" id="p-license-expires-at">
+                <div class="msg" id="plan-msg"></div>
+                <div class="row">
+                    <button type="button" class="cancel" onclick="document.getElementById('plan-modal').classList.remove('open')">Vazgeç</button>
+                    <button type="submit" class="confirm">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete modal -->
+    <div class="modal-backdrop" id="delete-modal">
+        <div class="modal">
+            <h2>Kiracıyı Kalıcı Olarak Sil</h2>
+            <p style="font-size:.85rem;color:#c0392b">Bu işlem GERİ ALINAMAZ - kiracının tüm veritabanı silinir. Onaylamak için subdomain'i yazın: <strong id="delete-subdomain-label"></strong></p>
+            <form id="delete-form">
+                <input type="hidden" id="d-tenant-id">
+                <input type="text" id="d-confirm">
+                <div class="msg" id="delete-msg"></div>
+                <div class="row">
+                    <button type="button" class="cancel" onclick="document.getElementById('delete-modal').classList.remove('open')">Vazgeç</button>
+                    <button type="submit" class="confirm" style="background:#c0392b">Sil</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const csrfToken = '<?= e(vars('csrf_token')) ?>';
+
+        function post(url, data) {
+            const params = new URLSearchParams(data);
+            params.set('csrf_token', csrfToken);
+            return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params.toString() })
+                .then((r) => r.json());
+        }
+
+        function showSuccess(html) {
+            const box = document.getElementById('success-box');
+            box.innerHTML = html;
+            box.style.display = 'block';
+        }
+
+        document.getElementById('create-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const msg = document.getElementById('create-msg');
+            msg.style.display = 'none';
+
+            post('<?= site_url('superadmin_tenants/store') ?>', {
+                subdomain: document.getElementById('c-subdomain').value,
+                custom_domain: document.getElementById('c-custom-domain').value,
+                plan: document.getElementById('c-plan').value,
+                trial_days: document.getElementById('c-trial-days').value,
+            }).then((data) => {
+                if (!data.success) {
+                    msg.textContent = data.message || 'Hata oluştu.';
+                    msg.style.display = 'block';
+                    return;
+                }
+
+                showSuccess(
+                    'Kiracı oluşturuldu: <strong>' + data.subdomain + '</strong><br>' +
+                    'URL: <a href="' + data.login_url + '" target="_blank">' + data.login_url + '</a><br>' +
+                    'Giriş: administrator / ' + data.admin_password,
+                );
+                window.location.reload();
+            });
+        });
+
+        function setStatus(tenantId, status) {
+            post('<?= site_url('superadmin_tenants/update_status') ?>', { tenant_id: tenantId, status: status })
+                .then((data) => { if (data.success) window.location.reload(); else alert(data.message || 'Hata'); });
+        }
+
+        function openPlanModal(tenantId, plan, trialEndsAt, licenseExpiresAt) {
+            document.getElementById('p-tenant-id').value = tenantId;
+            document.getElementById('p-plan').value = plan;
+            document.getElementById('p-trial-ends-at').value = trialEndsAt;
+            document.getElementById('p-license-expires-at').value = licenseExpiresAt;
+            document.getElementById('plan-modal').classList.add('open');
+        }
+
+        document.getElementById('plan-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            post('<?= site_url('superadmin_tenants/update_plan') ?>', {
+                tenant_id: document.getElementById('p-tenant-id').value,
+                plan: document.getElementById('p-plan').value,
+                trial_ends_at: document.getElementById('p-trial-ends-at').value,
+                license_expires_at: document.getElementById('p-license-expires-at').value,
+            }).then((data) => {
+                if (data.success) window.location.reload();
+                else { const m = document.getElementById('plan-msg'); m.textContent = data.message || 'Hata'; m.style.display = 'block'; }
+            });
+        });
+
+        function openDeleteModal(tenantId, subdomain) {
+            document.getElementById('d-tenant-id').value = tenantId;
+            document.getElementById('d-confirm').value = '';
+            document.getElementById('delete-subdomain-label').textContent = subdomain;
+            document.getElementById('delete-modal').classList.add('open');
+        }
+
+        document.getElementById('delete-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            post('<?= site_url('superadmin_tenants/destroy') ?>', {
+                tenant_id: document.getElementById('d-tenant-id').value,
+                confirm_subdomain: document.getElementById('d-confirm').value,
+            }).then((data) => {
+                if (data.success) window.location.reload();
+                else { const m = document.getElementById('delete-msg'); m.textContent = data.message || 'Hata'; m.style.display = 'block'; }
+            });
+        });
+    </script>
+</body>
+</html>

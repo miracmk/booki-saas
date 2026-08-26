@@ -1,0 +1,76 @@
+<?php defined('BASEPATH') or exit('No direct script access allowed');
+
+/* ----------------------------------------------------------------------------
+ * Ki Reservation - Online Appointment Scheduler
+ *
+ * @package     KiReservation
+ * @author      Ki Software
+ * @copyright   Copyright (c) Ki Software
+ * @license     Proprietary - see LICENSE file
+ * @link        https://kisoftware.com
+ * ---------------------------------------------------------------------------- */
+
+/**
+ * Consents controller.
+ *
+ * Handles user consent related operations.
+ *
+ * @package Controllers
+ */
+class Consents extends EA_Controller
+{
+    /**
+     * Consents constructor.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->load->model('consents_model');
+    }
+
+    /**
+     * Save consent record to the database.
+     */
+    public function save(): void
+    {
+        try {
+            method('post');
+
+            check('consent', 'array');
+
+            $consent = request('consent');
+
+            $consent['ip'] = $this->input->ip_address();
+
+            $occurrences = $this->consents_model->get(['ip' => $consent['ip']], 1, 0, 'create_datetime DESC');
+
+            if (!empty($occurrences)) {
+                $last_consent = $occurrences[0];
+
+                $last_consent_create_datetime_instance = new DateTime($last_consent['create_datetime']);
+
+                $threshold_datetime_instance = new DateTime('-24 hours');
+
+                if ($last_consent_create_datetime_instance > $threshold_datetime_instance) {
+                    // Do not create a new consent.
+
+                    json_response([
+                        'success' => true,
+                    ]);
+
+                    return;
+                }
+            }
+
+            $consent['id'] = $this->consents_model->save($consent);
+
+            json_response([
+                'success' => true,
+                'id' => $consent['id'],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+}

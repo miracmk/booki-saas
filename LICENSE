@@ -1,0 +1,127 @@
+KI SOFTWARE LICENSE AGREEMENT
+Ki Reservation - Online Appointment Scheduler
+Copyright (c) Ki Software. All rights reserved.
+
+Version 1.0
+
+NOTE: This license was drafted as a working template accompanying a
+rebranding/relicensing effort and has not been independently reviewed by
+outside counsel beyond the parties' own legal consultation referenced in the
+project history. Ki Software should have this document reviewed and
+finalized by qualified legal counsel before relying on it for enforcement or
+distribution decisions.
+
+1. DEFINITIONS
+
+"Software" means the Ki Reservation application, including its source code,
+object code, documentation, and any updates, modifications, or derivative
+works provided by Ki Software.
+
+"Licensor" means Ki Software.
+
+"Licensee" or "You" means the individual or entity that has been granted
+rights to use the Software under a separate written agreement, order form,
+or explicit permission from Ki Software.
+
+"Deployment" means any installation or operation of the Software, whether
+on infrastructure controlled by the Licensee ("Local/Self-Hosted
+Deployment"), on third-party cloud infrastructure operated on the
+Licensee's behalf ("Cloud Deployment"), or as a hosted service operated by
+Ki Software or its partners on behalf of a customer ("Managed/SaaS
+Deployment").
+
+2. GRANT OF LICENSE
+
+Subject to the terms of this Agreement and a valid, separately executed
+license grant, order, or written permission from Ki Software, Ki Software
+grants Licensee a limited, non-exclusive, non-transferable, revocable
+license to install, configure, and use the Software solely for Licensee's
+own internal business operations.
+
+No license, right, or permission is granted under this Agreement by
+default. ANY use of the Software -- whether as a Local/Self-Hosted
+Deployment, a Cloud Deployment, or a Managed/SaaS Deployment -- REQUIRES
+PRIOR WRITTEN PERMISSION FROM KI SOFTWARE. Obtaining a copy of the source
+code (including via a source code repository) does not, by itself,
+constitute or imply a license grant.
+
+3. RESTRICTIONS
+
+Except as expressly permitted in writing by Ki Software, Licensee shall
+not, and shall not permit any third party to:
+
+  a. copy, distribute, sublicense, sell, lease, rent, or otherwise transfer
+     the Software or any portion of it to any third party;
+
+  b. reverse engineer, decompile, disassemble, or otherwise attempt to
+     derive the source code of the Software, except to the extent such
+     restriction is prohibited by applicable law;
+
+  c. remove, alter, or obscure any copyright, trademark, or other
+     proprietary notices contained in the Software;
+
+  d. use the Software to build or offer a competing product or service, or
+     to provide appointment-scheduling functionality as a service to third
+     parties, without Ki Software's prior written consent;
+
+  e. deploy, host, or operate the Software (or any modified or derivative
+     version of it) on any cloud infrastructure, virtual private server, or
+     other third-party or self-managed hosting environment without Ki
+     Software's prior written permission for that specific deployment.
+
+4. OWNERSHIP
+
+The Software is licensed, not sold. Ki Software and its licensors retain
+all right, title, and interest in and to the Software, including all
+intellectual property rights therein. This Agreement does not grant
+Licensee any rights to Ki Software's trademarks, service marks, or trade
+names.
+
+5. THIRD-PARTY COMPONENTS
+
+The Software incorporates certain third-party open-source libraries and
+frameworks (see the `vendor/` and `system/` directories and their
+accompanying license files). Those components remain governed by their own
+respective licenses, and nothing in this Agreement modifies, restricts, or
+supersedes the rights granted under those third-party licenses.
+
+6. CONFIDENTIALITY
+
+The Software's source code is confidential and proprietary information of
+Ki Software. Licensee agrees to protect the source code with at least the
+same degree of care it uses to protect its own confidential information of
+similar importance, and in no event less than reasonable care.
+
+7. TERM AND TERMINATION
+
+This Agreement and any license granted under it remain in effect until
+terminated. Ki Software may terminate a Licensee's rights under this
+Agreement immediately upon written notice if Licensee breaches any term of
+this Agreement. Upon termination, Licensee shall cease all use of the
+Software and destroy or return all copies in its possession.
+
+8. WARRANTY DISCLAIMER
+
+THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. KI SOFTWARE DOES
+NOT WARRANT THAT THE SOFTWARE WILL BE ERROR-FREE OR UNINTERRUPTED.
+
+9. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL KI
+SOFTWARE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR
+PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUE, ARISING OUT OF OR
+RELATED TO THIS AGREEMENT OR THE USE OF THE SOFTWARE.
+
+10. GOVERNING LAW
+
+This Agreement shall be governed by the laws applicable at Ki Software's
+principal place of business, without regard to its conflict-of-laws
+principles, unless otherwise agreed in writing between the parties.
+
+11. CONTACT
+
+For licensing inquiries, permission requests (including Cloud and
+Local/Self-Hosted Deployment requests), or questions about this Agreement,
+contact: info@kisoftware.com

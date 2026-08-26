@@ -1,0 +1,42 @@
+<?php defined('BASEPATH') or exit('No direct script access allowed');
+
+/* ----------------------------------------------------------------------------
+ * Ki Reservation - Online Appointment Scheduler
+ *
+ * @package     KiReservation
+ * @author      Ki Software
+ * @copyright   Copyright (c) Ki Software
+ * @license     Proprietary - see LICENSE file
+ * @link        https://kisoftware.com
+ * ---------------------------------------------------------------------------- */
+
+class Migration_Add_ldap_dn_column_to_users_table extends EA_Migration
+{
+    /**
+     * Upgrade method.
+     */
+    public function up(): void
+    {
+        if (!$this->db->field_exists('ldap_dn', 'users')) {
+            $fields = [
+                'ldap_dn' => [
+                    'type' => 'TEXT',
+                    'null' => true,
+                    'after' => 'is_private',
+                ],
+            ];
+
+            $this->dbforge->add_column('users', $fields);
+        }
+    }
+
+    /**
+     * Downgrade method.
+     */
+    public function down(): void
+    {
+        if ($this->db->field_exists('ldap_dn', 'users')) {
+            $this->dbforge->drop_column('users', 'ldap_dn');
+        }
+    }
+}

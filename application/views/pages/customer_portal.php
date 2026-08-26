@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= e(setting('company_name') ?: 'Ki Reservation') ?> - Randevularım</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f5f6f8; margin: 0; color: #222; }
+        header { background: #35A768; color: #fff; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.05rem; margin: 0; }
+        header a { color: #eafff0; text-decoration: none; font-size: .85rem; }
+        main { padding: 1.5rem; max-width: 760px; margin: 0 auto; }
+        .card { background: #fff; border-radius: 10px; padding: 1.2rem 1.4rem; margin-bottom: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        .card h2 { font-size: .95rem; margin: 0 0 .8rem; color: #444; }
+        .appt { border-bottom: 1px solid #eee; padding: .6rem 0; font-size: .88rem; }
+        .appt:last-child { border-bottom: none; }
+        .appt .when { font-weight: 600; }
+        .appt .meta { color: #666; font-size: .8rem; }
+        .empty { color: #999; font-size: .85rem; }
+        label { display: block; font-size: .8rem; font-weight: 600; margin: .6rem 0 .3rem; }
+        input { width: 100%; padding: .5rem .6rem; border: 1px solid #d7d9dd; border-radius: 6px; font-size: .88rem; }
+        button { background: #35A768; color: #fff; border: none; border-radius: 6px; padding: .6rem 1rem; font-weight: 600; cursor: pointer; margin-top: .8rem; }
+        .msg { font-size: .82rem; margin-top: .5rem; display: none; }
+        .msg.ok { color: #1e8a4c; }
+        .msg.err { color: #c0392b; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><?= e(setting('company_name') ?: 'Ki Reservation') ?></h1>
+        <a href="<?= site_url('logout') ?>">Çıkış</a>
+    </header>
+
+    <main>
+        <div class="card">
+            <h2>Yaklaşan Randevularım</h2>
+            <?php if (empty(vars('upcoming_appointments'))): ?>
+                <div class="empty">Yaklaşan bir randevunuz yok.</div>
+            <?php else: ?>
+                <?php foreach (vars('upcoming_appointments') as $a): ?>
+                    <div class="appt">
+                        <div class="when"><?= e(date('d.m.Y H:i', strtotime($a['start_datetime']))) ?></div>
+                        <div class="meta"><?= e($a['service_name']) ?> — <?= e($a['provider_name']) ?></div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
+            <h2>Geçmiş Randevularım</h2>
+            <?php if (empty(vars('past_appointments'))): ?>
+                <div class="empty">Geçmiş randevunuz yok.</div>
+            <?php else: ?>
+                <?php foreach (vars('past_appointments') as $a): ?>
+                    <div class="appt">
+                        <div class="when"><?= e(date('d.m.Y H:i', strtotime($a['start_datetime']))) ?></div>
+                        <div class="meta"><?= e($a['service_name']) ?> — <?= e($a['provider_name']) ?></div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
+            <h2>Bilgilerim</h2>
+            <form id="profile-form">
+                <label>Ad</label>
+                <input type="text" id="first_name" value="<?= e(vars('customer')['first_name'] ?? '') ?>" required>
+                <label>Soyad</label>
+                <input type="text" id="last_name" value="<?= e(vars('customer')['last_name'] ?? '') ?>">
+                <label>E-posta</label>
+                <input type="email" id="email" value="<?= e(vars('customer')['email'] ?? '') ?>">
+                <label>Telefon</label>
+                <input type="text" id="phone_number" value="<?= e(vars('customer')['phone_number'] ?? '') ?>">
+                <label>Adres</label>
+                <input type="text" id="address" value="<?= e(vars('customer')['address'] ?? '') ?>">
+                <label>Şehir</label>
+                <input type="text" id="city" value="<?= e(vars('customer')['city'] ?? '') ?>">
+                <div class="msg" id="profile-msg"></div>
+                <button type="submit">Kaydet</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('profile-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const msg = document.getElementById('profile-msg');
+            msg.style.display = 'none';
+
+            const params = new URLSearchParams({
+                csrf_token: '<?= e(vars('csrf_token')) ?>',
+                first_name: document.getElementById('first_name').value,
+                last_name: document.getElementById('last_name').value,
+                email: document.getElementById('email').value,
+                phone_number: document.getElementById('phone_number').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+            });
+
+            fetch('<?= site_url('customer_portal/update_profile') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString(),
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
+                    msg.textContent = data.success ? 'Kaydedildi.' : (data.message || 'Hata oluştu.');
+                    msg.style.display = 'block';
+                });
+        });
+    </script>
+</body>
+</html>
