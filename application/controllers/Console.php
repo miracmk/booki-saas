@@ -258,6 +258,29 @@ class Console extends EA_Controller
                 echo 'Added "tenants.' . $column . '" column.' . PHP_EOL;
             }
         }
+
+        // Ki Reservation (2026-08-26) - "Ki Business Google OAuth": a platform-wide key/value settings
+        // table (superadmin-editable) so tenants can connect Google Calendar using Ki Software's own
+        // shared OAuth Client instead of each needing their own Google Cloud project - see
+        // master_setting() (tenant_helper.php) and Google_sync::get_client_id()/get_client_secret().
+        if (!$this->db->table_exists('master_settings')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'name' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'value' => ['type' => 'TEXT', 'null' => true],
+            ]);
+
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('master_settings', true, ['engine' => 'InnoDB']);
+
+            $this->db->query(
+                'ALTER TABLE ' . $this->db->dbprefix('master_settings') . ' ADD UNIQUE INDEX idx_master_settings_name (name)',
+            );
+
+            echo 'Created "master_settings" table.' . PHP_EOL;
+        } else {
+            echo '"master_settings" table already exists, skipped.' . PHP_EOL;
+        }
     }
 
     /**

@@ -45,6 +45,7 @@
         <h1>Ki Reservation — SaaS Yönetimi</h1>
         <div>
             <span style="margin-right:1rem"><?= e(vars('superadmin_username')) ?></span>
+            <a href="<?= site_url('superadmin_settings') ?>" style="margin-right:1rem;">Platform Ayarları</a>
             <a href="<?= site_url('superadmin_auth/logout') ?>">Çıkış</a>
         </div>
     </header>

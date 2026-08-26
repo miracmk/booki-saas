@@ -71,6 +71,15 @@ class Google_sync
             return $setting_value;
         }
 
+        // Ki Reservation (2026-08-26) - "Ki Business Google OAuth": falls back to the shared,
+        // superadmin-configured platform-wide Client ID before the CLI-only config() constant, so a
+        // tenant that never set its OWN Google Cloud project still gets working Calendar sync.
+        $master_value = master_setting('google_client_id');
+
+        if (!empty($master_value)) {
+            return $master_value;
+        }
+
         return config('google_client_id') ?: '';
     }
 
@@ -85,6 +94,12 @@ class Google_sync
 
         if (!empty($setting_value)) {
             return $setting_value;
+        }
+
+        $master_value = master_setting('google_client_secret');
+
+        if (!empty($master_value)) {
+            return $master_value;
         }
 
         return config('google_client_secret') ?: '';

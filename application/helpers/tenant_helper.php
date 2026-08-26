@@ -68,3 +68,48 @@ if (!function_exists('is_multi_tenant_mode')) {
         return $CI->db->table_exists('tenants');
     }
 }
+
+if (!function_exists('master_setting')) {
+    /**
+     * Ki Reservation (2026-08-26) - read (or write, if $value is passed) a platform-wide key/value
+     * setting from the master DB's `master_settings` table (e.g. the shared "Ki Business" Google
+     * OAuth Client ID/Secret - see Google_sync::get_client_id()/get_client_secret()).
+     *
+     * Deliberately reconnects to the 'default' connection GROUP BY NAME (not $CI->db, which during a
+     * tenant request has already been swapped to that tenant's own DB - see
+     * EA_Controller::resolve_tenant()) via a throwaway, non-active connection object
+     * ($this->load->database('default', true) - the TRUE "return, don't replace $this->db" form), so
+     * calling this never disturbs whichever DB the current request is actually working against.
+     * Single-tenant/standalone deployments have no `master_settings` table at all - always returns
+     * null there rather than erroring.
+     *
+     * @param string $name
+     * @param string|null $value Pass to set; omit to just read.
+     *
+     * @return string|null
+     */
+    function master_setting(string $name, ?string $value = '__unset__'): ?string
+    {
+        $CI = &get_instance();
+
+        $master_db = $CI->load->database('default', true);
+
+        if (!$master_db->table_exists('master_settings')) {
+            return null;
+        }
+
+        if ($value !== '__unset__') {
+            if ($master_db->get_where('master_settings', ['name' => $name])->num_rows() > 0) {
+                $master_db->update('master_settings', ['value' => $value], ['name' => $name]);
+            } else {
+                $master_db->insert('master_settings', ['name' => $name, 'value' => $value]);
+            }
+
+            return $value;
+        }
+
+        $row = $master_db->get_where('master_settings', ['name' => $name])->row_array();
+
+        return $row['value'] ?? null;
+    }
+}
