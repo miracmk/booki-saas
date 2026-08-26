@@ -80,6 +80,18 @@
                 <button type="submit">Kaydet</button>
             </form>
         </div>
+
+        <div class="card">
+            <h2>Şifre Değiştir</h2>
+            <form id="password-form">
+                <label>Mevcut Şifre</label>
+                <input type="password" id="current_password" required>
+                <label>Yeni Şifre (en az 8 karakter)</label>
+                <input type="password" id="new_password" minlength="8" required>
+                <div class="msg" id="password-msg"></div>
+                <button type="submit">Şifreyi Değiştir</button>
+            </form>
+        </div>
     </main>
 
     <script>
@@ -108,6 +120,33 @@
                     msg.className = 'msg ' + (data.success ? 'ok' : 'err');
                     msg.textContent = data.success ? 'Kaydedildi.' : (data.message || 'Hata oluştu.');
                     msg.style.display = 'block';
+                });
+        });
+
+        document.getElementById('password-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const msg = document.getElementById('password-msg');
+            msg.style.display = 'none';
+
+            const params = new URLSearchParams({
+                csrf_token: '<?= e(vars('csrf_token')) ?>',
+                current_password: document.getElementById('current_password').value,
+                new_password: document.getElementById('new_password').value,
+            });
+
+            fetch('<?= site_url('customer_portal/change_password') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString(),
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
+                    msg.textContent = data.success ? 'Şifreniz değiştirildi.' : (data.message || 'Hata oluştu.');
+                    msg.style.display = 'block';
+                    if (data.success) {
+                        document.getElementById('password-form').reset();
+                    }
                 });
         });
     </script>

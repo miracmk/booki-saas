@@ -36,7 +36,35 @@ class Superadmin_tenants extends EA_Controller
     {
         method('get');
 
-        $tenants = $this->db->order_by('created_at', 'desc')->get('tenants')->result_array();
+        check('q', 'string|null');
+        check('page', 'numeric|null');
+
+        $search = trim((string) request('q'));
+        $page = max(1, (int) request('page', 1));
+        $per_page = 20;
+
+        $apply_search_filter = function () use ($search) {
+            if ($search !== '') {
+                $this->db
+                    ->group_start()
+                    ->like('subdomain', $search)
+                    ->or_like('custom_domain', $search)
+                    ->or_like('plan', $search)
+                    ->group_end();
+            }
+        };
+
+        // CI3's query builder clears its pending where/like state after each get()/count_all_results()
+        // call, so the filter has to be (re-)applied before EACH of these two separate queries.
+        $apply_search_filter();
+        $total = $this->db->count_all_results('tenants');
+
+        $apply_search_filter();
+        $tenants = $this->db
+            ->order_by('created_at', 'desc')
+            ->limit($per_page, ($page - 1) * $per_page)
+            ->get('tenants')
+            ->result_array();
 
         foreach ($tenants as &$tenant) {
             $tenant['appointment_count'] = $this->count_tenant_appointments($tenant);
@@ -49,6 +77,10 @@ class Superadmin_tenants extends EA_Controller
             'csrf_token' => $this->security->get_csrf_hash(),
             'superadmin_username' => session('superadmin_username'),
             'tenants' => $tenants,
+            'search' => $search,
+            'page' => $page,
+            'total_pages' => max(1, (int) ceil($total / $per_page)),
+            'total' => $total,
         ]);
 
         $this->load->view('pages/superadmin_tenants');
@@ -187,6 +219,66 @@ class Superadmin_tenants extends EA_Controller
             );
 
             json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * A tenant's admin password can't be viewed again once set (it's only ever stored hashed - see
+     * seed()'s docblock) - this is the "I lost it, and console access isn't practical" recovery path:
+     * generate a fresh one, save it, hand it back ONCE, same as tenant creation does.
+     */
+    public function reset_admin_password(): void
+    {
+        try {
+            method('post');
+
+            check('tenant_id', 'numeric');
+
+            $tenant = $this->db->get_where('tenants', ['id' => (int) request('tenant_id')])->row_array();
+
+            if (!$tenant) {
+                throw new InvalidArgumentException('Kiracı bulunamadı.');
+            }
+
+            $tenant_db = $this->load->database(
+                [
+                    'hostname' => $tenant['db_host'],
+                    'username' => $tenant['db_username'],
+                    'password' => tenant_master_decrypt($tenant['db_password']),
+                    'database' => $tenant['db_name'],
+                    'dbdriver' => 'mysqli',
+                    'dbprefix' => 'ea_',
+                    'pconnect' => false,
+                    'db_debug' => true,
+                    'cache_on' => false,
+                    'cachedir' => '',
+                    'char_set' => 'utf8mb4',
+                    'dbcollat' => 'utf8mb4_unicode_ci',
+                    'swap_pre' => '',
+                ],
+                true,
+            );
+
+            $admin_settings = $tenant_db->get_where('user_settings', ['username' => 'administrator'])->row_array();
+
+            if (!$admin_settings) {
+                throw new InvalidArgumentException('Bu kiracıda "administrator" kullanıcısı bulunamadı.');
+            }
+
+            $new_password = bin2hex(random_bytes(6));
+            $salt = generate_salt();
+
+            $tenant_db->update(
+                'user_settings',
+                ['password' => hash_password($salt, $new_password), 'salt' => $salt],
+                ['id_users' => $admin_settings['id_users']],
+            );
+
+            $tenant_db->close();
+
+            json_response(['success' => true, 'new_password' => $new_password]);
         } catch (Throwable $e) {
             json_exception($e);
         }

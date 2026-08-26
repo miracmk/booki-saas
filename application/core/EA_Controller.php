@@ -237,6 +237,10 @@ class EA_Controller extends CI_Controller
             'subdomain' => $tenant['subdomain'],
             'pii_enc_key' => tenant_master_decrypt($tenant['pii_enc_key']),
             'pii_hash_key' => tenant_master_decrypt($tenant['pii_hash_key']),
+            // Ki Reservation (2026-08-26) - carried through so load_common_html_vars() can show an
+            // "expiring soon" banner well before the hard 402 cutoff above actually kicks in.
+            'trial_ends_at' => $tenant['trial_ends_at'] ?? null,
+            'license_expires_at' => $tenant['license_expires_at'] ?? null,
         ]);
     }
 
@@ -309,7 +313,55 @@ class EA_Controller extends CI_Controller
             // makes the header consume the same setting the admin panel lets staff edit.
             'company_name' => $has_settings ? setting('company_name') : null,
             'company_logo' => $has_settings ? setting('company_logo') : null,
+            'expiry_warning' => $this->build_expiry_warning(),
         ]);
+    }
+
+    /**
+     * Ki Reservation (2026-08-26) - "N gün kaldı" banner data for backend_header.php, shown only to
+     * the admin role (the only one who'd act on it) and only once the deadline is within reach - the
+     * hard 402 cutoff in resolve_tenant() already covers "already expired", this is the advance
+     * warning that comes before it.
+     */
+    private function build_expiry_warning(): ?array
+    {
+        $tenant = tenant_context();
+
+        if (!$tenant || session('role_slug') !== 'admin') {
+            return null;
+        }
+
+        $warn_days = 7;
+        $now = new DateTime();
+        $soonest = null;
+        $label = null;
+
+        foreach (['license_expires_at' => 'Lisansınızın', 'trial_ends_at' => 'Deneme sürenizin'] as $field => $field_label) {
+            if (empty($tenant[$field])) {
+                continue;
+            }
+
+            $expires_at = new DateTime($tenant[$field]);
+
+            if ($expires_at < $now) {
+                continue; // already expired - resolve_tenant() already blocks the request with a 402.
+            }
+
+            if ($soonest === null || $expires_at < $soonest) {
+                $soonest = $expires_at;
+                $label = $field_label;
+            }
+        }
+
+        if ($soonest === null || $now->diff($soonest)->days > $warn_days) {
+            return null;
+        }
+
+        return [
+            'label' => $label,
+            'days_left' => $now->diff($soonest)->days,
+            'date' => $soonest->format('d.m.Y'),
+        ];
     }
 
     /**

@@ -7,6 +7,19 @@
  */
 ?>
 
+<?php
+// Ki Reservation (2026-08-26) - "N gün kaldı" advance warning, admin role only (see
+// EA_Controller::build_expiry_warning()). The hard cutoff (402, once actually expired) is enforced
+// separately in EA_Controller::resolve_tenant() - this is purely the advance notice before that.
+$expiry_warning = vars('expiry_warning');
+?>
+<?php if ($expiry_warning): ?>
+    <div class="w-100 text-center py-2 px-3" style="background: #fff4e0; color: #b3720a; font-size: .85rem;">
+        <?= e($expiry_warning['label']) ?> bitimine <strong><?= e($expiry_warning['days_left']) ?> gün</strong> kaldı
+        (<?= e($expiry_warning['date']) ?>) - devam etmek için lütfen bizimle iletişime geçin.
+    </div>
+<?php endif; ?>
+
 <nav id="header" class="navbar navbar-expand-md navbar-dark bg-primary p-0">
     <?php
     // Salon Flora customization - whitelabeling: fall back to the platform's own name/logo only when

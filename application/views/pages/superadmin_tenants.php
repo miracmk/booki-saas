@@ -34,6 +34,10 @@
         .modal .row button.confirm { background: #1b1f24; color: #fff; }
         .msg { font-size: .82rem; color: #c0392b; margin-top: .5rem; display: none; }
         .success-box { background: #e3f7e9; border: 1px solid #b7e5c6; border-radius: 8px; padding: 1rem; font-size: .85rem; margin-bottom: 1rem; display: none; }
+        .search-box { padding: .55rem .8rem; border: 1px solid #d7d9dd; border-radius: 6px; font-size: .88rem; width: 260px; }
+        .pagination { display: flex; gap: .4rem; justify-content: center; margin-top: 1rem; }
+        .pagination a { padding: .4rem .7rem; border: 1px solid #d7d9dd; border-radius: 6px; font-size: .82rem; text-decoration: none; color: #333; background: #fff; }
+        .pagination a.active { background: #1b1f24; color: #fff; border-color: #1b1f24; }
     </style>
 </head>
 <body>
@@ -49,7 +53,11 @@
         <div id="success-box" class="success-box"></div>
 
         <div class="toolbar">
-            <div><?= count(vars('tenants')) ?> kiracı</div>
+            <div><?= e(vars('total')) ?> kiracı<?= vars('search') ? ' ("' . e(vars('search')) . '" için)' : '' ?></div>
+            <form method="get" style="display:flex;gap:.5rem;">
+                <input type="text" name="q" class="search-box" placeholder="Subdomain, custom domain veya plan ara..." value="<?= e(vars('search')) ?>">
+                <button type="submit" class="primary" style="background:#fff;color:#1b1f24;border:1px solid #d7d9dd;">Ara</button>
+            </form>
             <button class="primary" onclick="document.getElementById('create-modal').classList.add('open')">+ Yeni Kiracı</button>
         </div>
 
@@ -92,12 +100,21 @@
                             <button onclick="setStatus(<?= e($tenant['id']) ?>, 'active')">Aktifleştir</button>
                         <?php endif; ?>
                         <button onclick="openPlanModal(<?= e($tenant['id']) ?>, '<?= e($tenant['plan'] ?? '') ?>', '<?= e($tenant['trial_ends_at'] ?? '') ?>', '<?= e($tenant['license_expires_at'] ?? '') ?>')">Plan/Lisans</button>
+                        <button onclick="resetAdminPassword(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Şifre Sıfırla</button>
                         <button class="danger" onclick="openDeleteModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Sil</button>
                     </td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
+
+        <?php if (vars('total_pages') > 1): ?>
+            <div class="pagination">
+                <?php for ($i = 1; $i <= vars('total_pages'); $i++): ?>
+                    <a href="?q=<?= urlencode(vars('search')) ?>&page=<?= $i ?>" class="<?= $i === vars('page') ? 'active' : '' ?>"><?= $i ?></a>
+                <?php endfor; ?>
+            </div>
+        <?php endif; ?>
     </main>
 
     <!-- Create modal -->
@@ -203,8 +220,28 @@
         });
 
         function setStatus(tenantId, status) {
+            const verb = status === 'suspended' ? 'askıya almak' : 'aktifleştirmek';
+            if (!confirm('Bu kiracıyı ' + verb + ' istediğinize emin misiniz?')) {
+                return;
+            }
+
             post('<?= site_url('superadmin_tenants/update_status') ?>', { tenant_id: tenantId, status: status })
                 .then((data) => { if (data.success) window.location.reload(); else alert(data.message || 'Hata'); });
+        }
+
+        function resetAdminPassword(tenantId, subdomain) {
+            if (!confirm('"' + subdomain + '" kiracısının administrator şifresini sıfırlamak istediğinize emin misiniz?')) {
+                return;
+            }
+
+            post('<?= site_url('superadmin_tenants/reset_admin_password') ?>', { tenant_id: tenantId })
+                .then((data) => {
+                    if (data.success) {
+                        showSuccess('Yeni şifre: <strong>' + data.new_password + '</strong> (administrator kullanıcı adıyla)');
+                    } else {
+                        alert(data.message || 'Hata');
+                    }
+                });
         }
 
         function openPlanModal(tenantId, plan, trialEndsAt, licenseExpiresAt) {

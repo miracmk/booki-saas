@@ -98,4 +98,41 @@ class Customer_portal extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Self-service password change - the admin who assigns a customer's initial login
+     * (Customers::set_login()) has no way to hand over anything but that one password, so this is
+     * the only way a customer can ever set their own. "Forgot password" is deliberately NOT built -
+     * this deployment's SMTP isn't configured yet (see README's known limitations), so a reset email
+     * couldn't be sent anyway.
+     */
+    public function change_password(): void
+    {
+        try {
+            method('post');
+
+            check('current_password', 'string');
+            check('new_password', 'string');
+
+            $customer_id = (int) session('user_id');
+            $current_password = (string) request('current_password');
+            $new_password = (string) request('new_password');
+
+            if (strlen($new_password) < 8) {
+                throw new InvalidArgumentException('Yeni şifre en az 8 karakter olmalı.');
+            }
+
+            $settings = $this->db->get_where('user_settings', ['id_users' => $customer_id])->row_array();
+
+            if (!$settings || !verify_password($settings['salt'], $current_password, $settings['password'])) {
+                throw new InvalidArgumentException('Mevcut şifre yanlış.');
+            }
+
+            $this->customers_model->set_login_credentials($customer_id, $settings['username'], $new_password);
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }
