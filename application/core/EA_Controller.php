@@ -163,6 +163,7 @@ class EA_Controller extends CI_Controller
         $host = preg_replace('/:\d+$/', '', $host); // strip a port, if present
         $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
         $superadmin_domain = getenv('SUPERADMIN_DOMAIN') ?: 'reservationadmin.kibusiness.co';
+        $marketplace_domain = getenv('MARKETPLACE_DOMAIN') ?: 'reservation.kibusiness.co';
 
         // Ki Reservation (2026-08-26) - SaaS admin panel (reservationadmin.kibusiness.co): a completely
         // separate host from any tenant, never resolves to one - stays on the master DB for its whole
@@ -170,6 +171,17 @@ class EA_Controller extends CI_Controller
         // reached on this host 404s, same principle as Portal.php's bare-app-domain exception below.
         if ($host === $superadmin_domain) {
             if (str_starts_with(strtolower((string) $this->router->class), 'superadmin')) {
+                return;
+            }
+
+            abort(404, 'Not Found');
+        }
+
+        // Ki Reservation (2026-08-27) - Marketplace discovery portal (reservation.kibusiness.co): reads
+        // from the master DB's `tenants` and `reviews` tables. Same host/controller exception pattern as
+        // superadmin above - never tenant-resolves, stays on master DB.
+        if ($host === $marketplace_domain) {
+            if (strtolower((string) $this->router->class) === 'marketplace') {
                 return;
             }
 

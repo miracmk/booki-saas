@@ -959,10 +959,18 @@ class Providers_model extends EA_Model
      *
      * @return array Returns an array of providers.
      */
-    public function get_available_providers(bool $without_private = false): array
+    public function get_available_providers(bool $without_private = false, ?int $branch_id = null): array
     {
         if ($without_private) {
             $this->db->where('users.is_private', false);
+        }
+
+        // Multi-branch support: apply branch filter only if provided and branch count is > 1
+        if ($branch_id !== null) {
+            $this->load->model('branches_model');
+            if ($this->branches_model->count_active() > 1) {
+                $this->db->where('users.id_branches', $branch_id);
+            }
         }
 
         $providers = $this->db

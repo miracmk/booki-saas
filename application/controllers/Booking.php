@@ -74,6 +74,8 @@ class Booking extends EA_Controller
         $this->load->model('settings_model');
         $this->load->model('consents_model');
         $this->load->model('stations_model'); // Salon Flora customization
+        $this->load->model('payment_settings_model'); // Ki Reservation payment infrastructure
+        $this->load->model('payment_transactions_model'); // Ki Reservation payment infrastructure
 
         $this->load->library('timezones');
         $this->load->library('synchronization');
@@ -186,6 +188,7 @@ class Booking extends EA_Controller
         $require_zip_code = setting('require_zip_code');
         $display_notes = setting('display_notes');
         $require_notes = setting('require_notes');
+        $ai_assistant_enabled = (bool) setting('ai_assistant_enabled');
         $display_cookie_notice = setting('display_cookie_notice');
         $cookie_notice_content = setting('cookie_notice_content');
         $display_terms_and_conditions = setting('display_terms_and_conditions');
@@ -358,6 +361,7 @@ class Booking extends EA_Controller
             'appointment_data' => $appointment,
             'provider_data' => $provider ? filter_sensitive_user_data($provider) : null,
             'customer_data' => $customer,
+            'ai_assistant_enabled' => $ai_assistant_enabled,
         ]);
 
         $this->load->view('pages/booking');
@@ -602,6 +606,70 @@ class Booking extends EA_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
 
+            // Ki Reservation payment infrastructure - create payment intent if deposits are required and a gateway is active
+            $payment_intent = null;
+
+            try {
+                $payment_settings = $this->payment_settings_model->get_settings();
+
+                if ($payment_settings['require_deposit'] && $payment_settings['active_gateway'] !== 'none') {
+                    $payment_gateway = Payment_gateway_factory::make($payment_settings);
+
+                    if ($payment_gateway !== null) {
+                        // Calculate deposit amount
+                        $deposit_amount = (float) ($service['price'] ?? 0);
+
+                        if ($payment_settings['deposit_type'] === 'percentage') {
+                            $deposit_amount = $deposit_amount * ($payment_settings['deposit_value'] / 100);
+                        } else {
+                            $deposit_amount = (float) $payment_settings['deposit_value'];
+                        }
+
+                        // Create payment intent
+                        $intent_response = $payment_gateway->create_payment_intent(
+                            $deposit_amount,
+                            'TRY',
+                            [
+                                'appointment_id' => $appointment['id'],
+                                'customer_id' => $customer['id'],
+                                'customer_name' => $customer['first_name'] ?? '',
+                                'customer_surname' => $customer['last_name'] ?? '',
+                                'customer_email' => $customer['email'] ?? '',
+                                'customer_phone' => $customer['phone_number'] ?? '',
+                                'customer_address' => $customer['address'] ?? '',
+                                'customer_city' => $customer['city'] ?? '',
+                                'customer_zip' => $customer['zip_code'] ?? '',
+                            ],
+                        );
+
+                        // Save transaction record
+                        $transaction_id = $this->payment_transactions_model->save([
+                            'id_appointments' => $appointment['id'],
+                            'id_users' => $customer['id'],
+                            'gateway' => $payment_settings['active_gateway'],
+                            'intent_id' => $intent_response['intent_id'] ?? null,
+                            'amount' => $deposit_amount,
+                            'currency' => 'TRY',
+                            'status' => 'pending',
+                            'type' => 'deposit',
+                            'raw_response' => $intent_response['raw_response'] ?? null,
+                        ]);
+
+                        $payment_intent = [
+                            'transaction_id' => $transaction_id,
+                            'intent_id' => $intent_response['intent_id'] ?? null,
+                            'amount' => $deposit_amount,
+                            'gateway' => $payment_settings['active_gateway'],
+                            'checkout_form' => $intent_response['checkout_form'] ?? null,
+                        ];
+                    }
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'Booking::register - payment intent creation failed: ' . $e->getMessage());
+                // Don't fail the entire booking - just log the payment error
+                // Payment can be processed separately or manually
+            }
+
             $company_color = setting('company_color');
 
             $settings = [
@@ -631,6 +699,12 @@ class Booking extends EA_Controller
                 'appointment_id' => $appointment['id'],
                 'appointment_hash' => $appointment['hash'],
             ];
+
+            // Add payment info to response if payment was required
+            if ($payment_intent !== null) {
+                $response['payment_required'] = true;
+                $response['payment_intent'] = $payment_intent;
+            }
 
             json_response($response);
         } catch (Throwable $e) {

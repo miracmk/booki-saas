@@ -515,4 +515,19 @@ class Users_model extends EA_Model
 
         return $this->db->get_where('user_settings', ['username' => $username])->num_rows() === 0;
     }
+
+    /**
+     * Set the last contact channel for a user (for CRM tracking).
+     * Called when an inbound message is received via Telegram, WhatsApp, etc.,
+     * indicating the customer's preferred contact method.
+     *
+     * @param int $user_id User ID
+     * @param string $channel Channel name (e.g. 'telegram', 'whatsapp', 'email', 'phone')
+     *
+     * @return void
+     */
+    public function set_last_contact_channel(int $user_id, string $channel): void
+    {
+        $this->db->update('users', ['last_contact_channel' => $channel], ['id' => $user_id]);
+    }
 }

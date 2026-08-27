@@ -74,6 +74,9 @@ const PRIV_WEBHOOKS = 'webhooks';
 const PRIV_BLOCKED_PERIODS = 'blocked_periods';
 const PRIV_STATIONS = 'stations'; // Salon Flora customization
 const PRIV_REPORTS = 'reports'; // Salon Flora customization
+const PRIV_BRANCHES = 'branches'; // Ki Reservation customization (2026-08-27)
+const PRIV_PACKAGES = 'packages'; // Ki Reservation customization (2026-08-27)
+const PRIV_PRODUCTS = 'products'; // Ki Reservation customization (2026-08-27)
 
 const DATE_FORMAT_DMY = 'DMY';
 const DATE_FORMAT_MDY = 'MDY';

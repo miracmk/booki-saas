@@ -205,13 +205,16 @@ class Appointments_model extends EA_Model
      * mate" provider (a different provider assigned to the same physical station) already has an appointment
      * during the requested date, so the slot can be considered unavailable for the current provider too.
      *
+     * Multi-branch support: optional branch filter for multi-branch deployments (null = no filter).
+     *
      * @param array $provider_ids Provider (user) IDs to check.
      * @param string $date Date (Y-m-d).
      * @param int|null $exclude_appointment_id Exclude an appointment from the result (e.g. when editing it).
+     * @param int|null $branch_id Optional branch filter (null = no filter, include all branches).
      *
      * @return array Returns an array of appointments.
      */
-    public function get_for_provider_ids(array $provider_ids, string $date, ?int $exclude_appointment_id = null): array
+    public function get_for_provider_ids(array $provider_ids, string $date, ?int $exclude_appointment_id = null, ?int $branch_id = null): array
     {
         if (empty($provider_ids)) {
             return [];
@@ -225,6 +228,14 @@ class Appointments_model extends EA_Model
 
         if ($exclude_appointment_id) {
             $this->db->where('id !=', (int) $exclude_appointment_id);
+        }
+
+        // Multi-branch support: apply branch filter only if provided and branch count is > 1
+        if ($branch_id !== null) {
+            $this->load->model('branches_model');
+            if ($this->branches_model->count_active() > 1) {
+                $this->db->where('id_branches', $branch_id);
+            }
         }
 
         $appointments = $this->db->get('appointments')->result_array();
@@ -789,11 +800,20 @@ class Appointments_model extends EA_Model
         string $start_datetime,
         string $end_datetime,
         ?int $exclude_appointment_id = null,
+        ?int $branch_id = null,
     ): bool {
         $this->db->select('id')->from('appointments')->where('id_users_provider', $provider_id);
 
         if ($exclude_appointment_id) {
             $this->db->where('id !=', $exclude_appointment_id);
+        }
+
+        // Multi-branch support: apply branch filter only if provided and branch count is > 1
+        if ($branch_id !== null) {
+            $this->load->model('branches_model');
+            if ($this->branches_model->count_active() > 1) {
+                $this->db->where('id_branches', $branch_id);
+            }
         }
 
         // Check for overlapping appointments:
@@ -1114,6 +1134,7 @@ class Appointments_model extends EA_Model
         string $start_datetime,
         string $end_datetime,
         ?int $exclude_appointment_id = null,
+        ?int $branch_id = null,
     ): bool {
         // Salon Flora customization: a station is now tied to SERVICES, not to a fixed set of providers - it's a
         // shared physical resource (room/table), so ANY appointment using it (regardless of which provider) blocks
@@ -1130,6 +1151,14 @@ class Appointments_model extends EA_Model
 
         if ($exclude_appointment_id) {
             $this->db->where('id !=', $exclude_appointment_id);
+        }
+
+        // Multi-branch support: apply branch filter only if provided and branch count is > 1
+        if ($branch_id !== null) {
+            $this->load->model('branches_model');
+            if ($this->branches_model->count_active() > 1) {
+                $this->db->where('id_branches', $branch_id);
+            }
         }
 
         return $this->db
@@ -1265,4 +1294,64 @@ class Appointments_model extends EA_Model
 
         return $appointments;
     }
+
+    /**
+     * Trigger auto-invoice creation if enabled for a completed appointment.
+     *
+     * This method checks if automatic invoicing is enabled in accounting settings,
+     * retrieves the appointment and customer details, and attempts to create an invoice
+     * via the configured connector (e.g., Paraşüt). Any errors are logged but do NOT
+     * block the appointment workflow - invoicing failures are non-fatal.
+     *
+     * Note: This is a skeleton method with no call points yet. Future integration will
+     * invoke this at appointment completion or status transitions. Currently safe to call
+     * from any business logic without affecting existing flows.
+     *
+     * @param int $appointment_id Appointment ID to create an invoice for.
+     *
+     * @return void Errors are logged, never thrown.
+     */
+    public function trigger_auto_invoice_if_enabled(int $appointment_id): void
+    {
+        try {
+            $this->load->model('accounting_settings_model');
+            $this->load->library('accounting/parasut_connector');
+
+            // Check if auto-invoicing is enabled
+            $connection = $this->accounting_settings_model->get_connection();
+
+            if (!$connection || !$connection['auto_invoice_enabled']) {
+                return; // Auto-invoicing is disabled
+            }
+
+            // Verify connection is valid
+            if (!$this->parasut_connector->is_connected()) {
+                log_message('warning', 'Accounting connection is not active, skipping auto-invoice for appointment ' . $appointment_id);
+                return;
+            }
+
+            // Fetch appointment and customer details
+            $appointment = $this->find($appointment_id);
+            $this->load->model('customers_model');
+            $customer = $this->customers_model->find($appointment['id_users_customer']);
+
+            if (!$appointment || !$customer) {
+                log_message('error', 'Could not find appointment or customer for auto-invoice, appointment_id=' . $appointment_id);
+                return;
+            }
+
+            // Attempt invoice creation
+            $external_invoice_id = $this->parasut_connector->create_invoice($appointment, $customer);
+
+            log_message(
+                'info',
+                'Auto-invoice created successfully for appointment ' . $appointment_id .
+                ', external_id=' . $external_invoice_id,
+            );
+        } catch (Throwable $e) {
+            // Log the error but do not rethrow - invoicing failure is not a business-critical failure
+            log_message('error', 'Auto-invoice creation failed for appointment ' . $appointment_id . ': ' . $e->getMessage());
+        }
+    }
 }
+

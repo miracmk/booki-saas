@@ -81,6 +81,8 @@ class Calendar extends EA_Controller
         $this->load->model('providers_model');
         $this->load->model('roles_model');
         $this->load->model('stations_model'); // Salon Flora customization
+        $this->load->model('packages_model'); // Multi-session packages
+        $this->load->model('products_model'); // Inventory management
 
         $this->load->library('accounts');
         $this->load->library('google_sync');
@@ -911,6 +913,23 @@ class Calendar extends EA_Controller
                 $deviation_type === 'early' ? $early_exit_approved_by : null,
             );
 
+            // Multi-session package tracking: consume a session if an active package exists
+            // for this customer/service combination. Do not fail if no package is found or
+            // if the consumption fails - packages are optional.
+            try {
+                $active_package = $this->packages_model->get_active_for_customer_service(
+                    (int) $appointment['id_users_customer'],
+                    (int) $appointment['id_services'],
+                );
+
+                if ($active_package) {
+                    $this->packages_model->consume_session((int) $active_package['id'], $appointment_id);
+                }
+            } catch (Throwable $package_error) {
+                // Log but do not fail the checkout
+                log_message('warning', 'Package consumption failed for appointment ' . $appointment_id . ': ' . $package_error->getMessage());
+            }
+
             json_response([
                 'success' => true,
                 'appointment' => $this->appointments_model->find($appointment_id),
@@ -992,6 +1011,14 @@ class Calendar extends EA_Controller
 
             if (!can('edit', PRIV_APPOINTMENTS)) {
                 abort(403, 'Forbidden');
+            }
+
+            // Restore package session if one was consumed (before clearing times)
+            try {
+                $this->packages_model->restore_session($appointment_id);
+            } catch (Throwable $package_error) {
+                // Log but do not fail the session clear
+                log_message('warning', 'Package session restore failed for appointment ' . $appointment_id . ': ' . $package_error->getMessage());
             }
 
             $this->appointments_model->set_actual_datetime($appointment_id, 'actual_start_datetime', null);

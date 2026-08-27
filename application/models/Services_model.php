@@ -308,10 +308,22 @@ class Services_model extends EA_Model
      *
      * @return array Returns an array of services.
      */
-    public function get_available_services(bool $without_private = false): array
+    public function get_available_services(bool $without_private = false, ?int $branch_id = null): array
     {
         if ($without_private) {
             $this->db->where('services.is_private', false);
+        }
+
+        // Multi-branch support: apply branch filter only if provided and branch count is > 1
+        // TODO: Services themselves are tenant-wide (not branch-specific) in this PR - branch-specific
+        // service availability can be added in a future iteration if needed.
+        if ($branch_id !== null) {
+            $this->load->model('branches_model');
+            if ($this->branches_model->count_active() > 1) {
+                // For now, this is just a placeholder - services are shared across all branches.
+                // Uncomment/modify once per-branch service restrictions are implemented:
+                // $this->db->where('services.id_branches', $branch_id);
+            }
         }
 
         $services = $this->db

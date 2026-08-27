@@ -165,6 +165,23 @@
                             </div>
                         </div>
 
+                        <h5 class="mb-3 fw-light">AI Assistant (Beta)</h5>
+
+                        <div class="mb-5">
+                            <div class="form-check">
+                                <input id="ai-assistant-enabled" type="checkbox" data-field="ai_assistant_enabled"
+                                       class="form-check-input">
+                                <label for="ai-assistant-enabled" class="form-check-label">
+                                    Enable AI Assistant
+                                </label>
+                            </div>
+                            <div class="form-text text-muted">
+                                <small>
+                                    Enable the AI Assistant widget on the booking page (voice-to-text transcription, coming soon).
+                                </small>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-start align-items-center mb-3">
                             <h5 class="mb-0 me-3 fw-light">
                                 <?= lang('appointment_status_options') ?>

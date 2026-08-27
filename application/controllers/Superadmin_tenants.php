@@ -225,6 +225,59 @@ class Superadmin_tenants extends EA_Controller
     }
 
     /**
+     * Ki Reservation (2026-08-27) - Update tenant's marketplace profile settings. Only updates the
+     * marketplace-related columns without affecting plan/license tracking (which update_plan() handles).
+     */
+    public function update_marketplace_profile(): void
+    {
+        try {
+            method('post');
+
+            check('tenant_id', 'numeric');
+            check('marketplace_opt_in', 'numeric|null');
+            check('category', 'string|null');
+            check('city', 'string|null');
+            check('cover_image_url', 'string|null');
+            check('short_description', 'string|null');
+
+            $tenant_id = (int) request('tenant_id');
+            $marketplace_opt_in = request('marketplace_opt_in') ? 1 : 0;
+            $category = trim((string) request('category'));
+            $city = trim((string) request('city'));
+            $cover_image_url = trim((string) request('cover_image_url'));
+            $short_description = trim((string) request('short_description'));
+
+            // Validate category and city lengths
+            if (strlen($category) > 64) {
+                throw new InvalidArgumentException('Kategori adı 64 karakterden uzun olamaz.');
+            }
+
+            if (strlen($city) > 64) {
+                throw new InvalidArgumentException('Şehir adı 64 karakterden uzun olamaz.');
+            }
+
+            if (strlen($cover_image_url) > 255) {
+                throw new InvalidArgumentException('Resim URL\'i 255 karakterden uzun olamaz.');
+            }
+
+            $update_data = [
+                'marketplace_opt_in' => $marketplace_opt_in,
+                'category' => $category !== '' ? $category : null,
+                'city' => $city !== '' ? $city : null,
+                'cover_image_url' => $cover_image_url !== '' ? $cover_image_url : null,
+                'short_description' => $short_description !== '' ? $short_description : null,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            $this->db->update('tenants', $update_data, ['id' => $tenant_id]);
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
      * A tenant's admin password can't be viewed again once set (it's only ever stored hashed - see
      * seed()'s docblock) - this is the "I lost it, and console access isn't practical" recovery path:
      * generate a fresh one, save it, hand it back ONCE, same as tenant creation does.

@@ -48,6 +48,27 @@
         </div>
 
         <div class="card">
+            <h2>Kalan Seanslarım</h2>
+            <?php if (empty(vars('customer_packages'))): ?>
+                <div class="empty">Hiçbir paketiniz yok.</div>
+            <?php else: ?>
+                <?php foreach (vars('customer_packages') as $pkg): ?>
+                    <div class="appt">
+                        <div class="when">
+                            Hizmet: <?= e($pkg['id_services']) ?> — Kalan: <strong><?= e($pkg['total_sessions'] - $pkg['used_sessions']) ?>/<?= e($pkg['total_sessions']) ?></strong>
+                        </div>
+                        <div class="meta">
+                            Durum: <?= e($pkg['status']) ?>
+                            <?php if ($pkg['expires_at']): ?>
+                                — Sona Eriş: <?= e(date('d.m.Y', strtotime($pkg['expires_at']))) ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+
+        <div class="card">
             <h2>Geçmiş Randevularım</h2>
             <?php if (empty(vars('past_appointments'))): ?>
                 <div class="empty">Geçmiş randevunuz yok.</div>

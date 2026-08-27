@@ -27,6 +27,7 @@ class Customer_portal extends EA_Controller
         $this->load->model('customers_model');
         $this->load->model('services_model');
         $this->load->model('providers_model');
+        $this->load->model('packages_model'); // Multi-session packages
 
         if (!session('user_id') || session('role_slug') !== DB_SLUG_CUSTOMER) {
             redirect('login');
@@ -58,12 +59,16 @@ class Customer_portal extends EA_Controller
             return $appointment;
         };
 
+        // Get customer's active packages
+        $customer_packages = $this->packages_model->get_for_customer($customer_id);
+
         html_vars([
             'page_title' => 'Randevularım',
             'csrf_token' => $this->security->get_csrf_hash(),
             'customer' => $customer,
             'upcoming_appointments' => array_map($decorate, $upcoming),
             'past_appointments' => array_map($decorate, $past),
+            'customer_packages' => $customer_packages,
         ]);
 
         $this->load->view('pages/customer_portal');

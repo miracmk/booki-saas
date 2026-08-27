@@ -388,10 +388,11 @@ class Stations_model extends EA_Model
         string $start_datetime,
         string $end_datetime,
         ?int $exclude_appointment_id = null,
+        ?int $branch_id = null,
     ): bool {
         $this->load->model('appointments_model');
 
-        return !$this->appointments_model->has_station_conflict($station_id, $start_datetime, $end_datetime, $exclude_appointment_id);
+        return !$this->appointments_model->has_station_conflict($station_id, $start_datetime, $end_datetime, $exclude_appointment_id, $branch_id);
     }
 
     /**
@@ -399,10 +400,13 @@ class Stations_model extends EA_Model
      * period. Used to populate the station dropdown with "available now" options (and to mark occupied ones as
      * unavailable rather than hiding them, so staff understand WHY a station is missing).
      *
+     * Multi-branch support: optional branch filter for multi-branch deployments (null = no filter).
+     *
      * @param array $candidate_station_ids
      * @param string $start_datetime
      * @param string $end_datetime
      * @param int|null $exclude_appointment_id
+     * @param int|null $branch_id Optional branch filter (null = no filter).
      *
      * @return array Free station IDs (subset of the candidates).
      */
@@ -411,11 +415,12 @@ class Stations_model extends EA_Model
         string $start_datetime,
         string $end_datetime,
         ?int $exclude_appointment_id = null,
+        ?int $branch_id = null,
     ): array {
         return array_values(
             array_filter(
                 $candidate_station_ids,
-                fn($station_id) => $this->is_station_free((int) $station_id, $start_datetime, $end_datetime, $exclude_appointment_id),
+                fn($station_id) => $this->is_station_free((int) $station_id, $start_datetime, $end_datetime, $exclude_appointment_id, $branch_id),
             ),
         );
     }

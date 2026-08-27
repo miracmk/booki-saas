@@ -250,6 +250,12 @@ class Console extends EA_Controller
             'trial_ends_at' => ['type' => 'DATETIME', 'null' => true],
             'license_expires_at' => ['type' => 'DATETIME', 'null' => true],
             'suspended_at' => ['type' => 'DATETIME', 'null' => true],
+            // Ki Reservation (2026-08-27) - Marketplace support
+            'marketplace_opt_in' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'null' => false],
+            'category' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'city' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'cover_image_url' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+            'short_description' => ['type' => 'TEXT', 'null' => true],
         ];
 
         foreach ($tenant_columns as $column => $spec) {
@@ -257,6 +263,40 @@ class Console extends EA_Controller
                 $this->dbforge->add_column('tenants', [$column => $spec]);
                 echo 'Added "tenants.' . $column . '" column.' . PHP_EOL;
             }
+        }
+
+        // Ki Reservation (2026-08-27) - Marketplace reviews table (master DB, aggregates ratings from all tenants)
+        if (!$this->db->table_exists('reviews')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_tenants' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'customer_name' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'customer_phone_hash' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'rating' => ['type' => 'TINYINT', 'constraint' => 1, 'null' => false],
+                'comment' => ['type' => 'TEXT', 'null' => true],
+                'source_appointment_hash' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'status' => [
+                    'type' => 'ENUM',
+                    'constraint' => ['pending', 'published', 'rejected'],
+                    'default' => 'pending',
+                    'null' => false,
+                ],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('reviews', true, ['engine' => 'InnoDB']);
+
+            $this->db->query(
+                'ALTER TABLE ' .
+                    $this->db->dbprefix('reviews') .
+                    ' ADD INDEX idx_reviews_tenant (id_tenants),' .
+                    ' ADD UNIQUE INDEX idx_reviews_source_hash (source_appointment_hash)',
+            );
+
+            echo 'Created "reviews" table.' . PHP_EOL;
+        } else {
+            echo '"reviews" table already exists, skipped.' . PHP_EOL;
         }
 
         // Ki Reservation (2026-08-26) - "Ki Business Google OAuth": a platform-wide key/value settings

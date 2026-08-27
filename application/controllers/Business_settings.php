@@ -22,7 +22,8 @@ class Business_settings extends EA_Controller
     public array $allowed_setting_fields = ['id', 'name', 'value'];
 
     public array $optional_setting_fields = [
-        //
+        'ai_assistant_enabled',
+        'loyalty_points_per_appointment',
     ];
 
     /**

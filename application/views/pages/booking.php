@@ -55,6 +55,14 @@
 
 <?php endif; ?>
 
+<!-- AI Chat Widget (conditional) -->
+
+<?php if (vars('ai_assistant_enabled')): ?>
+    <?php component('ai_chat_widget', [
+        'ai_assistant_enabled' => vars('ai_assistant_enabled'),
+    ]); ?>
+<?php endif; ?>
+
 <?php end_section('content'); ?>
 
 <?php section('scripts'); ?>
