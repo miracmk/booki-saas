@@ -39,12 +39,12 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 
 ## Uygulama Planı — Öncelik Dalgaları
 
-### 🔲 Dalga 1 — Gelir ve Operasyon Temeli (Faz 7·8·9·12·13)
+### ✅ Dalga 1 — Gelir ve Operasyon Temeli (Faz 7·8·9·12·13) — TAMAMLANDI (2026-08-28, izole Docker'da doğrulandı, canlıya deploy edilmedi)
 - [x] Recurring Appointments — `id_recurrence_group` nullable kolon, seri randevu mantığı (commit `1d8e930`, izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
 - [x] Waitlist — dolu slota katılma, boşalınca SMS/WhatsApp bildirimi (commit `b2542c9`, izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
 - [x] Memberships — abonelik planı, kullanım hakları (commit `40ab0b5`; otomatik ÇEVRİMİÇİ yenileme yok - gateway'de kayıtlı-kart/off-session tahsilat yeteneği olmadığından staff explicit `renew()` ile kaydediyor, lazy past_due/expired geçişi var; izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
 - [x] Invoicing (iç) — invoice/invoice_items, appointment+package+product birleşik fatura (commit `fe6cbc3`, salt-okunur agregasyon, payment_transactions'a dokunmuyor; izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
-- [ ] POS — order/order_items abstraction, mevcut payment gateway'lere bağlı
+- [x] POS — order/order_items abstraction, mevcut payment gateway'lere bağlı (commit `e1a0588`; tek riskli migration burada uygulandı - `payment_transactions` ENUM genişletmesi, mevcut deposit akışı izole Docker'da regresyonsuz doğrulandı; henüz canlıya deploy edilmedi)
 
 **Risk:** Invoice+POS mevcut `Payment_transactions` ile çakışmamalı — additive, feature-flagged (Faz 1 deposit akışı gibi).
 
