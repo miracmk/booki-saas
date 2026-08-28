@@ -586,4 +586,34 @@ $lang['about_app_premium'] = 'We offer end-to-end services for self-hosted softw
 $lang['go_premium'] = 'Go Premium';
 $lang['notify_users_on_create_question'] = 'Would you like to send out a notification about this change?';
 $lang['notify_users_on_delete_question'] = 'Would you like to send out a notification about this change?';
+
+// Ki Reservation (Dalga 2) - MFA/TOTP.
+$lang['two_factor_authentication'] = 'Two-Factor Authentication';
+$lang['enter_authenticator_code'] = 'Enter the 6-digit code from your authenticator app.';
+$lang['verification_code'] = 'Verification Code';
+$lang['use_backup_code_if_unavailable'] = "If you can't access your app, you may use one of your backup codes instead.";
+$lang['invalid_totp_code'] = 'Invalid verification code.';
+$lang['setup_two_factor'] = 'Set Up Two-Factor Authentication';
+$lang['setup_authenticator'] = 'Set Up Authenticator App';
+$lang['scan_with_authenticator'] = 'Scan the QR code below with your authenticator app (Google Authenticator, Authy, etc).';
+$lang['or_enter_manually'] = 'Or enter this code manually into your app:';
+$lang['enter_verification_code'] = 'Enter the 6-digit code shown in your app to confirm.';
+$lang['verification_code_hint'] = '6-digit code';
+$lang['enable'] = 'Enable';
+$lang['disable'] = 'Disable';
+$lang['disabled'] = 'Disabled';
+$lang['disable_two_factor'] = 'Disable Two-Factor Authentication';
+$lang['disable_totp_warning'] = 'Disabling this will lower your account\'s security level.';
+$lang['password_required_for_security'] = 'For security, please re-enter your password.';
+$lang['confirm_password'] = 'Confirm Password';
+$lang['backup_codes'] = 'Backup Codes';
+$lang['backup_codes_shown_once'] = 'These codes are shown only once - please save them somewhere safe.';
+$lang['copy_codes'] = 'Copy Codes';
+$lang['regenerate'] = 'Regenerate';
+$lang['regenerate_backup_codes'] = 'Regenerate Backup Codes';
+$lang['regenerate_codes_help'] = 'Generating new codes invalidates your old backup codes.';
+$lang['totp_enabled_message'] = 'Two-factor authentication is active.';
+$lang['totp_help_text'] = 'Add an extra layer of security to your account - a code from your phone will be required at login, in addition to your password.';
+$lang['cancel'] = 'Cancel';
+$lang['close'] = 'Close';
 // End

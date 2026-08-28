@@ -174,6 +174,214 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Two-Factor Authentication Section -->
+                        <div class="border-top pt-4 mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-shield-alt text-primary me-2"></i>
+                                    <?= lang('two_factor_authentication') ?>
+                                </h5>
+                                <span id="totp-status" class="badge bg-secondary">
+                                    <?= lang('disabled') ?>
+                                </span>
+                            </div>
+
+                            <p class="small text-muted mb-3">
+                                <?= lang('totp_help_text') ?>
+                            </p>
+
+                            <div id="totp-disabled-content">
+                                <button type="button" id="totp-setup-btn" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-lock me-1"></i>
+                                    <?= lang('setup_two_factor') ?>
+                                </button>
+                            </div>
+
+                            <div id="totp-enabled-content" class="d-none">
+                                <div class="alert alert-info small mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <?= lang('totp_enabled_message') ?>
+                                </div>
+
+                                <div class="btn-group" role="group">
+                                    <button type="button" id="totp-regenerate-btn" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-sync-alt me-1"></i>
+                                        <?= lang('regenerate_backup_codes') ?>
+                                    </button>
+                                    <button type="button" id="totp-disable-btn" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash me-1"></i>
+                                        <?= lang('disable_two_factor') ?>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- TOTP Setup Modal -->
+                            <div id="totp-setup-modal" class="modal fade" tabindex="-1">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h6 class="modal-title">
+                                                <?= lang('setup_authenticator') ?>
+                                            </h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <div id="totp-qr-section" class="mb-3">
+                                                <p class="small text-muted mb-2">
+                                                    <?= lang('scan_with_authenticator') ?>
+                                                </p>
+                                                <div id="totp-qr-code" class="text-center"></div>
+
+                                                <div class="mt-3">
+                                                    <p class="small text-muted mb-2">
+                                                        <?= lang('or_enter_manually') ?>
+                                                    </p>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="text" id="totp-secret-display" class="form-control" readonly>
+                                                        <button class="btn btn-outline-secondary" type="button" id="totp-copy-secret">
+                                                            <i class="fas fa-copy"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div id="totp-verify-section">
+                                                <label class="form-label small fw-medium">
+                                                    <?= lang('enter_verification_code') ?>
+                                                </label>
+                                                <input type="text" id="totp-verify-code" class="form-control form-control-sm text-center" placeholder="000000" inputmode="numeric">
+                                                <small class="text-muted d-block mt-2">
+                                                    <?= lang('verification_code_hint') ?>
+                                                </small>
+                                            </div>
+
+                                            <div id="totp-error-message" class="alert alert-danger small mt-2 d-none"></div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                                                <?= lang('cancel') ?>
+                                            </button>
+                                            <button type="button" id="totp-confirm-btn" class="btn btn-primary btn-sm">
+                                                <?= lang('enable') ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Backup Codes Modal -->
+                            <div id="backup-codes-modal" class="modal fade" tabindex="-1">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h6 class="modal-title">
+                                                <?= lang('backup_codes') ?>
+                                            </h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <p class="small text-danger fw-medium mb-3">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                <?= lang('backup_codes_shown_once') ?>
+                                            </p>
+
+                                            <div id="backup-codes-list" class="bg-light p-3 rounded small font-monospace mb-3" style="max-height: 200px; overflow-y: auto;">
+                                            </div>
+
+                                            <button type="button" id="backup-codes-copy-btn" class="btn btn-sm btn-outline-secondary w-100">
+                                                <i class="fas fa-copy me-1"></i>
+                                                <?= lang('copy_codes') ?>
+                                            </button>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">
+                                                <?= lang('close') ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Disable TOTP Modal -->
+                            <div id="totp-disable-modal" class="modal fade" tabindex="-1">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h6 class="modal-title">
+                                                <?= lang('disable_two_factor') ?>
+                                            </h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <p class="small mb-3">
+                                                <?= lang('disable_totp_warning') ?>
+                                            </p>
+
+                                            <label class="form-label small fw-medium">
+                                                <?= lang('confirm_password') ?>
+                                            </label>
+                                            <input type="password" id="totp-disable-password" class="form-control form-control-sm" autocomplete="current-password">
+                                            <small class="text-muted d-block mt-2">
+                                                <?= lang('password_required_for_security') ?>
+                                            </small>
+
+                                            <div id="totp-disable-error" class="alert alert-danger small mt-2 d-none"></div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                                                <?= lang('cancel') ?>
+                                            </button>
+                                            <button type="button" id="totp-confirm-disable-btn" class="btn btn-danger btn-sm">
+                                                <?= lang('disable') ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Regenerate Backup Codes Modal -->
+                            <div id="regenerate-backup-codes-modal" class="modal fade" tabindex="-1">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h6 class="modal-title">
+                                                <?= lang('regenerate_backup_codes') ?>
+                                            </h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <p class="small mb-3">
+                                                <?= lang('regenerate_codes_help') ?>
+                                            </p>
+
+                                            <label class="form-label small fw-medium">
+                                                <?= lang('enter_verification_code') ?>
+                                            </label>
+                                            <input type="text" id="regenerate-totp-code" class="form-control form-control-sm text-center" placeholder="000000" inputmode="numeric">
+
+                                            <div id="regenerate-error" class="alert alert-danger small mt-2 d-none"></div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                                                <?= lang('cancel') ?>
+                                            </button>
+                                            <button type="button" id="regenerate-confirm-btn" class="btn btn-primary btn-sm">
+                                                <?= lang('regenerate') ?>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </fieldset>
                 </form>
             </div>

@@ -314,4 +314,370 @@ class Accounts
         );
         return true;
     }
+
+    /**
+     * Check if TOTP is enabled for a user.
+     *
+     * @param int $user_id User ID.
+     *
+     * @return bool
+     */
+    public function totp_is_enabled(int $user_id): bool
+    {
+        $user_settings = $this->CI->db
+            ->select('totp_enabled')
+            ->get_where('user_settings', ['id_users' => $user_id])
+            ->row_array();
+
+        return (bool) ($user_settings['totp_enabled'] ?? false);
+    }
+
+    /**
+     * Create a TOTP challenge token for a user.
+     *
+     * @param int $user_id User ID.
+     * @param string|null $ip_address IP address.
+     *
+     * @return string Plain text token to return to the user.
+     */
+    public function create_totp_challenge(int $user_id, ?string $ip_address = null): string
+    {
+        // Generate a secure random token
+        $token = bin2hex(random_bytes(32));
+
+        // Hash the token for storage
+        $token_hash = hash('sha256', $token);
+
+        // Set expiration to 5 minutes from now
+        $expires = date('Y-m-d H:i:s', strtotime('+5 minutes'));
+
+        // Store the challenge
+        $this->CI->db->insert('totp_challenges', [
+            'id_users' => $user_id,
+            'token_hash' => $token_hash,
+            'expires' => $expires,
+            'attempts' => 0,
+            'ip_address' => $ip_address,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        return $token;
+    }
+
+    /**
+     * Validate a TOTP challenge token.
+     *
+     * @param string $token The plain text token to validate.
+     *
+     * @return array|null Returns the challenge row if valid, null otherwise.
+     */
+    public function validate_totp_challenge(string $token): ?array
+    {
+        $token_hash = hash('sha256', $token);
+
+        $challenge = $this->CI->db
+            ->get_where('totp_challenges', ['token_hash' => $token_hash])
+            ->row_array();
+
+        if (empty($challenge)) {
+            return null;
+        }
+
+        // Check if challenge has expired
+        if (strtotime($challenge['expires']) < time()) {
+            return null;
+        }
+
+        return $challenge;
+    }
+
+    /**
+     * Verify a TOTP code against a user's secret.
+     *
+     * @param int $user_id User ID.
+     * @param string $code The TOTP code to verify.
+     *
+     * @return bool True if valid, false otherwise.
+     */
+    public function verify_totp_code(int $user_id, string $code): bool
+    {
+        $user_settings = $this->CI->db
+            ->select('totp_secret, totp_last_step')
+            ->get_where('user_settings', ['id_users' => $user_id])
+            ->row_array();
+
+        if (empty($user_settings) || empty($user_settings['totp_secret'])) {
+            return false;
+        }
+
+        // Decrypt the TOTP secret
+        $secret = sf_pii_decrypt($user_settings['totp_secret']);
+
+        if (empty($secret)) {
+            return false;
+        }
+
+        // Verify the code using RobThree/TwoFactorAuth library. The constructor's first argument
+        // is a mandatory IQRCodeProvider - NOT the issuer string (confirmed by actually installing
+        // and running this library; the library's own real signature differs from what an
+        // assumed/typical constructor shape would suggest). getQRText()/verifyCode() never call
+        // the provider, so any IQRCodeProvider instance satisfies the constructor here.
+        $tfa = new \RobThree\Auth\TwoFactorAuth($this->totp_qr_provider(), 'Ki Reservation');
+
+        // Verify with ±1 time step window (30s drift each direction)
+        $isValid = $tfa->verifyCode($secret, $code, 1);
+
+        if (!$isValid) {
+            return false;
+        }
+
+        // Check for replay attack (same code within the same time window). $user_settings was
+        // fetched via a raw query, not a model's cast() - totp_last_step comes back as a string
+        // from the DB driver, so a strict === against the int $currentStep would never match,
+        // silently disabling this replay guard. Cast explicitly.
+        $currentStep = intval(time() / 30);
+        $last_step = $user_settings['totp_last_step'] !== null ? (int) $user_settings['totp_last_step'] : null;
+
+        if ($last_step !== null && $last_step === $currentStep) {
+            // Code is being replayed
+            return false;
+        }
+
+        // Update the last step to prevent replay
+        $this->CI->db->update(
+            'user_settings',
+            ['totp_last_step' => $currentStep],
+            ['id_users' => $user_id],
+        );
+
+        return true;
+    }
+
+    /**
+     * Verify a backup code against a user's backup codes.
+     *
+     * @param int $user_id User ID.
+     * @param string $code The backup code to verify.
+     *
+     * @return bool True if valid and removed, false otherwise.
+     */
+    public function verify_backup_code(int $user_id, string $code): bool
+    {
+        $user_settings = $this->CI->db
+            ->select('totp_backup_codes')
+            ->get_where('user_settings', ['id_users' => $user_id])
+            ->row_array();
+
+        if (empty($user_settings) || empty($user_settings['totp_backup_codes'])) {
+            return false;
+        }
+
+        // Decode the JSON array of hashes
+        $backup_codes_hashes = json_decode($user_settings['totp_backup_codes'], true);
+
+        if (!is_array($backup_codes_hashes)) {
+            return false;
+        }
+
+        // Hash the provided code
+        $code_hash = hash('sha256', $code);
+
+        // Check if the code exists in the array
+        $key = array_search($code_hash, $backup_codes_hashes, true);
+
+        if ($key === false) {
+            return false;
+        }
+
+        // Remove the code from the array (single-use)
+        unset($backup_codes_hashes[$key]);
+
+        // Update the backup codes
+        $updated_codes = json_encode(array_values($backup_codes_hashes));
+
+        $this->CI->db->update(
+            'user_settings',
+            ['totp_backup_codes' => $updated_codes],
+            ['id_users' => $user_id],
+        );
+
+        return true;
+    }
+
+    /**
+     * Consume/delete a TOTP challenge after successful verification.
+     *
+     * @param string $token The plain text token.
+     *
+     * @return void
+     */
+    public function consume_totp_challenge(string $token): void
+    {
+        $token_hash = hash('sha256', $token);
+
+        $this->CI->db->delete('totp_challenges', ['token_hash' => $token_hash]);
+    }
+
+    /**
+     * Increment the TOTP challenge attempt counter.
+     *
+     * @param string $token The plain text token.
+     *
+     * @return int The new attempts count. If >= 5, the challenge is deleted.
+     */
+    public function increment_totp_challenge_attempts(string $token): int
+    {
+        $token_hash = hash('sha256', $token);
+
+        $challenge = $this->CI->db
+            ->get_where('totp_challenges', ['token_hash' => $token_hash])
+            ->row_array();
+
+        if (empty($challenge)) {
+            return 0;
+        }
+
+        $new_attempts = $challenge['attempts'] + 1;
+
+        if ($new_attempts >= 5) {
+            // Too many attempts, delete the challenge
+            $this->CI->db->delete('totp_challenges', ['token_hash' => $token_hash]);
+            return 5;
+        }
+
+        // Update the attempts count
+        $this->CI->db->update(
+            'totp_challenges',
+            ['attempts' => $new_attempts],
+            ['token_hash' => $token_hash],
+        );
+
+        return $new_attempts;
+    }
+
+    /**
+     * QR code provider for RobThree\Auth\TwoFactorAuth's constructor. SVG output avoids requiring
+     * the Imagick PHP extension (the library's PNG/GIF/JPEG backends need it, SVG doesn't) - kept
+     * as its own method since the constructor's first argument is easy to get wrong (see the
+     * comments at both call sites).
+     */
+    private function totp_qr_provider(): \RobThree\Auth\Providers\Qr\BaconQrCodeProvider
+    {
+        return new \RobThree\Auth\Providers\Qr\BaconQrCodeProvider(4, '#ffffff', '#000000', 'svg');
+    }
+
+    /**
+     * Generate a new TOTP secret for enrollment.
+     *
+     * @param int $user_id User ID.
+     *
+     * @return array Array with 'secret' (plaintext base32) and 'otpauth_uri'.
+     */
+    public function generate_totp_secret(int $user_id): array
+    {
+        $tfa = new \RobThree\Auth\TwoFactorAuth($this->totp_qr_provider(), 'Ki Reservation');
+
+        // Generate a new secret
+        $secret = $tfa->createSecret(160); // 160 bits for stronger entropy
+
+        // Encrypt and store the secret
+        $encrypted_secret = sf_pii_encrypt($secret);
+
+        // Get user info for the otpauth URI
+        $user = $this->CI->users_model->find($user_id);
+        $user_settings = $this->CI->db
+            ->get_where('user_settings', ['id_users' => $user_id])
+            ->row_array();
+
+        $email = sf_pii_is_encrypted($user['email']) ? sf_pii_decrypt($user['email']) : $user['email'];
+        $username = $user_settings['username'] ?? '';
+
+        // Update user_settings with the encrypted secret (totp_enabled stays 0 for now)
+        $this->CI->db->update(
+            'user_settings',
+            ['totp_secret' => $encrypted_secret],
+            ['id_users' => $user_id],
+        );
+
+        // Generate the otpauth URI
+        $otpauth_uri = $tfa->getQRCodeImageAsDataUri(
+            'Ki Reservation (' . $email . ')',
+            $secret,
+        );
+
+        // Also provide a plain URI for manual entry
+        $plain_uri = 'otpauth://totp/Ki%20Reservation%20(' . urlencode($email) . ')?secret=' . $secret . '&issuer=Ki%20Reservation';
+
+        return [
+            'secret' => $secret,
+            'otpauth_uri' => $otpauth_uri,
+            'plain_uri' => $plain_uri,
+        ];
+    }
+
+    /**
+     * Enable TOTP after successful code verification during enrollment.
+     *
+     * @param int $user_id User ID.
+     * @param string $code The TOTP code to verify.
+     *
+     * @return array Array with 'success' (bool) and 'backup_codes' (array|null).
+     *
+     * @throws InvalidArgumentException If the code is invalid.
+     */
+    public function enable_totp(int $user_id, string $code): array
+    {
+        // Verify the code first
+        if (!$this->verify_totp_code($user_id, $code)) {
+            throw new InvalidArgumentException('Invalid TOTP code.');
+        }
+
+        // Generate 10 backup codes
+        $backup_codes = [];
+        $backup_codes_hashes = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            $code = bin2hex(random_bytes(5)); // 10 character hex string
+            $backup_codes[] = $code;
+            $backup_codes_hashes[] = hash('sha256', $code);
+        }
+
+        // Update user_settings
+        $this->CI->db->update(
+            'user_settings',
+            [
+                'totp_enabled' => 1,
+                'totp_confirmed_at' => date('Y-m-d H:i:s'),
+                'totp_backup_codes' => json_encode($backup_codes_hashes),
+            ],
+            ['id_users' => $user_id],
+        );
+
+        return [
+            'success' => true,
+            'backup_codes' => $backup_codes,
+        ];
+    }
+
+    /**
+     * Disable TOTP for a user.
+     *
+     * @param int $user_id User ID.
+     *
+     * @return void
+     */
+    public function disable_totp(int $user_id): void
+    {
+        $this->CI->db->update(
+            'user_settings',
+            [
+                'totp_secret' => null,
+                'totp_enabled' => 0,
+                'totp_confirmed_at' => null,
+                'totp_backup_codes' => null,
+                'totp_last_step' => null,
+            ],
+            ['id_users' => $user_id],
+        );
+    }
 }

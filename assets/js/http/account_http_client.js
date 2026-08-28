@@ -52,8 +52,81 @@ App.Http.Account = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Setup TOTP (generate secret).
+     *
+     * @return {Object}
+     */
+    function totpSetup() {
+        const url = App.Utils.Url.siteUrl('account/totp_setup');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Enable TOTP (verify code).
+     *
+     * @param {String} code
+     *
+     * @return {Object}
+     */
+    function totpEnable(code) {
+        const url = App.Utils.Url.siteUrl('account/totp_enable');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            code,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Disable TOTP.
+     *
+     * @param {String} password
+     *
+     * @return {Object}
+     */
+    function totpDisable(password) {
+        const url = App.Utils.Url.siteUrl('account/totp_disable');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            password,
+        };
+
+        return $.post(url, data);
+    }
+
+    /**
+     * Regenerate backup codes.
+     *
+     * @param {String} code
+     *
+     * @return {Object}
+     */
+    function totpRegenerateBackupCodes(code) {
+        const url = App.Utils.Url.siteUrl('account/totp_regenerate_backup_codes');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            code,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         save,
         validateUsername,
+        totpSetup,
+        totpEnable,
+        totpDisable,
+        totpRegenerateBackupCodes,
     };
 })();

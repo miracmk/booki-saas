@@ -26,9 +26,13 @@ class Login extends EA_Controller
     {
         parent::__construct();
 
+        $this->load->model('users_model');
+        $this->load->model('roles_model');
+
         $this->load->library('accounts');
         $this->load->library('ldap_client');
         $this->load->library('email_messages');
+        $this->load->library('timezones');
 
         script_vars([
             'dest_url' => session('dest_url', site_url('calendar')),
@@ -156,6 +160,14 @@ class Login extends EA_Controller
                 return;
             }
 
+            // Check if user has TOTP enabled
+            if ($this->accounts->totp_is_enabled((int) $user_data['user_id'])) {
+                $pending_token = $this->accounts->create_totp_challenge((int) $user_data['user_id'], $this->input->ip_address());
+                audit_log('auth.totp_challenge', 'user', (int) $user_data['user_id']);
+                json_response(['success' => true, 'requires_totp' => true, 'pending_token' => $pending_token]);
+                return;
+            }
+
             $this->session->sess_regenerate(true); // Regenerate session ID and delete old session
 
             session($user_data); // Save data in the session.
@@ -168,6 +180,99 @@ class Login extends EA_Controller
             // Ki Reservation (2026-08-26) - "Müşteri Paneli": a customer has no access to /calendar
             // (their role has zero permissions there) - login.js's default dest_url fallback assumes
             // staff, so tell it explicitly where a customer belongs instead.
+            json_response([
+                'success' => true,
+                'redirect_url' => $user_data['role_slug'] === DB_SLUG_CUSTOMER ? site_url('customer_portal') : null,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Verify a TOTP code after a user has passed the initial login stage.
+     */
+    public function verify_totp(): void
+    {
+        try {
+            method('post');
+
+            // Apply stricter rate limiting for TOTP attempts
+            $this->apply_login_rate_limit();
+
+            check('pending_token', 'string');
+            check('code', 'string');
+
+            $pending_token = request('pending_token');
+            $code = request('code');
+
+            // Validate the challenge token
+            $challenge = $this->accounts->validate_totp_challenge($pending_token);
+
+            if (empty($challenge)) {
+                json_response(['success' => false, 'error' => 'expired'], 400);
+                return;
+            }
+
+            $user_id = $challenge['id_users'];
+
+            // Try to verify the TOTP code first
+            $code_valid = $this->accounts->verify_totp_code($user_id, $code);
+
+            // If TOTP code fails, try backup code
+            if (!$code_valid) {
+                $code_valid = $this->accounts->verify_backup_code($user_id, $code);
+            }
+
+            if (!$code_valid) {
+                // Log failed TOTP verification
+                audit_log('auth.totp_failed', 'user', $user_id);
+
+                // Increment attempts
+                $this->accounts->increment_totp_challenge_attempts($pending_token);
+
+                // Add a delay to prevent brute force
+                usleep(random_int(100000, 300000)); // 100-300ms delay
+
+                json_response(['success' => false, 'error' => 'invalid_code'], 400);
+                return;
+            }
+
+            // TOTP code is valid, consume the challenge token
+            $this->accounts->consume_totp_challenge($pending_token);
+
+            audit_log('auth.totp_success', 'user', $user_id);
+
+            // Re-fetch user data and establish session (same as validate() does)
+            $user = $this->users_model->find($user_id);
+            $user_settings = $this->db
+                ->get_where('user_settings', ['id_users' => $user_id])
+                ->row_array();
+
+            $role = $this->roles_model->find($user['id_roles']);
+            $default_timezone = $this->timezones->get_default_timezone();
+
+            $user_data = [
+                'user_id' => $user['id'],
+                'user_email' => $user['email'],
+                'username' => $user_settings['username'] ?? '',
+                'timezone' => !empty($user['timezone']) ? $user['timezone'] : $default_timezone,
+                'language' => !empty($user['language']) ? $user['language'] : Config::LANGUAGE,
+                'role_slug' => $role['slug'],
+            ];
+
+            // Establish the session
+            $this->session->sess_regenerate(true);
+            session($user_data);
+
+            // Ki Reservation - keep audit_log parity with validate()'s non-MFA success path, so a
+            // query for 'auth.login_success' finds every completed login regardless of whether it
+            // went through a TOTP challenge.
+            audit_log('auth.login_success', 'user', $user_id);
+
+            log_message('info', 'Successful TOTP verification for user: ' . $user_settings['username'] . ' from IP: ' . $this->input->ip_address());
+
+            // Return the same response as validate()
             json_response([
                 'success' => true,
                 'redirect_url' => $user_data['role_slug'] === DB_SLUG_CUSTOMER ? site_url('customer_portal') : null,

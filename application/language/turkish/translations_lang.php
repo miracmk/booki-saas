@@ -634,4 +634,34 @@ $lang['visual_view'] = 'Görsel';
 $lang['source_view'] = 'Kod';
 $lang['email_template_editable_hint'] = 'Aşağıdaki alan e-postanın gerçek tasarımıdır - üzerine tıklayıp doğrudan yazabilir, metni seçip yukarıdaki araçlarla biçimlendirebilirsiniz. Değişkenler ({{customer_name}} gibi) düz metin olarak görünür; onları silmediğiniz sürece gönderim anında gerçek veriyle değişirler.';
 $lang['insert_link_prompt'] = 'Bağlantı adresini girin:';
+
+// Ki Reservation (Dalga 2) - MFA/TOTP.
+$lang['two_factor_authentication'] = 'İki Faktörlü Doğrulama';
+$lang['enter_authenticator_code'] = 'Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin.';
+$lang['verification_code'] = 'Doğrulama Kodu';
+$lang['use_backup_code_if_unavailable'] = 'Uygulamaya erişemiyorsanız yedek kodlarınızdan birini kullanabilirsiniz.';
+$lang['invalid_totp_code'] = 'Geçersiz doğrulama kodu.';
+$lang['setup_two_factor'] = 'İki Faktörlü Doğrulamayı Kur';
+$lang['setup_authenticator'] = 'Kimlik Doğrulama Uygulamasını Kur';
+$lang['scan_with_authenticator'] = 'Aşağıdaki QR kodu kimlik doğrulama uygulamanızla (Google Authenticator, Authy vb.) tarayın.';
+$lang['or_enter_manually'] = 'Veya bu kodu uygulamanıza elle girin:';
+$lang['enter_verification_code'] = 'Uygulamada görünen 6 haneli kodu girip onaylayın.';
+$lang['verification_code_hint'] = '6 haneli kod';
+$lang['enable'] = 'Etkinleştir';
+$lang['disable'] = 'Devre Dışı Bırak';
+$lang['disabled'] = 'Devre Dışı';
+$lang['disable_two_factor'] = 'İki Faktörlü Doğrulamayı Devre Dışı Bırak';
+$lang['disable_totp_warning'] = 'Devre dışı bırakmak, hesabınızın güvenlik seviyesini düşürür.';
+$lang['password_required_for_security'] = 'Güvenlik nedeniyle şifrenizi tekrar girin.';
+$lang['confirm_password'] = 'Şifreyi Onayla';
+$lang['backup_codes'] = 'Yedek Kodlar';
+$lang['backup_codes_shown_once'] = 'Bu kodlar sadece bir kez gösterilir - lütfen güvenli bir yere not edin.';
+$lang['copy_codes'] = 'Kodları Kopyala';
+$lang['regenerate'] = 'Yeniden Oluştur';
+$lang['regenerate_backup_codes'] = 'Yedek Kodları Yeniden Oluştur';
+$lang['regenerate_codes_help'] = 'Yeni kodlar oluşturmak, eski yedek kodlarınızı geçersiz kılar.';
+$lang['totp_enabled_message'] = 'İki faktörlü doğrulama aktif.';
+$lang['totp_help_text'] = 'Hesabınıza ekstra bir güvenlik katmanı ekleyin - girişte şifrenize ek olarak telefonunuzdaki bir kod istenir.';
+$lang['cancel'] = 'İptal';
+$lang['close'] = 'Kapat';
 // End

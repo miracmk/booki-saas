@@ -89,16 +89,26 @@ App.Pages.Login = (function () {
             
             if (response.altcha_verification === false) {
                 $altchaHint.text(lang('altcha_verification_failed')).fadeTo(400, 1);
-                
+
                 setTimeout(() => {
                     $altchaHint.fadeTo(400, 0);
                 }, 3000);
-                
+
                 // Reset ALTCHA widget
                 if (App.Utils.Altcha) {
                     App.Utils.Altcha.reset('altcha-widget');
                 }
-                
+
+                return;
+            }
+
+            // Check if TOTP is required BEFORE checking success (since requires_totp response has success:true)
+            if (response.requires_totp) {
+                // Show TOTP verification form
+                $('#login-form').addClass('d-none');
+                $('#totp-form').removeClass('d-none');
+                $('#pending-token').val(response.pending_token);
+                $('#totp-code').focus();
                 return;
             }
 
@@ -113,6 +123,43 @@ App.Pages.Login = (function () {
     }
     
     /**
+     * TOTP Form Submit Handler
+     */
+    function onTotpFormSubmit(event) {
+        event.preventDefault();
+
+        const pendingToken = $('#pending-token').val();
+        const totpCode = $('#totp-code').val();
+
+        if (!pendingToken || !totpCode) {
+            return;
+        }
+
+        const $alert = $('.alert');
+        $alert.addClass('d-none');
+
+        App.Http.Login.verifyTotp(pendingToken, totpCode).done((response) => {
+            if (response.success) {
+                window.location.href = response.redirect_url || vars('dest_url');
+            } else {
+                $alert.text(response.error || lang('invalid_totp_code'));
+                $alert.removeClass('d-none alert-danger alert-success').addClass('alert-danger');
+                $('#totp-code').val('');
+                $('#totp-code').focus();
+            }
+        });
+    }
+
+    /**
+     * Go back to login form from TOTP form
+     */
+    function onTotpBackClick() {
+        $('#totp-form').addClass('d-none');
+        $('#login-form').removeClass('d-none');
+        $('#username').focus();
+    }
+
+    /**
      * Initialize ALTCHA widget if present.
      */
     function initializeAltcha() {
@@ -122,9 +169,11 @@ App.Pages.Login = (function () {
     }
 
     $loginForm.on('submit', onLoginFormSubmit);
+    $('#totp-form').on('submit', onTotpFormSubmit);
+    $('#totp-back').on('click', onTotpBackClick);
 
     $captchaTitle.on('click', 'button', refreshCaptcha);
-    
+
     // Initialize ALTCHA
     initializeAltcha();
 

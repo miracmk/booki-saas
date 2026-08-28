@@ -15,7 +15,7 @@
  */
 App.Http.Login = (function () {
     /**
-     * Perform an account recovery.
+     * Perform an account login validation.
      *
      * @param {String} username
      * @param {String} password
@@ -36,7 +36,7 @@ App.Http.Login = (function () {
         if (captcha) {
             data.captcha = captcha;
         }
-        
+
         if (altchaPayload) {
             data.altcha_payload = altchaPayload;
         }
@@ -44,7 +44,28 @@ App.Http.Login = (function () {
         return $.post(url, data);
     }
 
+    /**
+     * Verify TOTP code during login.
+     *
+     * @param {String} pendingToken
+     * @param {String} code
+     *
+     * @return {Object}
+     */
+    function verifyTotp(pendingToken, code) {
+        const url = App.Utils.Url.siteUrl('login/verify_totp');
+
+        const data = {
+            csrf_token: vars('csrf_token'),
+            pending_token: pendingToken,
+            code,
+        };
+
+        return $.post(url, data);
+    }
+
     return {
         validate,
+        verifyTotp,
     };
 })();

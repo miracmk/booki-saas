@@ -81,6 +81,48 @@ $login_company_logo = vars('company_logo') ?: asset_url('assets/img/logo.png');
         </a>
     </div>
 </form>
+
+<!-- TOTP Verification Form (shown when 2FA is enabled) -->
+<form id="totp-form" class="d-none">
+    <div class="alert d-none"></div>
+
+    <div class="mb-4">
+        <h5 class="mb-3"><?= lang('two_factor_authentication') ?></h5>
+        <p class="small text-muted mb-3">
+            <?= lang('enter_authenticator_code') ?>
+        </p>
+
+        <label for="totp-code" class="form-label fw-medium">
+            <?= lang('verification_code') ?>
+        </label>
+        <div class="input-group">
+            <span class="input-group-text bg-light border-end-0">
+                <i class="fas fa-shield-alt"></i>
+            </span>
+            <input type="text" id="totp-code" inputmode="numeric" placeholder="000000"
+                   class="form-control border-start-0 ps-2 text-center fs-5" required autofocus/>
+        </div>
+        <small class="d-block mt-2 text-muted">
+            <?= lang('use_backup_code_if_unavailable') ?>
+        </small>
+    </div>
+
+    <div class="d-grid gap-2 mb-3">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-check me-2"></i>
+            <?= lang('verify') ?>
+        </button>
+    </div>
+
+    <div class="text-center">
+        <button type="button" id="totp-back" class="btn btn-link text-decoration-none small">
+            <i class="fas fa-arrow-left me-1"></i>
+            <?= lang('back') ?>
+        </button>
+    </div>
+
+    <input type="hidden" id="pending-token">
+</form>
 <?php end_section('content'); ?>
 
 <?php section('scripts'); ?>

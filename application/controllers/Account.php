@@ -173,4 +173,174 @@ class Account extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Generate a new TOTP secret for enrollment.
+     */
+    public function totp_setup(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_USER_SETTINGS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            $user_id = session('user_id');
+
+            $result = $this->accounts->generate_totp_secret($user_id);
+
+            json_response([
+                'secret' => $result['secret'],
+                'otpauth_uri' => $result['otpauth_uri'],
+                'plain_uri' => $result['plain_uri'],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Enable TOTP after verifying the code.
+     */
+    public function totp_enable(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_USER_SETTINGS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            check('code', 'string');
+
+            $user_id = session('user_id');
+            $code = request('code');
+
+            $result = $this->accounts->enable_totp($user_id, $code);
+
+            if ($result['success']) {
+                audit_log('auth.totp_enabled', 'user', $user_id);
+
+                json_response([
+                    'success' => true,
+                    'backup_codes' => $result['backup_codes'],
+                ]);
+            } else {
+                json_response([
+                    'success' => false,
+                    'error' => 'Failed to enable TOTP',
+                ], 400);
+            }
+        } catch (InvalidArgumentException $e) {
+            json_response([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 400);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Disable TOTP after password re-verification.
+     */
+    public function totp_disable(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_USER_SETTINGS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            check('password', 'string');
+
+            $user_id = session('user_id');
+            $password = request('password');
+
+            // Get the user settings to get the username
+            $user_settings = $this->db
+                ->get_where('user_settings', ['id_users' => $user_id])
+                ->row_array();
+
+            if (empty($user_settings)) {
+                throw new RuntimeException('User settings not found.');
+            }
+
+            $username = $user_settings['username'];
+
+            // Re-verify the password
+            $verified_user = $this->accounts->check_login($username, $password);
+
+            if (empty($verified_user)) {
+                json_response([
+                    'success' => false,
+                    'error' => 'Invalid password',
+                ], 403);
+                return;
+            }
+
+            // Password is correct, disable TOTP
+            $this->accounts->disable_totp($user_id);
+
+            audit_log('auth.totp_disabled', 'user', $user_id);
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Regenerate backup codes after TOTP verification.
+     */
+    public function totp_regenerate_backup_codes(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_USER_SETTINGS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            check('code', 'string');
+
+            $user_id = session('user_id');
+            $code = request('code');
+
+            // Verify the TOTP code
+            if (!$this->accounts->verify_totp_code($user_id, $code)) {
+                json_response([
+                    'success' => false,
+                    'error' => 'Invalid TOTP code',
+                ], 400);
+                return;
+            }
+
+            // Generate new backup codes
+            $backup_codes = [];
+            $backup_codes_hashes = [];
+
+            for ($i = 0; $i < 10; $i++) {
+                $generated_code = bin2hex(random_bytes(5));
+                $backup_codes[] = $generated_code;
+                $backup_codes_hashes[] = hash('sha256', $generated_code);
+            }
+
+            // Update the backup codes in the database
+            $this->db->update(
+                'user_settings',
+                ['totp_backup_codes' => json_encode($backup_codes_hashes)],
+                ['id_users' => $user_id],
+            );
+
+            json_response([
+                'success' => true,
+                'backup_codes' => $backup_codes,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }
