@@ -6,12 +6,22 @@
  * Seeds the initial configuration for the unified job queue:
  * - queue_enabled: whether jobs are processed (default: disabled during faz 33)
  * - queue_max_attempts: default number of retry attempts for failed jobs
- * - health_token: secret token used to authorize the health check endpoint
  * - log_format: output format for structured logging (e.g., 'json')
  *
- * Each of these settings is idempotent - if already present, the existing value
- * is left untouched, so re-running the migration is safe (it won't overwrite
- * any later customizations).
+ * NOTE: health_token is NOT seeded here. This migration runs per-TENANT (via
+ * Console::migrate()'s per-tenant loop), but /health/deep operates against the
+ * MASTER DB (it checks master reachability + iterates every tenant) - a tenant-
+ * scoped `settings` row can't gate it, since $this->db is the master connection
+ * at that point, which has no `settings` table at all. health_token is instead
+ * a master-level secret, seeded once by Console::master_install() via
+ * master_setting() (see tenant_helper.php) and read the same way by Health::deep().
+ * This was a real bug caught by an actual HTTP request to /health/deep in
+ * isolated Docker testing (query failed: "Table ki_reservation_master.ea_settings
+ * doesn't exist"), not just code review.
+ *
+ * Each of the settings below is idempotent - if already present, the existing
+ * value is left untouched, so re-running the migration is safe (it won't
+ * overwrite any later customizations).
  * ---------------------------------------------------------------------------- */
 
 class Migration_Add_queue_observability_settings extends EA_Migration
@@ -23,7 +33,6 @@ class Migration_Add_queue_observability_settings extends EA_Migration
     {
         $this->set_setting('queue_enabled', '0');
         $this->set_setting('queue_max_attempts', '3');
-        $this->set_setting('health_token', bin2hex(random_bytes(32)));
         $this->set_setting('log_format', 'json');
     }
 
@@ -36,7 +45,6 @@ class Migration_Add_queue_observability_settings extends EA_Migration
     {
         $this->delete_setting('queue_enabled');
         $this->delete_setting('queue_max_attempts');
-        $this->delete_setting('health_token');
         $this->delete_setting('log_format');
     }
 

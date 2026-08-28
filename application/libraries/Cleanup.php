@@ -45,6 +45,7 @@ class Cleanup
         $this->cleanup_logs();
         $this->cleanup_cache();
         $this->cleanup_customer_data();
+        $this->cleanup_jobs();
     }
 
     /**
@@ -195,6 +196,25 @@ class Cleanup
 
         response(
             PHP_EOL . "⇾ Data retention cleanup completed. Anonymized {$anonymized_count} customer(s)." . PHP_EOL . PHP_EOL,
+        );
+    }
+
+    /**
+     * Clean up old job records from the queue (older than retention period).
+     *
+     * Deletes completed (succeeded and failed) job records to maintain database size
+     * and prevent indefinite accumulation of historical job data.
+     *
+     * @throws Exception
+     */
+    public function cleanup_jobs(int $retention_days = 30): void
+    {
+        $this->CI->load->model('jobs_model');
+
+        $deleted_count = $this->CI->jobs_model->delete_old($retention_days);
+
+        response(
+            "⇾ Job queue cleanup completed. Deleted {$deleted_count} old job record(s)." . PHP_EOL,
         );
     }
 }

@@ -321,6 +321,17 @@ class Console extends EA_Controller
         } else {
             echo '"master_settings" table already exists, skipped.' . PHP_EOL;
         }
+
+        // Ki Reservation (Dalga 2, 2026-08-28) - health_token gates GET /health/deep (see
+        // Health.php). It must be a MASTER-level secret, not a per-tenant setting: that endpoint
+        // checks master DB reachability and iterates every tenant, so $this->db is the master
+        // connection at the point the token is checked - a tenant `settings` row would never be
+        // reachable from there. Idempotent: only generated once, existing token is never rotated
+        // by re-running master_install().
+        if (master_setting('health_token') === null) {
+            master_setting('health_token', bin2hex(random_bytes(32)));
+            echo 'Generated "health_token" master setting.' . PHP_EOL;
+        }
     }
 
     /**

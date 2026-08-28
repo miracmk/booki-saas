@@ -67,6 +67,7 @@ $autoload['helper'] = [
     'array',
     'asset',
     'config',
+    'correlation', // Ki Reservation (2026-08-28) - correlation_id() for distributed tracing
     'date',
     'debug',
     'env',

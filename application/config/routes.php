@@ -220,9 +220,13 @@ $route['api/v1/availabilities']['get'] = 'api/v1/availabilities_api_v1/get';
 | CUSTOM ROUTING
 | -------------------------------------------------------------------------
 | You can add custom routes to the following section to define URL patterns
-| that are later mapped to the available controllers in the filesystem. 
+| that are later mapped to the available controllers in the filesystem.
 |
 */
+
+// Ki Reservation (2026-08-28) - observability: health check endpoints
+$route['health'] = 'health/index';
+$route['health/deep'] = 'health/deep';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

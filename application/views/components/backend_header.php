@@ -175,6 +175,10 @@ $expiry_warning = vars('expiry_warning');
                             <i class="fas fa-cogs me-2"></i>
                             <?= lang('settings') ?>
                         </a>
+                        <a class="dropdown-item" href="<?= site_url('jobs') ?>">
+                            <i class="fas fa-hourglass-start me-2"></i>
+                            İş Kuyruğu
+                        </a>
                         <a class="dropdown-item" href="<?= site_url('audit_log') ?>">
                             <i class="fas fa-clipboard-list me-2"></i>
                             Denetim Kayıtları

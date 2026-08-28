@@ -215,4 +215,49 @@ class Jobs_model extends EA_Model
 
         return (int) $result['age'];
     }
+
+    /**
+     * Delete completed jobs older than the specified retention period.
+     *
+     * Removes succeeded and failed job records that were completed before
+     * the retention cutoff date. Used by the automated cleanup task to maintain
+     * database size and avoid accumulating old job records indefinitely.
+     *
+     * @param int $retention_days Number of days to retain completed jobs (default: 30).
+     * @return int Number of rows deleted.
+     */
+    public function delete_old(int $retention_days = 30): int
+    {
+        $cutoff = new DateTime('now', new DateTimeZone('UTC'));
+        $cutoff->modify('-' . $retention_days . ' days');
+
+        $this->db->where_in('status', ['succeeded', 'failed']);
+        $this->db->where('completed_at <', $cutoff->format('Y-m-d H:i:s'));
+        $this->db->delete('jobs');
+
+        return $this->db->affected_rows();
+    }
+
+    /**
+     * Retry a failed job by resetting its state to pending.
+     *
+     * Resets the job's status to 'pending', clears the attempt counter,
+     * and sets available_at to now so it can be immediately picked up
+     * by the next worker.
+     *
+     * @param int $id The job ID.
+     * @return void
+     */
+    public function retry(int $id): void
+    {
+        $this->db->update(
+            'jobs',
+            [
+                'status' => 'pending',
+                'attempts' => 0,
+                'available_at' => date('Y-m-d H:i:s'),
+            ],
+            ['id' => $id],
+        );
+    }
 }

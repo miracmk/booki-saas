@@ -188,6 +188,13 @@ class EA_Controller extends CI_Controller
             abort(404, 'Not Found');
         }
 
+        // Ki Reservation (2026-08-28) - observability: health check endpoints work on any host
+        // without tenant resolution, so monitoring can function even when tenant resolution itself
+        // is broken (e.g., during DNS misconfiguration or a deployment in-flight).
+        if (strtolower((string) $this->router->class) === 'health') {
+            return;
+        }
+
         $tenant = $this->db->get_where('tenants', ['custom_domain' => $host])->row_array();
 
         if (!$tenant) {
