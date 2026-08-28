@@ -51,7 +51,7 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 ### 🔲 Dalga 2 — Güvenlik ve Güvenilirlik (Faz 29·30·31·32·33)
 - [ ] MFA/TOTP — admin+provider girişleri için opsiyonel TOTP + backup kodları
 - [ ] KVKK/GDPR tamamlama — veri indirme + hesap silme uçtan uca akışı
-- [ ] Otomatik test paketi — PHPUnit, öncelik: booking conflict, station allocation, commission, encryption, tenant isolation
+- [~] Otomatik test paketi — PHPUnit bootstrap TAMAMLANDI (commit `b294424`, gerçek Docker'da çalıştırıldı: 17 test/27 assertion, exit 0); asıl test listesi (booking conflict, station allocation, commission, encryption, tenant isolation) henüz yazılmadı
 - [ ] Background job sistemi — Redis-backed queue, SMS/WhatsApp/email'i request dışına taşı
 - [ ] Observability — yapılandırılmış log, health endpoint, başarısız webhook/job izleme
 
