@@ -999,6 +999,83 @@ class Booking extends EA_Controller
      *
      * @return array Returns the ID of the provider that can provide the requested service.
      */
+    /**
+     * Register a series of recurring appointments (Ki Reservation, Dalga 1).
+     *
+     * This is a separate entry point from register() - the single-appointment
+     * booking flow above is completely untouched by this method. Each
+     * occurrence is booked through Recurrence_service, which re-validates
+     * availability/station allocation per occurrence via
+     * Appointment_booking_service::create() - a conflicting future date is
+     * skipped and reported, never silently forced.
+     */
+    public function create_recurring_series(): void
+    {
+        try {
+            method('post');
+
+            $this->verify_csrf_token();
+
+            if (setting('disable_booking')) {
+                abort(403);
+            }
+
+            check('post_data', 'array');
+
+            $post_data = request('post_data');
+
+            if (!is_array($post_data)) {
+                throw new InvalidArgumentException('Invalid request data format.');
+            }
+
+            $appointment = $post_data['appointment'] ?? [];
+            $customer = $post_data['customer'] ?? [];
+            $frequency = (string) ($post_data['frequency'] ?? 'weekly');
+            $occurrences_total = (int) ($post_data['occurrences_total'] ?? 0);
+            $interval_count = (int) ($post_data['interval_count'] ?? 1);
+
+            if (empty($appointment) || !is_array($appointment)) {
+                throw new InvalidArgumentException('Invalid appointment data.');
+            }
+
+            if (empty($customer) || !is_array($customer)) {
+                throw new InvalidArgumentException('Invalid customer data.');
+            }
+
+            if (!empty($customer['email']) && !filter_var($customer['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new InvalidArgumentException('Invalid email address format.');
+            }
+
+            $customer = array_intersect_key($customer, array_flip($this->allowed_customer_fields));
+            $appointment = array_intersect_key($appointment, array_flip($this->allowed_appointment_fields));
+
+            foreach (['address', 'city', 'zip_code', 'notes', 'phone_number'] as $optional_field) {
+                if (!array_key_exists($optional_field, $customer)) {
+                    $customer[$optional_field] = '';
+                }
+            }
+
+            $this->load->library('recurrence_service');
+
+            $result = $this->recurrence_service->create_series(
+                $appointment,
+                $customer,
+                $frequency,
+                $occurrences_total,
+                $interval_count,
+            );
+
+            json_response([
+                'success' => true,
+                'group_id' => $result['group_id'],
+                'created_appointment_ids' => $result['created_appointment_ids'],
+                'skipped' => $result['skipped'],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
     protected function search_providers_by_service(int $service_id): array
     {
         $available_providers = $this->providers_model->get_available_providers(true);
