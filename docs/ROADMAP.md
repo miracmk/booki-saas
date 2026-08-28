@@ -52,8 +52,8 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 - [ ] MFA/TOTP — admin+provider girişleri için opsiyonel TOTP + backup kodları
 - [ ] KVKK/GDPR tamamlama — veri indirme + hesap silme uçtan uca akışı
 - [~] Otomatik test paketi — PHPUnit bootstrap TAMAMLANDI (commit `b294424`, gerçek Docker'da çalıştırıldı: 17 test/27 assertion, exit 0); asıl test listesi (booking conflict, station allocation, commission, encryption, tenant isolation) henüz yazılmadı
-- [ ] Background job sistemi — Redis-backed queue, SMS/WhatsApp/email'i request dışına taşı
-- [ ] Observability — yapılandırılmış log, health endpoint, başarısız webhook/job izleme
+- [~] Background job sistemi — DB-tabanlı birleşik `jobs` kuyruğu (Redis değil - bilinçli karar, gerekçe DECISIONS.md'de) + Console::process_jobs() TAMAMLANDI (commit `e05f50d`); SMS/WhatsApp/Telegram/Email/webhook'un asıl kuyruğa taşınması (Job_dispatcher::HANDLERS doldurulması) henüz yapılmadı
+- [x] Observability — yapılandırılmış JSON log (EA_Log, CI3'ün kırık büyük/küçük harf hatası düzeltildi), health endpoint (/health, /health/deep), jobs izleme sayfası (commit `f3eaec3`); izole Docker'da gerçek çalıştırmayla doğrulandı, henüz canlıya deploy edilmedi
 
 ### 🔲 Dalga 3 — Otomasyon ve Büyüme (Faz 18·21·22·23·24·25)
 - [ ] Communication Hub — event sistemi (appointment.created/completed/cancelled → kanal seçimi)
