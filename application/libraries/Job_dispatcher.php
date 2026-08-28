@@ -12,9 +12,6 @@
  * this whitelist - never a direct callable. Any attempt to dispatch an unknown
  * handler raises an exception immediately.
  *
- * During Faz 33, handlers will be populated and wired into the existing
- * notification send paths. For now, the HANDLERS array is empty - the dispatch
- * mechanism itself is complete and ready.
  * ---------------------------------------------------------------------------- */
 
 class Job_dispatcher
@@ -30,15 +27,18 @@ class Job_dispatcher
      * Each entry maps a handler key to [ClassName::class, 'method_name'].
      * Only handlers listed here may be dispatched - anything else raises an exception.
      *
-     * Example (populated in Faz 33):
-     * [
-     *     'notifications.send_sms' => [Notifications::class, 'handle_queued_sms'],
-     *     'notifications.send_email' => [Notifications::class, 'handle_queued_email'],
-     *     'webhook.retry' => [Webhooks::class, 'handle_queued_retry'],
-     * ]
+     * Deliberately excludes appointment-DELETED email: by the time notify_appointment_deleted()
+     * runs, the appointment row is already gone (the caller deletes it first), so a queued job
+     * holding only an appointment_id could never re-fetch what it needs later - see
+     * Notifications::notify_appointment_deleted()'s docblock. That send site stays synchronous,
+     * same category of decision as Recovery.php's password-reset email.
      */
     private const HANDLERS = [
-        // Populated in Faz 33 when synchronous send paths are migrated to queued jobs.
+        'notifications.send_sms' => [Notifications::class, 'handle_queued_sms'],
+        'notifications.send_whatsapp' => [Notifications::class, 'handle_queued_whatsapp'],
+        'notifications.send_telegram' => [Notifications::class, 'handle_queued_telegram'],
+        'notifications.appointment_saved_email' => [Notifications::class, 'handle_queued_appointment_saved_email'],
+        'webhooks.deliver' => [Webhooks_client::class, 'handle_queued_delivery'],
     ];
 
     /**

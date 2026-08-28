@@ -44,6 +44,14 @@ class Notifications
         $this->CI->load->library('timezones');
         // Salon Flora customization - native Telegram channel, alongside email (see send_telegram()).
         $this->CI->load->library('telegram_client');
+        // Ki Reservation (Dalga 2) - queue gate for send_sms()/send_whatsapp()/send_telegram() and
+        // the appointment-saved/deleted email paths. MUST be loaded here - every one of those methods
+        // calls $this->CI->queue->enabled(), which would fatal ("call to a member function on null")
+        // on every single notification send if this library were never loaded, regardless of whether
+        // the queue is actually enabled. Confirmed missing via code review (php -l cannot catch a
+        // missing library load - that only shows up at runtime) and verified fixed by an actual
+        // Docker run (see project notes) before this code shipped.
+        $this->CI->load->library('queue');
     }
 
     /**
@@ -56,6 +64,31 @@ class Notifications
      * @param string $text
      */
     private function send_telegram(array $user, string $text): void
+    {
+        // Queue if enabled; fall through to synchronous send if queue is disabled or push fails.
+        if ($this->CI->queue->enabled()) {
+            if ($this->CI->queue->push(
+                'telegram',
+                'notifications.send_telegram',
+                [
+                    'user_id' => $user['id'] ?? null,
+                    'text' => $text,
+                ],
+            ) !== null) {
+                return;
+            }
+        }
+
+        $this->do_send_telegram($user, $text);
+    }
+
+    /**
+     * Internal helper: perform the actual Telegram send (no queue check).
+     *
+     * @param array $user Recipient row.
+     * @param string $text
+     */
+    private function do_send_telegram(array $user, string $text): void
     {
         if (empty($user['telegram_chat_id'])) {
             return;
@@ -83,6 +116,31 @@ class Notifications
      * @param string $text
      */
     private function send_sms(array $user, string $text): void
+    {
+        // Queue if enabled; fall through to synchronous send if queue is disabled or push fails.
+        if ($this->CI->queue->enabled()) {
+            if ($this->CI->queue->push(
+                'sms',
+                'notifications.send_sms',
+                [
+                    'user_id' => $user['id'] ?? null,
+                    'text' => $text,
+                ],
+            ) !== null) {
+                return;
+            }
+        }
+
+        $this->do_send_sms($user, $text);
+    }
+
+    /**
+     * Internal helper: perform the actual SMS send (no queue check).
+     *
+     * @param array $user Recipient row.
+     * @param string $text
+     */
+    private function do_send_sms(array $user, string $text): void
     {
         if (empty($user['phone_number'])) {
             return;
@@ -118,6 +176,31 @@ class Notifications
      * @param string $text
      */
     private function send_whatsapp(array $user, string $text): void
+    {
+        // Queue if enabled; fall through to synchronous send if queue is disabled or push fails.
+        if ($this->CI->queue->enabled()) {
+            if ($this->CI->queue->push(
+                'whatsapp',
+                'notifications.send_whatsapp',
+                [
+                    'user_id' => $user['id'] ?? null,
+                    'text' => $text,
+                ],
+            ) !== null) {
+                return;
+            }
+        }
+
+        $this->do_send_whatsapp($user, $text);
+    }
+
+    /**
+     * Internal helper: perform the actual WhatsApp send (no queue check).
+     *
+     * @param array $user Recipient row.
+     * @param string $text
+     */
+    private function do_send_whatsapp(array $user, string $text): void
     {
         if (empty($user['phone_number'])) {
             return;
@@ -229,28 +312,53 @@ class Notifications
                 filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN);
 
             if ($send_customer === true) {
-                config(['language' => $customer['language']]);
-                $this->CI->lang->load('translations');
-                $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
-                $message = $manage_mode ? '' : lang('thank_you_for_appointment');
+                $email_queued = false;
 
-                try {
-                    $this->CI->email_messages->send_appointment_saved(
-                        $appointment,
-                        $provider,
-                        $service,
-                        $customer,
-                        $settings,
-                        $subject,
-                        $message,
-                        $customer_link,
-                        $customer['email'],
-                        $ics_stream,
-                        $customer['timezone'],
-                        'customer',
-                    );
-                } catch (Throwable $e) {
-                    $this->log_exception($e, 'appointment-saved to customer', $appointment['id'] ?? null);
+                // Attempt to queue email; if successful, skip synchronous send.
+                if ($this->CI->queue->enabled()) {
+                    if ($this->CI->queue->push(
+                        'email',
+                        'notifications.appointment_saved_email',
+                        [
+                            'appointment_id' => $appointment['id'] ?? null,
+                            'recipient_type' => 'customer',
+                            'recipient_id' => null,
+                            'manage_mode' => $manage_mode,
+                        ],
+                    ) !== null) {
+                        $email_queued = true;
+                    }
+                }
+
+                if (!$email_queued) {
+                    config(['language' => $customer['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
+                    $message = $manage_mode ? '' : lang('thank_you_for_appointment');
+
+                    try {
+                        $this->CI->email_messages->send_appointment_saved(
+                            $appointment,
+                            $provider,
+                            $service,
+                            $customer,
+                            $settings,
+                            $subject,
+                            $message,
+                            $customer_link,
+                            $customer['email'],
+                            $ics_stream,
+                            $customer['timezone'],
+                            'customer',
+                        );
+                    } catch (Throwable $e) {
+                        $this->log_exception($e, 'appointment-saved to customer', $appointment['id'] ?? null);
+                    }
+                } else {
+                    // Email was queued, but we still need to define subject for telegram
+                    config(['language' => $customer['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
                 }
 
                 $this->send_telegram($customer, $subject . "\n" . $service['name'] . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'] . "\n" . $appointment['start_datetime']);
@@ -265,28 +373,53 @@ class Notifications
                 );
 
             if ($send_provider === true) {
-                config(['language' => $provider['language']]);
-                $this->CI->lang->load('translations');
-                $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
-                $message = $manage_mode ? '' : lang('appointment_link_description');
+                $email_queued = false;
 
-                try {
-                    $this->CI->email_messages->send_appointment_saved(
-                        $appointment,
-                        $provider,
-                        $service,
-                        $provider_customer,
-                        $settings,
-                        $subject,
-                        $message,
-                        $provider_link,
-                        $provider['email'],
-                        $ics_stream,
-                        $provider['timezone'],
-                        'provider',
-                    );
-                } catch (Throwable $e) {
-                    $this->log_exception($e, 'appointment-saved to provider', $appointment['id'] ?? null);
+                // Attempt to queue email; if successful, skip synchronous send.
+                if ($this->CI->queue->enabled()) {
+                    if ($this->CI->queue->push(
+                        'email',
+                        'notifications.appointment_saved_email',
+                        [
+                            'appointment_id' => $appointment['id'] ?? null,
+                            'recipient_type' => 'provider',
+                            'recipient_id' => null,
+                            'manage_mode' => $manage_mode,
+                        ],
+                    ) !== null) {
+                        $email_queued = true;
+                    }
+                }
+
+                if (!$email_queued) {
+                    config(['language' => $provider['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
+                    $message = $manage_mode ? '' : lang('appointment_link_description');
+
+                    try {
+                        $this->CI->email_messages->send_appointment_saved(
+                            $appointment,
+                            $provider,
+                            $service,
+                            $provider_customer,
+                            $settings,
+                            $subject,
+                            $message,
+                            $provider_link,
+                            $provider['email'],
+                            $ics_stream,
+                            $provider['timezone'],
+                            'provider',
+                        );
+                    } catch (Throwable $e) {
+                        $this->log_exception($e, 'appointment-saved to provider', $appointment['id'] ?? null);
+                    }
+                } else {
+                    // Email was queued, but we still need to define subject for telegram
+                    config(['language' => $provider['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
                 }
 
                 $this->send_telegram($provider, $subject . "\n" . $service['name'] . ' - ' . $provider_customer['first_name'] . "\n" . $appointment['start_datetime']);
@@ -302,28 +435,53 @@ class Notifications
                     continue;
                 }
 
-                config(['language' => $admin['language']]);
-                $this->CI->lang->load('translations');
-                $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
-                $message = $manage_mode ? '' : lang('appointment_link_description');
+                $email_queued = false;
 
-                try {
-                    $this->CI->email_messages->send_appointment_saved(
-                        $appointment,
-                        $provider,
-                        $service,
-                        $customer,
-                        $settings,
-                        $subject,
-                        $message,
-                        $provider_link,
-                        $admin['email'],
-                        $ics_stream,
-                        $admin['timezone'],
-                        'admin',
-                    );
-                } catch (Throwable $e) {
-                    $this->log_exception($e, 'appointment-saved to admin', $appointment['id'] ?? null);
+                // Attempt to queue email; if successful, skip synchronous send.
+                if ($this->CI->queue->enabled()) {
+                    if ($this->CI->queue->push(
+                        'email',
+                        'notifications.appointment_saved_email',
+                        [
+                            'appointment_id' => $appointment['id'] ?? null,
+                            'recipient_type' => 'admin',
+                            'recipient_id' => $admin['id'] ?? null,
+                            'manage_mode' => $manage_mode,
+                        ],
+                    ) !== null) {
+                        $email_queued = true;
+                    }
+                }
+
+                if (!$email_queued) {
+                    config(['language' => $admin['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
+                    $message = $manage_mode ? '' : lang('appointment_link_description');
+
+                    try {
+                        $this->CI->email_messages->send_appointment_saved(
+                            $appointment,
+                            $provider,
+                            $service,
+                            $customer,
+                            $settings,
+                            $subject,
+                            $message,
+                            $provider_link,
+                            $admin['email'],
+                            $ics_stream,
+                            $admin['timezone'],
+                            'admin',
+                        );
+                    } catch (Throwable $e) {
+                        $this->log_exception($e, 'appointment-saved to admin', $appointment['id'] ?? null);
+                    }
+                } else {
+                    // Email was queued, but we still need to define subject for telegram
+                    config(['language' => $admin['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
                 }
 
                 $this->send_telegram($admin, $subject . "\n" . $customer['first_name'] . ' ' . $customer['last_name'] . ' - ' . $service['name'] . "\n" . $appointment['start_datetime']);
@@ -341,28 +499,53 @@ class Notifications
                     continue;
                 }
 
-                config(['language' => $secretary['language']]);
-                $this->CI->lang->load('translations');
-                $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
-                $message = $manage_mode ? '' : lang('appointment_link_description');
+                $email_queued = false;
 
-                try {
-                    $this->CI->email_messages->send_appointment_saved(
-                        $appointment,
-                        $provider,
-                        $service,
-                        $provider_customer,
-                        $settings,
-                        $subject,
-                        $message,
-                        $provider_link,
-                        $secretary['email'],
-                        $ics_stream,
-                        $secretary['timezone'],
-                        'secretary',
-                    );
-                } catch (Throwable $e) {
-                    $this->log_exception($e, 'appointment-saved to secretary', $appointment['id'] ?? null);
+                // Attempt to queue email; if successful, skip synchronous send.
+                if ($this->CI->queue->enabled()) {
+                    if ($this->CI->queue->push(
+                        'email',
+                        'notifications.appointment_saved_email',
+                        [
+                            'appointment_id' => $appointment['id'] ?? null,
+                            'recipient_type' => 'secretary',
+                            'recipient_id' => $secretary['id'] ?? null,
+                            'manage_mode' => $manage_mode,
+                        ],
+                    ) !== null) {
+                        $email_queued = true;
+                    }
+                }
+
+                if (!$email_queued) {
+                    config(['language' => $secretary['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
+                    $message = $manage_mode ? '' : lang('appointment_link_description');
+
+                    try {
+                        $this->CI->email_messages->send_appointment_saved(
+                            $appointment,
+                            $provider,
+                            $service,
+                            $provider_customer,
+                            $settings,
+                            $subject,
+                            $message,
+                            $provider_link,
+                            $secretary['email'],
+                            $ics_stream,
+                            $secretary['timezone'],
+                            'secretary',
+                        );
+                    } catch (Throwable $e) {
+                        $this->log_exception($e, 'appointment-saved to secretary', $appointment['id'] ?? null);
+                    }
+                } else {
+                    // Email was queued, but we still need to define subject for telegram
+                    config(['language' => $secretary['language']]);
+                    $this->CI->lang->load('translations');
+                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_added_to_your_plan');
                 }
 
                 $this->send_telegram($secretary, $subject . "\n" . $provider_customer['first_name'] . ' - ' . $service['name'] . "\n" . $appointment['start_datetime']);
@@ -392,6 +575,14 @@ class Notifications
         array $settings,
         string $cancellation_reason = '',
     ): void {
+        // Ki Reservation (Dalga 2) - deliberately NOT queued, unlike notify_appointment_saved().
+        // By the time this method is called, the appointment row is already DELETED from the DB
+        // (Calendar.php/Appointments.php call appointments_model->delete() BEFORE calling this) -
+        // a queued job storing only appointment_id could never re-fetch it later, since there is
+        // nothing left to fetch. Queueing this would require putting full appointment/customer PII
+        // into the job payload, which violates this queue's "IDs only" contract. Same category of
+        // decision as Recovery.php's password-reset email staying synchronous - not every send site
+        // is safe to queue, and this one genuinely isn't without a larger redesign.
         try {
             $current_language = config('language');
 
@@ -551,5 +742,283 @@ class Notifications
             'Notifications - Could not email ' . $message . ' (' . ($appointment_id ?? '-') . ') : ' . $e->getMessage(),
         );
         log_message('error', $e->getTraceAsString());
+    }
+
+    /**
+     * Queued handler for SMS notifications (called by Job_dispatcher).
+     * Re-fetches the user and sends the SMS via the configured gateway.
+     *
+     * @param EA_Controller|CI_Controller $CI
+     * @param array $payload Must contain 'user_id' and 'text'
+     */
+    public function handle_queued_sms($CI, array $payload): void
+    {
+        try {
+            $user_id = $payload['user_id'] ?? null;
+            $text = $payload['text'] ?? '';
+
+            if (!$user_id || !$text) {
+                return;
+            }
+
+            // Re-fetch the user from the database to ensure we have current data
+            // Try admin first, then provider, then secretary, then customer
+            $user = $CI->admins_model->find($user_id);
+
+            if (!$user) {
+                $user = $CI->providers_model->find($user_id);
+            }
+
+            if (!$user) {
+                $user = $CI->secretaries_model->find($user_id);
+            }
+
+            if (!$user) {
+                $CI->load->model('customers_model');
+                $user = $CI->customers_model->find($user_id);
+            }
+
+            if (!$user) {
+                log_message('warning', 'Notifications::handle_queued_sms() - User not found: ' . $user_id);
+                return;
+            }
+
+            $this->do_send_sms($user, $text);
+        } catch (Throwable $e) {
+            log_message('error', 'Notifications::handle_queued_sms() failed: ' . $e->getMessage());
+            log_message('error', $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * Queued handler for WhatsApp notifications (called by Job_dispatcher).
+     * Re-fetches the user and sends the WhatsApp message via the configured gateway.
+     *
+     * @param EA_Controller|CI_Controller $CI
+     * @param array $payload Must contain 'user_id' and 'text'
+     */
+    public function handle_queued_whatsapp($CI, array $payload): void
+    {
+        try {
+            $user_id = $payload['user_id'] ?? null;
+            $text = $payload['text'] ?? '';
+
+            if (!$user_id || !$text) {
+                return;
+            }
+
+            // Re-fetch the user from the database to ensure we have current data
+            // Try admin first, then provider, then secretary, then customer
+            $user = $CI->admins_model->find($user_id);
+
+            if (!$user) {
+                $user = $CI->providers_model->find($user_id);
+            }
+
+            if (!$user) {
+                $user = $CI->secretaries_model->find($user_id);
+            }
+
+            if (!$user) {
+                $CI->load->model('customers_model');
+                $user = $CI->customers_model->find($user_id);
+            }
+
+            if (!$user) {
+                log_message('warning', 'Notifications::handle_queued_whatsapp() - User not found: ' . $user_id);
+                return;
+            }
+
+            $this->do_send_whatsapp($user, $text);
+        } catch (Throwable $e) {
+            log_message('error', 'Notifications::handle_queued_whatsapp() failed: ' . $e->getMessage());
+            log_message('error', $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * Queued handler for Telegram notifications (called by Job_dispatcher).
+     * Re-fetches the user and sends the Telegram message via the configured bot.
+     *
+     * @param EA_Controller|CI_Controller $CI
+     * @param array $payload Must contain 'user_id' and 'text'
+     */
+    public function handle_queued_telegram($CI, array $payload): void
+    {
+        try {
+            $user_id = $payload['user_id'] ?? null;
+            $text = $payload['text'] ?? '';
+
+            if (!$user_id || !$text) {
+                return;
+            }
+
+            // Re-fetch the user from the database to ensure we have current data
+            // Try admin first, then provider, then secretary, then customer
+            $user = $CI->admins_model->find($user_id);
+
+            if (!$user) {
+                $user = $CI->providers_model->find($user_id);
+            }
+
+            if (!$user) {
+                $user = $CI->secretaries_model->find($user_id);
+            }
+
+            if (!$user) {
+                $CI->load->model('customers_model');
+                $user = $CI->customers_model->find($user_id);
+            }
+
+            if (!$user) {
+                log_message('warning', 'Notifications::handle_queued_telegram() - User not found: ' . $user_id);
+                return;
+            }
+
+            $this->do_send_telegram($user, $text);
+        } catch (Throwable $e) {
+            log_message('error', 'Notifications::handle_queued_telegram() failed: ' . $e->getMessage());
+            log_message('error', $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * Queued handler for appointment saved email notifications (called by Job_dispatcher).
+     * Re-fetches the appointment and related data, then sends the email to the specified recipient.
+     *
+     * @param EA_Controller|CI_Controller $CI
+     * @param array $payload Must contain 'appointment_id', 'recipient_type', 'recipient_id', 'manage_mode'
+     */
+    public function handle_queued_appointment_saved_email($CI, array $payload): void
+    {
+        try {
+            $appointment_id = $payload['appointment_id'] ?? null;
+            $recipient_type = $payload['recipient_type'] ?? '';
+            $recipient_id = $payload['recipient_id'] ?? null;
+            $manage_mode = (bool) ($payload['manage_mode'] ?? false);
+
+            if (!$appointment_id) {
+                return;
+            }
+
+            // Re-fetch appointment
+            $appointment = $CI->appointments_model->find($appointment_id);
+            if (!$appointment) {
+                log_message('warning', 'Notifications::handle_queued_appointment_saved_email() - Appointment not found: ' . $appointment_id);
+                return;
+            }
+
+            // Re-fetch service
+            $CI->load->model('services_model');
+            $service = $CI->services_model->find($appointment['id_services']);
+            if (!$service) {
+                log_message('warning', 'Notifications::handle_queued_appointment_saved_email() - Service not found for appointment: ' . $appointment_id);
+                return;
+            }
+
+            // Re-fetch provider
+            $provider = $CI->providers_model->find($appointment['id_users_provider']);
+            if (!$provider) {
+                log_message('warning', 'Notifications::handle_queued_appointment_saved_email() - Provider not found for appointment: ' . $appointment_id);
+                return;
+            }
+
+            // Re-fetch customer
+            $CI->load->model('customers_model');
+            $customer = $CI->customers_model->find($appointment['id_users_customer']);
+            if (!$customer) {
+                log_message('warning', 'Notifications::handle_queued_appointment_saved_email() - Customer not found for appointment: ' . $appointment_id);
+                return;
+            }
+
+            // Re-fetch settings
+            $settings = $CI->settings_model->get();
+
+            // Generate links
+            $customer_link = site_url('booking/reschedule/' . $appointment['hash']);
+            $provider_link = site_url('calendar/reschedule/' . $appointment['hash']);
+
+            // Generate ICS stream
+            $CI->load->library('ics_file');
+            $ics_stream = $CI->ics_file->get_stream($appointment, $service, $provider, $customer);
+
+            // Restrict customer details for provider/secretary
+            $provider_customer = $this->restrict_customer_details($customer);
+
+            // Determine recipient email and data based on type
+            $recipient_email = '';
+            $recipient_data = null;
+            $recipient_language = 'english';
+            $recipient_timezone = null;
+
+            if ($recipient_type === 'customer') {
+                $recipient_email = $customer['email'] ?? '';
+                $recipient_data = $customer;
+                $recipient_language = $customer['language'] ?? 'english';
+                $recipient_timezone = $customer['timezone'] ?? null;
+            } elseif ($recipient_type === 'provider') {
+                $recipient_email = $provider['email'] ?? '';
+                $recipient_data = $provider_customer;
+                $recipient_language = $provider['language'] ?? 'english';
+                $recipient_timezone = $provider['timezone'] ?? null;
+            } elseif ($recipient_type === 'admin') {
+                $admin = $CI->admins_model->find($recipient_id);
+                if (!$admin) {
+                    log_message('warning', 'Notifications::handle_queued_appointment_saved_email() - Admin not found: ' . $recipient_id);
+                    return;
+                }
+                $recipient_email = $admin['email'] ?? '';
+                $recipient_data = $customer;
+                $recipient_language = $admin['language'] ?? 'english';
+                $recipient_timezone = $admin['timezone'] ?? null;
+            } elseif ($recipient_type === 'secretary') {
+                $secretary = $CI->secretaries_model->find($recipient_id);
+                if (!$secretary) {
+                    log_message('warning', 'Notifications::handle_queued_appointment_saved_email() - Secretary not found: ' . $recipient_id);
+                    return;
+                }
+                $recipient_email = $secretary['email'] ?? '';
+                $recipient_data = $provider_customer;
+                $recipient_language = $secretary['language'] ?? 'english';
+                $recipient_timezone = $secretary['timezone'] ?? null;
+            } else {
+                log_message('warning', 'Notifications::handle_queued_appointment_saved_email() - Unknown recipient type: ' . $recipient_type);
+                return;
+            }
+
+            if (!$recipient_email) {
+                return; // Silently skip if no email available
+            }
+
+            // Set language for subject/message generation
+            config(['language' => $recipient_language]);
+            $CI->lang->load('translations');
+
+            $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
+            $message = $manage_mode ? '' : lang('thank_you_for_appointment');
+
+            try {
+                $CI->email_messages->send_appointment_saved(
+                    $appointment,
+                    $provider,
+                    $service,
+                    $recipient_data,
+                    $settings,
+                    $subject,
+                    $message,
+                    ($recipient_type === 'customer') ? $customer_link : $provider_link,
+                    $recipient_email,
+                    $ics_stream,
+                    $recipient_timezone,
+                    $recipient_type,
+                );
+            } catch (Throwable $e) {
+                log_message('error', 'Notifications::handle_queued_appointment_saved_email() failed for ' . $recipient_type . ': ' . $e->getMessage());
+                log_message('error', $e->getTraceAsString());
+            }
+        } catch (Throwable $e) {
+            log_message('error', 'Notifications::handle_queued_appointment_saved_email() exception: ' . $e->getMessage());
+            log_message('error', $e->getTraceAsString());
+        }
     }
 }

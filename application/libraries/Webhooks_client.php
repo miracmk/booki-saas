@@ -41,6 +41,11 @@ class Webhooks_client
         $this->CI->load->model('appointments_model');
         $this->CI->load->model('settings_model');
         $this->CI->load->model('webhooks_model');
+        // Ki Reservation (Dalga 2) - queue gate for call(), see do_call()/handle_queued_delivery().
+        // MUST be loaded here - call() references $this->CI->queue->enabled(), which would fatal on
+        // every webhook trigger if this library were never loaded. Same missing-load bug found and
+        // fixed in Notifications.php's constructor - see that comment for the full explanation.
+        $this->CI->load->library('queue');
     }
 
     /**
@@ -73,6 +78,37 @@ class Webhooks_client
      */
     private function call(array $webhook, string $action, array $payload): void
     {
+        // Queue if enabled; fall through to synchronous call if queue is disabled or push fails.
+        if ($this->CI->queue->enabled()) {
+            if ($this->CI->queue->push(
+                'webhook',
+                'webhooks.deliver',
+                [
+                    'webhook_id' => $webhook['id'] ?? null,
+                    'action' => $action,
+                    'payload' => $payload,
+                ],
+                [
+                    'reference_type' => 'webhook',
+                    'reference_id' => $webhook['id'] ?? null,
+                ],
+            ) !== null) {
+                return;
+            }
+        }
+
+        $this->do_call($webhook, $action, $payload);
+    }
+
+    /**
+     * Internal helper: perform the actual webhook call (no queue check).
+     *
+     * @param array $webhook
+     * @param string $action
+     * @param array $payload
+     */
+    private function do_call(array $webhook, string $action, array $payload): void
+    {
         try {
             $client = new Client();
 
@@ -100,6 +136,39 @@ class Webhooks_client
                     ') request received an unexpected exception: ' .
                     $e->getMessage(),
             );
+            log_message('error', $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * Queued handler for webhook deliveries (called by Job_dispatcher).
+     * Re-fetches the webhook configuration and delivers the payload.
+     *
+     * @param EA_Controller|CI_Controller $CI
+     * @param array $payload Must contain 'webhook_id', 'action', 'payload'
+     */
+    public function handle_queued_delivery($CI, array $payload): void
+    {
+        try {
+            $webhook_id = $payload['webhook_id'] ?? null;
+            $action = $payload['action'] ?? '';
+            $webhook_payload = $payload['payload'] ?? [];
+
+            if (!$webhook_id) {
+                log_message('warning', 'Webhooks_client::handle_queued_delivery() - webhook_id is missing');
+                return;
+            }
+
+            // Re-fetch the webhook configuration
+            $webhook = $CI->webhooks_model->find($webhook_id);
+            if (!$webhook) {
+                log_message('warning', 'Webhooks_client::handle_queued_delivery() - Webhook not found: ' . $webhook_id);
+                return;
+            }
+
+            $this->do_call($webhook, $action, $webhook_payload);
+        } catch (Throwable $e) {
+            log_message('error', 'Webhooks_client::handle_queued_delivery() failed: ' . $e->getMessage());
             log_message('error', $e->getTraceAsString());
         }
     }
