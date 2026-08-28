@@ -41,7 +41,7 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 
 ### 🔲 Dalga 1 — Gelir ve Operasyon Temeli (Faz 7·8·9·12·13)
 - [x] Recurring Appointments — `id_recurrence_group` nullable kolon, seri randevu mantığı (commit `1d8e930`, izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
-- [ ] Waitlist — dolu slota katılma, boşalınca SMS/WhatsApp bildirimi
+- [x] Waitlist — dolu slota katılma, boşalınca SMS/WhatsApp bildirimi (commit `b2542c9`, izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
 - [ ] Memberships — abonelik planı, otomatik yenileme, kullanım hakları
 - [ ] Invoicing (iç) — invoice/invoice_items, appointment+package+product birleşik fatura
 - [ ] POS — order/order_items abstraction, mevcut payment gateway'lere bağlı
