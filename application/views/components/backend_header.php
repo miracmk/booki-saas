@@ -100,6 +100,16 @@ $expiry_warning = vars('expiry_warning');
                 </a>
             </li>
 
+            <?php $hidden = can('view', PRIV_MEMBERSHIPS) ? '' : 'd-none'; ?>
+            <?php $active = $active_menu == PRIV_MEMBERSHIPS ? 'active' : ''; ?>
+            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
+                <a href="<?= site_url('memberships') ?>" class="nav-link text-white fw-light py-3 px-3"
+                   data-tippy-content="Üyelikleri yönet">
+                    <i class="fas fa-id-card me-2"></i>
+                    Üyelikler
+                </a>
+            </li>
+
             <?php $hidden = can('view', PRIV_REPORTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_REPORTS ? 'active' : ''; ?>
             <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">

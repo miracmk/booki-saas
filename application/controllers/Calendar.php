@@ -913,21 +913,48 @@ class Calendar extends EA_Controller
                 $deviation_type === 'early' ? $early_exit_approved_by : null,
             );
 
-            // Multi-session package tracking: consume a session if an active package exists
-            // for this customer/service combination. Do not fail if no package is found or
-            // if the consumption fails - packages are optional.
+            // Ki Reservation (Dalga 1) - membership session tracking: consume a session from an
+            // active membership if one exists for this customer/service, checked BEFORE packages
+            // (a membership is a recurring, already-paid-for entitlement; a package is a one-time
+            // purchase - if a customer has both, the membership is used first so its per-period
+            // session count reflects actual usage). Never fails the checkout - memberships are
+            // optional, same non-blocking contract as packages below.
+            $membership_consumed = false;
+
             try {
-                $active_package = $this->packages_model->get_active_for_customer_service(
+                $this->load->model('customer_memberships_model');
+
+                $active_membership = $this->customer_memberships_model->get_active_for_customer_service(
                     (int) $appointment['id_users_customer'],
                     (int) $appointment['id_services'],
                 );
 
-                if ($active_package) {
-                    $this->packages_model->consume_session((int) $active_package['id'], $appointment_id);
+                if ($active_membership) {
+                    $this->customer_memberships_model->consume_session((int) $active_membership['id'], $appointment_id);
+                    $membership_consumed = true;
                 }
-            } catch (Throwable $package_error) {
-                // Log but do not fail the checkout
-                log_message('warning', 'Package consumption failed for appointment ' . $appointment_id . ': ' . $package_error->getMessage());
+            } catch (Throwable $membership_error) {
+                log_message('warning', 'Membership consumption failed for appointment ' . $appointment_id . ': ' . $membership_error->getMessage());
+            }
+
+            // Multi-session package tracking: consume a session if an active package exists
+            // for this customer/service combination. Do not fail if no package is found or
+            // if the consumption fails - packages are optional. Skipped if a membership session
+            // was already consumed above, so one visit is never double-charged against both.
+            if (!$membership_consumed) {
+                try {
+                    $active_package = $this->packages_model->get_active_for_customer_service(
+                        (int) $appointment['id_users_customer'],
+                        (int) $appointment['id_services'],
+                    );
+
+                    if ($active_package) {
+                        $this->packages_model->consume_session((int) $active_package['id'], $appointment_id);
+                    }
+                } catch (Throwable $package_error) {
+                    // Log but do not fail the checkout
+                    log_message('warning', 'Package consumption failed for appointment ' . $appointment_id . ': ' . $package_error->getMessage());
+                }
             }
 
             json_response([
@@ -1019,6 +1046,15 @@ class Calendar extends EA_Controller
             } catch (Throwable $package_error) {
                 // Log but do not fail the session clear
                 log_message('warning', 'Package session restore failed for appointment ' . $appointment_id . ': ' . $package_error->getMessage());
+            }
+
+            // Ki Reservation (Dalga 1) - restore a membership session if one was consumed (before
+            // clearing times) - mirrors the package restore above.
+            try {
+                $this->load->model('customer_memberships_model');
+                $this->customer_memberships_model->restore_session($appointment_id);
+            } catch (Throwable $membership_error) {
+                log_message('warning', 'Membership session restore failed for appointment ' . $appointment_id . ': ' . $membership_error->getMessage());
             }
 
             $this->appointments_model->set_actual_datetime($appointment_id, 'actual_start_datetime', null);
