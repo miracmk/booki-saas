@@ -120,6 +120,16 @@ $expiry_warning = vars('expiry_warning');
                 </a>
             </li>
 
+            <?php $hidden = can('view', PRIV_POS) ? '' : 'd-none'; ?>
+            <?php $active = $active_menu == PRIV_POS ? 'active' : ''; ?>
+            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
+                <a href="<?= site_url('pos') ?>" class="nav-link text-white fw-light py-3 px-3"
+                   data-tippy-content="Satış noktası">
+                    <i class="fas fa-cash-register me-2"></i>
+                    POS
+                </a>
+            </li>
+
             <?php $hidden = can('view', PRIV_REPORTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_REPORTS ? 'active' : ''; ?>
             <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">

@@ -135,6 +135,33 @@ class Payment_webhooks extends EA_Controller
                 log_message('info', "Payment_webhooks::{$gateway} - payment succeeded for appointment {$appointment_id}");
             }
 
+            // Ki Reservation (Dalga 1) - if this transaction is linked to a POS order (see
+            // Orders_model::checkout(), migration 121's id_orders column), flip the order's status
+            // in step with the transaction's. update_status() above already persisted the
+            // transaction status change unconditionally - this is a pure best-effort side effect,
+            // never allowed to fail the webhook response itself.
+            if (!empty($transaction['id_orders'])) {
+                try {
+                    $this->load->model('orders_model');
+
+                    $order_status = match ($event['status']) {
+                        'succeeded' => 'paid',
+                        'refunded', 'partially_refunded' => 'refunded',
+                        default => null,
+                    };
+
+                    if ($order_status !== null) {
+                        $this->orders_model->update_status((int) $transaction['id_orders'], $order_status);
+                    }
+                } catch (Throwable $order_error) {
+                    log_message(
+                        'warning',
+                        "Payment_webhooks::{$gateway} - order status update failed for order " .
+                            $transaction['id_orders'] . ': ' . $order_error->getMessage(),
+                    );
+                }
+            }
+
             response('', 200);
         } catch (Throwable $e) {
             log_message('error', "Payment_webhooks::{$gateway} - " . $e->getMessage());
