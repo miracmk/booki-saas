@@ -1,4 +1,6 @@
-<?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
+<?php extend('layouts/backend_layout'); ?>
+
+<?php section('content'); ?>
 
 <div class="wrapper">
   <div class="container-fluid">
@@ -6,7 +8,7 @@
       <div class="col">
         <h1 class="page-title">
           <i class="fas fa-id-card"></i>
-          <?= $page_title ?>
+          <?= vars('page_title') ?>
         </h1>
       </div>
       <div class="col-auto">
@@ -120,4 +122,10 @@
   </div>
 </div>
 
-<script src="<?= asset('js/pages/memberships.js') ?>"></script>
+<?php end_section('content'); ?>
+
+<?php section('scripts'); ?>
+
+<script src="<?= asset_url('assets/js/pages/memberships.js') ?>"></script>
+
+<?php end_section('scripts'); ?>
