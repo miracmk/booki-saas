@@ -49,7 +49,7 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 **Risk:** Invoice+POS mevcut `Payment_transactions` ile çakışmamalı — additive, feature-flagged (Faz 1 deposit akışı gibi).
 
 ### 🔲 Dalga 2 — Güvenlik ve Güvenilirlik (Faz 29·30·31·32·33)
-- [ ] MFA/TOTP — admin+provider girişleri için opsiyonel TOTP + backup kodları
+- [x] MFA/TOTP — admin+provider+secretary girişleri için opsiyonel TOTP + backup kodları TAMAMLANDI (commit `75b1d34`); gerçek Docker çalıştırmasında bulunup düzeltilen kritik hata: robthree/twofactorauth kütüphanesinin gerçek constructor imzası (IQRCodeProvider zorunlu, issuer string değil) - bacon/bacon-qr-code + SVG render ile çözüldü; superadmin/müşteri MFA'sı bilinçli kapsam dışı; izole Docker'da gerçek çalıştırmayla doğrulandı, henüz canlıya deploy edilmedi
 - [ ] KVKK/GDPR tamamlama — veri indirme + hesap silme uçtan uca akışı
 - [~] Otomatik test paketi — PHPUnit bootstrap TAMAMLANDI (commit `b294424`, gerçek Docker'da çalıştırıldı: 17 test/27 assertion, exit 0); asıl test listesi (booking conflict, station allocation, commission, encryption, tenant isolation) henüz yazılmadı
 - [x] Background job sistemi — DB-tabanlı birleşik `jobs` kuyruğu + Console::process_jobs() + 6 senkron gönderim noktasının (SMS/WhatsApp/Telegram/appointment-saved email x4) kuyruğa bağlanması TAMAMLANDI (commit `e05f50d`, `2279227`); appointment-DELETED email ve password-reset e-postası bilinçli olarak senkron kaldı; izole Docker'da gerçek çalıştırmayla doğrulandı (3 kritik hata bulunup düzeltildi - detay commit mesajında), henüz canlıya deploy edilmedi
