@@ -1134,6 +1134,17 @@ class Console extends EA_Controller
      *
      * php index.php console help
      */
+    /**
+     * No-op test infrastructure bootstrap command.
+     *
+     * This command is used only by TenantTestCase to bootstrap the CI3 framework during test runs.
+     * It is not intended for end users and should not be listed in help() output.
+     */
+    public function noop(): void
+    {
+        echo 'noop' . PHP_EOL;
+    }
+
     public function help(): void
     {
         $help = [

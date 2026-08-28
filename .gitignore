@@ -10,3 +10,5 @@ storage/backups/*
 .env
 *.log
 .DS_Store
+.phpunit.cache/
+/tests/*.log

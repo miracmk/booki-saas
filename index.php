@@ -283,7 +283,13 @@ if (!is_dir($system_path)) {
 define('SELF', pathinfo(__FILE__, PATHINFO_BASENAME));
 
 // Path to the system directory
-define('BASEPATH', $system_path);
+// PHPUnit's integration test bootstrap (tests/TenantTestCase.php) may already have defined
+// this constant before requiring this file - guarded so re-requiring index.php in that context
+// doesn't trigger a "constant already defined" warning; identical value either way, so no
+// behavior change for the normal (single) request/CLI invocation this guard is not needed for.
+if (!defined('BASEPATH')) {
+    define('BASEPATH', $system_path);
+}
 
 // Path to the front controller (this file) directory
 define('FCPATH', dirname(__FILE__) . DIRECTORY_SEPARATOR);

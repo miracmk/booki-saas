@@ -45,7 +45,7 @@
         "symfony/finder": "^6.4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^12.4.2"
+        "phpunit/phpunit": "^11.5"
     },
     "scripts": {
         "pre-autoload-dump": "Google\\Task\\Composer::cleanup",
@@ -80,7 +80,8 @@
             "Tasks"
         ]
     },
-    "autoload": {
+    "autoload": {},
+    "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
         }
