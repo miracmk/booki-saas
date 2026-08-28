@@ -39,6 +39,7 @@ class Job_dispatcher
         'notifications.send_telegram' => [Notifications::class, 'handle_queued_telegram'],
         'notifications.appointment_saved_email' => [Notifications::class, 'handle_queued_appointment_saved_email'],
         'webhooks.deliver' => [Webhooks_client::class, 'handle_queued_delivery'],
+        'data_requests.export' => [Data_export::class, 'handle_queued_export'],
     ];
 
     /**

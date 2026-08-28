@@ -323,6 +323,41 @@ class Email_messages
     }
 
     /**
+     * Faz 30 (KVKK) - notify a customer that their requested data export is ready to download.
+     * Deliberately not in TEMPLATE_SETTING_KEYS/render_email() - this is a one-off compliance
+     * notice, not a business-branded customer touchpoint like appointment emails.
+     *
+     * @param string $download_link The one-time download URL (contains the raw token - never store this).
+     * @param string $expires_human Human-readable expiry (e.g. "3 gün").
+     * @param string $recipient_email Recipient email address.
+     * @param array $settings App settings.
+     *
+     * @throws Exception
+     */
+    public function send_data_export_ready(string $download_link, string $expires_human, string $recipient_email, array $settings): void
+    {
+        $subject = lang('data_export_ready_subject');
+
+        $message = lang('data_export_ready_message');
+
+        $html = $this->CI->load->view(
+            'emails/data_export_ready_email',
+            [
+                'subject' => $subject,
+                'message' => $message,
+                'download_link' => $download_link,
+                'expires_human' => $expires_human,
+                'settings' => $settings,
+            ],
+            true,
+        );
+
+        $php_mailer = $this->get_php_mailer($recipient_email, $subject, $html);
+
+        $php_mailer->send();
+    }
+
+    /**
      * Salon Flora customization - render one of the customizable email templates: the business's
      * custom HTML (from Settings > Şablonlar) if one has been saved, otherwise the stock .php view,
      * unchanged.

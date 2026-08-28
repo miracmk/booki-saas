@@ -66,6 +66,22 @@ class Payment_transactions_model extends EA_Model
     }
 
     /**
+     * Faz 30 (KVKK export) - a customer's payment transaction history. id_users is nullable
+     * (e.g. walk-in POS sales with no linked customer), so this never matches those rows.
+     *
+     * @param int $customer_id
+     * @return array
+     */
+    public function get_for_customer(int $customer_id): array
+    {
+        return $this->db
+            ->where('id_users', $customer_id)
+            ->order_by('created_at', 'DESC')
+            ->get('payment_transactions')
+            ->result_array();
+    }
+
+    /**
      * Update the status of an existing transaction.
      *
      * @param int $id Transaction ID.

@@ -315,6 +315,28 @@ class Appointments_model extends EA_Model
     }
 
     /**
+     * Faz 30 (KVKK export) - all appointments (including unavailability-excluded, real bookings only)
+     * belonging to a customer, newest first.
+     *
+     * @param int $customer_id
+     * @return array
+     */
+    public function get_for_customer(int $customer_id): array
+    {
+        $appointments = $this->db
+            ->where('id_users_customer', $customer_id)
+            ->order_by('start_datetime', 'DESC')
+            ->get('appointments')
+            ->result_array();
+
+        foreach ($appointments as &$appointment) {
+            $this->cast($appointment);
+        }
+
+        return $appointments;
+    }
+
+    /**
      * Get a specific field value from the database.
      *
      * @param int $appointment_id Appointment ID.
