@@ -46,6 +46,7 @@ class Cleanup
         $this->cleanup_cache();
         $this->cleanup_customer_data();
         $this->cleanup_jobs();
+        $this->cleanup_data_exports();
     }
 
     /**
@@ -215,6 +216,54 @@ class Cleanup
 
         response(
             "⇾ Job queue cleanup completed. Deleted {$deleted_count} old job record(s)." . PHP_EOL,
+        );
+    }
+
+    /**
+     * Faz 30 (KVKK) - expire ready-but-unclaimed data exports and delete their files from disk.
+     * Mirrors Customers_model::invalidate_data_exports()'s path-traversal guard and sibling-file
+     * cleanup (the three loose-file names in 'files' format, or just the single .zip in 'zip'
+     * format) - the difference here is WHY the file goes away (time, not an anonymize() call).
+     */
+    public function cleanup_data_exports(): void
+    {
+        $this->CI->load->model('data_requests_model');
+
+        $expirable = $this->CI->data_requests_model->get_expirable(date('Y-m-d H:i:s'));
+        $deleted_files = 0;
+
+        $base = realpath(storage_path('exports'));
+
+        foreach ($expirable as $request) {
+            if (!empty($request['file_path']) && $base !== false) {
+                $abs = realpath(storage_path($request['file_path']));
+
+                if ($abs !== false && strpos($abs, $base . DIRECTORY_SEPARATOR) === 0 && is_file($abs)) {
+                    @unlink($abs);
+                    $deleted_files++;
+
+                    foreach (['export.json', 'export.html', 'BENIOKU.txt'] as $sibling) {
+                        $sibling_path = dirname($abs) . DIRECTORY_SEPARATOR . $sibling;
+
+                        if (is_file($sibling_path)) {
+                            @unlink($sibling_path);
+                        }
+                    }
+
+                    @rmdir(dirname($abs));
+                }
+            }
+
+            $this->CI->data_requests_model->mark_expired($request['id']);
+        }
+
+        response(
+            '⇾ Data export cleanup completed. Deleted ' .
+                $deleted_files .
+                ' file(s), expired ' .
+                count($expirable) .
+                ' request(s).' .
+                PHP_EOL,
         );
     }
 }

@@ -1227,6 +1227,70 @@ class Console extends EA_Controller
     }
 
     /**
+     * Faz 30 (KVKK) - safety-net batch processor for pending data export requests. Every export
+     * already goes through the normal job queue (Customer_portal::request_export() pushes
+     * 'data_requests.export', drained by process_jobs()) - this exists only to catch exports created
+     * while the queue was disabled (Customer_portal falls back to synchronous build in that case, so
+     * in practice this should rarely find work) or a request that was queued but whose job row was
+     * lost. Reuses Data_export::handle_queued_export() directly rather than duplicating its logic.
+     *
+     * Usage:
+     *
+     * php index.php console process_data_requests
+     * php index.php console process_data_requests 50
+     *
+     * @param int $limit Maximum pending export requests to process per invocation.
+     * @throws Throwable
+     */
+    public function process_data_requests(int $limit = 25): void
+    {
+        if (!is_multi_tenant_mode()) {
+            $this->process_data_requests_current_db($limit);
+
+            return;
+        }
+
+        $tenants = $this->db->get_where('tenants', ['status' => 'active'])->result_array();
+        $start_time = microtime(true);
+
+        foreach ($tenants as $tenant) {
+            echo 'Processing data export requests for tenant "' . $tenant['subdomain'] . '"... ';
+
+            $this->connect_tenant($tenant);
+            $processed = $this->process_data_requests_current_db($limit);
+            echo $processed . ' request(s) processed' . PHP_EOL;
+
+            if (microtime(true) - $start_time > 50) {
+                echo 'Wall-clock cap reached (50s), stopping to avoid blocking next cron slot.' . PHP_EOL;
+                break;
+            }
+        }
+
+        $this->connect_master();
+    }
+
+    /**
+     * Faz 30 (KVKK) - process pending export requests for the currently-connected database.
+     * Called per-tenant by process_data_requests(), or directly in single-tenant mode.
+     *
+     * @param int $limit Maximum pending export requests to reserve and process.
+     * @return int Number of requests processed.
+     */
+    private function process_data_requests_current_db(int $limit): int
+    {
+        $this->load->model('data_requests_model');
+        $this->load->library('data_export');
+
+        $pending = $this->data_requests_model->get_pending_exports($limit);
+
+        foreach ($pending as $request) {
+            $this->data_export->handle_queued_export($this, ['request_id' => $request['id']]);
+        }
+
+        return count($pending);
+    }
+
+    /**
      * No-op test infrastructure bootstrap command.
      *
      * This command is used only by TenantTestCase to bootstrap the CI3 framework during test runs.
@@ -1268,6 +1332,7 @@ class Console extends EA_Controller
             '⇾ php index.php console sync',
             '⇾ php index.php console cleanup    (cleans sessions, logs, cache, and customer data)',
             '⇾ php index.php console process_jobs [queue] [limit]',
+            '⇾ php index.php console process_data_requests [limit]',
             '',
             '',
         ];

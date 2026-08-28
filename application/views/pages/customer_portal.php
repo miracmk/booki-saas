@@ -103,6 +103,17 @@
         </div>
 
         <div class="card">
+            <h2>Kişisel Verilerim (KVKK)</h2>
+            <p class="meta" style="margin: 0 0 .8rem;">
+                Verilerinizin bir kopyasını indirebilir veya hesabınızın anonimleştirilmesini talep edebilirsiniz.
+            </p>
+            <button type="button" id="kvkk-export-btn">Verilerimi Dışa Aktar</button>
+            <button type="button" id="kvkk-erasure-btn" style="background:#c0392b; margin-left:.5rem;">Hesabımı Sil</button>
+            <div class="msg" id="kvkk-msg"></div>
+            <div id="kvkk-requests" style="margin-top: 1rem;"></div>
+        </div>
+
+        <div class="card">
             <h2>Şifre Değiştir</h2>
             <form id="password-form">
                 <label>Mevcut Şifre</label>
@@ -170,6 +181,109 @@
                     }
                 });
         });
+        const kvkkMsg = document.getElementById('kvkk-msg');
+        const kvkkRequestsEl = document.getElementById('kvkk-requests');
+        const kvkkStatusLabels = {
+            pending: 'Bekliyor',
+            processing: 'Hazırlanıyor',
+            ready: 'Hazır',
+            failed: 'Başarısız',
+            expired: 'Süresi Doldu',
+            completed: 'Tamamlandı',
+        };
+
+        function kvkkShowMessage(ok, text) {
+            kvkkMsg.className = 'msg ' + (ok ? 'ok' : 'err');
+            kvkkMsg.textContent = text;
+            kvkkMsg.style.display = 'block';
+        }
+
+        function loadKvkkRequests() {
+            fetch('<?= site_url('customer_portal/data_requests') ?>')
+                .then((r) => r.json())
+                .then((data) => {
+                    if (!data.success) {
+                        return;
+                    }
+
+                    if (!data.requests.length) {
+                        kvkkRequestsEl.innerHTML = '<div class="empty">Henüz bir talebiniz yok.</div>';
+                        return;
+                    }
+
+                    kvkkRequestsEl.innerHTML = data.requests.map(function (req) {
+                        const typeLabel = req.request_type === 'export' ? 'Dışa Aktarma' : 'Silme';
+                        const statusLabel = kvkkStatusLabels[req.status] || req.status;
+                        let resendButton = '';
+
+                        if (req.request_type === 'export' && req.status === 'ready') {
+                            resendButton = '<button type="button" class="kvkk-resend-btn" data-id="' + req.id + '" style="margin-top:.4rem;">Bağlantıyı Yeniden Gönder</button>';
+                        }
+
+                        return '<div class="appt"><div class="when">' + typeLabel + ' — ' + statusLabel + '</div>' +
+                            '<div class="meta">' + req.created_at + '</div>' + resendButton + '</div>';
+                    }).join('');
+
+                    kvkkRequestsEl.querySelectorAll('.kvkk-resend-btn').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            kvkkResendLink(btn.getAttribute('data-id'));
+                        });
+                    });
+                });
+        }
+
+        function kvkkResendLink(requestId) {
+            const params = new URLSearchParams({
+                csrf_token: '<?= e(vars('csrf_token')) ?>',
+                request_id: requestId,
+            });
+
+            fetch('<?= site_url('customer_portal/request_download_link') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString(),
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    kvkkShowMessage(data.success, data.success ? 'İndirme bağlantısı e-posta adresinize gönderildi.' : (data.message || 'Hata oluştu.'));
+                });
+        }
+
+        document.getElementById('kvkk-export-btn').addEventListener('click', function () {
+            fetch('<?= site_url('customer_portal/request_export') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ csrf_token: '<?= e(vars('csrf_token')) ?>' }).toString(),
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    kvkkShowMessage(data.success, data.success ? 'Talebiniz alındı. Hazır olduğunda e-posta ile bilgilendirileceksiniz.' : (data.message || 'Hata oluştu.'));
+                    if (data.success) {
+                        loadKvkkRequests();
+                    }
+                });
+        });
+
+        document.getElementById('kvkk-erasure-btn').addEventListener('click', function () {
+            if (!confirm('Hesabınızın anonimleştirilmesini talep etmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve işletme tarafından onaylanması gerekir.')) {
+                return;
+            }
+
+            fetch('<?= site_url('customer_portal/request_erasure') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ csrf_token: '<?= e(vars('csrf_token')) ?>' }).toString(),
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    kvkkShowMessage(data.success, data.success ? 'Silme talebiniz alındı ve incelenecektir.' : (data.message || 'Hata oluştu.'));
+                    if (data.success) {
+                        loadKvkkRequests();
+                    }
+                });
+        });
+
+        loadKvkkRequests();
     </script>
 </body>
 </html>

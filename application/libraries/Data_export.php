@@ -193,7 +193,13 @@ class Data_export
         $rel_dir = 'exports/' . date('Y') . '/' . bin2hex(random_bytes(16));
         $abs_dir = storage_path($rel_dir);
 
-        if (!mkdir($abs_dir, 0750, true) && !is_dir($abs_dir)) {
+        // 0755, matching every sibling folder under storage/ (backups/logs/uploads) - the
+        // unguessable random directory name plus the token_hash check in
+        // Customer_portal::download_export() are the actual security boundary here, not filesystem
+        // permissions. A tighter mode would only break the case where the file is written by one
+        // process (a CLI queue worker) and served by another (Apache/www-data) - exactly what broke
+        // during testing with 0750.
+        if (!mkdir($abs_dir, 0755, true) && !is_dir($abs_dir)) {
             throw new RuntimeException('Dışa aktarma dizini oluşturulamadı: ' . $abs_dir);
         }
 
