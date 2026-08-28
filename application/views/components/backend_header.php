@@ -90,6 +90,16 @@ $expiry_warning = vars('expiry_warning');
                 </a>
             </li>
 
+            <?php $hidden = can('view', PRIV_WAITLIST) ? '' : 'd-none'; ?>
+            <?php $active = $active_menu == PRIV_WAITLIST ? 'active' : ''; ?>
+            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
+                <a href="<?= site_url('waitlist') ?>" class="nav-link text-white fw-light py-3 px-3"
+                   data-tippy-content="Bekleme listesini yönet">
+                    <i class="fas fa-hourglass-half me-2"></i>
+                    Bekleme Listesi
+                </a>
+            </li>
+
             <?php $hidden = can('view', PRIV_REPORTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_REPORTS ? 'active' : ''; ?>
             <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">

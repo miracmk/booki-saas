@@ -1536,6 +1536,18 @@ class Calendar extends EA_Controller
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $appointment);
 
+            // Ki Reservation (Dalga 1) - a cancelled appointment may free up a slot someone is
+            // waiting for. Best-effort, never blocks the cancellation itself.
+            try {
+                $this->load->library('waitlist_service');
+                $this->waitlist_service->check_and_notify_on_opening($appointment);
+            } catch (Throwable $waitlist_error) {
+                log_message(
+                    'warning',
+                    'Waitlist notify failed for appointment ' . $appointment_id . ': ' . $waitlist_error->getMessage(),
+                );
+            }
+
             // Salon Flora customization - real-time Google Sheets sync (see Google_sheets_writer).
             $this->load->library('google_sheets_writer');
             $this->google_sheets_writer->sync_record('appointments', (int) $appointment_id, 'delete');

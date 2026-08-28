@@ -330,6 +330,18 @@ class Appointments extends EA_Controller
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $appointment);
 
+            // Ki Reservation (Dalga 1) - a cancelled appointment may free up a slot someone is
+            // waiting for. Best-effort, never blocks the deletion itself.
+            try {
+                $this->load->library('waitlist_service');
+                $this->waitlist_service->check_and_notify_on_opening($appointment);
+            } catch (Throwable $waitlist_error) {
+                log_message(
+                    'warning',
+                    'Waitlist notify failed for appointment ' . $appointment_id . ': ' . $waitlist_error->getMessage(),
+                );
+            }
+
             json_response([
                 'success' => true,
             ]);

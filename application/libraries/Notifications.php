@@ -36,6 +36,8 @@ class Notifications
         $this->CI->load->model('providers_model');
         $this->CI->load->model('secretaries_model');
         $this->CI->load->model('settings_model');
+        // Ki Reservation (Dalga 1) - SMS/WhatsApp channel settings, see send_sms()/send_whatsapp().
+        $this->CI->load->model('messaging_settings_model');
 
         $this->CI->load->library('email_messages');
         $this->CI->load->library('ics_file');
@@ -67,6 +69,118 @@ class Notifications
             $this->CI->telegram_client->send_message($user['telegram_chat_id'], $text);
         } catch (Throwable $e) {
             $this->log_exception($e, 'telegram notification', $user['id'] ?? null);
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 1) - best-effort SMS notification via whichever gateway is configured
+     * in messaging_settings (currently: Netgsm). No-ops silently if SMS notifications are disabled,
+     * no gateway is configured, or the recipient has no phone number - mirrors send_telegram()'s
+     * degrade-gracefully contract. This is the first real appointment-notification call site for
+     * Sms_gateway_factory, which previously existed unused.
+     *
+     * @param array $user Recipient row (must have 'phone_number').
+     * @param string $text
+     */
+    private function send_sms(array $user, string $text): void
+    {
+        if (empty($user['phone_number'])) {
+            return;
+        }
+
+        $settings = $this->CI->messaging_settings_model->get_settings();
+
+        if (!filter_var($settings['sms_notifications_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            return;
+        }
+
+        try {
+            $gateway = Sms_gateway_factory::make($settings);
+
+            if ($gateway === null) {
+                return;
+            }
+
+            $gateway->send($user['phone_number'], $text);
+        } catch (Throwable $e) {
+            $this->log_exception($e, 'sms notification', $user['id'] ?? null);
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 1) - best-effort WhatsApp notification via the WhatsApp Business API.
+     * No-ops silently if WhatsApp notifications are disabled, the gateway isn't configured, or the
+     * recipient has no phone number - mirrors send_telegram()'s degrade-gracefully contract. This is
+     * the first appointment-notification call site for Whatsapp_client; previously it was only used
+     * for manual staff replies and the inbound webhook (see Whatsapp.php).
+     *
+     * @param array $user Recipient row (must have 'phone_number').
+     * @param string $text
+     */
+    private function send_whatsapp(array $user, string $text): void
+    {
+        if (empty($user['phone_number'])) {
+            return;
+        }
+
+        $settings = $this->CI->messaging_settings_model->get_settings();
+
+        if (!filter_var($settings['whatsapp_notifications_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            return;
+        }
+
+        try {
+            $whatsapp_client = new Whatsapp_client(
+                $settings['whatsapp_phone_number_id'],
+                $settings['whatsapp_access_token'],
+            );
+
+            if (!$whatsapp_client->is_configured()) {
+                return;
+            }
+
+            $whatsapp_client->send_text($user['phone_number'], $text);
+        } catch (Throwable $e) {
+            $this->log_exception($e, 'whatsapp notification', $user['id'] ?? null);
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 1) - notify a waitlist entry's customer that a matching slot has opened
+     * up. Sends via whichever channel(s) the entry requested (see waitlist_entries.notify_channel),
+     * each independently best-effort - a failure on one channel never blocks the other or the caller
+     * (Waitlist_service::check_and_notify_on_opening(), itself called from the non-blocking
+     * appointment-cancellation hooks in Calendar.php/Appointments.php).
+     *
+     * @param array $customer Customer row (must have 'id', 'phone_number').
+     * @param array $service Service data.
+     * @param string $slot_datetime The freed slot's start datetime ('Y-m-d H:i:s').
+     * @param string $channel One of: sms, whatsapp, both.
+     */
+    public function notify_waitlist_slot_available(
+        array $customer,
+        array $service,
+        string $slot_datetime,
+        string $channel,
+    ): void {
+        try {
+            $formatted_datetime = date('d.m.Y H:i', strtotime($slot_datetime));
+
+            $text = sprintf(
+                '%s için %s tarihinde bir randevu yeri açıldı. Randevunuzu almak için lütfen bizi arayın.',
+                $service['name'] ?? 'Hizmet',
+                $formatted_datetime,
+            );
+
+            if ($channel === 'sms' || $channel === 'both') {
+                $this->send_sms($customer, $text);
+            }
+
+            if ($channel === 'whatsapp' || $channel === 'both') {
+                $this->send_whatsapp($customer, $text);
+            }
+        } catch (Throwable $e) {
+            $this->log_exception($e, 'waitlist slot available notification', $customer['id'] ?? null);
         }
     }
 

@@ -77,6 +77,7 @@ const PRIV_REPORTS = 'reports'; // Salon Flora customization
 const PRIV_BRANCHES = 'branches'; // Ki Reservation customization (2026-08-27)
 const PRIV_PACKAGES = 'packages'; // Ki Reservation customization (2026-08-27)
 const PRIV_PRODUCTS = 'products'; // Ki Reservation customization (2026-08-27)
+const PRIV_WAITLIST = 'waitlist'; // Ki Reservation customization (Dalga 1, 2026-08-28)
 
 const DATE_FORMAT_DMY = 'DMY';
 const DATE_FORMAT_MDY = 'MDY';
