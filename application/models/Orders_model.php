@@ -240,4 +240,24 @@ class Orders_model extends EA_Model
             'gateway' => $payment_settings['active_gateway'],
         ];
     }
+
+    /**
+     * Faz 30 (KVKK export) - a customer's POS orders. id_users_customer is nullable (walk-in sales),
+     * so this deliberately never matches walk-in orders (which have no customer to export to).
+     *
+     * @param int $customer_id
+     * @return array
+     */
+    public function get_for_customer(int $customer_id): array
+    {
+        $orders = $this->db->where('id_users_customer', $customer_id)
+            ->order_by('created_at', 'DESC')
+            ->get('orders')->result_array();
+
+        foreach ($orders as &$order) {
+            $this->cast($order);
+        }
+
+        return $orders;
+    }
 }

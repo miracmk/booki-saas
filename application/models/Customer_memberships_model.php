@@ -406,4 +406,22 @@ class Customer_memberships_model extends EA_Model
 
         return date('Y-m-d H:i:s', strtotime('+' . $months . ' months', strtotime($from)));
     }
+
+    /**
+     * Faz 30 (KVKK export) - all consumed membership sessions for a customer. customer_membership_sessions
+     * has no direct customer FK, so it is reached through customer_memberships.id_users_customer via a join.
+     *
+     * @param int $customer_id
+     * @return array
+     */
+    public function get_sessions_for_customer(int $customer_id): array
+    {
+        return $this->db
+            ->select('cms.*, cm.id AS membership_id')
+            ->from($this->db->dbprefix('customer_membership_sessions') . ' AS cms')
+            ->join($this->db->dbprefix('customer_memberships') . ' AS cm', 'cm.id = cms.id_customer_memberships')
+            ->where('cm.id_users_customer', $customer_id)
+            ->order_by('cms.consumed_at', 'ASC')
+            ->get()->result_array();
+    }
 }

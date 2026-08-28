@@ -427,6 +427,13 @@ class Customers_model extends EA_Model
     {
         $this->anonymize_related_consents($customer_id);
 
+        // Faz 30 (KVKK) - a pending/ready data export is a packaged copy of exactly the PII we are
+        // about to erase. Invalidating it here (rather than at every call site of anonymize())
+        // means every erasure path - admin action, nightly retention cron, staff-approved
+        // self-service request - is covered by construction. Never throws; see
+        // invalidate_data_exports() below.
+        $this->invalidate_data_exports($customer_id);
+
         $this->db->update(
             'users',
             [
@@ -481,6 +488,85 @@ class Customers_model extends EA_Model
                 'last_name' => '[DELETED]',
                 'email' => '[DELETED]',
             ]);
+        }
+    }
+
+    /**
+     * Faz 30 (KVKK) - invalidate any outstanding data export artifacts for a customer.
+     *
+     * Called from anonymize(). MUST NOT THROW under any circumstance: anonymize() is a legal
+     * obligation and a failed unlink() or a table that does not exist yet (tenant mid-migration)
+     * must never be able to block it. Returns the number of invalidated rows, for logging only.
+     *
+     * For the overwhelmingly common case - a customer with no export requests - this is a single
+     * indexed SELECT that returns zero rows, and nothing else runs.
+     *
+     * @param int $customer_id
+     * @return int
+     */
+    public function invalidate_data_exports(int $customer_id): int
+    {
+        try {
+            if (!$this->db->table_exists('data_requests')) {
+                return 0;
+            }
+
+            $rows = $this->db
+                ->where('id_users', $customer_id)
+                ->where('request_type', 'export')
+                ->where_in('status', ['pending', 'processing', 'ready'])
+                ->get('data_requests')
+                ->result_array();
+
+            if (empty($rows)) {
+                return 0;
+            }
+
+            $base = realpath(storage_path('exports'));
+
+            foreach ($rows as $row) {
+                if (!empty($row['file_path']) && $base !== false) {
+                    $abs = realpath(storage_path($row['file_path']));
+
+                    if ($abs !== false && strpos($abs, $base . DIRECTORY_SEPARATOR) === 0 && is_file($abs)) {
+                        @unlink($abs);
+
+                        // Remove sibling loose files (export.html / BENIOKU.txt) and the now-empty
+                        // per-request directory. @rmdir() fails harmlessly if not empty.
+                        foreach (['export.json', 'export.html', 'BENIOKU.txt'] as $sibling) {
+                            $sibling_path = dirname($abs) . DIRECTORY_SEPARATOR . $sibling;
+
+                            if (is_file($sibling_path)) {
+                                @unlink($sibling_path);
+                            }
+                        }
+
+                        @rmdir(dirname($abs));
+                    }
+                }
+
+                $this->db->update(
+                    'data_requests',
+                    [
+                        'status' => 'expired',
+                        'token_hash' => null,
+                        'file_path' => null,
+                        'file_size' => null,
+                        'error_message' => 'Müşteri anonimleştirildi; dışa aktarma geçersiz kılındı.',
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ],
+                    ['id' => $row['id']],
+                );
+            }
+
+            return count($rows);
+        } catch (Throwable $e) {
+            log_message(
+                'error',
+                'Customers_model::invalidate_data_exports() failed for customer ' . $customer_id . ': ' . $e->getMessage(),
+            );
+
+            return 0;
         }
     }
 

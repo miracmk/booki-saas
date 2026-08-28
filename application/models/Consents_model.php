@@ -298,4 +298,17 @@ class Consents_model extends EA_Model
     {
         // Consents do not currently have any related resources.
     }
+
+    /**
+     * Faz 30 (KVKK export) - consent records belonging to a customer. Rows scrubbed by
+     * Customers_model::anonymize_related_consents() have id_users set to NULL and so correctly
+     * disappear from this query once a customer is anonymized.
+     *
+     * @param int $customer_id
+     * @return array
+     */
+    public function get_for_customer(int $customer_id): array
+    {
+        return $this->get(['id_users' => $customer_id], null, null, 'create_datetime');
+    }
 }

@@ -65,4 +65,29 @@ class Whatsapp_messages_model extends EA_Model
             ->get()
             ->result_array();
     }
+
+    /**
+     * Faz 30 (KVKK export) - a customer's WhatsApp history. Matched on id_users OR wa_id, because
+     * messages received before the customer record was linked carry only wa_id (id_users is NULL on
+     * that table by design - see migration 105).
+     *
+     * @param int $customer_id
+     * @param string|null $wa_id Digits-only phone (E.164 without '+'), or null to match on FK only.
+     * @return array
+     */
+    public function get_for_customer(int $customer_id, ?string $wa_id = null): array
+    {
+        $this->db->group_start()->where('id_users', $customer_id);
+
+        if (!empty($wa_id)) {
+            $this->db->or_group_start()
+                ->where('wa_id', $wa_id)
+                ->or_where('wa_id', '+' . $wa_id)
+                ->group_end();
+        }
+
+        $this->db->group_end();
+
+        return $this->db->order_by('created_at', 'ASC')->get('whatsapp_messages')->result_array();
+    }
 }
