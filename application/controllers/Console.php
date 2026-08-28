@@ -1126,14 +1126,95 @@ class Console extends EA_Controller
     }
 
     /**
-     * Show help information about the console capabilities.
+     * Ki Reservation (2026-08-28) - process queued background jobs from the unified job queue.
      *
-     * Use this method to see the available commands.
+     * Reserves up to $limit pending jobs for this worker, executes them via Job_dispatcher,
+     * marks successes/failures, and releases stale reservations (from crashed workers).
+     * Implements a per-minute wall-clock cap (50 seconds) to prevent long-running tasks
+     * from blocking the next cron invocation.
+     *
+     * Multi-tenant aware: iterates every active tenant's database, processing their
+     * jobs independently. Single-tenant deployments are unaffected.
      *
      * Usage:
      *
-     * php index.php console help
+     * php index.php console process_jobs
+     * php index.php console process_jobs default 50
+     * php index.php console process_jobs default 100
+     *
+     * @param string $queue The queue name to process (default: 'default').
+     * @param int $limit Maximum jobs to process per invocation (default: 50).
+     * @throws Throwable
      */
+    public function process_jobs(string $queue = 'default', int $limit = 50): void
+    {
+        // Ki Reservation (2026-08-28) - multi-tenant aware, same pattern as sync()/cleanup()/migrate().
+        if (!is_multi_tenant_mode()) {
+            $this->process_jobs_current_db($queue, (int) $limit);
+
+            return;
+        }
+
+        $tenants = $this->db->get_where('tenants', ['status' => 'active'])->result_array();
+        $start_time = microtime(true);
+
+        foreach ($tenants as $tenant) {
+            echo 'Processing jobs for tenant "' . $tenant['subdomain'] . '"... ';
+
+            $this->connect_tenant($tenant);
+            $processed = $this->process_jobs_current_db($queue, (int) $limit);
+            echo $processed . ' job(s) processed' . PHP_EOL;
+
+            // Wall-clock cap: stop processing tenants after 50 seconds to avoid running
+            // longer than a typical minute cron slot.
+            if (microtime(true) - $start_time > 50) {
+                echo 'Wall-clock cap reached (50s), stopping to avoid blocking next cron slot.' . PHP_EOL;
+                break;
+            }
+        }
+
+        $this->connect_master();
+    }
+
+    /**
+     * Ki Reservation (2026-08-28) - process jobs for the currently-connected database
+     * (single tenant or standalone). Called per-tenant by process_jobs(), or directly
+     * in single-tenant mode.
+     *
+     * @param string $queue The queue name to process.
+     * @param int $limit Maximum jobs to reserve and process.
+     * @return int Number of jobs processed (succeeded + failed).
+     */
+    private function process_jobs_current_db(string $queue, int $limit): int
+    {
+        $this->load->library('queue');
+        $this->load->library('job_dispatcher');
+        $this->load->model('jobs_model');
+
+        // Release any reservations held by crashed workers (stale > 10 minutes).
+        $this->queue->release_stale_reservations();
+
+        // Reserve up to $limit pending jobs for this worker.
+        $worker_id = gethostname() . ':' . getmypid();
+        $jobs = $this->queue->reserve($limit, $worker_id, $queue);
+
+        $processed = 0;
+
+        foreach ($jobs as $job) {
+            try {
+                $this->job_dispatcher->dispatch($job);
+                $this->queue->mark_succeeded($job['id']);
+                $processed++;
+            } catch (Throwable $e) {
+                $this->queue->mark_failed($job['id'], $e);
+                log_message('error', 'process_jobs - job ' . $job['id'] . ' failed: ' . $e->getMessage());
+                $processed++;
+            }
+        }
+
+        return $processed;
+    }
+
     /**
      * No-op test infrastructure bootstrap command.
      *
@@ -1145,6 +1226,15 @@ class Console extends EA_Controller
         echo 'noop' . PHP_EOL;
     }
 
+    /**
+     * Show help information about the console capabilities.
+     *
+     * Use this method to see the available commands.
+     *
+     * Usage:
+     *
+     * php index.php console help
+     */
     public function help(): void
     {
         $help = [
@@ -1166,6 +1256,7 @@ class Console extends EA_Controller
             '⇾ php index.php console backup',
             '⇾ php index.php console sync',
             '⇾ php index.php console cleanup    (cleans sessions, logs, cache, and customer data)',
+            '⇾ php index.php console process_jobs [queue] [limit]',
             '',
             '',
         ];
