@@ -3,6 +3,24 @@
 This file contains the code changes that were introduced into each release so that it is easy for
 developers to maintain and readjust their custom modifications on the main project codebase.
 
+## [Wave 3 / Faz 3.3] - 2026-09-09
+
+### Added
+
+- Marketing: customer segmentation (VIP / inactive / birthday / all / custom) + campaign management
+- `marketing_segments`, `marketing_campaigns`, `campaign_recipients` tables (migration 131)
+- `ea_roles.marketing` permission bitmask (admin = 15)
+- Broadcast campaign flow: draft → queued → sending → sent with `prepare_broadcast()` (idempotent) and `send_batch()` (50-item batches) on e-mail / SMS / WhatsApp / Telegram channels
+- Merge fields: `{{customer_name}}`, `{{customer_first_name}}`, `{{company_name}}`
+- "Pazarlama" (Marketing) admin page with segment + campaign CRUD
+- Console commands: `marketing_segments`, `marketing_refresh`, `marketing_campaigns`
+- Migration 130: `platform` setting + `google_ads_gateway_token` (legacy Google Ads ↔ new channel mapping)
+
+### Changed
+
+- DB schema version 131
+- EWA template blocks now receive `$segments`/`$campaigns` view data from the Marketing controller
+
 ## [1.0.0] - 2026-08-24
 
 ### Changed

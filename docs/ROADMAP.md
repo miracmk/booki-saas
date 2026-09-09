@@ -60,10 +60,10 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 
 ### 🔲 Dalga 3 — Otomasyon ve Büyüme (Faz 18·21·22·23·24·25)
 - [ ] **WhatsApp dual-mode** (dalganın ilk maddesi, kullanıcı talebiyle 2026-08-28'de eklendi) — her iki bağlantı yöntemi de kurulacak: (1) resmi Meta Business API kurulum sihirbazı (mevcut altyapı üzerine, kiracı bazlı onboarding), (2) QR kod ile bağlanan resmi-olmayan alternatif. QR seçeneği tenant admin panelinde AÇIKÇA risk uyarısıyla sunulacak (ToS ihlali riski, gerçek işletme numarasının yasaklanma riski) — kullanıcı bilgilendirilmiş onayla seçiyor.
-- [ ] Communication Hub — event sistemi (appointment.created/completed/cancelled → kanal seçimi)
-- [ ] Automation Engine — WHEN/IF/THEN kuralları, 5-6 hazır şablon
-- [ ] Marketing — segment (VIP/inaktif/doğum günü) + kampanya gönderimi
-- [ ] Review Engine genişletme — randevu-sonrası otomatik review isteği
+- [x] Communication Hub — event sistemi (appointment.created/completed/cancelled → kanal seçimi) — **Faz 3.1, TAMAMLANDI, canlıda** (2026-09-04)
+- [x] Automation Engine — WHEN/IF/THEN kuralları, 5-6 hazır şablon — **Faz 3.2, TAMAMLANDI, canlıda** (2026-09-08)
+- [x] Marketing — segment (VIP/inaktif/doğum günü) + kampanya gönderimi — **Faz 3.3, TAMAMLANDI, canlıda** (2026-09-09): migration 130 (platform/google_ads_gateway_token ayarları) + migration 131 (marketing_segments/marketing_campaigns/campaign_recipients + ea_roles.marketing admin=15); Pazarlama paneli (segment CRUD + kampanya CRUD), `Campaigns_model::prepare_broadcast()` (idempotent) + `send_batch()` (50'lik batch, draft→queued→sending→sent), merge alanları `{{customer_name}}`/`{{customer_first_name}}`/`{{company_name}}`, kanallar e-posta/SMS/WhatsApp/Telegram; console `marketing_segments`/`marketing_refresh`/`marketing_campaigns`; 516 müşterili smoke test + tam sayfa render + auth gate doğrulandı
+- [ ] Review Engine genişletme — randevu-sonrası otomatik review isteği — **Faz 3.4, SIRADAKİ**
 - [ ] Analytics/BI — revenue/utilization/retention dashboard'ları
 
 ### 🔲 Dalga 4 — Marketplace Olgunlaştırma (Faz 41·42·43·44·45)
@@ -89,4 +89,4 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 | Çoklu-organizasyon (tek çatı altında N tenant) | Kullanıcı kararı: her organizasyon ayrı tenant satın alımı olarak kalacak |
 
 ---
-*Son güncelleme: Dalga 1 başlıyor.*
+*Son güncelleme: Dalga 3 (Faz 3.1/3.2/3.3) tamamlandı, sıradaki: Faz 3.4 Review Engine.*
