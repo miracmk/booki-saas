@@ -661,6 +661,24 @@ class Calendar extends EA_Controller
                 );
             }
 
+            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_created event,
+            // only for genuinely NEW appointments (staff-side creation on the calendar). Edits to
+            // existing appointments are not a "created" event. Best-effort by contract.
+            if (!$manage_mode) {
+                $this->load->library('communication_hub');
+                $this->communication_hub->publish(
+                    'appointment_created',
+                    compact('appointment', 'service', 'provider', 'customer', 'settings'),
+                );
+
+                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                $this->load->library('automation_engine');
+                $this->automation_engine->evaluate(
+                    'appointment_created',
+                    compact('appointment', 'service', 'provider', 'customer', 'settings'),
+                );
+            }
+
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
 
             // Salon Flora customization - real-time Google Sheets sync (see Google_sheets_writer).
@@ -957,6 +975,44 @@ class Calendar extends EA_Controller
                 }
             }
 
+            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_completed event.
+            // Best-effort - a notification hiccup must never fail the checkout itself. The legacy
+            // Notifications path had NO "seans tamamlandı" send at all; this is the first one.
+            try {
+                $completed_provider = $this->providers_model->find($appointment['id_users_provider']);
+                $completed_customer = $this->customers_model->find($appointment['id_users_customer']);
+
+                $hub_settings = [
+                    'company_name' => setting('company_name'),
+                    'company_link' => setting('company_link'),
+                    'company_email' => setting('company_email'),
+                ];
+
+                $this->load->library('communication_hub');
+                $this->communication_hub->publish('appointment_completed', [
+                    'appointment' => $appointment,
+                    'service' => $service,
+                    'provider' => $completed_provider,
+                    'customer' => $completed_customer,
+                    'settings' => $hub_settings,
+                ]);
+
+                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                $this->load->library('automation_engine');
+                $this->automation_engine->evaluate('appointment_completed', [
+                    'appointment' => $appointment,
+                    'service' => $service,
+                    'provider' => $completed_provider,
+                    'customer' => $completed_customer,
+                    'settings' => $hub_settings,
+                ]);
+            } catch (Throwable $hub_error) {
+                log_message(
+                    'warning',
+                    'Communication Hub appointment_completed failed for #' . $appointment_id . ': ' . $hub_error->getMessage(),
+                );
+            }
+
             json_response([
                 'success' => true,
                 'appointment' => $this->appointments_model->find($appointment_id),
@@ -1116,7 +1172,7 @@ class Calendar extends EA_Controller
 
             json_response([
                 'success' => true,
-                'notes' => $updated_notes,
+                'appointment' => $this->appointments_model->find($appointment_id),
             ]);
         } catch (Throwable $e) {
             json_exception($e);
@@ -1553,6 +1609,47 @@ class Calendar extends EA_Controller
                 'date_format' => setting('date_format'),
                 'time_format' => setting('time_format'),
             ];
+
+            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_cancelled event.
+            // Published BEFORE the DB delete so templates still see the full appointment row
+            // (mirrors the webhook trigger below). Gated on the admin's explicit `notify_users`
+            // choice - unchecking it means "send nothing", which must stay true for the hub too.
+            if ($notify_users) {
+                try {
+                    $this->load->library('communication_hub');
+                    $this->communication_hub->publish('appointment_cancelled', [
+                        'appointment' => $appointment,
+                        'service' => $service,
+                        'provider' => $provider,
+                        'customer' => $customer,
+                        'settings' => $settings,
+                        'cancellation_reason' => $cancellation_reason,
+                    ]);
+                } catch (Throwable $hub_error) {
+                    log_message(
+                        'warning',
+                        'Communication Hub appointment_cancelled failed for #' . $appointment_id . ': ' . $hub_error->getMessage(),
+                    );
+                }
+
+                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                try {
+                    $this->load->library('automation_engine');
+                    $this->automation_engine->evaluate('appointment_cancelled', [
+                        'appointment' => $appointment,
+                        'service' => $service,
+                        'provider' => $provider,
+                        'customer' => $customer,
+                        'settings' => $settings,
+                        'cancellation_reason' => $cancellation_reason,
+                    ]);
+                } catch (Throwable $auto_error) {
+                    log_message(
+                        'warning',
+                        'Automation Engine appointment_cancelled failed for #' . $appointment_id . ': ' . $auto_error->getMessage(),
+                    );
+                }
+            }
 
             // Delete appointment record from the database.
             $this->appointments_model->delete($appointment_id);

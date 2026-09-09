@@ -326,6 +326,48 @@ class Appointments extends EA_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
 
+            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_cancelled event.
+            // Best-effort and BEFORE the DB delete so templates still see the full appointment row.
+            try {
+                $this->load->model('customers_model');
+
+                $cancelled_provider = $this->providers_model->find($appointment['id_users_provider']);
+                $cancelled_customer = $this->customers_model->find($appointment['id_users_customer']);
+                $cancelled_service = $this->services_model->find($appointment['id_services']);
+
+                $hub_settings = [
+                    'company_name' => setting('company_name'),
+                    'company_link' => setting('company_link'),
+                    'company_email' => setting('company_email'),
+                ];
+
+                $this->load->library('communication_hub');
+                $this->communication_hub->publish('appointment_cancelled', [
+                    'appointment' => $appointment,
+                    'service' => $cancelled_service,
+                    'provider' => $cancelled_provider,
+                    'customer' => $cancelled_customer,
+                    'settings' => $hub_settings,
+                    'cancellation_reason' => 'Randevu iptal edildi',
+                ]);
+
+                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                $this->load->library('automation_engine');
+                $this->automation_engine->evaluate('appointment_cancelled', [
+                    'appointment' => $appointment,
+                    'service' => $cancelled_service,
+                    'provider' => $cancelled_provider,
+                    'customer' => $cancelled_customer,
+                    'settings' => $hub_settings,
+                    'cancellation_reason' => 'Randevu iptal edildi',
+                ]);
+            } catch (Throwable $hub_error) {
+                log_message(
+                    'warning',
+                    'Communication Hub appointment_cancelled failed for #' . $appointment_id . ': ' . $hub_error->getMessage(),
+                );
+            }
+
             $this->appointments_model->delete($appointment_id);
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $appointment);

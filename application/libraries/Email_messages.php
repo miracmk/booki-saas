@@ -358,6 +358,26 @@ class Email_messages
     }
 
     /**
+     * Ki Reservation (Dalga 3 / Faz 3.1) - send a simple HTML mail without any of the
+     * appointment template machinery. Used by the Communication Hub's generic email channel
+     * (Notifications::send_generic_email()) for short, event-driven notices that don't
+     * need an ICS attachment or the appointment-templating layer. Reuses the same mailer
+     * configuration (SMTP settings, from/reply-to, embedded logo) as every other email.
+     *
+     * @param string $recipient_email Recipient email address.
+     * @param string $subject Email subject.
+     * @param string $body HTML body. Plain text is auto-derived for the AltBody.
+     *
+     * @throws Exception
+     */
+    public function send_simple_html(string $recipient_email, string $subject, string $body): void
+    {
+        $php_mailer = $this->get_php_mailer($recipient_email, $subject, $body);
+
+        $php_mailer->send();
+    }
+
+    /**
      * Salon Flora customization - render one of the customizable email templates: the business's
      * custom HTML (from Settings > Şablonlar) if one has been saved, otherwise the stock .php view,
      * unchanged.

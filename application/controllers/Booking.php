@@ -693,6 +693,21 @@ class Booking extends EA_Controller
                 $manage_mode,
             );
 
+            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_created event.
+            // Best-effort by contract - publish() logs, never throws.
+            $this->load->library('communication_hub');
+            $this->communication_hub->publish(
+                'appointment_created',
+                compact('appointment', 'service', 'provider', 'customer', 'settings'),
+            );
+
+            // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+            $this->load->library('automation_engine');
+            $this->automation_engine->evaluate(
+                'appointment_created',
+                compact('appointment', 'service', 'provider', 'customer', 'settings'),
+            );
+
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
 
             $response = [

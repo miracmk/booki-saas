@@ -944,6 +944,368 @@ class Console extends EA_Controller
     }
 
     /**
+     * Ki Reservation (Dalga 3 / Faz 3.1) - list the Communication Hub rules of every active tenant
+     * (or a single tenant when a subdomain is given). Each row drives one event x recipient x channel
+     * send - see Communication_hub::publish().
+     *
+     * Usage: php index.php console communication_rules [subdomain]
+     */
+    public function communication_rules(string $subdomain = ''): void
+    {
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            echo PHP_EOL . '=== ' . ($tenant ? 'Tenant "' . $tenant['subdomain'] . '"' : 'Standalone DB') . ' ===' . PHP_EOL;
+
+            $rules = $this->db
+                ->order_by('event', 'asc')
+                ->order_by('recipient', 'asc')
+                ->get('communication_rules')
+                ->result_array();
+
+            if ($rules === []) {
+                echo '  (kural yok)' . PHP_EOL;
+                continue;
+            }
+
+            foreach ($rules as $rule) {
+                echo sprintf(
+                    "  [%s] %-22s -> %-9s <= %-28s %s%s",
+                    (int) $rule['enabled'] === 1 ? 'ON ' : 'OFF',
+                    $rule['event'],
+                    $rule['recipient'],
+                    $rule['channel'],
+                    $rule['subject'] !== '' && $rule['subject'] !== null ? '| ' . $rule['subject'] : '',
+                    PHP_EOL,
+                );
+            }
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.1) - set the channels (and enable/disable) of one
+     * event x recipient Communication Hub rule. Creates the row if it does not exist yet.
+     *
+     * Usage: php index.php console communication_rule_set <event> <recipient> <channel> [enabled] [subdomain]
+     *
+     * Example: php index.php console communication_rule_set appointment_completed customer email,sms 1
+     */
+    public function communication_rule_set(
+        string $event = '',
+        string $recipient = '',
+        string $channel = '',
+        string $enabled = '',
+        string $subdomain = '',
+    ): void {
+        $event = strtolower(trim($event));
+        $recipient = strtolower(trim($recipient));
+
+        if (!in_array($event, ['appointment_created', 'appointment_completed', 'appointment_cancelled'], true)) {
+            show_error('Unknown event "' . $event . '". Valid: appointment_created|appointment_completed|appointment_cancelled.');
+
+            return;
+        }
+
+        if (!in_array($recipient, ['customer', 'provider', 'admin', 'secretary'], true)) {
+            show_error('Unknown recipient "' . $recipient . '". Valid: customer|provider|admin|secretary.');
+
+            return;
+        }
+
+        $channels = array_values(array_filter(array_map('trim', explode(',', $channel))));
+
+        foreach ($channels as $single_channel) {
+            if (!in_array($single_channel, ['email', 'sms', 'whatsapp', 'telegram'], true)) {
+                show_error('Unknown channel "' . $single_channel . '". Valid: email|sms|whatsapp|telegram (comma-separated).');
+
+                return;
+            }
+        }
+
+        if ($channels === []) {
+            show_error('At least one channel is required (comma-separated).');
+
+            return;
+        }
+
+        $enabled_flag = $enabled === '' ? 1 : (int) $enabled;
+
+        if (!in_array($enabled_flag, [0, 1], true)) {
+            show_error('Enabled must be 0 or 1.');
+
+            return;
+        }
+
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            $existing = $this->db->get_where(
+                'communication_rules',
+                ['event' => $event, 'recipient' => $recipient],
+            )->row_array();
+
+            if ($existing) {
+                $this->db->set('channel', implode(',', $channels));
+                $this->db->set('enabled', $enabled_flag);
+                $this->db->set('updated_at', date('Y-m-d H:i:s'));
+                $this->db->where('event', $event);
+                $this->db->where('recipient', $recipient);
+                $this->db->update('communication_rules');
+
+                echo 'Updated ' . $event . '/' . $recipient . ' @ ' .
+                    ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+            } else {
+                $this->db->insert('communication_rules', [
+                    'event' => $event,
+                    'recipient' => $recipient,
+                    'channel' => implode(',', $channels),
+                    'enabled' => $enabled_flag,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                echo 'Inserted ' . $event . '/' . $recipient . ' @ ' .
+                    ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+            }
+
+            echo '  channels: ' . implode(',', $channels) . PHP_EOL;
+            echo '  enabled: ' . $enabled_flag . PHP_EOL;
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.1) - set a rule's email subject and message body template
+     * ({{placeholder}} syntax, e.g. {service_name} / {customer_name} / {start_datetime} / {reason}).
+     * Pass "-" to clear either field back to null (falls back to the built-in default at send time).
+     *
+     * Usage: php index.php console communication_rule_template <event> <recipient> <subject> <message> [subdomain]
+     */
+    public function communication_rule_template(
+        string $event = '',
+        string $recipient = '',
+        string $subject = '',
+        string $message = '',
+        string $subdomain = '',
+    ): void {
+        $event = strtolower(trim($event));
+        $recipient = strtolower(trim($recipient));
+
+        if (!in_array($event, ['appointment_created', 'appointment_completed', 'appointment_cancelled'], true)) {
+            show_error('Unknown event "' . $event . '". Valid: appointment_created|appointment_completed|appointment_cancelled.');
+
+            return;
+        }
+
+        if (!in_array($recipient, ['customer', 'provider', 'admin', 'secretary'], true)) {
+            show_error('Unknown recipient "' . $recipient . '". Valid: customer|provider|admin|secretary.');
+
+            return;
+        }
+
+        $subject_value = trim($subject);
+        $message_value = trim($message);
+
+        if ($subject_value === '-') {
+            $subject_value = null;
+        }
+
+        if ($message_value === '-') {
+            $message_value = null;
+        }
+
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            $existing = $this->db->get_where(
+                'communication_rules',
+                ['event' => $event, 'recipient' => $recipient],
+            )->row_array();
+
+            if (!$existing) {
+                $this->db->insert('communication_rules', [
+                    'event' => $event,
+                    'recipient' => $recipient,
+                    'channel' => 'email',
+                    'subject' => $subject_value ?? null,
+                    'message' => $message_value ?? null,
+                    'enabled' => 0,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+                echo 'INSERTED ' . $event . '/' . $recipient . ' (disabled) @ ' .
+                    ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+            } else {
+                $this->db->set('subject', $subject_value);
+                $this->db->set('message', $message_value);
+                $this->db->set('updated_at', date('Y-m-d H:i:s'));
+                $this->db->where('event', $event);
+                $this->db->where('recipient', $recipient);
+                $this->db->update('communication_rules');
+
+                echo 'UPDATED template for ' . $event . '/' . $recipient . ' @ ' .
+                    ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+            }
+
+            echo '  subject: ' . ($subject_value ?? '(default)') . PHP_EOL;
+            echo '  message: ' . ($message_value ?? '(default)') . PHP_EOL;
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.2) - list the Automation Engine rules of every active tenant
+     * (or a single tenant when a subdomain is given). Rules are seeded disabled; enable them with
+     * automation_rule_toggle.
+     *
+     * Usage: php index.php console automation_rules [subdomain]
+     */
+    public function automation_rules(string $subdomain = ''): void
+    {
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            echo PHP_EOL . '=== ' . ($tenant ? 'Tenant "' . $tenant['subdomain'] . '"' : 'Standalone DB') . ' ===' . PHP_EOL;
+
+            $rules = $this->db
+                ->order_by('id', 'asc')
+                ->get('automation_rules')
+                ->result_array();
+
+            if ($rules === []) {
+                echo '  (kural yok)' . PHP_EOL;
+                continue;
+            }
+
+            foreach ($rules as $rule) {
+                echo sprintf(
+                    "  [%s] #%d %s\n       event: %s\n       conditions: %s\n       actions: %s\n",
+                    (int) $rule['enabled'] === 1 ? 'ON ' : 'OFF',
+                    (int) $rule['id'],
+                    $rule['name'],
+                    $rule['event'],
+                    trim((string) $rule['conditions']) === '' ? '(her zaman)' : $rule['conditions'],
+                    $rule['actions'],
+                );
+            }
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.2) - toggle one Automation Engine rule on/off per tenant.
+     *
+     * Usage: php index.php console automation_rule_toggle <id> <0|1> [subdomain]
+     *
+     * Example: php index.php console automation_rule_toggle 1 1
+     */
+    public function automation_rule_toggle(
+        string $id = '',
+        string $enabled = '',
+        string $subdomain = '',
+    ): void {
+        $rule_id = (int) $id;
+        $flag = (int) $enabled;
+
+        if ($rule_id <= 0) {
+            show_error('A positive rule id is required.');
+
+            return;
+        }
+
+        if (!in_array($flag, [0, 1], true)) {
+            show_error('Enabled must be 0 or 1.');
+
+            return;
+        }
+
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            $rule = $this->db->get_where('automation_rules', ['id' => $rule_id])->row_array();
+
+            if (!$rule) {
+                echo 'Rule #' . $rule_id . ' not found @ ' .
+                    ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+                continue;
+            }
+
+            $this->db->update('automation_rules', [
+                'enabled' => $flag,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ], ['id' => $rule_id]);
+
+            echo 'Rule #' . $rule_id . ' "' . $rule['name'] . '" -> ' .
+                ($flag ? 'ON' : 'OFF') . ' @ ' .
+                ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Resolve the tenant list a communication-rule command should operate on. In multi-tenant mode
+     * either the single tenant named by $subdomain (all if empty - like migrate()); in standalone
+     * mode a single "null" pseudo-tenant meaning "run against the connected DB". The caller is
+     * responsible for connect_tenant()/connect_master() around each entry.
+     */
+    private function console_rule_tenants(string $subdomain): array
+    {
+        if (!is_multi_tenant_mode()) {
+            return [null];
+        }
+
+        if ($subdomain !== '') {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => strtolower(trim($subdomain))])->row_array();
+
+            if (!$tenant) {
+                show_error('No tenant with subdomain "' . $subdomain . '" was found.');
+
+                return [];
+            }
+
+            return [$tenant];
+        }
+
+        return $this->db->get_where('tenants', ['status' => 'active'])->result_array();
+    }
+
+    /**
      * Ki Reservation (2026-08-26) - swap $this->db to a tenant's own database AND set
      * tenant_context() so salonflora_crypto_helper.php uses this tenant's own PII keys (mirrors what
      * EA_Controller::resolve_tenant() does for web requests). $tenant must have
@@ -1291,6 +1653,134 @@ class Console extends EA_Controller
     }
 
     /**
+     * Ki Reservation (Dalga 3 / Faz 3.3) - list marketing segments.
+     *
+     * Usage: php index.php console marketing_segments [subdomain]
+     */
+    public function marketing_segments(string $subdomain = ''): void
+    {
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            echo PHP_EOL . '=== ' . ($tenant ? 'Tenant "' . $tenant['subdomain'] . '"' : 'Standalone DB') . ' ===' . PHP_EOL;
+
+            if (!$this->db->table_exists('marketing_segments')) {
+                echo '  (marketing_segments tablosu yok — migrate gerekli)' . PHP_EOL;
+                continue;
+            }
+
+            $segments = $this->db->order_by('id', 'asc')->get('marketing_segments')->result_array();
+
+            if ($segments === []) {
+                echo '  (segment yok)' . PHP_EOL;
+                continue;
+            }
+
+            foreach ($segments as $seg) {
+                echo sprintf(
+                    "  [%s] #%d %s\n       tür: %s | üye: %s | son hesaplama: %s\n",
+                    (int) $seg['enabled'] === 1 ? 'ON ' : 'OFF',
+                    (int) $seg['id'],
+                    $seg['name'],
+                    $seg['type'],
+                    (int) $seg['member_count'],
+                    $seg['last_calculated'] ? $seg['last_calculated'] : 'hiç hesaplanmadı',
+                );
+            }
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.3) - refresh segment member counts.
+     *
+     * Usage: php index.php console marketing_refresh [subdomain]
+     */
+    public function marketing_refresh(string $subdomain = ''): void
+    {
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            echo PHP_EOL . '=== ' . ($tenant ? 'Tenant "' . $tenant['subdomain'] . '"' : 'Standalone DB') . ' ===' . PHP_EOL;
+
+            if (!$this->db->table_exists('marketing_segments')) {
+                echo '  (marketing_segments tablosu yok)' . PHP_EOL;
+                continue;
+            }
+
+            $this->load->model('segments_model');
+            $this->segments_model->refresh_all_counts();
+
+            $segments = $this->db->order_by('id', 'asc')->get('marketing_segments')->result_array();
+
+            foreach ($segments as $seg) {
+                echo sprintf("  #%d %s → %d üye\n", (int) $seg['id'], $seg['name'], (int) $seg['member_count']);
+            }
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.3) - list marketing campaigns.
+     *
+     * Usage: php index.php console marketing_campaigns [subdomain]
+     */
+    public function marketing_campaigns(string $subdomain = ''): void
+    {
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            echo PHP_EOL . '=== ' . ($tenant ? 'Tenant "' . $tenant['subdomain'] . '"' : 'Standalone DB') . ' ===' . PHP_EOL;
+
+            if (!$this->db->table_exists('marketing_campaigns')) {
+                echo '  (marketing_campaigns tablosu yok — migrate gerekli)' . PHP_EOL;
+                continue;
+            }
+
+            $campaigns = $this->db->order_by('id', 'asc')->get('marketing_campaigns')->result_array();
+
+            if ($campaigns === []) {
+                echo '  (kampanya yok)' . PHP_EOL;
+                continue;
+            }
+
+            foreach ($campaigns as $camp) {
+                echo sprintf(
+                    "  #%d %s\n       kanal: %s | durum: %s | gönderilen: %d/%d\n",
+                    (int) $camp['id'],
+                    $camp['name'],
+                    $camp['channel'],
+                    $camp['status'],
+                    (int) $camp['sent_count'],
+                    (int) $camp['total_recipients'],
+                );
+            }
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
      * No-op test infrastructure bootstrap command.
      *
      * This command is used only by TenantTestCase to bootstrap the CI3 framework during test runs.
@@ -1333,6 +1823,9 @@ class Console extends EA_Controller
             '⇾ php index.php console cleanup    (cleans sessions, logs, cache, and customer data)',
             '⇾ php index.php console process_jobs [queue] [limit]',
             '⇾ php index.php console process_data_requests [limit]',
+            '⇾ php index.php console marketing_segments [subdomain]',
+            '⇾ php index.php console marketing_refresh [subdomain]',
+            '⇾ php index.php console marketing_campaigns [subdomain]',
             '',
             '',
         ];

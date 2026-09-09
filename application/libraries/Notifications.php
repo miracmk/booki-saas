@@ -63,7 +63,7 @@ class Notifications
      * @param array $user Recipient row (must have 'telegram_chat_id').
      * @param string $text
      */
-    private function send_telegram(array $user, string $text): void
+    public function send_telegram(array $user, string $text): void
     {
         // Queue if enabled; fall through to synchronous send if queue is disabled or push fails.
         if ($this->CI->queue->enabled()) {
@@ -115,7 +115,7 @@ class Notifications
      * @param array $user Recipient row (must have 'phone_number').
      * @param string $text
      */
-    private function send_sms(array $user, string $text): void
+    public function send_sms(array $user, string $text): void
     {
         // Queue if enabled; fall through to synchronous send if queue is disabled or push fails.
         if ($this->CI->queue->enabled()) {
@@ -175,7 +175,7 @@ class Notifications
      * @param array $user Recipient row (must have 'phone_number').
      * @param string $text
      */
-    private function send_whatsapp(array $user, string $text): void
+    public function send_whatsapp(array $user, string $text): void
     {
         // Queue if enabled; fall through to synchronous send if queue is disabled or push fails.
         if ($this->CI->queue->enabled()) {
@@ -225,6 +225,64 @@ class Notifications
             $whatsapp_client->send_text($user['phone_number'], $text);
         } catch (Throwable $e) {
             $this->log_exception($e, 'whatsapp notification', $user['id'] ?? null);
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.1) - generic best-effort email for the Communication Hub's
+     * email channel. Unlike the specialized appointment emails (which carry full appointment data
+     * and an ICS attachment), this is a short, plain notice built by the hub from its rule template.
+     * No-ops silently if the recipient has no email address - mirrors the other channels' degrade-
+     * gracefully contract. The optional '_recipient_type' key on $user (set by Communication_hub)
+     * lets the queued handler re-fetch the correct role table even when user IDs collide across
+     * role tables.
+     *
+     * @param array $user Recipient row (must have 'email').
+     * @param string $subject
+     * @param string $text
+     */
+    public function send_generic_email(array $user, string $subject, string $text): void
+    {
+        if (empty($user['email'])) {
+            return;
+        }
+
+        // Queue if enabled; fall through to synchronous send if queue is disabled or push fails.
+        if ($this->CI->queue->enabled()) {
+            if ($this->CI->queue->push(
+                'email',
+                'notifications.generic_email',
+                [
+                    'user_id' => $user['id'] ?? null,
+                    'recipient_type' => $user['_recipient_type'] ?? null,
+                    'subject' => $subject,
+                    'text' => $text,
+                ],
+            ) !== null) {
+                return;
+            }
+        }
+
+        $this->do_send_generic_email($user, $subject, $text);
+    }
+
+    /**
+     * Internal helper: perform the actual generic email send (no queue check).
+     *
+     * @param array $user Recipient row.
+     * @param string $subject
+     * @param string $text
+     */
+    private function do_send_generic_email(array $user, string $subject, string $text): void
+    {
+        if (empty($user['email'])) {
+            return;
+        }
+
+        try {
+            $this->CI->email_messages->send_simple_html($user['email'], $subject, $text);
+        } catch (Throwable $e) {
+            $this->log_exception($e, 'hub generic email', $user['id'] ?? null);
         }
     }
 
@@ -745,11 +803,59 @@ class Notifications
     }
 
     /**
+     * Re-fetch a queued recipient across the role tables.
+     *
+     * When a known 'recipient_type' is supplied (customer/provider/admin/secretary - the hub
+     * always sets one), look up ONLY that table. This avoids the legacy cross-table scan's
+     * collision hazard: user IDs are not guaranteed unique across role tables, so a bare
+     * id-first-scan can resolve to the wrong person. When no type is given (legacy callers),
+     * fall back to the original admins -> providers -> secretaries -> customers scan.
+     */
+    private function find_queued_recipient($CI, int $user_id, ?string $recipient_type): ?array
+    {
+        if ($recipient_type === 'customer') {
+            $CI->load->model('customers_model');
+
+            return $CI->customers_model->find($user_id) ?: null;
+        }
+
+        if ($recipient_type === 'provider') {
+            return $CI->providers_model->find($user_id) ?: null;
+        }
+
+        if ($recipient_type === 'secretary') {
+            return $CI->secretaries_model->find($user_id) ?: null;
+        }
+
+        if ($recipient_type === 'admin') {
+            return $CI->admins_model->find($user_id) ?: null;
+        }
+
+        // Legacy fallback: cross-table scan, first match wins.
+        $user = $CI->admins_model->find($user_id);
+
+        if (!$user) {
+            $user = $CI->providers_model->find($user_id);
+        }
+
+        if (!$user) {
+            $user = $CI->secretaries_model->find($user_id);
+        }
+
+        if (!$user) {
+            $CI->load->model('customers_model');
+            $user = $CI->customers_model->find($user_id);
+        }
+
+        return $user ?: null;
+    }
+
+    /**
      * Queued handler for SMS notifications (called by Job_dispatcher).
      * Re-fetches the user and sends the SMS via the configured gateway.
      *
      * @param EA_Controller|CI_Controller $CI
-     * @param array $payload Must contain 'user_id' and 'text'
+     * @param array $payload Must contain 'user_id' and 'text'; 'recipient_type' optional.
      */
     public function handle_queued_sms($CI, array $payload): void
     {
@@ -761,22 +867,7 @@ class Notifications
                 return;
             }
 
-            // Re-fetch the user from the database to ensure we have current data
-            // Try admin first, then provider, then secretary, then customer
-            $user = $CI->admins_model->find($user_id);
-
-            if (!$user) {
-                $user = $CI->providers_model->find($user_id);
-            }
-
-            if (!$user) {
-                $user = $CI->secretaries_model->find($user_id);
-            }
-
-            if (!$user) {
-                $CI->load->model('customers_model');
-                $user = $CI->customers_model->find($user_id);
-            }
+            $user = $this->find_queued_recipient($CI, (int) $user_id, $payload['recipient_type'] ?? null);
 
             if (!$user) {
                 log_message('warning', 'Notifications::handle_queued_sms() - User not found: ' . $user_id);
@@ -795,7 +886,7 @@ class Notifications
      * Re-fetches the user and sends the WhatsApp message via the configured gateway.
      *
      * @param EA_Controller|CI_Controller $CI
-     * @param array $payload Must contain 'user_id' and 'text'
+     * @param array $payload Must contain 'user_id' and 'text'; 'recipient_type' optional.
      */
     public function handle_queued_whatsapp($CI, array $payload): void
     {
@@ -807,22 +898,7 @@ class Notifications
                 return;
             }
 
-            // Re-fetch the user from the database to ensure we have current data
-            // Try admin first, then provider, then secretary, then customer
-            $user = $CI->admins_model->find($user_id);
-
-            if (!$user) {
-                $user = $CI->providers_model->find($user_id);
-            }
-
-            if (!$user) {
-                $user = $CI->secretaries_model->find($user_id);
-            }
-
-            if (!$user) {
-                $CI->load->model('customers_model');
-                $user = $CI->customers_model->find($user_id);
-            }
+            $user = $this->find_queued_recipient($CI, (int) $user_id, $payload['recipient_type'] ?? null);
 
             if (!$user) {
                 log_message('warning', 'Notifications::handle_queued_whatsapp() - User not found: ' . $user_id);
@@ -841,7 +917,7 @@ class Notifications
      * Re-fetches the user and sends the Telegram message via the configured bot.
      *
      * @param EA_Controller|CI_Controller $CI
-     * @param array $payload Must contain 'user_id' and 'text'
+     * @param array $payload Must contain 'user_id' and 'text'; 'recipient_type' optional.
      */
     public function handle_queued_telegram($CI, array $payload): void
     {
@@ -853,22 +929,7 @@ class Notifications
                 return;
             }
 
-            // Re-fetch the user from the database to ensure we have current data
-            // Try admin first, then provider, then secretary, then customer
-            $user = $CI->admins_model->find($user_id);
-
-            if (!$user) {
-                $user = $CI->providers_model->find($user_id);
-            }
-
-            if (!$user) {
-                $user = $CI->secretaries_model->find($user_id);
-            }
-
-            if (!$user) {
-                $CI->load->model('customers_model');
-                $user = $CI->customers_model->find($user_id);
-            }
+            $user = $this->find_queued_recipient($CI, (int) $user_id, $payload['recipient_type'] ?? null);
 
             if (!$user) {
                 log_message('warning', 'Notifications::handle_queued_telegram() - User not found: ' . $user_id);
@@ -878,6 +939,38 @@ class Notifications
             $this->do_send_telegram($user, $text);
         } catch (Throwable $e) {
             log_message('error', 'Notifications::handle_queued_telegram() failed: ' . $e->getMessage());
+            log_message('error', $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.1) - queued handler for the Communication Hub's generic
+     * email channel (called by Job_dispatcher). Re-fetches the user and sends a simple HTML mail.
+     *
+     * @param EA_Controller|CI_Controller $CI
+     * @param array $payload Must contain 'user_id', 'subject', 'text'; 'recipient_type' optional.
+     */
+    public function handle_queued_generic_email($CI, array $payload): void
+    {
+        try {
+            $user_id = $payload['user_id'] ?? null;
+            $subject = (string) ($payload['subject'] ?? '');
+            $text = (string) ($payload['text'] ?? '');
+
+            if (!$user_id) {
+                return;
+            }
+
+            $user = $this->find_queued_recipient($CI, (int) $user_id, $payload['recipient_type'] ?? null);
+
+            if (!$user) {
+                log_message('warning', 'Notifications::handle_queued_generic_email() - User not found: ' . $user_id);
+                return;
+            }
+
+            $this->do_send_generic_email($user, $subject, $text);
+        } catch (Throwable $e) {
+            log_message('error', 'Notifications::handle_queued_generic_email() failed: ' . $e->getMessage());
             log_message('error', $e->getTraceAsString());
         }
     }
