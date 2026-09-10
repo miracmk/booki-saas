@@ -128,6 +128,70 @@
                 </div>
             </div>
 
+            <!-- E-posta (SMTP) Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="fw-light mb-0">E-posta (SMTP) Ayarları</h5>
+                </div>
+                <div class="card-body">
+                    <p class="form-text text-muted">
+                        Eğer kendi SMTP sunucunuz varsa aşağıya bilgilerini girin. Boş bırakırsanız
+                        e-postalar platformun kendi sunucusundan, altında küçük bir "Ki Reservation ile
+                        gönderildi" tanıtım notu ile gönderilir.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="smtp-host">SMTP Sunucusu Adresi</label>
+                        <input type="text" id="smtp-host" class="form-control"
+                               placeholder="smtp.example.com"
+                               value="<?= e(vars('settings.smtp_host') ?: '') ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="smtp-port">SMTP Portu</label>
+                        <input type="number" id="smtp-port" class="form-control"
+                               placeholder="587"
+                               value="<?= (int) (vars('settings.smtp_port') ?: '') ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="smtp-crypto">Şifreleme Türü</label>
+                        <select id="smtp-crypto" class="form-select">
+                            <option value="">Seçiniz</option>
+                            <option value="tls" <?= vars('settings.smtp_crypto') === 'tls' ? 'selected' : '' ?>>TLS</option>
+                            <option value="ssl" <?= vars('settings.smtp_crypto') === 'ssl' ? 'selected' : '' ?>>SSL</option>
+                            <option value="none" <?= vars('settings.smtp_crypto') === 'none' ? 'selected' : '' ?>>Yok</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="smtp-user">SMTP Kullanıcı Adı</label>
+                        <input type="text" id="smtp-user" class="form-control"
+                               placeholder="<?= vars('settings.smtp_user') ? 'Kayıtlı' : 'kullanici@example.com' ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="smtp-pass">SMTP Şifre</label>
+                        <input type="password" id="smtp-pass" class="form-control"
+                               placeholder="<?= vars('settings.smtp_pass') ? 'Kayıtlı' : 'sifre' ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="smtp-from-name">E-posta Gönderici Adı</label>
+                        <input type="text" id="smtp-from-name" class="form-control"
+                               placeholder="Örn: Salon Flora Randevu"
+                               value="<?= e(vars('settings.smtp_from_name') ?: '') ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="smtp-from-address">E-posta Gönderici Adresi</label>
+                        <input type="email" id="smtp-from-address" class="form-control"
+                               placeholder="no-reply@example.com"
+                               value="<?= e(vars('settings.smtp_from_address') ?: '') ?>">
+                    </div>
+                </div>
+            </div>
+
             <!-- Save Button -->
             <div class="mb-4">
                 <button id="save-messaging-settings" class="btn btn-primary">Kaydet</button>
@@ -169,6 +233,13 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
         whatsapp_webhook_verify_token: document.getElementById('whatsapp-webhook-verify-token').value || null,
         whatsapp_business_phone_display: document.getElementById('whatsapp-business-phone-display').value || null,
         whatsapp_notifications_enabled: document.getElementById('whatsapp-notifications-enabled').checked,
+        smtp_host: document.getElementById('smtp-host').value || null,
+        smtp_port: document.getElementById('smtp-port').value || null,
+        smtp_crypto: document.getElementById('smtp-crypto').value || null,
+        smtp_user: document.getElementById('smtp-user').value || null,
+        smtp_pass: document.getElementById('smtp-pass').value || null,
+        smtp_from_name: document.getElementById('smtp-from-name').value || null,
+        smtp_from_address: document.getElementById('smtp-from-address').value || null,
     };
 
     $.post('<?= base_url('messaging_settings/save_settings') ?>', data, function(response) {

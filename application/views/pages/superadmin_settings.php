@@ -52,6 +52,54 @@
                 <button type="submit">Kaydet</button>
             </form>
         </div>
+
+        <div class="card" style="margin-top:1.5rem;">
+            <h2 style="font-size:1.05rem;margin-top:0;">Platform SMTP / IMAP</h2>
+            <p class="hint">
+                Bir kiracı kendi SMTP'sini bağlamadığı sürece randevu/hesap e-postaları buradaki
+                platform hesabından, altına küçük bir "Ki Reservation ile gönderildi" notu eklenerek
+                gönderilir. IMAP alanları şu an sadece bilgi amaçlıdır, gelen kutusu okuma özelliği
+                henüz uygulanmadı.
+            </p>
+            <form id="mail-settings-form">
+                <label>SMTP Sunucu</label>
+                <input type="text" id="platform_smtp_host" placeholder="smtp.example.com" value="<?= e(vars('platform_smtp_host')) ?>">
+                <label>SMTP Port</label>
+                <input type="text" id="platform_smtp_port" placeholder="587" value="<?= e(vars('platform_smtp_port')) ?>">
+                <label>SMTP Şifreleme</label>
+                <input type="text" id="platform_smtp_crypto" placeholder="tls / ssl" value="<?= e(vars('platform_smtp_crypto')) ?>">
+                <label>SMTP Kullanıcı Adı</label>
+                <input type="text" id="platform_smtp_user" placeholder="kullanici@kibusiness.co" value="<?= e(vars('platform_smtp_user')) ?>">
+                <label>
+                    SMTP Şifre
+                    <?= vars('platform_smtp_pass_set') ? '<span class="hint">(zaten kayıtlı - değiştirmek için doldurun)</span>' : '' ?>
+                </label>
+                <input type="password" id="platform_smtp_pass" placeholder="<?= vars('platform_smtp_pass_set') ? '••••••••' : '' ?>">
+                <label>Gönderen Adı</label>
+                <input type="text" id="platform_smtp_from_name" placeholder="Ki Reservation" value="<?= e(vars('platform_smtp_from_name')) ?>">
+                <label>Gönderen Adresi</label>
+                <input type="text" id="platform_smtp_from_address" placeholder="noreply@kibusiness.co" value="<?= e(vars('platform_smtp_from_address')) ?>">
+
+                <hr style="margin:1.5rem 0;border:none;border-top:1px solid #eee;">
+
+                <label>IMAP Sunucu</label>
+                <input type="text" id="platform_imap_host" placeholder="imap.example.com" value="<?= e(vars('platform_imap_host')) ?>">
+                <label>IMAP Port</label>
+                <input type="text" id="platform_imap_port" placeholder="993" value="<?= e(vars('platform_imap_port')) ?>">
+                <label>IMAP Şifreleme</label>
+                <input type="text" id="platform_imap_crypto" placeholder="ssl / tls" value="<?= e(vars('platform_imap_crypto')) ?>">
+                <label>IMAP Kullanıcı Adı</label>
+                <input type="text" id="platform_imap_user" placeholder="kullanici@kibusiness.co" value="<?= e(vars('platform_imap_user')) ?>">
+                <label>
+                    IMAP Şifre
+                    <?= vars('platform_imap_pass_set') ? '<span class="hint">(zaten kayıtlı - değiştirmek için doldurun)</span>' : '' ?>
+                </label>
+                <input type="password" id="platform_imap_pass" placeholder="<?= vars('platform_imap_pass_set') ? '••••••••' : '' ?>">
+
+                <div class="msg" id="mail-settings-msg"></div>
+                <button type="submit">Kaydet</button>
+            </form>
+        </div>
     </main>
 
     <script>
@@ -69,6 +117,34 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params.toString(),
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    msg.style.display = 'block';
+                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
+                    msg.textContent = data.success ? 'Kaydedildi.' : (data.message || 'Hata oluştu.');
+                    if (data.success) {
+                        window.location.reload();
+                    }
+                });
+        });
+
+        document.getElementById('mail-settings-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const msg = document.getElementById('mail-settings-msg');
+
+            const fieldIds = ['platform_smtp_host', 'platform_smtp_port', 'platform_smtp_crypto',
+                'platform_smtp_user', 'platform_smtp_pass', 'platform_smtp_from_name',
+                'platform_smtp_from_address', 'platform_imap_host', 'platform_imap_port',
+                'platform_imap_crypto', 'platform_imap_user', 'platform_imap_pass'];
+
+            const data = { csrf_token: '<?= e(vars('csrf_token')) ?>' };
+            fieldIds.forEach((id) => { data[id] = document.getElementById(id).value; });
+
+            fetch('<?= site_url('superadmin_settings/save') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(data).toString(),
             })
                 .then((r) => r.json())
                 .then((data) => {

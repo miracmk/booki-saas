@@ -74,6 +74,7 @@ class Email_messages
 
         $this->CI->load->model('admins_model');
         $this->CI->load->model('appointments_model');
+        $this->CI->load->model('messaging_settings_model');
         $this->CI->load->model('providers_model');
         $this->CI->load->model('secretaries_model');
         $this->CI->load->model('secretaries_model');
@@ -632,6 +633,58 @@ class Email_messages
     }
 
     /**
+     * Tenant kendi SMTP'sini bağladıysa onu, bağlamadıysa platform fallback SMTP'sini döner. Platform
+     * fallback önce master DB'deki Platform Ayarları'ndan (Superadmin_settings, master_setting()),
+     * orada da boşsa .env MAIL_SMTP_* değerlerinden okunur - single-tenant/standalone kurulumlarda
+     * (master_settings tablosu yok) master_setting() zaten null döner, doğrudan .env'e düşülür.
+     *
+     * @return array{host:?string,port:?int,crypto:?string,user:?string,pass:?string,from_name:?string,from_address:?string,use_fallback:bool}
+     */
+    private function resolve_smtp_config(): array
+    {
+        $tenant = $this->CI->messaging_settings_model->get_settings();
+
+        if (!empty($tenant['smtp_host'])) {
+            return [
+                'host' => $tenant['smtp_host'],
+                'port' => (int) ($tenant['smtp_port'] ?: 587),
+                'crypto' => $tenant['smtp_crypto'] ?: 'tls',
+                'user' => $tenant['smtp_user'],
+                'pass' => $tenant['smtp_pass'],
+                'from_name' => $tenant['smtp_from_name'] ?: null,
+                'from_address' => $tenant['smtp_from_address'] ?: null,
+                'use_fallback' => false,
+            ];
+        }
+
+        $platform_host = master_setting('platform_smtp_host');
+
+        if (!empty($platform_host)) {
+            return [
+                'host' => $platform_host,
+                'port' => (int) (master_setting('platform_smtp_port') ?: 587),
+                'crypto' => master_setting('platform_smtp_crypto') ?: 'tls',
+                'user' => master_setting('platform_smtp_user'),
+                'pass' => master_setting('platform_smtp_pass'),
+                'from_name' => master_setting('platform_smtp_from_name') ?: null,
+                'from_address' => master_setting('platform_smtp_from_address') ?: null,
+                'use_fallback' => true,
+            ];
+        }
+
+        return [
+            'host' => config('smtp_host'),
+            'port' => (int) config('smtp_port'),
+            'crypto' => config('smtp_crypto'),
+            'user' => config('smtp_user'),
+            'pass' => config('smtp_pass'),
+            'from_name' => null,
+            'from_address' => null,
+            'use_fallback' => true,
+        ];
+    }
+
+    /**
      * Create PHP Mailer instance based on the email configuration.
      *
      * @param string|null $recipient_email
@@ -652,19 +705,21 @@ class Email_messages
         $php_mailer->CharSet = 'UTF-8';
         $php_mailer->SMTPDebug = config('smtp_debug') ? SMTP::DEBUG_SERVER : null;
 
-        if (config('protocol') === 'smtp') {
+        $smtp = $this->resolve_smtp_config();
+
+        if (!empty($smtp['host'])) {
             $php_mailer->isSMTP();
-            $php_mailer->Host = config('smtp_host');
-            $php_mailer->SMTPAuth = config('smtp_auth');
-            $php_mailer->Username = config('smtp_user');
-            $php_mailer->Password = config('smtp_pass');
-            $php_mailer->SMTPSecure = config('smtp_crypto');
-            $php_mailer->Port = config('smtp_port');
+            $php_mailer->Host = $smtp['host'];
+            $php_mailer->SMTPAuth = true;
+            $php_mailer->Username = $smtp['user'];
+            $php_mailer->Password = $smtp['pass'];
+            $php_mailer->SMTPSecure = $smtp['crypto'];
+            $php_mailer->Port = $smtp['port'];
         }
 
-        $from_name = config('from_name') ?: setting('company_name');
-        $from_address = config('from_address') ?: setting('company_email');
-        $reply_to_address = config('reply_to') ?: setting('company_email');
+        $from_name = $smtp['from_name'] ?: (config('from_name') ?: setting('company_name'));
+        $from_address = $smtp['from_address'] ?: (config('from_address') ?: setting('company_email'));
+        $reply_to_address = $smtp['from_address'] ?: (config('reply_to') ?: setting('company_email'));
 
         $php_mailer->setFrom($from_address, $from_name);
         $php_mailer->addReplyTo($reply_to_address);
@@ -678,6 +733,10 @@ class Email_messages
         }
 
         if ($html) {
+            if ($smtp['use_fallback'] && config('promo_footer_enabled')) {
+                $html .= config('promo_footer_html');
+            }
+
             $plain_text = str_replace(["\n\n", "\n\n\n"], '', strip_tags($html));
 
             if (config('mailtype') === 'html') {

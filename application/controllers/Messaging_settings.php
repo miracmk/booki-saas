@@ -43,6 +43,13 @@ class Messaging_settings extends EA_Controller
             'whatsapp_webhook_verify_token' => $settings['whatsapp_webhook_verify_token'] ? '***' : '',
             'whatsapp_business_phone_display' => $settings['whatsapp_business_phone_display'],
             'whatsapp_notifications_enabled' => (bool) $settings['whatsapp_notifications_enabled'],
+            'smtp_host' => $settings['smtp_host'],
+            'smtp_port' => $settings['smtp_port'],
+            'smtp_crypto' => $settings['smtp_crypto'],
+            'smtp_user' => $settings['smtp_user'] ? '***' : '',
+            'smtp_pass' => $settings['smtp_pass'] ? '***' : '',
+            'smtp_from_name' => $settings['smtp_from_name'],
+            'smtp_from_address' => $settings['smtp_from_address'],
         ];
 
         html_vars([
@@ -78,6 +85,13 @@ class Messaging_settings extends EA_Controller
             check('whatsapp_webhook_verify_token', 'string|null');
             check('whatsapp_business_phone_display', 'string|null');
             check('whatsapp_notifications_enabled', 'bool|null');
+            check('smtp_host', 'string|null');
+            check('smtp_port', 'int|null');
+            check('smtp_crypto', 'string|null');
+            check('smtp_user', 'string|null');
+            check('smtp_pass', 'string|null');
+            check('smtp_from_name', 'string|null');
+            check('smtp_from_address', 'string|null');
 
             $data = [
                 'sms_gateway' => trim((string) request('sms_gateway', 'none')) ?: 'none',
@@ -97,6 +111,13 @@ class Messaging_settings extends EA_Controller
                     request('whatsapp_notifications_enabled', false),
                     FILTER_VALIDATE_BOOLEAN,
                 ) ? 1 : 0,
+                'smtp_host' => trim((string) request('smtp_host', '')) ?: null,
+                'smtp_port' => !empty(request('smtp_port')) ? (int) request('smtp_port') : null,
+                'smtp_crypto' => trim((string) request('smtp_crypto', '')) ?: null,
+                'smtp_user' => trim((string) request('smtp_user', '')) ?: null,
+                'smtp_pass' => trim((string) request('smtp_pass', '')) ?: null,
+                'smtp_from_name' => trim((string) request('smtp_from_name', '')) ?: null,
+                'smtp_from_address' => trim((string) request('smtp_from_address', '')) ?: null,
             ];
 
             $this->messaging_settings_model->save_settings($data);

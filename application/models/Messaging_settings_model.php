@@ -40,6 +40,13 @@ class Messaging_settings_model extends EA_Model
                 'whatsapp_unofficial_consent_at' => null,
                 'whatsapp_bridge_url' => null,
                 'whatsapp_bridge_secret' => null,
+                'smtp_host' => null,
+                'smtp_port' => null,
+                'smtp_crypto' => null,
+                'smtp_user' => null,
+                'smtp_pass' => null,
+                'smtp_from_name' => null,
+                'smtp_from_address' => null,
             ];
         }
 
@@ -51,6 +58,8 @@ class Messaging_settings_model extends EA_Model
         $row['whatsapp_waba_id'] = sf_pii_decrypt($row['whatsapp_waba_id']);
         $row['whatsapp_webhook_verify_token'] = sf_pii_decrypt($row['whatsapp_webhook_verify_token']);
         $row['whatsapp_bridge_secret'] = sf_pii_decrypt($row['whatsapp_bridge_secret']);
+        $row['smtp_user'] = sf_pii_decrypt($row['smtp_user']);
+        $row['smtp_pass'] = sf_pii_decrypt($row['smtp_pass']);
 
         return $row;
     }
@@ -74,10 +83,11 @@ class Messaging_settings_model extends EA_Model
         $plaintext_fields = ['sms_gateway', 'netgsm_header', 'whatsapp_business_phone_display',
             'sms_notifications_enabled', 'whatsapp_notifications_enabled', 'whatsapp_mode',
             'whatsapp_unofficial_status', 'whatsapp_unofficial_name',
-            'whatsapp_unofficial_consent_at', 'whatsapp_bridge_url'];
+            'whatsapp_unofficial_consent_at', 'whatsapp_bridge_url', 'smtp_host', 'smtp_port',
+            'smtp_crypto', 'smtp_from_name', 'smtp_from_address'];
         $encrypted_fields = ['netgsm_username', 'netgsm_password', 'whatsapp_phone_number_id',
             'whatsapp_access_token', 'whatsapp_waba_id', 'whatsapp_webhook_verify_token',
-            'whatsapp_bridge_secret'];
+            'whatsapp_bridge_secret', 'smtp_user', 'smtp_pass'];
 
         foreach ($plaintext_fields as $field) {
             if (isset($data[$field]) && $data[$field] !== '') {
