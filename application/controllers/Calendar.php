@@ -92,6 +92,7 @@ class Calendar extends EA_Controller
         $this->load->library('webhooks_client');
         $this->load->library('permissions');
         $this->load->library('jitsi_client');
+        $this->load->library('availability');
     }
 
     /**
@@ -2136,6 +2137,124 @@ class Calendar extends EA_Controller
             $response['server_time'] = date('Y-m-d H:i:s');
 
             json_response($response);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * "İlk Müsaitlik" toolbar widget (2026-09-10) - reuses Availability::find_first_available_slots()
+     * (already builds provider + station matches for the booking wizard) with a synthetic 40-minute
+     * probe service, so this doesn't duplicate the working-plan/station-matching logic. Scoped to
+     * TODAY only (max_days=1) - "no slot found" for today means "Müsaitlik yok", per the 40-minute
+     * threshold the reception desk works with.
+     */
+    public function get_next_availability(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            check('provider_id', 'numeric|null');
+
+            $provider_id = request('provider_id') ? (int) request('provider_id') : null;
+
+            if ($provider_id) {
+                $provider = $this->providers_model->find($provider_id);
+                $providers = $provider ? [$provider] : [];
+            } else {
+                $providers = $this->providers_model->get_available_providers();
+            }
+
+            if (empty($providers)) {
+                json_response(['available' => false]);
+                return;
+            }
+
+            $services = $this->services_model->get(null, 1);
+
+            if (empty($services)) {
+                json_response(['available' => false]);
+                return;
+            }
+
+            // Probe duration, not a real bookable service - see the 40-minute threshold in the docblock.
+            $probe_service = $services[0];
+            $probe_service['duration'] = 40;
+
+            $slots = $this->availability->find_first_available_slots($probe_service, $providers, count($providers), 1);
+
+            // A provider with stations configured but no free one at their first open hour isn't
+            // actually usable at that hour - drop it so a later provider (or none) wins instead of
+            // reporting a slot the desk can't actually seat anyone in.
+            $providers_by_id = [];
+            foreach ($providers as $p) {
+                $providers_by_id[(int) $p['id']] = $p;
+            }
+
+            $slots = array_values(array_filter($slots, function ($slot) use ($providers_by_id) {
+                $p = $providers_by_id[$slot['provider_id']] ?? null;
+
+                return $slot['station_id'] !== null || empty($p['stations'] ?? []);
+            }));
+
+            if (empty($slots)) {
+                json_response(['available' => false]);
+                return;
+            }
+
+            usort($slots, fn($a, $b) => strcmp($a['date'] . ' ' . $a['hour'], $b['date'] . ' ' . $b['hour']));
+
+            $slot = $slots[0];
+            $slot_start = new DateTime($slot['date'] . ' ' . $slot['hour']);
+            $now = new DateTime();
+
+            // Next appointment for that provider after this slot - defines how big the window is.
+            $next_start_row = $this->db
+                ->select('start_datetime')
+                ->from('appointments')
+                ->where('id_users_provider', $slot['provider_id'])
+                ->where('is_unavailability', 0)
+                ->where('start_datetime >', $slot_start->format('Y-m-d H:i:s'))
+                ->order_by('start_datetime', 'asc')
+                ->limit(1)
+                ->get()
+                ->row_array();
+
+            $window_end = $next_start_row ? new DateTime($next_start_row['start_datetime']) : null;
+
+            // Working-day end, from the provider's own plan (falls back to the company default) - a
+            // simplification vs. find_first_available_slots() itself: working_plan_exceptions for
+            // today are not re-applied here, only the base weekly plan, so this closing-time text can
+            // be off on an exception day even though the actual slot search above already honored it.
+            $provider = $providers_by_id[$slot['provider_id']] ?? null;
+            $working_plan_json = $provider['settings']['working_plan'] ?? setting('company_working_plan');
+            $working_plan = json_decode((string) $working_plan_json, true) ?: [];
+            $weekday = strtolower($slot_start->format('l'));
+            $day_end_time = $working_plan[$weekday]['end'] ?? null;
+
+            if ($day_end_time) {
+                $day_end = new DateTime($slot['date'] . ' ' . $day_end_time);
+
+                if (!$window_end || $day_end < $window_end) {
+                    $window_end = $day_end;
+                }
+            }
+
+            $window_minutes = $window_end ? max(0, (int) round(($window_end->getTimestamp() - $slot_start->getTimestamp()) / 60)) : null;
+
+            json_response([
+                'available' => true,
+                'provider_id' => $slot['provider_id'],
+                'provider_name' => $slot['provider_name'],
+                'station_name' => $slot['station_name'],
+                'time' => $slot_start->format('H:i'),
+                'is_now' => $slot_start->getTimestamp() <= $now->getTimestamp() + 300,
+                'window_minutes' => $window_minutes,
+            ]);
         } catch (Throwable $e) {
             json_exception($e);
         }

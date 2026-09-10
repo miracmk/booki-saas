@@ -1489,7 +1489,7 @@ App.Utils.CalendarDefaultView = (function () {
      */
     function initialize() {
         const {columnFormat, timeFormat, slotTimeFormat} = getFormatSettings();
-        const initialView = window.innerWidth < 468 ? 'timeGridDay' : 'timeGridWeek';
+        const initialView = 'timeGridDay';
         const firstWeekdayNumber = App.Utils.Date.getWeekdayId(vars('first_weekday'));
 
         // Create FullCalendar instance

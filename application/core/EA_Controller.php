@@ -287,13 +287,28 @@ class EA_Controller extends CI_Controller
         $query_language = request('language');
         $available_languages = config('available_languages');
 
-        // Priority: session > query param > default (english)
+        // Ki Reservation (2026-09-10) - the tenant's own "Varsayılan Dil" (General Settings) used to
+        // only pre-fill new user/customer records' OWN language field - it never actually changed
+        // what language THIS request rendered in, which reads as "doesn't work" to whoever set it.
+        // It's now also the fallback active language for anyone who hasn't personally chosen one
+        // (no session/query override) - between that per-user choice and Config::LANGUAGE's
+        // platform-wide default. Guarded like load_common_html_vars()'s settings lookups - the
+        // `settings` table doesn't exist on master-DB-only requests (Portal/Superadmin/Marketplace).
+        $tenant_default_language = null;
+
+        if ($this->db->table_exists('settings')) {
+            $tenant_default_language = setting('default_language');
+        }
+
+        // Priority: session (user's own choice) > query param > tenant's own default > platform default
         $language = null;
 
         if ($session_language && in_array($session_language, $available_languages)) {
             $language = $session_language;
         } elseif ($query_language && in_array($query_language, $available_languages)) {
             $language = $query_language;
+        } elseif ($tenant_default_language && in_array($tenant_default_language, $available_languages)) {
+            $language = $tenant_default_language;
         }
 
         if ($language) {

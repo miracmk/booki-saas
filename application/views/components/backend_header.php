@@ -20,32 +20,50 @@ $expiry_warning = vars('expiry_warning');
     </div>
 <?php endif; ?>
 
-<nav id="header" class="navbar navbar-expand-md navbar-dark bg-primary p-0">
-    <?php
-    // Salon Flora customization - whitelabeling: fall back to the platform's own name/logo only when
-    // the tenant hasn't set their own in General Settings (see EA_Controller::load_common_html_vars()).
-    $header_company_name = vars('company_name') ?: 'KI RESERVATION';
-    $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
-    ?>
-    <div id="header-logo" class="navbar-brand p-1 lh-1">
-        <img src="<?= e($header_company_logo) ?>" alt="logo" class="float-start me-2" style="width: 45px; height: 45px;">
-        <h6 class="mb-1 mt-1 fw-bold text-white" style="font-size: 15px;"><?= e($header_company_name) ?></h6>
-        <small class="d-block text-white-50" style="font-size: 12px;">Online Appointment Scheduler</small>
+<?php
+// Ki Reservation (2026-09-10) - sidebar navigation redesign. Below the "md" breakpoint (768px),
+// Bootstrap's `offcanvas-md` turns #sidebar into a real dismissible offcanvas panel, triggered by
+// this thin top bar's hamburger button. At/above "md" it renders as a normal, always-visible,
+// fixed-position column (see the CSS block in backend_layout.php) - this thin bar is hidden there
+// via `d-md-none`. #header keeps its ID here (not on the sidebar) so calendar_default_view.js's/
+// calendar_table_view.js's `$('#header').outerHeight()` height budget still works unmodified: 0 on
+// desktop (element hidden), this bar's real height on mobile.
+$header_company_name = vars('company_name') ?: 'KI RESERVATION';
+$header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
+?>
+<nav id="header" class="d-md-none navbar navbar-dark bg-primary py-2 px-2">
+    <button type="button" class="btn btn-link text-white p-1" data-bs-toggle="offcanvas" data-bs-target="#sidebar"
+            aria-controls="sidebar" aria-label="Menüyü aç">
+        <i class="fas fa-bars fa-lg"></i>
+    </button>
+    <span class="text-white fw-bold ms-2" style="font-size: 15px;"><?= e($header_company_name) ?></span>
+</nav>
+
+<nav id="sidebar" class="offcanvas-md offcanvas-start bg-primary text-white" tabindex="-1"
+     aria-labelledby="sidebar-label">
+    <div class="offcanvas-header d-md-none">
+        <h6 class="offcanvas-title text-white" id="sidebar-label"><?= e($header_company_name) ?></h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                data-bs-target="#sidebar" aria-label="Kapat"></button>
     </div>
 
-    <button type="button" class="navbar-toggler me-1" data-bs-toggle="collapse" data-bs-target="#header-menu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+    <div class="offcanvas-body d-flex flex-column p-0">
+        <div id="header-logo" class="d-none d-md-flex align-items-center p-3">
+            <img src="<?= e($header_company_logo) ?>" alt="logo" class="me-2" style="width: 40px; height: 40px;">
+            <div>
+                <h6 class="mb-0 fw-bold text-white" style="font-size: 14px;"><?= e($header_company_name) ?></h6>
+                <small class="d-block text-white-50" style="font-size: 11px;">Online Appointment Scheduler</small>
+            </div>
+        </div>
 
-    <div id="header-menu" class="collapse navbar-collapse flex-row-reverse px-2">
-        <ul class="navbar-nav">
+        <ul class="nav flex-column flex-grow-1 overflow-auto px-2 sidebar-nav">
             <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_APPOINTMENTS ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
+            <li class="nav-item <?= $active . $hidden ?>">
                 <a href="<?= site_url(
                     'calendar' . (vars('calendar_view') === CALENDAR_VIEW_TABLE ? '?view=table' : ''),
                 ) ?>"
-                   class="nav-link text-white fw-light py-3 px-3"
+                   class="nav-link text-white"
                    data-tippy-content="<?= lang('manage_appointment_record_hint') ?>">
                     <i class="fas fa-calendar-alt me-2"></i>
                     <?= lang('calendar') ?>
@@ -54,8 +72,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_CUSTOMERS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_CUSTOMERS ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('customers') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('customers') ?>" class="nav-link text-white"
                    data-tippy-content="<?= lang('manage_customers_hint') ?>">
                     <i class="fas fa-user-friends me-2"></i>
                     <?= lang('customers') ?>
@@ -64,26 +82,33 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_SERVICES) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_SERVICES ? 'active' : ''; ?>
-            <li class="nav-item dropdown text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a class="nav-link dropdown-toggle text-white fw-light py-3 px-3" href="#" data-bs-toggle="dropdown"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
+                   data-bs-toggle="collapse" data-bs-target="#sidebar-services-collapse"
                    data-tippy-content="<?= lang('manage_services_hint') ?>">
-                    <i class="fas fa-business-time me-2"></i>
-                    <?= lang('services') ?>
+                    <span><i class="fas fa-business-time me-2"></i><?= lang('services') ?></span>
+                    <i class="fas fa-chevron-down small"></i>
                 </a>
-                <div class="dropdown-menu dropdown-menu-end">
-                    <a class="dropdown-item" href="<?= site_url('services') ?>">
-                        <?= lang('services') ?>
-                    </a>
-                    <a class="dropdown-item" href="<?= site_url('service_categories') ?>">
-                        <?= lang('categories') ?>
-                    </a>
+                <div class="collapse <?= $active ? 'show' : '' ?>" id="sidebar-services-collapse">
+                    <ul class="nav flex-column ps-4">
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50" href="<?= site_url('services') ?>">
+                                <?= lang('services') ?>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50" href="<?= site_url('service_categories') ?>">
+                                <?= lang('categories') ?>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </li>
 
             <?php $hidden = can('view', PRIV_STATIONS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_STATIONS ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('stations') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('stations') ?>" class="nav-link text-white"
                    data-tippy-content="İstasyonları yönet">
                     <i class="fas fa-door-open me-2"></i>
                     İstasyonlar
@@ -92,8 +117,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_WAITLIST) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_WAITLIST ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('waitlist') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('waitlist') ?>" class="nav-link text-white"
                    data-tippy-content="Bekleme listesini yönet">
                     <i class="fas fa-hourglass-half me-2"></i>
                     Bekleme Listesi
@@ -102,8 +127,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_MEMBERSHIPS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_MEMBERSHIPS ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('memberships') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('memberships') ?>" class="nav-link text-white"
                    data-tippy-content="Üyelikleri yönet">
                     <i class="fas fa-id-card me-2"></i>
                     Üyelikler
@@ -112,8 +137,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_CUSTOMERS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == 'data_requests' ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('data_requests') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('data_requests') ?>" class="nav-link text-white"
                    data-tippy-content="KVKK veri talepleri">
                     <i class="fas fa-shield-alt me-2"></i>
                     Veri Talepleri
@@ -122,8 +147,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_INVOICES) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_INVOICES ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('invoices') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('invoices') ?>" class="nav-link text-white"
                    data-tippy-content="Faturaları yönet">
                     <i class="fas fa-file-invoice me-2"></i>
                     Faturalar
@@ -132,8 +157,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_POS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_POS ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('pos') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('pos') ?>" class="nav-link text-white"
                    data-tippy-content="Satış noktası">
                     <i class="fas fa-cash-register me-2"></i>
                     POS
@@ -142,8 +167,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_REPORTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_REPORTS ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('reports') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('reports') ?>" class="nav-link text-white"
                    data-tippy-content="Günlük ciro raporu">
                     <i class="fas fa-chart-line me-2"></i>
                     Raporlar
@@ -152,8 +177,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_MARKETING) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_MARKETING ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('marketing') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('marketing') ?>" class="nav-link text-white"
                    data-tippy-content="Pazarlama kampanyaları">
                     <i class="fas fa-bullhorn me-2"></i>
                     Pazarlama
@@ -162,8 +187,8 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_REVIEWS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_REVIEWS ? 'active' : ''; ?>
-            <li class="nav-item text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a href="<?= site_url('reviews') ?>" class="nav-link text-white fw-light py-3 px-3"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('reviews') ?>" class="nav-link text-white"
                    data-tippy-content="Müşteri yorumları">
                     <i class="fas fa-star me-2"></i>
                     Yorumlar
@@ -172,78 +197,110 @@ $expiry_warning = vars('expiry_warning');
 
             <?php $hidden = can('view', PRIV_USERS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_USERS ? 'active' : ''; ?>
-            <li class="nav-item dropdown text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a class="nav-link dropdown-toggle text-white fw-light py-3 px-3" href="#" data-bs-toggle="dropdown"
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
+                   data-bs-toggle="collapse" data-bs-target="#sidebar-users-collapse"
                    data-tippy-content="<?= lang('manage_users_hint') ?>">
-                    <i class="fas fa-users me-2"></i>
-                    <?= lang('users') ?>
+                    <span><i class="fas fa-users me-2"></i><?= lang('users') ?></span>
+                    <i class="fas fa-chevron-down small"></i>
                 </a>
-                <div class="dropdown-menu dropdown-menu-end">
-                    <a class="dropdown-item" href="<?= site_url('providers') ?>">
-                        <?= lang('providers') ?>
-                    </a>
-                    <a class="dropdown-item" href="<?= site_url('secretaries') ?>">
-                        <?= lang('secretaries') ?>
-                    </a>
-                    <a class="dropdown-item" href="<?= site_url('admins') ?>">
-                        <?= lang('admins') ?>
-                    </a>
-                </div>
-            </li>
-
-            <?php $hidden = can('view', PRIV_SYSTEM_SETTINGS) || can('view', PRIV_USER_SETTINGS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_SYSTEM_SETTINGS ? 'active' : ''; ?>
-            <li class="nav-item dropdown text-center <?= $active . $hidden ?>" style="min-width: 100px;">
-                <a class="nav-link dropdown-toggle text-white fw-light py-3 px-3" href="#" data-bs-toggle="dropdown"
-                   data-tippy-content="<?= lang('settings_hint') ?>">
-                    <i class="fas fa-user me-2"></i>
-                    <?= e(vars('user_display_name')) ?>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end">
-                    <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
-                        <a class="dropdown-item" href="<?= site_url('general_settings') ?>">
-                            <i class="fas fa-cogs me-2"></i>
-                            <?= lang('settings') ?>
-                        </a>
-                        <a class="dropdown-item" href="<?= site_url('jobs') ?>">
-                            <i class="fas fa-hourglass-start me-2"></i>
-                            İş Kuyruğu
-                        </a>
-                        <a class="dropdown-item" href="<?= site_url('audit_log') ?>">
-                            <i class="fas fa-clipboard-list me-2"></i>
-                            Denetim Kayıtları
-                        </a>
-                        <a class="dropdown-item" href="<?= site_url('google_sync_dashboard') ?>">
-                            <i class="fab fa-google me-2"></i>
-                            Google Takvim Senkron Durumu
-                        </a>
-                        <a class="dropdown-item" href="<?= site_url('license') ?>">
-                            <i class="fas fa-key me-2"></i>
-                            Lisans
-                        </a>
-                    <?php endif; ?>
-
-                    <a class="dropdown-item" href="<?= site_url('account') ?>">
-                        <i class="fas fa-user me-2"></i>
-                        <?= lang('account') ?>
-                    </a>
-                    <a class="dropdown-item" href="<?= site_url('about') ?>">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <?= lang('about') ?>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="<?= site_url('booking') ?>" target="_blank">
-                        <i class="fas fa-external-link me-2"></i>
-                        <?= lang('booking') ?>
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="<?= site_url('logout') ?>">
-                        <i class="fas fa-sign-out me-2"></i>
-                        <?= lang('log_out') ?>
-                    </a>
+                <div class="collapse <?= $active ? 'show' : '' ?>" id="sidebar-users-collapse">
+                    <ul class="nav flex-column ps-4">
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50" href="<?= site_url('providers') ?>">
+                                <?= lang('providers') ?>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50" href="<?= site_url('secretaries') ?>">
+                                <?= lang('secretaries') ?>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50" href="<?= site_url('admins') ?>">
+                                <?= lang('admins') ?>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </li>
         </ul>
+
+        <div class="border-top border-light border-opacity-25 p-2">
+            <?php $hidden = can('view', PRIV_SYSTEM_SETTINGS) || can('view', PRIV_USER_SETTINGS) ? '' : 'd-none'; ?>
+            <?php $active = $active_menu == PRIV_SYSTEM_SETTINGS ? 'active' : ''; ?>
+            <ul class="nav flex-column <?= $hidden ?>">
+                <li class="nav-item <?= $active ?>">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
+                       data-bs-toggle="collapse" data-bs-target="#sidebar-account-collapse"
+                       data-tippy-content="<?= lang('settings_hint') ?>">
+                        <span><i class="fas fa-user me-2"></i><?= e(vars('user_display_name')) ?></span>
+                        <i class="fas fa-chevron-down small"></i>
+                    </a>
+                    <div class="collapse" id="sidebar-account-collapse">
+                        <ul class="nav flex-column ps-4">
+                            <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" href="<?= site_url('general_settings') ?>">
+                                        <i class="fas fa-cogs me-2"></i>
+                                        <?= lang('settings') ?>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" href="<?= site_url('jobs') ?>">
+                                        <i class="fas fa-hourglass-start me-2"></i>
+                                        İş Kuyruğu
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" href="<?= site_url('audit_log') ?>">
+                                        <i class="fas fa-clipboard-list me-2"></i>
+                                        Denetim Kayıtları
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" href="<?= site_url('google_sync_dashboard') ?>">
+                                        <i class="fab fa-google me-2"></i>
+                                        Google Takvim Senkron Durumu
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" href="<?= site_url('license') ?>">
+                                        <i class="fas fa-key me-2"></i>
+                                        Lisans
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-white-50" href="<?= site_url('account') ?>">
+                                    <i class="fas fa-user me-2"></i>
+                                    <?= lang('account') ?>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white-50" href="<?= site_url('about') ?>">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <?= lang('about') ?>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white-50" href="<?= site_url('booking') ?>" target="_blank">
+                                    <i class="fas fa-external-link me-2"></i>
+                                    <?= lang('booking') ?>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white-50" href="<?= site_url('logout') ?>">
+                                    <i class="fas fa-sign-out me-2"></i>
+                                    <?= lang('log_out') ?>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 

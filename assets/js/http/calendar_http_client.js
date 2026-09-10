@@ -540,6 +540,20 @@ App.Http.Calendar = (function () {
         });
     }
 
+    /**
+     * "İlk Müsaitlik" toolbar widget - 2026-09-10.
+     *
+     * @param {number|null} providerId - A specific provider, or null/undefined for "any provider".
+     */
+    function getNextAvailability(providerId) {
+        const url = App.Utils.Url.siteUrl('calendar/get_next_availability');
+
+        return $.post(url, {
+            csrf_token: vars('csrf_token'),
+            provider_id: providerId || '',
+        });
+    }
+
     return {
         saveAppointment,
         saveAppointmentWithConflictHandling,
@@ -562,5 +576,6 @@ App.Http.Calendar = (function () {
         updatePayment,
         getAvailableProviders,
         getAvailableStations,
+        getNextAvailability,
     };
 })();

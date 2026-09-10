@@ -29,9 +29,9 @@
 </head>
 <body class="d-flex flex-column h-100">
 
-<main class="flex-shrink-0">
+<?php component('backend_header', ['active_menu' => vars('active_menu')]); ?>
 
-    <?php component('backend_header', ['active_menu' => vars('active_menu')]); ?>
+<main class="flex-shrink-0" id="main-content">
 
     <?php
     // Ki Reservation customization (2026-08-24) - license status banner. Admin-only (a provider/
@@ -93,8 +93,52 @@
 <script src="<?= asset_url('assets/js/utils/session_status.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/session_actions.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/active_sessions_widget.js') ?>"></script>
+<script src="<?= asset_url('assets/js/components/next_availability_widget.js') ?>"></script>
 
 <style>
+    /* Ki Reservation (2026-09-10) - sidebar navigation. Mobile-first: #sidebar is a Bootstrap
+       offcanvas (off-screen drawer) by default; the media query below turns it into a normal,
+       always-visible, fixed-position left column at/above the "md" breakpoint (768px), matching
+       Bootstrap's own `offcanvas-md` behavior contract. */
+    #sidebar .nav-link { padding: .55rem .75rem; border-radius: 6px; font-weight: 300; }
+    #sidebar .nav-link:hover { background: rgba(255, 255, 255, 0.08); }
+    #sidebar .nav-item.active > .nav-link { background: rgba(255, 255, 255, 0.16); font-weight: 600; }
+    #sidebar .nav-link .fa-chevron-down { transition: transform .2s ease; }
+    #sidebar .nav-link[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
+
+    /* Ki Reservation (2026-09-10) - Bootstrap's own `.offcanvas-md` breakpoint rules force
+       .offcanvas-body to `flex-grow:0; overflow-y:visible` at >=768px (it assumes a "static, just
+       render inline" mode, not a persistent full-height column) - that broke both "push the account
+       block to the bottom" and "only the middle nav list scrolls". These overrides apply at every
+       width (not only >=768px) so the same single-scroll-container behavior is consistent in the
+       mobile offcanvas drawer too. */
+    #sidebar,
+    #sidebar .offcanvas-body {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    #sidebar .offcanvas-body {
+        flex-grow: 1 !important;
+        overflow-y: hidden !important;
+        padding: 0 !important;
+    }
+    #sidebar .sidebar-nav {
+        flex: 1 1 auto;
+        min-height: 0; /* let the flex child actually shrink so overflow-y:auto can kick in */
+        overflow-y: auto;
+    }
+    @media (min-width: 768px) {
+        #sidebar {
+            width: 230px !important;
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+        #main-content, #footer { margin-left: 230px; }
+    }
+
     /* Salon Flora customization - live session status indicators on calendar appointment events. */
     .fc-event.sf-session-running {
         border-left: 4px solid #28a745 !important;
