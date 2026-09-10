@@ -18,7 +18,7 @@ Son güncelleme: 2026-09-10
 ## 1. AKTİF HEDEF (Dalga 3)
 
 Kullanıcı istiyor: (1) custom domain özelliğini eklemek/düzeltmek, (2) Dalga 3'ün tamamı tek turda:
-Faz 3.1 Communication Hub (TAMAM, canlıda), Faz 3.2 Automation Engine (TAMAM, canlıda), **Faz 3.3 Marketing (TAMAM, canlıda)**, **Faz 3.4 Review Engine (TAMAM, canlıda)**, Faz 3.5 WhatsApp dual-mode (SIRADAKİ), Faz 3.6 Analytics.
+Faz 3.1 Communication Hub (TAMAM, canlıda), Faz 3.2 Automation Engine (TAMAM, canlıda), Faz 3.3 Marketing (TAMAM, canlıda), Faz 3.4 Review Engine (TAMAM, canlıda), Faz 3.5 WhatsApp dual-mode (TAMAM, canlıda — kullanıcının kendi yapacağı QR eşleştirme testi hariç), **Faz 3.6 Analytics (TAMAM, canlıda — bkz. bölüm 6)**. Dalga 3 fiilen tamamlandı, sıradaki Dalga 4.
 
 Canlı doğrulama (2026-09-08):
 - `salonflora.reservationapp.kibusiness.co`: `/`, `/booking`, `/login`, `/health` -> 200; `/api/v1/services` -> 401 (doğru).
@@ -98,11 +98,77 @@ Kurtarma sonrası kalan eski container'lar (referans; silinebilir diye duruyor):
 - Commit kuralı: kullanıcı açıkça istemedikçe commit yok. `.env`, `/tmp/opencode/db-recover/*`, `CREDENTIALS.md` dışarı sızmamalı.
 - CI3 Loader bilgisi: `load->library()` olmadan `new Foo_library(...)` sınıf dosyasını DAHIL ETMEZ (yalnızca config/autoload.php işler) — yeni lib kullanırken önce `load->library('foo')` veya `class_exists` guard.
 
+## 6. 2026-09-10 OTURUMU — SMTP fallback, superadmin hesap yönetimi, sidebar, dil düzeltmesi, Faz 3.6
+
+Bu oturumda Dalga 3'ün geri kalanı (Faz 3.6) tamamlandı + roadmap dışı ama kullanıcı tarafından canlıda
+fark edilen birkaç gerçek prod bug'ı düzeltildi. Hepsi commit'lendi ve push'landı (`main`, 5 commit:
+`71e2643`..`3d65e7d`).
+
+- **Platform SMTP fallback (migration 134):** Tenant kendi SMTP'sini `messaging_settings`'e girerse onu
+  kullanır; girmezse önce Superadmin Platform Ayarları'ndaki (`master_setting('platform_smtp_*')`), o da
+  boşsa `.env` `MAIL_SMTP_*`'i fallback olarak kullanır ve gönderilen e-postaya küçük bir "Ki Reservation
+  ile gönderildi" notu ekler (`Email_messages::resolve_smtp_config()`). **Platform fallback SMTP hâlâ
+  boş** — kullanıcı kendi girecek (`reservationadmin.kibusiness.co/superadmin_settings`).
+- **Superadmin'den kiracı admin hesabı tam yönetimi:** `Superadmin_tenants.php`'ye `get_admin_account`/
+  `update_admin_username`/`set_admin_password`/`send_admin_password_reset` eklendi (eski
+  `reset_admin_password` `username='administrator'` hardcode'u da düzeltildi — artık `roles.slug='admin'`
+  ile buluyor). **ÖNEMLİ:** superadmin bu action'larda tenant DB'ye ad-hoc bağlanırken
+  `activate_tenant_pii_context()` ile `tenant_context()`'i elle kurmazsa `sf_pii_decrypt()` (e-posta vb.)
+  YANLIŞ/EKSİK çalışır — bu olmadan `get_admin_account` şifreli e-postayı (`SFENC1:...`) olduğu gibi
+  döndürüyordu, bir turda yakalanıp düzeltildi.
+- **Sol sidebar navigasyonu:** eski yatay 12 öğeli navbar Bootstrap `offcanvas-md` ile sol sidebar'a
+  çevrildi (masaüstü sabit sütun, mobil hamburger/offcanvas). **Bilinmesi gereken tuzak:** Bootstrap'in
+  `offcanvas-md`'si `>=768px`'te `.offcanvas-body`'i `flex-grow:0; overflow-y:visible` yapıyor — sidebar
+  içinde "üst liste scroll olsun, alt blok sabit kalsın" gibi bir flex düzeni kurulacaksa bunu elle
+  override etmek gerekiyor (bkz. `backend_layout.php`'deki `#sidebar .offcanvas-body` kuralları).
+- **Dil çözümleme bug'ı (ciddi, canlıda fark edildi):** `application/config/config.php` tarayıcının
+  `Accept-Language` başlığını platform'un kendi `Config::LANGUAGE` (turkish) varsayılanının ÖNÜNE
+  koyuyordu — İngilizce tarayıcıyla giren herkes otomatik İngilizce görüyordu, üstüne bazı Salon Flora'ya
+  özel `lang()` anahtarları (`real_start`, `station`, `send_notification`, `add_note`) İngilizce dil
+  dosyasına hiç eklenmemişti (sadece Turkish'te vardı) → ham anahtar adı ekrana düşüyordu. Düzeltme: (1)
+  browser Accept-Language artık `Config::LANGUAGE`'i ezmiyor, (2) General Settings'teki "Varsayılan Dil"
+  ayarı ŞİMDİYE KADAR SADECE yeni kayıtları etkiliyordu, hiç çalışan dili değiştirmiyordu — artık
+  `EA_Controller::configure_language()`'da session (kullanıcının kendi tercihi) > query param >
+  **tenant'ın `default_language` ayarı** > `Config::LANGUAGE` sırasıyla fallback olarak kullanılıyor.
+  Admin hesabının (`users.id=1`) DB'deki `language` alanı `english` olarak kayıtlıydı, `turkish` yapıldı.
+- **KRİTİK ALTYAPI BULGUSU — `.min.js` build gap:** `asset_url()` prod'da (`config('debug')=false`) HER
+  `.js` isteğini otomatik `.min.js`'e çeviriyor (`application/helpers/asset_helper.php`). Repo'da HİÇBİR
+  minifier/build aracı yok (npm/gulp/webpack yok) — `.min.js` dosyaları statik, elle (ya da geçmişte bir
+  seferlik) üretilmiş artefaktlar. **Sonuç: `.js` kaynağını düzenlemek TEK BAŞINA hiçbir şeyi değiştirmez
+  — üretimde tarayıcı hâlâ eski `.min.js`'i çeker (ya da yeni dosyaysa 404 verir, script hiç yüklenmez).**
+  Zaten var olan `.min.js`'e sahip bir `.js` dosyasını düzenlediğinde veya yeni bir `.js` dosyası
+  oluşturduğunda MUTLAKA `npx --no-install terser <dosya>.js --compress --mangle > <dosya>.min.js` ile
+  senkron tut (terser bu ortamda `npx --no-install` ile zaten kullanılabilir durumda, kurulum gerekmiyor).
+  Bu unutulduğu için "İlk Müsaitlik" widget'ı ve takvimin Gün-varsayılanı bir tur boyunca sessizce hiç
+  çalışmadı.
+- **`.gitignore` bug'ı:** kökteki `config.php` (sır) kuralı yol öneki olmadığı için
+  `application/config/config.php`'yi (framework kaynak kodu, sır YOK) de yutuyordu — dil düzeltmesi bu
+  yüzden commit edilemiyordu. `/config.php` olarak köke sabitlendi, düzeltildi.
+- **Faz 3.6 Analytics/BI TAMAMLANDI** (bkz. `docs/ROADMAP.md` Dalga 3 satırı) — migration 135 (4 composite
+  index), `Reports_model::get_revenue_rows()`/`compute_row_metrics()` (mevcut `get_daily_revenue`'dan
+  davranış-birebir çıkarıldı, canlı regresyonla doğrulandı) + yeni `calculate_available_minutes()`,
+  `Reports.php`'ye `get_revenue_report`/`get_utilization_report`/`get_retention_report`. **View şu an
+  sadece ham JSON gösteriyor (`<pre>`) — tasarım/grafik iyileştirmesi kasıtlı olarak ayrı bir tura
+  bırakıldı.**
+- **Migration numaralandırma notu:** bu oturumda 134 numarası İKİ FARKLI özellik için (SMTP + analytics
+  index) kullanılmaya çalışıldı, çakışma migrate sırasında yakalandı — analytics index'ler 135'e taşındı.
+  Sıradaki migration numarası: **136**.
+
 ## 5. SONRAKİ ADIMLAR (devam edilecek)
 
-1. **Faz 3.5 part 1 + part 2 (canlı, commit edildi):** wizard + dual-mode + bridge scaffold + `ki-wa-bridge` Node container (bkz. 2.3). Kalan (kullanıcıda): telefonla QR eşleştirme, admin tarayıcı doğrulaması, resmi Meta onboarding canlı test.
-2. **Faz 3.6 Analytics**: `Reports.php` / `get_daily_revenue` / `export_csv` üzerine dashboard.
-3. Custom domain özelliği düzeltmesi (kullanıcının ilk isteği) — `tenants.custom_domain` mevcut, script `scripts/add-custom-domain.sh` deploy root'ta (Faz 0'da düzeltildi: README satır 131-133; script satır 50/100).
-4. Onay alındığında eski container'ları (`ki-reservation-app-run-*`, `gallant_carson`, `infallible_ramanujan`) temizle.
-5. **Bekleyen kullanıcı doğrulaması:** Pazarlama sayfasına tarayıcıdan admin olarak girip segment/kampanya CRUD + JS akışlarını görsel kontrol et (SESSION_NOTES 2.1).
-6. **Bekleyen kullanıcı doğrulaması:** Review akışının uçtan uca görsel testi — gerçek müşteri SMS'iyle (ya da console `review_issue` ile) bir istek tetikle, formu doldur, pentikan moderasyonunda yayınla ve marketplace'te yayını gör (canlıda yapılmadı çünkü gerçek müşteri randevusuna sahte review yazmak istenmedi).
+1. Platform fallback SMTP'yi gerçek kimlik bilgileriyle doldur (Gmail app password / Hostinger / SendGrid
+   — kullanıcı kendi girecek, `reservationadmin.kibusiness.co/superadmin_settings`).
+2. Faz 3.6 Analytics view'ini tasarım turunda iyileştir (şu an ham JSON, grafik/tablo YOK).
+3. **Faz 3.5 kalan (kullanıcıda):** telefonla QR eşleştirme, resmi Meta onboarding canlı test.
+4. Custom domain özelliği düzeltmesi (kullanıcının ilk isteği) — `tenants.custom_domain` mevcut, script
+   `scripts/add-custom-domain.sh` deploy root'ta (Faz 0'da düzeltildi: README satır 131-133; script satır
+   50/100).
+5. Onay alındığında eski container'ları (`ki-reservation-app-run-*`, `gallant_carson`,
+   `infallible_ramanujan`) temizle.
+6. **Bekleyen kullanıcı doğrulaması:** Pazarlama sayfasına tarayıcıdan admin olarak girip segment/kampanya
+   CRUD + JS akışlarını görsel kontrol et (SESSION_NOTES 2.1).
+7. **Bekleyen kullanıcı doğrulaması:** Review akışının uçtan uca görsel testi — gerçek müşteri SMS'iyle
+   (ya da console `review_issue` ile) bir istek tetikle, formu doldur, moderasyonda yayınla ve
+   marketplace'te yayını gör (canlıda yapılmadı çünkü gerçek müşteri randevusuna sahte review yazmak
+   istenmedi).
+8. Dalga 4 — Marketplace Olgunlaştırma (bkz. `docs/ROADMAP.md`).
