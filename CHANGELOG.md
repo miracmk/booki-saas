@@ -3,6 +3,24 @@
 This file contains the code changes that were introduced into each release so that it is easy for
 developers to maintain and readjust their custom modifications on the main project codebase.
 
+## [Wave 3 / Faz 3.5] - 2026-09-10
+
+### Added
+
+- WhatsApp dual-mode part 1: official Meta Business Cloud API onboarding + mode selector with informed consent for the unofficial QR bridge
+- Migration 133: `messaging_settings` += `whatsapp_mode` (official/unofficial), `whatsapp_unofficial_status`, `whatsapp_unofficial_name`, `whatsapp_unofficial_consent_at`, `whatsapp_bridge_url`, `whatsapp_bridge_secret` (encrypted PII); `users` += `whatsapp_wa_id` (bridge inbound match)
+- `Whatsapp_bridge` library (Guzzle): REST client for the ki-wa-bridge Node sidecar — `health()`, `session_start()`, `session_status()`, `session_logout()`, `send()`, `X-Bridge-Secret` verification; per-tenant session keys (subdomain / `default`). Full contract in `docs/whatsapp-bridge-contract.md`
+- `Whatsapp_client::get_account_info()` + backward-compatible `as_query` param on `call()`
+- WhatsApp settings page rebuilt: mode selector + consent alert, official panel (status/check/webhook URL copy/test send), unofficial panel (risk warning + bridge URL/secret + QR start/status/logout), messages table
+- `assets/js/pages/whatsapp.js`: jQuery-Deferred-wrapped fetch (`.done/.fail` style), save-mode-with-consent, QR polling
+- New admin JSON endpoints: `save_mode`, `save_bridge`, `check_connection`, `send_test`, `qr_start`, `qr_status`, `qr_logout`
+- Public `POST whatsapp/bridge_inbound` (CSRF-excluded, `X-Bridge-Secret` auth, user match via `whatsapp_wa_id` exact → digit-normalized fallback)
+- `Notifications::do_send_whatsapp` dual-mode routing (official → Meta API; unofficial → bridge sidecar, best-effort)
+
+### Fixed
+
+- CI3 Loader does not autoload library classes by name — `new Whatsapp_bridge` threw "Class not found"; fixed by loading the library in the controller constructor plus a `class_exists` guard in `Notifications.php`
+
 ## [Wave 3 / Faz 3.4] - 2026-09-09
 
 ### Added

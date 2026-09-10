@@ -213,6 +213,27 @@ class Notifications
         }
 
         try {
+            // Ki Reservation (Dalga 3 / Faz 3.5) - dual-mode sender routing. The
+            // whatsapp_mode setting decides which transport carries notifications:
+            //   official   -> Meta WhatsApp Business Cloud API (Whatsapp_client)
+            //   unofficial -> the ki-wa-bridge Node sidecar (Whatsapp_bridge).
+            // Both are best-effort: a failure logs and is silently dropped, never
+            // re-thrown into the appointment flow.
+            if (($settings['whatsapp_mode'] ?? 'official') === 'unofficial') {
+                if (!class_exists('Whatsapp_bridge', false)) {
+                    $this->CI->load->library('whatsapp_bridge');
+                }
+
+                $bridge = new Whatsapp_bridge($settings['whatsapp_bridge_url'], $settings['whatsapp_bridge_secret']);
+                if (!$bridge->is_configured()) {
+                    return;
+                }
+
+                $bridge->send($this->tenant_identifier(), $user['phone_number'], $text);
+
+                return;
+            }
+
             $whatsapp_client = new Whatsapp_client(
                 $settings['whatsapp_phone_number_id'],
                 $settings['whatsapp_access_token'],
@@ -226,6 +247,19 @@ class Notifications
         } catch (Throwable $e) {
             $this->log_exception($e, 'whatsapp notification', $user['id'] ?? null);
         }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.5) - stable tenant identifier for the
+     * WhatsApp bridge session keys. Multi-tenant mode uses the tenant's subdomain;
+     * standalone deployments fall back to a fixed 'default' key so the sidecar's
+     * per-tenant session storage stays uniform.
+     */
+    private function tenant_identifier(): string
+    {
+        $context = tenant_context();
+
+        return $context['subdomain'] ?? 'default';
     }
 
     /**

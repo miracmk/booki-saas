@@ -52,11 +52,11 @@ class Whatsapp_client
      *
      * @param string $method HTTP method (GET, POST, etc.)
      * @param string $endpoint API endpoint path (e.g. '/messages')
-     * @param array $data Request body for POST/PUT
+     * @param array $data Request body/query for POST/GET
      *
      * @return array|null Decoded JSON response, or null on error.
      */
-    private function call(string $method, string $endpoint, array $data = []): ?array
+    private function call(string $method, string $endpoint, array $data = [], bool $as_query = false): ?array
     {
         if (!$this->is_configured()) {
             return null;
@@ -76,7 +76,11 @@ class Whatsapp_client
             ];
 
             if (!empty($data)) {
-                $options['json'] = $data;
+                if ($as_query) {
+                    $options['query'] = $data;
+                } else {
+                    $options['json'] = $data;
+                }
             }
 
             $response = $client->request($method, $url, $options);
@@ -89,6 +93,26 @@ class Whatsapp_client
 
             return null;
         }
+    }
+
+    /**
+     * Fetch the connected WABA phone number's account details from Meta.
+     *
+     * Used by the onboarding wizard's "test connection" step to prove the
+     * saved credentials actually work and display business information.
+     *
+     * @return array|null Decoded account info, or null if not configured / unreachable.
+     *   Contains display_phone_number, verified_name, quality_rating, id, ...
+     */
+    public function get_account_info(): ?array
+    {
+        if (!$this->is_configured()) {
+            return null;
+        }
+
+        return $this->call('GET', '/', [
+            'fields' => 'id,display_phone_number,verified_name,code_verification_status,quality_rating',
+        ], true);
     }
 
     /**
