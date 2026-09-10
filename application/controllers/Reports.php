@@ -24,6 +24,8 @@ class Reports extends EA_Controller
 
         $this->load->model('roles_model');
         $this->load->model('appointments_model'); // Salon Flora customization - compute_effective_billing()
+        $this->load->model('reports_model'); // Faz 3.6 - revenue calculation extraction
+        $this->load->model('providers_model'); // Faz 3.6 - utilization report
 
         $this->load->library('accounts');
     }
@@ -84,32 +86,8 @@ class Reports extends EA_Controller
 
             $date = request('date');
 
-            $this->db
-                ->select(
-                    'appointments.id AS appointment_id, appointments.start_datetime, appointments.actual_start_datetime, appointments.actual_end_datetime, appointments.custom_duration_minutes, appointments.price_override, appointments.status, appointments.payment_status, appointments.payment_method, appointments.payment_amount, appointments.payment_balance_amount, appointments.is_invoiced, appointments.early_exit_justification, appointments.early_exit_approved_by, users.id AS provider_id, users.first_name AS provider_first_name, users.last_name AS provider_last_name, users.commission_type, users.commission_value, users.commission_overtime_bonus, services.id AS service_id, services.name AS service_name, services.price AS service_price, services.duration AS service_duration, psc.commission_type AS override_commission_type, psc.commission_value AS override_commission_value',
-                )
-                ->from('appointments')
-                ->join('users', 'users.id = appointments.id_users_provider', 'inner')
-                ->join('services', 'services.id = appointments.id_services', 'inner')
-                // Salon Flora customization: per-provider, per-service commission override (falls back to the
-                // provider's default commission_type/commission_value when no override row exists).
-                ->join(
-                    'provider_service_commissions AS psc',
-                    'psc.id_users = users.id AND psc.id_services = services.id',
-                    'left',
-                )
-                ->where('appointments.is_unavailability', false)
-                ->where_not_in('appointments.status', ['Cancelled', 'Draft'])
-                ->group_start()
-                ->where('DATE(actual_end_datetime) =', $date)
-                ->or_group_start()
-                ->where('actual_end_datetime IS NULL', null, false)
-                ->where('appointments.status', self::COMPLETED_STATUS)
-                ->where('DATE(start_datetime) =', $date)
-                ->group_end()
-                ->group_end();
-
-            $rows = $this->db->get()->result_array();
+            // Faz 3.6 - Extracted revenue calculation to Reports_model for reuse
+            $rows = $this->reports_model->get_revenue_rows($date, $date);
 
             $by_provider = [];
 
@@ -147,48 +125,11 @@ class Reports extends EA_Controller
                     ];
                 }
 
-                // Salon Flora customization - the EFFECTIVE billed duration/price for this session (real
-                // check-in/check-out duration, rounded down to the nearest half hour, times the service's hourly
-                // rate - or a price_override/custom_duration_minutes override) - see compute_effective_billing()
-                // for the full rule, shared with the frontend price preview.
-                $billing = $this->appointments_model->compute_effective_billing(
-                    ['price' => $row['service_price'], 'duration' => $row['service_duration']],
-                    [
-                        'start_datetime' => $row['start_datetime'],
-                        'actual_start_datetime' => $row['actual_start_datetime'],
-                        'actual_end_datetime' => $row['actual_end_datetime'],
-                        'custom_duration_minutes' => $row['custom_duration_minutes'],
-                        'price_override' => $row['price_override'],
-                        'early_exit_justification' => $row['early_exit_justification'],
-                        'early_exit_approved_by' => $row['early_exit_approved_by'],
-                    ],
-                );
-
-                $duration_minutes = $billing['minutes'];
-                $price = $billing['price'];
-
-                // Salon Flora customization - the payout owed to the therapist for this session: a fixed amount
-                // per session, a percentage of the (effective) service price, or an hourly rate times the
-                // effective duration above. Resolved PER SESSION (provider + service), not once per provider - a
-                // therapist may earn a different commission for different services (or duration variants).
-                $has_override = $row['override_commission_type'] !== null;
-                $commission_type = $has_override ? $row['override_commission_type'] : $by_provider[$provider_id]['commission_type'];
-                $commission_value = $has_override ? (float) $row['override_commission_value'] : $by_provider[$provider_id]['commission_value'];
-
-                if ($commission_type === 'fixed') {
-                    $payout = $commission_value;
-                } elseif ($commission_type === 'hourly') {
-                    $payout = $commission_value * ($duration_minutes / 60);
-
-                    // Salon Flora customization - a one-time fixed bonus (provider-level, not overridable per
-                    // service) added whenever the EFFECTIVE session duration exceeds 60 minutes - once per
-                    // session, regardless of how far past the hour it runs.
-                    if ($duration_minutes > 60) {
-                        $payout += (float) $row['commission_overtime_bonus'];
-                    }
-                } else {
-                    $payout = $price * ($commission_value / 100);
-                }
+                // Faz 3.6 - Extracted revenue calculation to Reports_model for reuse
+                $metrics = $this->reports_model->compute_row_metrics($row);
+                $duration_minutes = $metrics['minutes'];
+                $price = $metrics['price'];
+                $payout = $metrics['payout'];
 
                 $collected_amount = $row['payment_status'] === PAYMENT_STATUS_COLLECTED ? (float) ($row['payment_amount'] ?? 0) : 0.0;
                 $balance_amount = $row['payment_status'] === PAYMENT_STATUS_NOT_COLLECTED ? (float) ($row['payment_balance_amount'] ?? 0) : 0.0;
@@ -434,6 +375,273 @@ class Reports extends EA_Controller
         } catch (Throwable $e) {
             log_message('error', 'Reports::export_csv - ' . $e->getMessage());
             show_error($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Validate analytics request parameters and return parsed filters.
+     *
+     * Faz 3.6 - Helper for get_revenue_report(), get_utilization_report(), get_retention_report().
+     * Validates permission, date range, group_by, and applies role-based filtering.
+     *
+     * @return array [$date_from, $date_to, $group_by, $filters]
+     */
+    private function analytics_request(): array
+    {
+        if (cannot('view', PRIV_REPORTS)) {
+            abort(403, 'Forbidden');
+        }
+
+        check('date_from', 'date|null');
+        check('date_to', 'date|null');
+        check('group_by', 'string|null');
+
+        $date_to = request('date_to') ?: date('Y-m-d');
+        $date_from = request('date_from') ?: date('Y-m-d', strtotime('-29 days'));
+
+        if ($date_to < $date_from) {
+            throw new InvalidArgumentException('Bitiş tarihi başlangıç tarihinden önce olamaz.');
+        }
+
+        $group_by = in_array(request('group_by'), ['day', 'week', 'month'], true) ? request('group_by') : 'day';
+
+        $filters = [];
+
+        if (session('role_slug') === DB_SLUG_PROVIDER) {
+            // Providers see only their own data
+            $filters['provider_id'] = (int) session('user_id');
+        } elseif (request('provider_id')) {
+            $filters['provider_id'] = (int) request('provider_id');
+        }
+
+        if (request('service_id')) {
+            $filters['service_id'] = (int) request('service_id');
+        }
+
+        return [$date_from, $date_to, $group_by, $filters];
+    }
+
+    /**
+     * Get revenue report (aggregated by trend, provider, service).
+     *
+     * Faz 3.6 - Analytics endpoint for revenue trends, provider breakdown, service breakdown.
+     */
+    public function get_revenue_report(): void
+    {
+        try {
+            method('post');
+
+            [$date_from, $date_to, $group_by, $filters] = $this->analytics_request();
+            $rows = $this->reports_model->get_revenue_rows($date_from, $date_to, $filters);
+
+            $totals = ['gross' => 0.0, 'payout' => 0.0, 'net' => 0.0, 'session_count' => 0, 'avg_ticket' => 0.0];
+            $trend = []; // key => ['key' => string, 'gross' => float, 'net' => float, 'session_count' => int]
+            $by_provider = []; // provider_id => ['provider_name'=>, 'gross'=>, 'session_count'=>]
+            $by_service = []; // service_id => ['service_name'=>, 'gross'=>, 'session_count'=>]
+
+            foreach ($rows as $row) {
+                $metrics = $this->reports_model->compute_row_metrics($row);
+                $price = $metrics['price'];
+                $payout = $metrics['payout'];
+
+                // group_by key from appointment start_datetime
+                $date = substr($row['start_datetime'], 0, 10); // 'YYYY-MM-DD'
+                $key = match ($group_by) {
+                    'week' => date('Y-\WW', strtotime($date)),
+                    'month' => substr($date, 0, 7), // 'YYYY-MM'
+                    default => $date,
+                };
+
+                if (!isset($trend[$key])) {
+                    $trend[$key] = ['key' => $key, 'gross' => 0.0, 'net' => 0.0, 'session_count' => 0];
+                }
+                $trend[$key]['gross'] += $price;
+                $trend[$key]['net'] += ($price - $payout);
+                $trend[$key]['session_count']++;
+
+                $pid = (int) $row['provider_id'];
+                if (!isset($by_provider[$pid])) {
+                    $by_provider[$pid] = ['provider_id' => $pid, 'provider_name' => trim($row['provider_first_name'] . ' ' . $row['provider_last_name']), 'gross' => 0.0, 'session_count' => 0];
+                }
+                $by_provider[$pid]['gross'] += $price;
+                $by_provider[$pid]['session_count']++;
+
+                $sid = (int) $row['service_id'];
+                if (!isset($by_service[$sid])) {
+                    $by_service[$sid] = ['service_id' => $sid, 'service_name' => $row['service_name'], 'gross' => 0.0, 'session_count' => 0];
+                }
+                $by_service[$sid]['gross'] += $price;
+                $by_service[$sid]['session_count']++;
+
+                $totals['gross'] += $price;
+                $totals['payout'] += $payout;
+                $totals['session_count']++;
+            }
+
+            $totals['net'] = $totals['gross'] - $totals['payout'];
+            $totals['avg_ticket'] = $totals['session_count'] > 0 ? $totals['gross'] / $totals['session_count'] : 0.0;
+
+            ksort($trend);
+
+            json_response([
+                'date_from' => $date_from,
+                'date_to' => $date_to,
+                'group_by' => $group_by,
+                'totals' => $totals,
+                'trend' => array_values($trend),
+                'by_provider' => array_values($by_provider),
+                'by_service' => array_values($by_service),
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get provider utilization report (booked vs. available minutes).
+     *
+     * Faz 3.6 - Analytics endpoint for provider capacity utilization.
+     */
+    public function get_utilization_report(): void
+    {
+        try {
+            method('post');
+
+            [$date_from, $date_to, , $filters] = $this->analytics_request();
+
+            $provider_ids = !empty($filters['provider_id'])
+                ? [(int) $filters['provider_id']]
+                : array_column($this->providers_model->get(), 'id');
+
+            $providers_out = [];
+
+            foreach ($provider_ids as $pid) {
+                $rows = $this->reports_model->get_revenue_rows($date_from, $date_to, ['provider_id' => $pid]);
+                $booked_minutes = 0;
+                foreach ($rows as $row) {
+                    $metrics = $this->reports_model->compute_row_metrics($row);
+                    $booked_minutes += $metrics['minutes'];
+                }
+
+                $available_minutes = $this->reports_model->calculate_available_minutes($pid, $date_from, $date_to);
+                $provider = $this->providers_model->find($pid);
+
+                $providers_out[] = [
+                    'provider_id' => $pid,
+                    'provider_name' => $provider ? trim($provider['first_name'] . ' ' . $provider['last_name']) : ('#' . $pid),
+                    'booked_minutes' => $booked_minutes,
+                    'available_minutes' => $available_minutes,
+                    'utilization_pct' => $available_minutes > 0 ? round($booked_minutes / $available_minutes * 100, 1) : null,
+                ];
+            }
+
+            json_response([
+                'date_from' => $date_from,
+                'date_to' => $date_to,
+                'providers' => $providers_out,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get retention report (new vs. returning customers, churn).
+     *
+     * Faz 3.6 - Analytics endpoint for customer retention metrics.
+     */
+    public function get_retention_report(): void
+    {
+        try {
+            method('post');
+
+            if (session('role_slug') === DB_SLUG_PROVIDER) {
+                abort(403, 'Forbidden');
+            }
+
+            [$date_from, $date_to, , ] = $this->analytics_request();
+
+            check('churn_days', 'numeric|null');
+            $churn_days = request('churn_days') ? (int) request('churn_days') : 90;
+
+            // Each customer's first appointment date
+            $first_seen_rows = $this->db
+                ->select('id_users_customer, MIN(start_datetime) AS first_seen')
+                ->from('appointments')
+                ->where('is_unavailability', false)
+                ->where_not_in('status', ['Cancelled', 'Draft'])
+                ->group_by('id_users_customer')
+                ->get()
+                ->result_array();
+
+            $first_seen_by_customer = [];
+            foreach ($first_seen_rows as $r) {
+                $first_seen_by_customer[$r['id_users_customer']] = substr($r['first_seen'], 0, 7); // 'YYYY-MM'
+            }
+
+            // Appointments in the date range: which customer, which month
+            $range_rows = $this->db
+                ->select("DATE_FORMAT(start_datetime, '%Y-%m') AS month, id_users_customer")
+                ->from('appointments')
+                ->where('is_unavailability', false)
+                ->where_not_in('status', ['Cancelled', 'Draft'])
+                ->where('start_datetime >=', $date_from)
+                ->where('start_datetime <=', $date_to . ' 23:59:59')
+                ->group_by('month, id_users_customer')
+                ->get()
+                ->result_array();
+
+            $months = [];
+            foreach ($range_rows as $r) {
+                $month = $r['month'];
+                if (!isset($months[$month])) {
+                    $months[$month] = ['month' => $month, 'new' => 0, 'returning' => 0];
+                }
+                $is_new = ($first_seen_by_customer[$r['id_users_customer']] ?? null) === $month;
+                if ($is_new) {
+                    $months[$month]['new']++;
+                } else {
+                    $months[$month]['returning']++;
+                }
+            }
+            foreach ($months as &$m) {
+                $total = $m['new'] + $m['returning'];
+                $m['repeat_rate'] = $total > 0 ? round($m['returning'] / $total * 100, 1) : 0.0;
+            }
+            unset($m);
+            ksort($months);
+
+            // Churn: customers whose last appointment is older than churn_days and have no new appointments
+            $last_seen_rows = $this->db
+                ->select('id_users_customer, MAX(start_datetime) AS last_seen')
+                ->from('appointments')
+                ->where('is_unavailability', false)
+                ->where_not_in('status', ['Cancelled', 'Draft'])
+                ->group_by('id_users_customer')
+                ->get()
+                ->result_array();
+
+            $cutoff = date('Y-m-d H:i:s', strtotime('-' . $churn_days . ' days'));
+            $churned = 0;
+            foreach ($last_seen_rows as $r) {
+                if ($r['last_seen'] < $cutoff) {
+                    $churned++;
+                }
+            }
+
+            json_response([
+                'date_from' => $date_from,
+                'date_to' => $date_to,
+                'months' => array_values($months),
+                'churn' => [
+                    'churned' => $churned,
+                    'total' => count($last_seen_rows),
+                    'pct' => count($last_seen_rows) > 0 ? round($churned / count($last_seen_rows) * 100, 1) : 0.0,
+                    'days' => $churn_days,
+                ],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
         }
     }
 }

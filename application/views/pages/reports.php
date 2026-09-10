@@ -102,6 +102,79 @@
             <tbody></tbody>
         </table>
     </div>
+
+    <?php // Faz 3.6 - Analytics/BI section with revenue, utilization, retention reports ?>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="fw-light mb-0">Analitik Raporlar</h5>
+        </div>
+        <div class="card-body">
+            <p class="form-text text-muted mb-3">
+                Tarih aralığı üzerinden ciro, kapasite kullanımı ve müşteri kalıcılığı analitikleri.
+            </p>
+
+            <div class="row g-3 mb-4 align-items-end">
+                <div class="col-12 col-sm-3">
+                    <label class="form-label" for="analytics-date-from">Başlangıç Tarihi</label>
+                    <input type="date" id="analytics-date-from" class="form-control">
+                </div>
+                <div class="col-12 col-sm-3">
+                    <label class="form-label" for="analytics-date-to">Bitiş Tarihi</label>
+                    <input type="date" id="analytics-date-to" class="form-control">
+                </div>
+                <div class="col-12 col-sm-3">
+                    <label class="form-label" for="analytics-group-by">Gruplama</label>
+                    <select id="analytics-group-by" class="form-select">
+                        <option value="day">Gün</option>
+                        <option value="week">Hafta</option>
+                        <option value="month">Ay</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-3">
+                    <button type="button" id="analytics-fetch-btn" class="btn btn-primary w-100">
+                        <i class="fas fa-refresh me-2"></i> Getir
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 col-lg-6 mb-3">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0">Ciro Raporu</h6>
+                        </div>
+                        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                            <pre id="analytics-revenue-result" class="text-monospace" style="font-size: 0.75em; margin: 0;">Yükleniyor...</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6 mb-3">
+                    <div class="card bg-light">
+                        <div class="card-header">
+                            <h6 class="mb-0">Kapasite Kullanımı</h6>
+                        </div>
+                        <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                            <pre id="analytics-utilization-result" class="text-monospace" style="font-size: 0.75em; margin: 0;">Yükleniyor...</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <?php if (session('role_slug') !== DB_SLUG_PROVIDER): ?>
+                    <div class="col-12 col-lg-6 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0">Müşteri Kalıcılığı</h6>
+                            </div>
+                            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                <pre id="analytics-retention-result" class="text-monospace" style="font-size: 0.75em; margin: 0;">Yükleniyor...</pre>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php end_section('content'); ?>
@@ -109,5 +182,80 @@
 <?php section('scripts'); ?>
 
 <script src="<?= asset_url('assets/js/pages/reports.js') ?>"></script>
+
+<script>
+    $(document).ready(function() {
+        // Set default date range: last 30 days
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 29);
+
+        const formatDate = (date) => date.toISOString().split('T')[0];
+
+        $('#analytics-date-from').val(formatDate(thirtyDaysAgo));
+        $('#analytics-date-to').val(formatDate(today));
+        $('#analytics-group-by').val('day');
+
+        $('#analytics-fetch-btn').on('click', function() {
+            const dateFrom = $('#analytics-date-from').val();
+            const dateTo = $('#analytics-date-to').val();
+            const groupBy = $('#analytics-group-by').val();
+
+            if (!dateFrom || !dateTo) {
+                alert('Lütfen tarih aralığı seçiniz.');
+                return;
+            }
+
+            const token = $('meta[name="csrf-token"]').attr('content');
+            const requests = [
+                $.post('<?= site_url("reports/get_revenue_report") ?>', {
+                    csrf_token: token,
+                    date_from: dateFrom,
+                    date_to: dateTo,
+                    group_by: groupBy
+                }),
+                $.post('<?= site_url("reports/get_utilization_report") ?>', {
+                    csrf_token: token,
+                    date_from: dateFrom,
+                    date_to: dateTo,
+                    group_by: groupBy
+                })
+            ];
+
+            // Add retention report request if not a provider
+            <?php if (session('role_slug') !== DB_SLUG_PROVIDER): ?>
+                requests.push(
+                    $.post('<?= site_url("reports/get_retention_report") ?>', {
+                        csrf_token: token,
+                        date_from: dateFrom,
+                        date_to: dateTo,
+                        group_by: groupBy,
+                        churn_days: 90
+                    })
+                );
+            <?php endif; ?>
+
+            Promise.all(requests.map(req => req.promise ? req.promise() : req))
+                .then(([revenueData, utilizationData, retentionData]) => {
+                    $('#analytics-revenue-result').text(JSON.stringify(revenueData, null, 2));
+                    $('#analytics-utilization-result').text(JSON.stringify(utilizationData, null, 2));
+                    <?php if (session('role_slug') !== DB_SLUG_PROVIDER): ?>
+                        if (retentionData) {
+                            $('#analytics-retention-result').text(JSON.stringify(retentionData, null, 2));
+                        }
+                    <?php endif; ?>
+                })
+                .catch((error) => {
+                    console.error('Analytics error:', error);
+                    const errorMsg = 'Hata: ' + (error.responseJSON?.message || error.statusText || 'Bilinmeyen hata');
+                    $('#analytics-revenue-result').text(errorMsg);
+                    $('#analytics-utilization-result').text(errorMsg);
+                    <?php if (session('role_slug') !== DB_SLUG_PROVIDER): ?>
+                        $('#analytics-retention-result').text(errorMsg);
+                    <?php endif; ?>
+                });
+        });
+    });
+</script>
 
 <?php end_section('scripts'); ?>
