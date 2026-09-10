@@ -312,6 +312,7 @@ class Communication_hub
             'company_name' => (string) ($settings['company_name'] ?? ''),
             'reason' => (string) ($ctx['cancellation_reason'] ?? ''),
             'appointment_count' => (string) ($ctx['appointment_count'] ?? ''),
+            'review_link' => (string) ($ctx['review_link'] ?? ''),
         ];
     }
 

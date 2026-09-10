@@ -1781,6 +1781,169 @@ class Console extends EA_Controller
     }
 
     /**
+     * Ki Reservation (Dalga 3 / Faz 3.4) - issue a review request for one
+     * completed appointment per tenant, as if the automation rule had just fired.
+     *
+     * Usage: php index.php console review_issue <appointment_id> [subdomain]
+     *
+     * The command hands the Automation Engine a synthetic enabled rule carrying
+     * only the review_request action, so the review link + message go out
+     * immediately instead of waiting for the 2-hour automation window.
+     */
+    public function review_issue(
+        string $appointment_id = '',
+        string $subdomain = '',
+    ): void {
+        $appointment_id = (int) $appointment_id;
+
+        if ($appointment_id <= 0) {
+            show_error('A positive appointment id is required.');
+        }
+
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            $appointment = $this->appointments_model->find($appointment_id);
+
+            if (!$appointment) {
+                echo 'Appointment #' . $appointment_id . ' not found @ ' .
+                    ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+                continue;
+            }
+
+            $ctx = [
+                'appointment' => $appointment,
+                'service' => $this->services_model->find($appointment['id_services']),
+                'provider' => $this->providers_model->find($appointment['id_users_provider']),
+                'customer' => $this->customers_model->find($appointment['id_users_customer']),
+                'settings' => [
+                    'company_name' => setting('company_name'),
+                    'company_link' => setting('company_link'),
+                    'company_email' => setting('company_email'),
+                ],
+            ];
+
+            $this->load->library('automation_engine');
+
+            $this->automation_engine->run([
+                'id' => 0,
+                'name' => 'Console review_issue',
+                'event' => 'appointment_completed',
+                'conditions' => '',
+                'enabled' => 1,
+                'actions' => json_encode([
+                    ['type' => 'review_request', 'recipient' => 'customer',
+                     'channels' => 'sms,whatsapp', 'subject' => '', 'text' => ''],
+                ]),
+            ], 'appointment_completed', $ctx);
+
+            echo 'Review request issued for appointment #' . $appointment_id . ' @ ' .
+                ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.4) - list tenant review requests.
+     *
+     * Usage: php index.php console reviews list [status] [subdomain]
+     *
+     * Status filter: requested|pending|published|rejected (empty = all).
+     */
+    public function reviews(
+        string $command = '',
+        string $status = '',
+        string $subdomain = '',
+    ): void {
+        if ($command !== 'list') {
+            show_error('Unknown reviews subcommand "' . $command . '" - use: reviews list [status] [subdomain]');
+        }
+
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            $this->load->model('reviews_model');
+
+            $reviews = $this->reviews_model->get($status !== '' ? $status : null);
+
+            echo PHP_EOL . ($tenant ? $tenant['subdomain'] : 'standalone') .
+                ' - review requests: ' . count($reviews) . PHP_EOL;
+
+            foreach ($reviews as $review) {
+                echo sprintf(
+                    "  #%d [%s] rating=%s token=%s appt=%s customer=%s\n",
+                    (int) $review['id'],
+                    $review['status'],
+                    $review['rating'] !== null ? $review['rating'] : '-',
+                    (string) $review['token'],
+                    (int) $review['appointment_id'],
+                    (string) ($review['customer_name'] ?? '-'),
+                );
+            }
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Ki Reservation (Dalga 3 / Faz 3.4) - moderate one tenant review and mirror
+     * the decision to the master DB (marketplace visibility).
+     *
+     * Usage: php index.php console review_status <review_id> <published|rejected> [subdomain]
+     */
+    public function review_status(
+        string $review_id = '',
+        string $status = '',
+        string $subdomain = '',
+    ): void {
+        $review_id = (int) $review_id;
+
+        $this->load->model('reviews_model');
+
+        if ($review_id <= 0 || !in_array($status, [
+            Reviews_model::STATUS_PUBLISHED,
+            Reviews_model::STATUS_REJECTED,
+        ], true)) {
+            show_error('Usage: review_status <id> <published|rejected> [subdomain]');
+        }
+
+        $tenants = $this->console_rule_tenants($subdomain);
+
+        foreach ($tenants as $tenant) {
+            if ($tenant !== null) {
+                $this->connect_tenant($tenant);
+            }
+
+            $this->load->model('reviews_model');
+            $this->load->library('review_service');
+
+            $review = $this->reviews_model->moderate($review_id, $status, 0);
+
+            $this->review_service->mirror_to_master($review, $status);
+
+            echo 'Review #' . $review_id . ' -> ' . $status . ' @ ' .
+                ($tenant ? $tenant['subdomain'] : 'standalone') . PHP_EOL;
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
      * No-op test infrastructure bootstrap command.
      *
      * This command is used only by TenantTestCase to bootstrap the CI3 framework during test runs.
@@ -1826,6 +1989,9 @@ class Console extends EA_Controller
             '⇾ php index.php console marketing_segments [subdomain]',
             '⇾ php index.php console marketing_refresh [subdomain]',
             '⇾ php index.php console marketing_campaigns [subdomain]',
+            '⇾ php index.php console review_issue <appointment_id> [subdomain]',
+            '⇾ php index.php console reviews list [status] [subdomain]',
+            '⇾ php index.php console review_status <review_id> <published|rejected> [subdomain]',
             '',
             '',
         ];

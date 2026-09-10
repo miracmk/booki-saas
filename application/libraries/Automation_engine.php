@@ -142,6 +142,9 @@ class Automation_engine
             case 'message':
                 return $this->execute_message($action, $ctx);
 
+            case 'review_request':
+                return $this->execute_review_request($action, $ctx);
+
             case 'note':
                 return $this->execute_note($action, $ctx);
 
@@ -151,6 +154,143 @@ class Automation_engine
             default:
                 return false;
         }
+    }
+
+    /**
+     * Review request action (Dalga 3 / Faz 3.4) - issued on appointment_completed.
+     *
+     * One single-use review request per appointment: creates a `requested` row in the tenant's
+     * `reviews` table carrying a unique token (which doubles as the master-DB source_appointment_hash
+     * when the review is later published), then hands the message (with a {review_link} placeholder)
+     * to Communication_hub::deliver() exactly like a plain message action.
+     *
+     * Gates (silently no-ops when closed):
+     *  - tenant `reviews` table exists (migration 132 applied)
+     *  - `reviews_enabled` setting is not '0'
+     *  - the context carries a real appointment + customer
+     *  - no prior review request already exists for this appointment
+     */
+    protected function execute_review_request(array $action, array $ctx): bool
+    {
+        $appointment = $ctx['appointment'] ?? [];
+        $customer = $ctx['customer'] ?? [];
+
+        $appointment_id = (int) ($appointment['id'] ?? 0);
+        $customer_id = (int) ($customer['id'] ?? 0);
+
+        if ($appointment_id <= 0 || $customer_id <= 0) {
+            return false;
+        }
+
+        if (!$this->CI->db->table_exists('reviews')) {
+            return false;
+        }
+
+        $enabled_setting = (string) ($this->get_setting('reviews_enabled') ?? '1');
+        if ($enabled_setting === '0') {
+            return false;
+        }
+
+        // One request per appointment - never re-issue for a completed/superseded one.
+        if (
+            $this->CI->db
+                ->where('appointment_id', $appointment_id)
+                ->count_all_results('reviews') > 0
+        ) {
+            return false;
+        }
+
+        $token = bin2hex(random_bytes(32));
+
+        $customer_name = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
+
+        $this->CI->db->insert('reviews', [
+            'appointment_id' => $appointment_id,
+            'id_users_customer' => $customer_id,
+            'token' => $token,
+            'customer_name' => $customer_name !== '' ? $customer_name : null,
+            'customer_phone_hash' => $this->hash_phone($customer),
+            'status' => 'requested',
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        // Message text must carry the link - inject it into the ctx placeholders
+        // and deliver over the action's channels (default sms).
+        $rendered_ctx = $ctx;
+        $rendered_ctx['review_link'] = $this->review_link($token);
+
+        $recipient_key = (string) ($action['recipient'] ?? 'customer');
+        $channels = (string) ($action['channels'] ?? 'sms');
+        $subject = (string) ($action['subject'] ?? '');
+        $text = (string) ($action['text'] ?? '');
+        $channel_list = array_values(array_filter(array_map('trim', explode(',', $channels))));
+
+        if ($channel_list === []) {
+            return true; // row persisted; nothing to send (e.g. links-only opt-out)
+        }
+
+        if ($text === '') {
+            $text = 'Merhaba {customer_name}, {service_name} deneyiminizi değerlendirmeniz bizi çok mutlu eder: {review_link} - {company_name}';
+        }
+
+        $rule = [
+            'event' => $ctx['event'] ?? 'appointment_completed',
+            'message' => $text,
+            'subject' => $subject,
+        ];
+
+        $this->CI->communication_hub->deliver(
+            $recipient_key,
+            $rendered_ctx,
+            $this->CI->communication_hub->render_subject($rule, $rendered_ctx),
+            $this->CI->communication_hub->render_message($rule, $rendered_ctx),
+            $channel_list,
+        );
+
+        return true;
+    }
+
+    /**
+     * Read a tenant setting (name/value `settings` table rows).
+     */
+    protected function get_setting(string $name): ?string
+    {
+        if (!$this->CI->db->table_exists('settings')) {
+            return null;
+        }
+
+        $row = $this->CI->db->get_where('settings', ['name' => $name])->row_array();
+
+        return isset($row['value']) ? (string) $row['value'] : null;
+    }
+
+    /**
+     * Build the public review URL for a token. Multi-tenant: tenant's own app subdomain;
+     * standalone: BASE_URL base.
+     */
+    protected function review_link(string $token): string
+    {
+        $t = tenant_context();
+
+        if (is_multi_tenant_mode()) {
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+            $subdomain = $t['subdomain'] ?? '';
+
+            return 'https://' . ($subdomain !== '' ? $subdomain . '-' : '') . $app_domain . '/review/index/' . $token;
+        }
+
+        return site_url('review/index/' . $token);
+    }
+
+    /**
+     * Hash a context customer's phone with the tenant's own PII key (mirrors how
+     * the master reviews table stores customer_phone_hash).
+     */
+    protected function hash_phone(array $customer): ?string
+    {
+        $phone = trim((string) ($customer['phone_number'] ?? $customer['mobile_number'] ?? ''));
+
+        return sf_pii_hash($phone);
     }
 
     /**

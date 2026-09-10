@@ -167,106 +167,6 @@ extract(html_vars());
             margin-bottom: 1.5rem;
         }
 
-        .review-form {
-            background-color: #f9f9f9;
-            padding: 1.5rem;
-            border-radius: 4px;
-            margin-bottom: 2rem;
-            border: 1px solid #eee;
-        }
-
-        .review-form h3 {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 4px rgba(76, 175, 80, 0.2);
-        }
-
-        .rating-input {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .rating-input input[type="radio"] {
-            display: none;
-            width: auto;
-        }
-
-        .rating-input label {
-            display: inline-block;
-            width: 2.5rem;
-            height: 2.5rem;
-            text-align: center;
-            line-height: 2.5rem;
-            cursor: pointer;
-            font-size: 1.5rem;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-            margin-bottom: 0;
-            transition: background-color 0.2s, color 0.2s;
-            border: 2px solid transparent;
-        }
-
-        .rating-input input[type="radio"]:checked + label {
-            background-color: #ffc107;
-            color: white;
-            border-color: #ff9800;
-        }
-
-        .rating-input label:hover {
-            background-color: #e0e0e0;
-        }
-
-        .submit-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-
-        .submit-button:hover {
-            background-color: #45a049;
-        }
-
         .reviews-list {
             display: flex;
             flex-direction: column;
@@ -312,25 +212,6 @@ extract(html_vars());
             text-align: center;
             color: #999;
             padding: 2rem 1rem;
-        }
-
-        .message {
-            padding: 1rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
@@ -395,35 +276,6 @@ extract(html_vars());
         <div class="reviews-section">
             <h2>Müşteri Yorumları</h2>
 
-            <div class="review-form">
-                <h3>Bir Yorum Bırak</h3>
-                <div id="form-message" class="message"></div>
-
-                <form id="review-form" onsubmit="submitReview(event)">
-                    <div class="form-group">
-                        <label for="customer_name">Adınız *</label>
-                        <input type="text" id="customer_name" name="customer_name" required maxlength="128">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Derecelendirme *</label>
-                        <div class="rating-input">
-                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <input type="radio" id="rating-<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" required>
-                                <label for="rating-<?php echo $i; ?>">★</label>
-                            <?php endfor; ?>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="comment">Yorum</label>
-                        <textarea id="comment" name="comment"></textarea>
-                    </div>
-
-                    <button type="submit" class="submit-button">Yorumu Gönder</button>
-                </form>
-            </div>
-
             <?php if (count($reviews) > 0): ?>
                 <div class="reviews-list">
                     <?php foreach ($reviews as $review): ?>
@@ -450,59 +302,10 @@ extract(html_vars());
                 </div>
             <?php else: ?>
                 <div class="no-reviews">
-                    <p>Henüz bu işletme için yorum yapılmamıştır. İlk yorumu siz yapın!</p>
+                    <p>Henüz bu işletme için onaylı yorum bulunmamaktadır.</p>
                 </div>
             <?php endif; ?>
         </div>
     </div>
-
-    <script>
-        function submitReview(event) {
-            event.preventDefault();
-
-            const form = document.getElementById('review-form');
-            const messageDiv = document.getElementById('form-message');
-
-            // Get form data
-            const formData = new FormData(form);
-            const data = new URLSearchParams(formData);
-
-            // Add tenant ID
-            data.append('id_tenants', <?php echo (int)$tenant['id']; ?>);
-
-            // Submit via fetch
-            fetch('<?php echo base_url('marketplace/submit_review'); ?>', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: data.toString()
-            })
-            .then(response => response.json())
-            .then(result => {
-                messageDiv.classList.remove('success', 'error');
-                messageDiv.style.display = 'block';
-
-                if (result.success) {
-                    messageDiv.classList.add('success');
-                    messageDiv.textContent = result.message;
-                    form.reset();
-                    // Reload the page after 2 seconds to show the new review
-                    setTimeout(() => location.reload(), 2000);
-                } else {
-                    messageDiv.classList.add('error');
-                    messageDiv.textContent = result.message || 'Bir hata oluştu.';
-                }
-            })
-            .catch(error => {
-                messageDiv.classList.remove('success');
-                messageDiv.classList.add('error');
-                messageDiv.style.display = 'block';
-                messageDiv.textContent = 'İsteğiniz işlenirken bir hata oluştu.';
-                console.error('Error:', error);
-            });
-        }
-    </script>
 </body>
 </html>

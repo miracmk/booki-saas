@@ -26,6 +26,8 @@ class Marketplace extends EA_Controller
         if (!is_multi_tenant_mode()) {
             abort(404, 'Not Found');
         }
+
+        $this->load->library('review_service');
     }
 
     /**
@@ -199,15 +201,16 @@ class Marketplace extends EA_Controller
     }
 
     /**
-     * Submit a review for a tenant.
+     * Submit a review for a tenant, verified against the tenant's own single-use token.
      *
      * POST parameters:
      * - id_tenants: tenant ID
      * - customer_name: reviewer name
-     * - customer_phone_hash: hashed phone (optional)
      * - rating: 1-5 rating
      * - comment: review text
-     * - source_appointment_hash: appointment hash (for linking, optional - will generate random if not provided)
+     * - source_appointment_hash: the single-use token issued to the real appointment
+     *   owner (required - a random/unverified hash is rejected; the token is consumed
+     *   in the tenant's DB so it can never be reused).
      */
     public function submit_review(): void
     {
@@ -216,19 +219,21 @@ class Marketplace extends EA_Controller
 
             check('id_tenants', 'numeric');
             check('customer_name', 'string');
-            check('customer_phone_hash', 'string|null');
             check('rating', 'numeric');
             check('comment', 'string|null');
-            check('source_appointment_hash', 'string|null');
+            check('source_appointment_hash', 'string');
 
             $tenant_id = (int) request('id_tenants');
             $customer_name = trim((string) request('customer_name'));
-            $customer_phone_hash = trim((string) request('customer_phone_hash'));
             $rating = (int) request('rating');
             $comment = trim((string) request('comment'));
-            $source_appointment_hash = trim((string) request('source_appointment_hash'));
+            $token = trim((string) request('source_appointment_hash'));
 
-            // Validate tenant exists and is opted-in
+            if ($token === '') {
+                throw new InvalidArgumentException('Geçersiz değerlendirme bağlantısı.');
+            }
+
+            // Validate tenant exists and is opted-in on the marketplace
             $tenant = $this->db
                 ->get_where('tenants', ['id' => $tenant_id, 'marketplace_opt_in' => 1])
                 ->row_array();
@@ -247,19 +252,21 @@ class Marketplace extends EA_Controller
                 throw new InvalidArgumentException('Geçerli bir müşteri adı girin.');
             }
 
-            // If no source hash provided, generate a random one to avoid UNIQUE constraint violation
-            // TODO: In production, should link to actual appointment in tenant's DB for verification
-            if ($source_appointment_hash === '') {
-                $source_appointment_hash = bin2hex(random_bytes(32));
+            // The token must exist in the tenant's DB and still be `requested`; claiming it
+            // atomically flips it to `pending`, so the same token cannot be submitted twice.
+            $claimed = $this->review_service->claim_in_tenant($tenant, $token);
+
+            if (!$claimed) {
+                throw new InvalidArgumentException('Bu değerlendirme bağlantısı geçersiz veya daha önce kullanılmış.');
             }
 
             $this->db->insert('reviews', [
                 'id_tenants' => $tenant_id,
                 'customer_name' => $customer_name,
-                'customer_phone_hash' => $customer_phone_hash !== '' ? $customer_phone_hash : null,
+                'customer_phone_hash' => $claimed['customer_phone_hash'] ?? null,
                 'rating' => $rating,
                 'comment' => $comment !== '' ? $comment : null,
-                'source_appointment_hash' => $source_appointment_hash,
+                'source_appointment_hash' => $token,
                 'status' => 'pending',
                 'created_at' => date('Y-m-d H:i:s'),
             ]);

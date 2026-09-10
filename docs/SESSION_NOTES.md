@@ -2,7 +2,7 @@
 
 Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
-Son güncelleme: 2026-09-09
+Son güncelleme: 2026-09-10
 
 ---
 
@@ -18,7 +18,7 @@ Son güncelleme: 2026-09-09
 ## 1. AKTİF HEDEF (Dalga 3)
 
 Kullanıcı istiyor: (1) custom domain özelliğini eklemek/düzeltmek, (2) Dalga 3'ün tamamı tek turda:
-Faz 3.1 Communication Hub (TAMAM, canlıda), Faz 3.2 Automation Engine (TAMAM, canlıda), **Faz 3.3 Marketing (TAMAM, canlıda)**, Faz 3.4 Review Engine (SIRADAKİ), Faz 3.5 WhatsApp dual-mode, Faz 3.6 Analytics.
+Faz 3.1 Communication Hub (TAMAM, canlıda), Faz 3.2 Automation Engine (TAMAM, canlıda), **Faz 3.3 Marketing (TAMAM, canlıda)**, **Faz 3.4 Review Engine (TAMAM, canlıda)**, Faz 3.5 WhatsApp dual-mode (SIRADAKİ), Faz 3.6 Analytics.
 
 Canlı doğrulama (2026-09-08):
 - `salonflora.reservationapp.kibusiness.co`: `/`, `/booking`, `/login`, `/health` -> 200; `/api/v1/services` -> 401 (doğru).
@@ -46,6 +46,19 @@ Canlı doğrulama (2026-09-08):
 - **Doğrulama:** 516 müşteri ile smoke test (segment→campaign→prepare→send_batch→cleanup, 0 orphan); tam sayfa render testi (75880 B, nav "Pazarlama" içeriyor); `/marketing` unauth → 307 login. Bilinen: hostta `/usr/sbin/sendmail` yok — e-postalar best-effort, alıcı yine "sent" işaretlenir (mevcut kanal konvansiyonu).
 - **Kalan eksik (raporlandı):** tarayıcıda gerçek admin girişi (ALTCHA/captcha + CSRF engellediği için script'li yapılmadı) — paneldeki JS akışları (segment/kampanya CRUD + send butonu) otomatik test kapsamında değil, ilk manuel girişte gözle kontrol edilmeli.
 
+## 2.2 FAZ 3.4 REVIEW ENGINE — DURUM: TAMAM (canlı)
+
+- Migration 132: tenant `reviews` tablosu (id, appointment_id, token UNIQUE 64-hex tek-kullanımlık, customer_phone_hash, customer_name, rating, comment, status ENUM('requested','pending','published','rejected'), submitted_at, moderated_by, moderated_at, created_at) + `settings` `reviews_enabled=1` + `ea_roles.reviews` bitmask (admin=15 set, up-convert with <, idempotent) + seeded kural #4'ü "Değerlendirme isteği" `review_request` aksiyonuna up-convert etme (eski metin eşleşmesi; yeni sürüm JSON-escaped eşleşmesi kullanır — container'daki 6817 byte'lık sürümde de up-convert çalıştı, rule #4 DB'de doğrulandı).
+- Akış: Automation Engine `appointment_completed` → `review_request` aksiyonu → `execute_review_request()` (gate'ler: reviews tablosu var, `reviews_enabled != '0'`, gerçek appointment + customer phone, appointment başına tek istek; token = master `source_appointment_hash`; `Communication_hub::build_placeholders`'a `review_link` eklendi) → SMS/WhatsApp ile `{review_link}`.
+- Public form: `GET /review/index/{token}` (standalone HTML, CSRF), `POST /review/submit` (JSON; 1-5 yıldız + ≤2000 karakter; dopru token'ı atomik claim → `requested→pending`, `submitted_at`; claimed satır telefon hash'ini çağrı kimliğini doğrulamak için kullanır). İkinci kullanım = "Bağlantı zaten kullanıldı".
+- Moderasyon: `Reviews` controller (auth gate PRIV_REVIEWS + admin), sekmeler requested/pending/published/rejected, publish → `mirror_to_master(published)` (master `ea_reviews`'e INSERT id_tenants + source_appointment_hash, legacy tablo), reject → master'dan DELETE (mirror_to_master(rejected)).
+- Marketplace: `submit_review` artık tek-kullanımlık tenant token'ı (`source_appointment_hash`) zorunlu kılar, `Review_service::claim_in_tenant()` ile çapraz-tenant doğrulama; anonim/rastgele-hash form kaldırıldı (güvenlik düzeltmesi). `marketplace_business` sadece `status=published` review'ları gösterir (COUNT/AVG).
+- Console: `review_issue <appointment_id> [subdomain]`, `reviews list [status] [subdomain]`, `review_status <id> <published|rejected> [subdomain]` (mirror'u tetikler).
+- Constants: `PRIV_REVIEWS = 'reviews'`. Nav: "Yorumlar".
+- **DB durumu:** tenant `ea_migrations` versiyon 132; `ki_tenant_salonflora.ea_reviews` yeni şema, 2 test isteği (`requested`, appt 84/26). Master `ea_reviews` mirror şeması (id_tenants, source_appointment_hash UNIQUE, status pending/published/rejected) — şu an 0 satır. `ea_roles.reviews`: admin=15, diğerleri 0.
+- **Canlı doğrulama (2026-09-09):** `GET /review/index/{token}` → 200 (form render); geçersiz token → hatalı form (200); `/reviews` auth'suz → 307 login; CSRF'li `POST /review/submit` rating=0 → `{"success":false,"message":"Derecelendirme 1-5 arasında olmalıdır."}` JSON hatası ve token TÜKETİLMEDİ; `console reviews list requested salonflora` → 2 kayıt; 8 PHP dosyasında `php -l` temiz; container↔canonical diff: kod dosyaları birebir aynı, yalnızca migration 132 (canonical'de iyileştirilmiş eşleşme) — migration zaten uygulandığı için işlevsel etki yok.
+- **Not:** master DB'de legacy `ea_reviews` tümleşik değil — mirror, `Review_service`'in yeni bağlantısı üzerinden çalışır; migration sistemi master'ı kapsamıyor (master `ea_migrations` versiyon 0).
+
 ## 3. DEPLOY FELAKETİ + KURTARMA KAYDI (2026-09-08)
 
 Kök neden: `rsync -a --delete` yanlışlıkla deploy ROOT'a yapıldı (src/ yerine). `db/mysql` (MySQL datadir) ve `files/` (storage) ve `src/` silindi.
@@ -60,7 +73,7 @@ Kurtarma sonrası kalan eski container'lar (referans; silinebilir diye duruyor):
 
 ## 4. DİĞER ÖZELLİKLER / İÇ BİLGİLER
 
-- Legacy: master DB'de `ea_reviews` tablosu VAR (Faz 3.4 Review Engine tenant değil master tarafına kurulabilir). Tablo öneki `ea_`.
+- Master DB'de `ea_reviews` tablosu VAR ve artık Faz 3.4'ün mirror hedefi olarak kullanılıyor (bkz. 2.2). Tablo öneki `ea_`.
 - Multi-tenant deseni: `is_multi_tenant_mode()` -> `connect_tenant($tenant)` -> iş -> `connect_master()`.
 - Health endpoint'leri: `/health` (hafif), `/health/deep` (403 token'sız — n_token master setting'inde).
 - Etki alanları: `TENANT_APP_DOMAIN=reservationapp.kibusiness.co`, `SUPERADMIN_DOMAIN=reservationadmin.kibusiness.co`, `MARKETPLACE_DOMAIN=reservation.kibusiness.co`. Sunucu IP: `168.231.109.167`.
@@ -72,9 +85,9 @@ Kurtarma sonrası kalan eski container'lar (referans; silinebilir diye duruyor):
 
 ## 5. SONRAKİ ADIMLAR (devam edilecek)
 
-1. **Faz 3.4 Review Engine**: master `ea_reviews` yapısını incele; tenant'ta reviews + randevu-sonrası istek akışı (otomatik tetikleme appointment_completed hook'una bağlanabilir; Automation rule şablonu #4 zaten "değerlendirme isteği").
-2. **Faz 3.5 WhatsApp dual-mode**: `Whatsapp_client.php` (Meta API) + `messaging_settings` + `whatsapp_messages` üzerine resmi/resmi-olmayan mod + QR.
-3. **Faz 3.6 Analytics**: `Reports.php` / `get_daily_revenue` / `export_csv` üzerine dashboard.
-4. Custom domain özelliği düzeltmesi (kullanıcının ilk isteği) — `tenants.custom_domain` mevcut, script `scripts/add-custom-domain.sh` deploy root'ta (Faz 0'da düzeltildi: README satır 131-133; script satır 50/100).
-5. Onay alındığında eski container'ları (`ki-reservation-app-run-*`, `gallant_carson`, `infallible_ramanujan`) temizle.
-6. **Bekleyen kullanıcı doğrulaması:** Pazarlama sayfasına tarayıcıdan admin olarak girip segment/kampanya CRUD + JS akışlarını görsel kontrol et (SESSION_NOTES 2.1).
+1. **Faz 3.5 WhatsApp dual-mode**: `Whatsapp_client.php` (Meta API) + `messaging_settings` + `whatsapp_messages` üzerine resmi/resmi-olmayan mod + QR.
+2. **Faz 3.6 Analytics**: `Reports.php` / `get_daily_revenue` / `export_csv` üzerine dashboard.
+3. Custom domain özelliği düzeltmesi (kullanıcının ilk isteği) — `tenants.custom_domain` mevcut, script `scripts/add-custom-domain.sh` deploy root'ta (Faz 0'da düzeltildi: README satır 131-133; script satır 50/100).
+4. Onay alındığında eski container'ları (`ki-reservation-app-run-*`, `gallant_carson`, `infallible_ramanujan`) temizle.
+5. **Bekleyen kullanıcı doğrulaması:** Pazarlama sayfasına tarayıcıdan admin olarak girip segment/kampanya CRUD + JS akışlarını görsel kontrol et (SESSION_NOTES 2.1).
+6. **Bekleyen kullanıcı doğrulaması:** Review akışının uçtan uca görsel testi — gerçek müşteri SMS'iyle (ya da console `review_issue` ile) bir istek tetikle, formu doldur, pentikan moderasyonunda yayınla ve marketplace'te yayını gör (canlıda yapılmadı çünkü gerçek müşteri randevusuna sahte review yazmak istenmedi).

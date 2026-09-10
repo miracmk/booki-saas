@@ -63,7 +63,7 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 - [x] Communication Hub — event sistemi (appointment.created/completed/cancelled → kanal seçimi) — **Faz 3.1, TAMAMLANDI, canlıda** (2026-09-04)
 - [x] Automation Engine — WHEN/IF/THEN kuralları, 5-6 hazır şablon — **Faz 3.2, TAMAMLANDI, canlıda** (2026-09-08)
 - [x] Marketing — segment (VIP/inaktif/doğum günü) + kampanya gönderimi — **Faz 3.3, TAMAMLANDI, canlıda** (2026-09-09): migration 130 (platform/google_ads_gateway_token ayarları) + migration 131 (marketing_segments/marketing_campaigns/campaign_recipients + ea_roles.marketing admin=15); Pazarlama paneli (segment CRUD + kampanya CRUD), `Campaigns_model::prepare_broadcast()` (idempotent) + `send_batch()` (50'lik batch, draft→queued→sending→sent), merge alanları `{{customer_name}}`/`{{customer_first_name}}`/`{{company_name}}`, kanallar e-posta/SMS/WhatsApp/Telegram; console `marketing_segments`/`marketing_refresh`/`marketing_campaigns`; 516 müşterili smoke test + tam sayfa render + auth gate doğrulandı
-- [ ] Review Engine genişletme — randevu-sonrası otomatik review isteği — **Faz 3.4, SIRADAKİ**
+- [x] Review Engine genişletme — randevu-sonrası otomatik review isteği — **Faz 3.4, TAMAMLANDI, canlıda** (2026-09-09): migration 132 (tenant `reviews` tablosu + UNIQUE token, `reviews_enabled` ayarı, `ea_roles.reviews` admin=15, seeded "Değerlendirme isteği" kuralını `review_request` aksiyonuna up-convert etme); `Review_service` (atomik token claim + master mirror + marketplace için çapraz-tenant doğrulama), `Reviews_model` (requested→pending→published/rejected yaşam döngüsü), public tek-kullanımlık form `GET /review/index/{token}` + `POST /review/submit` (CSRF + 1-5 yıldız + 2000 karakter), tenant admin moderasyon sayfası (pending/published/rejected sekmeleri), `PRIV_REVIEWS`, console `review_issue`/`reviews list`/`review_status`; marketplace güvenlik düzeltmesi: anonim form kaldırıldı, `submit_review` artık tek-kullanımlık tenant token'ı zorunlu kılıyor; 2 canlı test kaydı + migration başarıyla uygulandı, form/gate/CSRF/validation canlı doğrulandı, code+DB+syntax checkleri temiz
 - [ ] Analytics/BI — revenue/utilization/retention dashboard'ları
 
 ### 🔲 Dalga 4 — Marketplace Olgunlaştırma (Faz 41·42·43·44·45)
@@ -89,4 +89,4 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 | Çoklu-organizasyon (tek çatı altında N tenant) | Kullanıcı kararı: her organizasyon ayrı tenant satın alımı olarak kalacak |
 
 ---
-*Son güncelleme: Dalga 3 (Faz 3.1/3.2/3.3) tamamlandı, sıradaki: Faz 3.4 Review Engine.*
+*Son güncelleme: Dalga 3 (Faz 3.1/3.2/3.3/3.4) tamamlandı, sıradaki: Faz 3.5 WhatsApp dual-mode.*

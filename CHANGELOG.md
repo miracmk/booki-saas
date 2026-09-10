@@ -3,6 +3,26 @@
 This file contains the code changes that were introduced into each release so that it is easy for
 developers to maintain and readjust their custom modifications on the main project codebase.
 
+## [Wave 3 / Faz 3.4] - 2026-09-09
+
+### Added
+
+- Review Engine: tenant-side `reviews` table (migration 132) with single-use `token` per appointment
+- `Review_service` library: atomic token claim, master-DB mirror (published/rejected/pending), cross-tenant token validation for the marketplace
+- `Reviews_model`: full lifecycle (requested → pending → published/rejected), status counts, admin moderation
+- Public single-use review form (`GET /review/index/{token}`) with CSRF + 1-5 star rating + 2000-char comment, posted via `POST /review/submit`
+- Tenant admin moderation page `reviews` (tabs: requested/pending/published/rejected) with publish/reject actions
+- Automation `review_request` action: auto-issues a review request on `appointment_completed`, injects `{review_link}` placeholder, delivers over SMS/WhatsApp (Communication Hub), respects `reviews_enabled` setting and one-request-per-appointment dedup
+- Migration 132 up-converts the seeded "Değerlendirme isteği" automation rule to the `review_request` action
+- `PRIV_REVIEWS` constant + `reviews` permission bitmask on `ea_roles` (admin = 15)
+- Console commands: `review_issue <appointment_id> [subdomain]`, `reviews list [status] [subdomain]`, `review_status <review_id> <published|rejected> [subdomain]`
+- Marketplace security fix: anonymous review form removed and `submit_review` now requires a valid single-use tenant token (`source_appointment_hash`) instead of accepting a random/unverified hash
+
+### Changed
+
+- Backend nav "Yorumlar" entry (visible to users with `reviews` view permission)
+- Marketplace business page only shows published reviews; inline review form removed
+
 ## [Wave 3 / Faz 3.3] - 2026-09-09
 
 ### Added
