@@ -101,7 +101,7 @@
                             <button onclick="setStatus(<?= e($tenant['id']) ?>, 'active')">Aktifleştir</button>
                         <?php endif; ?>
                         <button onclick="openPlanModal(<?= e($tenant['id']) ?>, '<?= e($tenant['plan'] ?? '') ?>', '<?= e($tenant['trial_ends_at'] ?? '') ?>', '<?= e($tenant['license_expires_at'] ?? '') ?>')">Plan/Lisans</button>
-                        <button onclick="resetAdminPassword(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Şifre Sıfırla</button>
+                        <button onclick="openAdminModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Admin Hesabı</button>
                         <button class="danger" onclick="openDeleteModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Sil</button>
                     </td>
                 </tr>
@@ -158,6 +158,37 @@
                     <button type="submit" class="confirm">Kaydet</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Admin account modal -->
+    <div class="modal-backdrop" id="admin-modal">
+        <div class="modal" style="max-width:480px;">
+            <h2>Admin Hesabı — <span id="a-subdomain-label"></span></h2>
+            <input type="hidden" id="a-tenant-id">
+            <p class="hint" style="margin:0 0 .5rem;font-size:.82rem;color:#666;">
+                E-posta: <strong id="a-email-label">—</strong>
+            </p>
+
+            <label>Kullanıcı Adı</label>
+            <div style="display:flex;gap:.5rem;">
+                <input type="text" id="a-username" style="flex:1;">
+                <button type="button" onclick="saveAdminUsername()" style="white-space:nowrap;padding:0 .8rem;border-radius:6px;border:1px solid #d7d9dd;background:#fff;cursor:pointer;">Kaydet</button>
+            </div>
+            <div class="msg" id="a-username-msg"></div>
+
+            <label>Yeni Şifre Belirle</label>
+            <div style="display:flex;gap:.5rem;">
+                <input type="text" id="a-password" placeholder="en az 8 karakter" style="flex:1;">
+                <button type="button" onclick="saveAdminPassword()" style="white-space:nowrap;padding:0 .8rem;border-radius:6px;border:1px solid #d7d9dd;background:#fff;cursor:pointer;">Kaydet</button>
+            </div>
+            <div class="msg" id="a-password-msg"></div>
+
+            <div class="row">
+                <button type="button" class="cancel" onclick="sendAdminReset()" style="background:#eee;color:#333;">Şifre Sıfırlama E-postası Gönder</button>
+                <button type="button" class="cancel" onclick="document.getElementById('admin-modal').classList.remove('open')">Kapat</button>
+            </div>
+            <div class="msg" id="a-reset-msg"></div>
         </div>
     </div>
 
@@ -230,19 +261,70 @@
                 .then((data) => { if (data.success) window.location.reload(); else alert(data.message || 'Hata'); });
         }
 
-        function resetAdminPassword(tenantId, subdomain) {
-            if (!confirm('"' + subdomain + '" kiracısının administrator şifresini sıfırlamak istediğinize emin misiniz?')) {
-                return;
-            }
+        function openAdminModal(tenantId, subdomain) {
+            document.getElementById('a-tenant-id').value = tenantId;
+            document.getElementById('a-subdomain-label').textContent = subdomain;
+            document.getElementById('a-email-label').textContent = '…';
+            document.getElementById('a-username').value = '';
+            document.getElementById('a-password').value = '';
+            ['a-username-msg', 'a-password-msg', 'a-reset-msg'].forEach((id) => {
+                const el = document.getElementById(id);
+                el.style.display = 'none';
+                el.className = 'msg';
+            });
+            document.getElementById('admin-modal').classList.add('open');
 
-            post('<?= site_url('superadmin_tenants/reset_admin_password') ?>', { tenant_id: tenantId })
+            fetch('<?= site_url('superadmin_tenants/get_admin_account') ?>?tenant_id=' + tenantId)
+                .then((r) => r.json())
                 .then((data) => {
                     if (data.success) {
-                        showSuccess('Yeni şifre: <strong>' + data.new_password + '</strong> (administrator kullanıcı adıyla)');
+                        document.getElementById('a-username').value = data.username;
+                        document.getElementById('a-email-label').textContent = data.email || '—';
                     } else {
-                        alert(data.message || 'Hata');
+                        document.getElementById('a-email-label').textContent = data.message || 'Bulunamadı';
                     }
                 });
+        }
+
+        function showFieldMsg(id, text, ok) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.style.display = 'block';
+            el.style.color = ok ? '#1e8a4c' : '#c0392b';
+        }
+
+        function saveAdminUsername() {
+            post('<?= site_url('superadmin_tenants/update_admin_username') ?>', {
+                tenant_id: document.getElementById('a-tenant-id').value,
+                username: document.getElementById('a-username').value,
+            }).then((data) => {
+                if (data.success) showFieldMsg('a-username-msg', 'Kullanıcı adı güncellendi: ' + data.username, true);
+                else showFieldMsg('a-username-msg', data.message || 'Hata', false);
+            });
+        }
+
+        function saveAdminPassword() {
+            const password = document.getElementById('a-password').value;
+            post('<?= site_url('superadmin_tenants/set_admin_password') ?>', {
+                tenant_id: document.getElementById('a-tenant-id').value,
+                password: password,
+            }).then((data) => {
+                if (data.success) {
+                    showFieldMsg('a-password-msg', 'Şifre güncellendi.', true);
+                    document.getElementById('a-password').value = '';
+                } else {
+                    showFieldMsg('a-password-msg', data.message || 'Hata', false);
+                }
+            });
+        }
+
+        function sendAdminReset() {
+            post('<?= site_url('superadmin_tenants/send_admin_password_reset') ?>', {
+                tenant_id: document.getElementById('a-tenant-id').value,
+            }).then((data) => {
+                if (data.success) showFieldMsg('a-reset-msg', 'Sıfırlama e-postası gönderildi.', true);
+                else showFieldMsg('a-reset-msg', data.message || 'Gönderilemedi (SMTP yapılandırılmamış olabilir).', false);
+            });
         }
 
         function openPlanModal(tenantId, plan, trialEndsAt, licenseExpiresAt) {

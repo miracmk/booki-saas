@@ -32,6 +32,71 @@ class Superadmin_tenants extends EA_Controller
         $this->load->library('instance');
     }
 
+    /**
+     * Build the tenant DB connection config array (same shape used across this controller).
+     */
+    private function tenant_db_config(array $tenant): array
+    {
+        return [
+            'hostname' => $tenant['db_host'],
+            'username' => $tenant['db_username'],
+            'password' => tenant_master_decrypt($tenant['db_password']),
+            'database' => $tenant['db_name'],
+            'dbdriver' => 'mysqli',
+            'dbprefix' => 'ea_',
+            'pconnect' => false,
+            'db_debug' => true,
+            'cache_on' => false,
+            'cachedir' => '',
+            'char_set' => 'utf8mb4',
+            'dbcollat' => 'utf8mb4_unicode_ci',
+            'swap_pre' => '',
+        ];
+    }
+
+    /**
+     * Find the tenant's admin user_settings row (by role, not by a hardcoded username - tenants can
+     * rename their own admin username from the account page).
+     */
+    private function find_tenant_admin(object $tenant_db): ?array
+    {
+        return $tenant_db
+            ->select('user_settings.id_users, user_settings.username, users.email')
+            ->from('users')
+            ->join('user_settings', 'user_settings.id_users = users.id', 'inner')
+            ->join('roles', 'roles.id = users.id_roles', 'inner')
+            ->where('roles.slug', DB_SLUG_ADMIN)
+            ->get()
+            ->row_array();
+    }
+
+    private function get_tenant_or_fail(int $tenant_id): array
+    {
+        $tenant = $this->db->get_where('tenants', ['id' => $tenant_id])->row_array();
+
+        if (!$tenant) {
+            throw new InvalidArgumentException('Kiracı bulunamadı.');
+        }
+
+        return $tenant;
+    }
+
+    /**
+     * users.email is PII-encrypted per-tenant (see salonflora_crypto_helper.php) - sf_pii_decrypt()
+     * only works once tenant_context() carries THIS tenant's own key, exactly like
+     * EA_Controller::resolve_tenant() sets it for a normal (non-superadmin) request. Must be called
+     * before any sf_pii_decrypt()/generate_reset_token() use below.
+     */
+    private function activate_tenant_pii_context(array $tenant): void
+    {
+        tenant_context([
+            'id' => (int) $tenant['id'],
+            'subdomain' => $tenant['subdomain'],
+            'pii_enc_key' => tenant_master_decrypt($tenant['pii_enc_key']),
+            'pii_hash_key' => tenant_master_decrypt($tenant['pii_hash_key']),
+        ]);
+    }
+
     public function index(): void
     {
         method('get');
@@ -289,35 +354,13 @@ class Superadmin_tenants extends EA_Controller
 
             check('tenant_id', 'numeric');
 
-            $tenant = $this->db->get_where('tenants', ['id' => (int) request('tenant_id')])->row_array();
+            $tenant = $this->get_tenant_or_fail((int) request('tenant_id'));
+            $tenant_db = $this->load->database($this->tenant_db_config($tenant), true);
 
-            if (!$tenant) {
-                throw new InvalidArgumentException('Kiracı bulunamadı.');
-            }
-
-            $tenant_db = $this->load->database(
-                [
-                    'hostname' => $tenant['db_host'],
-                    'username' => $tenant['db_username'],
-                    'password' => tenant_master_decrypt($tenant['db_password']),
-                    'database' => $tenant['db_name'],
-                    'dbdriver' => 'mysqli',
-                    'dbprefix' => 'ea_',
-                    'pconnect' => false,
-                    'db_debug' => true,
-                    'cache_on' => false,
-                    'cachedir' => '',
-                    'char_set' => 'utf8mb4',
-                    'dbcollat' => 'utf8mb4_unicode_ci',
-                    'swap_pre' => '',
-                ],
-                true,
-            );
-
-            $admin_settings = $tenant_db->get_where('user_settings', ['username' => 'administrator'])->row_array();
+            $admin_settings = $this->find_tenant_admin($tenant_db);
 
             if (!$admin_settings) {
-                throw new InvalidArgumentException('Bu kiracıda "administrator" kullanıcısı bulunamadı.');
+                throw new InvalidArgumentException('Bu kiracıda admin rolünde bir kullanıcı bulunamadı.');
             }
 
             $new_password = bin2hex(random_bytes(6));
@@ -331,7 +374,191 @@ class Superadmin_tenants extends EA_Controller
 
             $tenant_db->close();
 
-            json_response(['success' => true, 'new_password' => $new_password]);
+            json_response([
+                'success' => true,
+                'username' => $admin_settings['username'],
+                'new_password' => $new_password,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Returns the tenant admin's username + email, for the "Admin Hesabı" modal to prefill.
+     */
+    public function get_admin_account(): void
+    {
+        try {
+            method('get');
+
+            check('tenant_id', 'numeric');
+
+            $tenant = $this->get_tenant_or_fail((int) request('tenant_id'));
+            $this->activate_tenant_pii_context($tenant);
+
+            $tenant_db = $this->load->database($this->tenant_db_config($tenant), true);
+
+            $admin = $this->find_tenant_admin($tenant_db);
+
+            $tenant_db->close();
+
+            if (!$admin) {
+                throw new InvalidArgumentException('Bu kiracıda admin rolünde bir kullanıcı bulunamadı.');
+            }
+
+            $email = sf_pii_is_encrypted($admin['email']) ? sf_pii_decrypt($admin['email']) : $admin['email'];
+
+            json_response([
+                'success' => true,
+                'username' => $admin['username'],
+                'email' => $email,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Renames the tenant admin's username (e.g. platform-side correction, or the tenant asked us to
+     * change it on their behalf). Uniqueness is checked within that tenant's own DB.
+     */
+    public function update_admin_username(): void
+    {
+        try {
+            method('post');
+
+            check('tenant_id', 'numeric');
+            check('username', 'string');
+
+            $username = trim((string) request('username'));
+
+            if ($username === '' || strlen($username) > 100) {
+                throw new InvalidArgumentException('Geçersiz kullanıcı adı.');
+            }
+
+            $tenant = $this->get_tenant_or_fail((int) request('tenant_id'));
+            $tenant_db = $this->load->database($this->tenant_db_config($tenant), true);
+
+            $admin = $this->find_tenant_admin($tenant_db);
+
+            if (!$admin) {
+                $tenant_db->close();
+                throw new InvalidArgumentException('Bu kiracıda admin rolünde bir kullanıcı bulunamadı.');
+            }
+
+            $exists = $tenant_db
+                ->where('username', $username)
+                ->where('id_users !=', $admin['id_users'])
+                ->get('user_settings')
+                ->num_rows();
+
+            if ($exists > 0) {
+                $tenant_db->close();
+                throw new InvalidArgumentException('Bu kullanıcı adı bu kiracıda zaten kullanılıyor.');
+            }
+
+            $tenant_db->update('user_settings', ['username' => $username], ['id_users' => $admin['id_users']]);
+            $tenant_db->close();
+
+            json_response(['success' => true, 'username' => $username]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Sets a specific (not randomly generated) password for the tenant admin.
+     */
+    public function set_admin_password(): void
+    {
+        try {
+            method('post');
+
+            check('tenant_id', 'numeric');
+            check('password', 'string');
+
+            $password = (string) request('password');
+
+            if (strlen($password) < 8) {
+                throw new InvalidArgumentException('Şifre en az 8 karakter olmalı.');
+            }
+
+            $tenant = $this->get_tenant_or_fail((int) request('tenant_id'));
+            $tenant_db = $this->load->database($this->tenant_db_config($tenant), true);
+
+            $admin = $this->find_tenant_admin($tenant_db);
+
+            if (!$admin) {
+                $tenant_db->close();
+                throw new InvalidArgumentException('Bu kiracıda admin rolünde bir kullanıcı bulunamadı.');
+            }
+
+            $salt = generate_salt();
+
+            $tenant_db->update(
+                'user_settings',
+                ['password' => hash_password($salt, $password), 'salt' => $salt],
+                ['id_users' => $admin['id_users']],
+            );
+
+            $tenant_db->close();
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Sends the tenant admin a normal self-service password reset email (same recovery/reset flow a
+     * tenant user gets from the "forgot password" link), triggered by the platform instead.
+     *
+     * Unlike the other tenant-admin actions here, this one REPLACES $this->db for the rest of the
+     * request (load->database(..., false, true)) rather than borrowing a throwaway connection object -
+     * Accounts::generate_reset_token() and Email_messages' settings/company lookups all read through
+     * $this->db implicitly, so they only produce tenant-correct data if $this->db really is the
+     * tenant's DB for the duration of this call.
+     */
+    public function send_admin_password_reset(): void
+    {
+        try {
+            method('post');
+
+            check('tenant_id', 'numeric');
+
+            $tenant = $this->get_tenant_or_fail((int) request('tenant_id'));
+            $this->activate_tenant_pii_context($tenant);
+
+            $this->load->database($this->tenant_db_config($tenant), false, true);
+
+            $admin = $this->find_tenant_admin($this->db);
+
+            if (!$admin || empty($admin['email'])) {
+                throw new InvalidArgumentException('Bu kiracıda e-postalı bir admin kullanıcısı bulunamadı.');
+            }
+
+            $admin['email'] = sf_pii_is_encrypted($admin['email']) ? sf_pii_decrypt($admin['email']) : $admin['email'];
+
+            $this->load->library('accounts');
+            $this->load->library('email_messages');
+
+            $reset_data = $this->accounts->generate_reset_token($admin['username'], $admin['email']);
+
+            $host = $tenant['custom_domain'] ?: ($tenant['subdomain'] . '-reservationapp.kibusiness.co');
+            $reset_link = 'https://' . $host . '/recovery/reset?token=' . $reset_data['token'];
+
+            $company_color = setting('company_color');
+
+            $this->email_messages->send_password_reset_link($reset_link, $reset_data['email'], [
+                'company_name' => setting('company_name'),
+                'company_link' => setting('company_link'),
+                'company_email' => setting('company_email'),
+                'company_color' =>
+                    !empty($company_color) && $company_color != DEFAULT_COMPANY_COLOR ? $company_color : null,
+            ]);
+
+            json_response(['success' => true]);
         } catch (Throwable $e) {
             json_exception($e);
         }
