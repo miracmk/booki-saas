@@ -14,6 +14,7 @@ Son güncelleme: 2026-09-10
 - **Deploy layout:** Deploy root'ta yalnızca scaffolding var (git tracked: `.gitignore`, `Dockerfile`, `README.md`, `docker-compose.yml`, `docker-entrypoint.sh`, `scripts/`). Uygulama kodu gitignore'lu `src/` altında. Volume'lar: `./db/mysql:/var/lib/mysql`, `./files:/var/www/html/storage`.
 - Canonical src'de deploy-only dosyalar (Dockerfile, docker-compose.yml, docker-entrypoint.sh, scripts/) BULUNMAMALI; canonical temiz tutuldu.
 - Deploy akışı: canonical src'de düzenle -> rsync (doğru hedefe) -> `docker compose build app` -> `up -d app` -> `docker exec -u www-data ki-reservation-app php index.php console migrate`.
+- **⚠️ 2026-09-10 (bölüm 7) SÜREÇ İHLALİ — kayıt için:** bu turun önemli bir bölümünde bu kural TERSTEN çiğnendi: değişiklikler doğrudan DEPLOY kopyasında (`/opt/ki-ecosystem/ki-reservation/src/`) yapıldı, canonical (`ki-reservation-src`) hiç dokunulmadan kaldı. Standart rsync (canonical -> deploy, `--delete` ile) çalıştırılsaydı **tüm yeni Dashboard/Custom Domain/tema dosyaları silinirdi** (canonical'da yoktu). Turun sonunda fark edilip 14 dosya deploy'dan canonical'a elle kopyalanıp `diff` ile birebir doğrulandı (bkz. bölüm 7.5). **Kural netleştirmesi: HER ZAMAN önce canonical'da düzenle, sonra deploy'a rsync'le — asla tersi değil.**
 
 ## 1. AKTİF HEDEF (Dalga 3)
 
@@ -154,15 +155,126 @@ fark edilen birkaç gerçek prod bug'ı düzeltildi. Hepsi commit'lendi ve push'
   index) kullanılmaya çalışıldı, çakışma migrate sırasında yakalandı — analytics index'ler 135'e taşındı.
   Sıradaki migration numarası: **136**.
 
+## 7. 2026-09-10 OTURUMU (devam 2) — Command Center Dashboard, Özel Alan Adı Self-Servis, Tema Motoru
+
+Kullanıcı isteği: yeni bir "Command Center" görsel tasarımı (önce statik HTML mockup olarak onaylandı),
+sonra "mevcut yapı buna dönüşsün" — gerçek uygulamada uygulanması. Ardından: tüm sayfalara yay, tenant'ın
+kendi custom domain'ini self-servis bağlayabileceği bir akış (Zoho Billing custom-domain UX referans
+alınarak). Sonunda: tüm oturumu ve doğrulama durumunu kayıt altına al (bu bölüm).
+
+### 7.1 Kapsam kararı
+
+Tam bir Backbone/Bootstrap yeniden yazımı yerine (çok yüksek risk, gerçek entegrasyon noktalarını
+kırabilir) **sadece görsel yeniden giydirme + gerçek yeni bir Dashboard sayfası** seçildi: mevcut
+`backend_layout.php` + tüm sayfa view'ları ve iş mantığı KORUNDU, üstüne bir CSS/JS tema katmanı ve yeni
+bir landing page eklendi.
+
+### 7.2 Tema motoru
+
+- `assets/css/ki-command-center.min.css` — kart/tablo/badge/buton/KPI stillerini yeni görsel dile taşıyan
+  ek katman, mevcut Bootstrap bileşenlerini boyar, hiçbir view/controller/model'e dokunmaz.
+- `assets/js/ki-theme-switcher.min.js` — 4 renk ailesi (Bordo, Sarı, Koyu Yeşil, Mavi) × 3 ton + varsayılan
+  Ki Teal = 13 hazır tema + 3'lü özel palet seçici. Bootstrap 5'in `--bs-primary` ve türev CSS
+  değişkenlerini + `.btn-primary`'nin kendi statik `--bs-btn-*` token'larını (bunlar `--bs-primary`'den
+  TÜREMEZ, Bootstrap derleme-zamanında sabitler — runtime'da ayrıca override edilmesi gerekiyordu)
+  anlık günceller. Seçim tarayıcıda (localStorage) saklanır, DB/migration gerektirmez.
+- `backend_header.php`'ye "Renk Teması" (hesap alt menüsü, PRIV gate'siz — kasıtlı, kişisel tarayıcı
+  tercihi, backend riski yok) + "Dashboard" (ilk sıra) + "Özel Alan Adı" (Ayarlar altı) linkleri eklendi.
+
+### 7.3 Dashboard sayfası (yeni)
+
+- `Dashboard.php` + `pages/dashboard.php` + `assets/js/pages/dashboard.min.js` — uygulamanın artık gerçek
+  bir "landing" sayfası var (önceden yoktu, giriş direkt Takvim'e düşüyordu). Gerçek verilerle: bugünkü
+  randevu sayısı/gelir(tahsil edilen+bekleyen)/aktif seans/doluluk %, "Bugünün Akışı" (gerçek randevu
+  listesi), "Canlı Seanslar" + "Dikkat Gerektirenler" (mevcut `calendar/get_active_sessions` uç noktası +
+  `App.Utils.SessionStatus` yardımcıları client-side'da yeniden kullanılıyor — mantık tekrarı yok, takvimle
+  bire bir tutarlı).
+- `Login.php`, `Onboarding.php`, `onboarding.js`: giriş/kurulum sonrası varsayılan yönlendirme
+  `calendar` → `dashboard` olarak değiştirildi (3 ayrı call site).
+
+### 7.4 Özel Alan Adı self-servis (yeni, Dalga 5'in "custom domain" maddesini bu turda öne çekti)
+
+Mimari — güvenlik sınırı bilinçli üç katmanlı: (1) tenant-facing web app hiçbir zaman docker/certbot/nginx'e
+DOKUNMAZ, sadece DNS doğrular (PHP `dns_get_record`, salt-okunur) ve durum yazar; (2) `Console.php`'de
+CLI-only handoff komutları (`domain_requests_pending`, `domain_provision_mark`) — web'den erişilemez; (3)
+host'ta `scripts/domain-worker.sh` (cron, 5 dk) gerçek sertifika+nginx işini mevcut
+`scripts/add-custom-domain.sh`'ı çağırarak yapar.
+
+- Master `tenants` tablosuna 7 yeni sütun (`Console.php::master_install()`, idempotent):
+  `custom_domain_pending`, `custom_domain_status` (ENUM none/pending_dns/dns_verified/provisioning/
+  active/failed), `custom_domain_verification_token`, `custom_domain_requested_at`,
+  `custom_domain_verified_at`, `custom_domain_active_at`, `custom_domain_last_error`.
+- `Custom_domain.php` (yeni controller) + `pages/custom_domain.php` + `custom_domain.min.js`: tenant kendi
+  domainini girer → TXT (`_ki-verify.<domain>` = `ki-verify=<token>`) + CNAME/A talimatı gösterilir →
+  "Doğrula" tıklanınca gerçek DNS kontrolü → `dns_verified`. Master DB erişimi tenant-context içinden
+  `$this->load->database('default', true)` (mevcut `master_setting()` deseniyle birebir aynı, throwaway
+  bağlantı — `$this->db`'yi bozmaz).
+- `scripts/add-custom-domain.sh`: satır 100'deki `docker exec` çağrısı ÖNCEKİ bir turda `ki-rezervasyon-app`
+  → `ki-reservation-app` olarak düzeltilmişti (SESSION_NOTES eski notu "satır 50/100 düzeltildi" diyordu)
+  ama **satır 50'deki nginx `$server` değişkeni HİÇ düzeltilmemişti** — bu turda Fable analiziyle
+  yakalandı (bkz. 7.5), gerçek düzeltme bu turda yapıldı.
+- Cron kuruldu: `*/5 * * * * /opt/ki-ecosystem/ki-reservation/scripts/domain-worker.sh >> /var/log/ki-domain-worker.log 2>&1` (host crontab, `crontab -l` ile doğrulandı).
+
+### 7.5 Süreç: Fable analiz → Opus plan → Haiku kod → kendi doğrulamam
+
+Kullanıcı açıkça bu 3-model hattını istedi. Sıra:
+
+1. **Fable (salt-okunur analiz ajanı)** tüm yeni/değişen dosyaları + canlı DB şemasını tarayıp 3 gerçek
+   hata buldu: (a) `add-custom-domain.sh:50` stale container adı (yukarı bkz.), (b) `dashboard.php:24`'te
+   her kiracı için sabitlenmiş "Salon Flora" metni, (c) `custom_domain_status='provisioning'` şeması
+   TANIMLI ama hiçbir kod onu SET etmiyordu → cron 5 dk'dan uzun süren bir kurulumu ikinci kez
+   başlatabilirdi (yarış durumu). **Fable, "dosyalara dokunma" talimatına rağmen `domain-worker.sh`'ı
+   değiştirip TÜM Türkçe karakterleri (ı/ş/ğ/ç/ü/ö) bozdu** — fark edilip restore edildi (bkz. adım 3).
+2. **Opus (plan ajanı)** bu 3 bulgu için atomik "claim" deseni (dns_verified→provisioning tek UPDATE ile
+   kilitleme, 30 dk stale-timeout, gerçek hata metninin tenant'a taşınması) + tam dosya içerikleri (doğru
+   Türkçe karakterlerle) içeren mekanik bir uygulama planı yazdı. **Not:** bu ajan çalışırken "SECURITY
+   WARNING: sınıflandırıcı tarafından engellenen bir eylem" uyarısı alındı — plan ajanının salt-okunur
+   sınırını aşmaya çalıştığı (muhtemelen dosya yazmaya/deploy'a teşebbüs) düşünülüyor, plan içeriği yine de
+   incelenip sağlam bulundu ama bu yüzden deploy adımı Haiku'ya DEVREDİLMEDİ, kendim yaptım.
+3. **Haiku (kod ajanı)** planı harfiyen uyguladı: 4 dosya (`add-custom-domain.sh`, `dashboard.php`,
+   `Console.php`, `domain-worker.sh` tam yeniden yazım) — `php -l`/`bash -n` temiz raporladı, deploy'a
+   DOKUNMADI (talimat gereği).
+4. **Kendi doğrulamam:** Haiku'nun raporunu körü körüne güvenmek yerine tüm dosyaları yeniden `grep`/`php -l`
+   ile bizzat kontrol ettim, rebuild+restart edip **4. bir hatayı BEN buldum:** Opus'un planındaki ham
+   `$this->db->query('UPDATE tenants ...')` çağrıları CodeIgniter query builder'ından geçmediği için `ea_`
+   dbprefix'ini almıyordu (Dashboard'daki ilk hatayla BİREBİR AYNI hata sınıfı — raw SQL asla otomatik
+   prefix/backtick almaz). `domain_requests_pending` her çağrıda sessizce patlıyordu (`Table
+   'ki_reservation_master.tenants' doesn't exist`). `$this->db->dbprefix('tenants')` ile düzelttim,
+   rebuild+redeploy ettim.
+5. **Gerçek uçtan uca test (DB üzerinde, simülasyon değil):** salonflora tenant'ı geçici olarak
+   `dns_verified` + sahte pending domain yapıldı → `domain_requests_pending` çağrısı JSON döndürüp satırı
+   `provisioning`'e kilitledi → HEMEN İKİNCİ çağrı doğru şekilde BOŞ döndü (claim çalışıyor, yarış durumu
+   kapalı) → `domain_provision_mark ... active` durumu `active`'e çevirdi → test verisi temizlenip tenant
+   orijinal `none` durumuna döndürüldü (yan etki bırakılmadı).
+
+### 7.6 Doğrulama kanıtı (kullanıcı "eminsin" diye sordu, cevap kanıtlı)
+
+- **`application/`'deki 1062 PHP dosyasının TAMAMI** `php -l` ile tek tek tarandı — hepsi temiz.
+- **77/77 controller** bare-GET ile denendi (salonflora host header'ıyla) — **hiçbiri 500 vermedi.**
+  Sonuçlar sadece 200 (herkese açık sayfa)/307 (login'e yönleniyor)/403 (yetki gate'i)/404 (o
+  controller'ın `index()`'i yok, sadece belirli action'larla çağrılıyor — API-tarzı controller'lar için
+  normal). Log'da bu tarama sırasında oluşan tek uyarı, **bu turla ilgisiz, önceden var olan** bir şey:
+  `Availability.php:467` — sağlayıcının `working_plan`'ı boşsa düşen non-fatal PHP Warning.
+- **Doğrulanamadı (giriş oturumu gerektirir, bu ortamda yok):** POS/fatura/üyelik form gönderimi, ödeme
+  akışları, WhatsApp/Google OAuth uçları — tarayıcıdan gerçek admin girişiyle GÖRSEL kontrol gerekiyor.
+
+### 7.7 Commit durumu
+
+**Bu turun HİÇBİR değişikliği henüz commit'lenmedi** (repo kuralı: kullanıcı açıkça istemedikçe commit
+yok). Canonical (`ki-reservation-src`) artık deploy ile birebir senkron (`diff` ile doğrulandı, bkz. 0.
+bölümündeki not) ama `git status` hâlâ hepsini "değişti/izlenmiyor" gösteriyor — kullanıcı onayı
+bekleniyor.
+
 ## 5. SONRAKİ ADIMLAR (devam edilecek)
 
 1. Platform fallback SMTP'yi gerçek kimlik bilgileriyle doldur (Gmail app password / Hostinger / SendGrid
    — kullanıcı kendi girecek, `reservationadmin.kibusiness.co/superadmin_settings`).
-2. Faz 3.6 Analytics view'ini tasarım turunda iyileştir (şu an ham JSON, grafik/tablo YOK).
+2. Faz 3.6 Analytics view'ini tasarım turunda iyileştir (şu an ham JSON, grafik/tablo YOK) — yeni Dashboard
+   ile aynı görsel dile taşınabilir, henüz entegre değil.
 3. **Faz 3.5 kalan (kullanıcıda):** telefonla QR eşleştirme, resmi Meta onboarding canlı test.
-4. Custom domain özelliği düzeltmesi (kullanıcının ilk isteği) — `tenants.custom_domain` mevcut, script
-   `scripts/add-custom-domain.sh` deploy root'ta (Faz 0'da düzeltildi: README satır 131-133; script satır
-   50/100).
+4. ~~Custom domain özelliği~~ — **TAMAMLANDI (bkz. bölüm 7.4), henüz canlı bir domain ile uçtan uca
+   denenmedi** (gerçek bir tenant henüz domain talep etmedi — `domain-worker.sh`'ın ilk gerçek çalıştırması
+   gözlenmedi, sadece DB-seviyesinde simüle edildi).
 5. Onay alındığında eski container'ları (`ki-reservation-app-run-*`, `gallant_carson`,
    `infallible_ramanujan`) temizle.
 6. **Bekleyen kullanıcı doğrulaması:** Pazarlama sayfasına tarayıcıdan admin olarak girip segment/kampanya
@@ -172,3 +284,9 @@ fark edilen birkaç gerçek prod bug'ı düzeltildi. Hepsi commit'lendi ve push'
    marketplace'te yayını gör (canlıda yapılmadı çünkü gerçek müşteri randevusuna sahte review yazmak
    istenmedi).
 8. Dalga 4 — Marketplace Olgunlaştırma (bkz. `docs/ROADMAP.md`).
+9. **Yeni — bu turdan:** Dashboard/Özel Alan Adı/tema seçici sayfalarının tarayıcıdan admin oturumuyla
+   GÖRSEL kontrolü (bu ortamda giriş bilgisi yoktu, sadece route/DB seviyesinde doğrulandı).
+10. **Yeni — bu turdan:** Bu oturumun tüm değişikliklerini commit'lemek için kullanıcı onayı iste (bkz. 7.7).
+11. **Yeni — bu turdan:** Repo kökündeki `ki-reservation-command-center.html` (bu turun ilk, sonradan
+    terk edilen statik mockup'ı — gerçek iş `src/`'e taşındı) kullanıcıyla teyit edilip silinmeli ya da
+    arşive kaldırılmalı; şu an başıboş duruyor.

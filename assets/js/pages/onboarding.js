@@ -48,7 +48,7 @@ App.Pages.Onboarding = (function () {
         $.post(App.Utils.Url.siteUrl('onboarding/save'), data)
             .done((response) => {
                 if (response.success) {
-                    window.location.href = App.Utils.Url.siteUrl('calendar');
+                    window.location.href = App.Utils.Url.siteUrl('dashboard');
                 } else {
                     $alert.text(response.message || 'Error').removeClass('d-none').addClass('alert-danger');
                     $submit.prop('disabled', false);

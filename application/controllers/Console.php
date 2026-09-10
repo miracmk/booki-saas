@@ -256,6 +256,23 @@ class Console extends EA_Controller
             'city' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
             'cover_image_url' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'short_description' => ['type' => 'TEXT', 'null' => true],
+            // Ki Reservation (2026-09-10) - tenant self-service custom domain (Custom_domain.php
+            // controller). 'custom_domain' (above) is the LIVE, routed domain - untouched here until
+            // the host-side domain-worker.sh actually provisions it. 'custom_domain_pending' is what
+            // the tenant just requested, tracked separately so a bad/incomplete request never clobbers
+            // an already-working domain.
+            'custom_domain_pending' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+            'custom_domain_status' => [
+                'type' => 'ENUM',
+                'constraint' => ['none', 'pending_dns', 'dns_verified', 'provisioning', 'active', 'failed'],
+                'null' => false,
+                'default' => 'none',
+            ],
+            'custom_domain_verification_token' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'custom_domain_requested_at' => ['type' => 'DATETIME', 'null' => true],
+            'custom_domain_verified_at' => ['type' => 'DATETIME', 'null' => true],
+            'custom_domain_active_at' => ['type' => 'DATETIME', 'null' => true],
+            'custom_domain_last_error' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
         ];
 
         foreach ($tenant_columns as $column => $spec) {
@@ -941,6 +958,130 @@ class Console extends EA_Controller
         );
 
         echo 'Tenant "' . $subdomain . '" custom_domain set to: ' . ($value ?? '(none)') . PHP_EOL;
+    }
+
+    /**
+     * Ki Reservation (2026-09-10) - tenant self-service custom domain, part 2/3: list every tenant
+     * whose requested domain has passed the in-app DNS ownership check (custom_domain_status =
+     * 'dns_verified') and is waiting for the actual Let's Encrypt cert + nginx server block. A
+     * host-side worker (scripts/domain-worker.sh, run on a cron) polls this, then for each row runs
+     * the EXISTING scripts/add-custom-domain.sh (unchanged - still the only thing that ever touches
+     * certbot/nginx, and still only ever runs on the host, never inside this container) and finally
+     * reports back via domain_provision_mark() below. One line of JSON per tenant so the worker can
+     * parse it with `jq` without a real API.
+     *
+     * 2026-09-10 fix - this call now CLAIMS each row it hands out: the row is flipped from
+     * 'dns_verified' to 'provisioning' by a single conditional UPDATE, and is only echoed when that
+     * UPDATE actually won (affected_rows() === 1). The worker cron runs every 5 minutes but
+     * add-custom-domain.sh can legitimately run longer than that (certbot rate limits, slow DNS), so
+     * without the claim a second tick would hand the SAME row out again and two concurrent
+     * `certbot certonly` runs plus two concurrent `docker cp` writes to the same NPM proxy-host conf
+     * would race. Because the claim lives on the row (not in a file lock in the worker), a manual
+     * worker/script re-run is protected too.
+     *
+     * A row whose worker died mid-run (host reboot, OOM) would otherwise sit in 'provisioning'
+     * forever, so anything stuck there for more than STALE_PROVISIONING_MINUTES is reverted to
+     * 'dns_verified' at the top of this call and simply gets picked up again on this same tick.
+     *
+     * Usage: php index.php console domain_requests_pending
+     */
+    public function domain_requests_pending(): void
+    {
+        if (!is_multi_tenant_mode()) {
+            return;
+        }
+
+        $stale_provisioning_minutes = 30;
+
+        // 2026-09-10 bugfix - these were raw $this->db->query() calls with a bare "tenants" table
+        // name. CI's dbprefix ('ea_' here) is only ever applied by the QUERY BUILDER (->from(),
+        // ->where(), ->table(), etc.) - a raw SQL string is never touched, so "UPDATE tenants ..."
+        // failed with "Table 'ki_reservation_master.tenants' doesn't exist" on every call (the real
+        // table is ea_tenants). $this->db->dbprefix('tenants') resolves it explicitly, the same
+        // pattern already used a few lines up in master_install() for its ALTER TABLE calls.
+        $this->db->query(
+            'UPDATE ' . $this->db->dbprefix('tenants') . ' SET custom_domain_status = ?, updated_at = ? ' .
+            'WHERE custom_domain_status = ? AND updated_at < ?',
+            [
+                'dns_verified',
+                date('Y-m-d H:i:s'),
+                'provisioning',
+                date('Y-m-d H:i:s', time() - ($stale_provisioning_minutes * 60)),
+            ],
+        );
+
+        $rows = $this->db
+            ->select('id, subdomain, custom_domain_pending')
+            ->from('tenants')
+            ->where('custom_domain_status', 'dns_verified')
+            ->get()
+            ->result_array();
+
+        foreach ($rows as $row) {
+            // Atomic claim: single conditional UPDATE, so only one caller can ever move a given row
+            // out of 'dns_verified'. If we lost the race, another worker already owns this domain.
+            $this->db->query(
+                'UPDATE ' . $this->db->dbprefix('tenants') . ' SET custom_domain_status = ?, updated_at = ? ' .
+                'WHERE id = ? AND custom_domain_status = ?',
+                ['provisioning', date('Y-m-d H:i:s'), (int) $row['id'], 'dns_verified'],
+            );
+
+            if ($this->db->affected_rows() !== 1) {
+                continue;
+            }
+
+            echo json_encode([
+                'subdomain' => $row['subdomain'],
+                'custom_domain' => $row['custom_domain_pending'],
+            ]) . PHP_EOL;
+        }
+    }
+
+    /**
+     * Ki Reservation (2026-09-10) - tenant self-service custom domain, part 3/3: the host-side worker
+     * calls this once it has finished (or failed) provisioning one tenant's pending domain from
+     * domain_requests_pending() above. On success, add-custom-domain.sh has ALREADY pointed
+     * `custom_domain` itself at the new value (its last step is tenant_set_custom_domain, unchanged) -
+     * this call only updates the self-service status/timestamp bookkeeping that Custom_domain.php's
+     * UI polls, and clears the now-redundant `custom_domain_pending`.
+     *
+     * Usage: php index.php console domain_provision_mark <subdomain> <active|failed> [error_message]
+     */
+    public function domain_provision_mark(string $subdomain = '', string $status = '', string $error_message = ''): void
+    {
+        if (!is_multi_tenant_mode()) {
+            return;
+        }
+
+        if (!in_array($status, ['active', 'failed'], true)) {
+            show_error('Status must be "active" or "failed".');
+
+            return;
+        }
+
+        $subdomain = strtolower(trim($subdomain));
+        $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+
+        if (!$tenant) {
+            show_error('No tenant with subdomain "' . $subdomain . '" was found.');
+
+            return;
+        }
+
+        $update = [
+            'custom_domain_status' => $status,
+            'custom_domain_last_error' => $status === 'failed' ? mb_substr($error_message, 0, 255) : null,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($status === 'active') {
+            $update['custom_domain_pending'] = null;
+            $update['custom_domain_active_at'] = date('Y-m-d H:i:s');
+        }
+
+        $this->db->update('tenants', $update, ['id' => $tenant['id']]);
+
+        echo 'Tenant "' . $subdomain . '" custom_domain_status set to: ' . $status . PHP_EOL;
     }
 
     /**

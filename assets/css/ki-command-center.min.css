@@ -1,0 +1,173 @@
+/* ----------------------------------------------------------------------------
+ * Ki Reservation - "Command Center" visual layer
+ *
+ * Additive skin loaded after general.css/backend.css. Restyles Bootstrap
+ * primitives (cards, tables, badges, buttons, sidebar) to the Command Center
+ * look without touching any page view/controller/model - safe to disable by
+ * removing the <link> in backend_layout.php.
+ *
+ * Brand color itself is NOT hardcoded here - see ki-theme-switcher.js, which
+ * overrides the Bootstrap 5 CSS custom properties (--bs-primary and friends)
+ * at runtime so every rule below that reads var(--bs-primary...) repaints
+ * live when a theme/custom palette is picked.
+ * ---------------------------------------------------------------------------- */
+
+:root {
+    --kcc-bg: #f5f7f6;
+    --kcc-line: #e5e9e7;
+    --kcc-muted: #78827f;
+    --kcc-shadow: 0 1px 2px rgba(20, 35, 30, .04), 0 8px 30px rgba(20, 35, 30, .035);
+}
+
+body {
+    background: var(--kcc-bg);
+}
+
+/* Cards */
+.card {
+    border-color: var(--kcc-line);
+    border-radius: 12px;
+    box-shadow: var(--kcc-shadow);
+}
+.card-header {
+    background: transparent;
+    border-bottom-color: var(--kcc-line);
+    font-weight: 700;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 9px;
+    font-weight: 600;
+}
+.btn-sm {
+    border-radius: 8px;
+}
+
+/* Tables */
+.table thead th {
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--kcc-muted);
+    background: #fafbfa;
+    border-bottom-color: var(--kcc-line);
+}
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* Badges */
+.badge {
+    font-weight: 700;
+    padding: .4em .65em;
+    border-radius: 20px;
+}
+.badge.bg-primary-subtle,
+.badge.text-bg-primary {
+    color: var(--bs-primary-text-emphasis, var(--bs-primary));
+}
+
+/* KPI-style stat tiles - opt in with class="kcc-kpi" on a .card */
+.kcc-kpi .kcc-kpi-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text-emphasis);
+    display: grid;
+    place-items: center;
+}
+.kcc-kpi h2, .kcc-kpi .kcc-kpi-value {
+    font-size: 26px;
+    letter-spacing: -.03em;
+    margin: 10px 0 4px;
+}
+.kcc-kpi .kcc-trend {
+    font-size: 11px;
+    font-weight: 700;
+    color: #29936f;
+}
+.kcc-kpi .kcc-trend.warn { color: #c68a28; }
+.kcc-kpi .kcc-trend.neutral { color: var(--kcc-muted); }
+
+/* Sidebar polish (structure untouched - only paint) */
+#sidebar #header-logo h6 {
+    letter-spacing: -.01em;
+}
+#sidebar .nav-item.active > .nav-link {
+    box-shadow: inset 3px 0 0 rgba(255, 255, 255, .55);
+}
+
+/* Ki theme-switcher trigger, injected into the sidebar account submenu */
+.kcc-theme-trigger i {
+    width: 1.25em;
+    display: inline-block;
+    text-align: center;
+}
+
+/* Theme picker modal (built purely client-side by ki-theme-switcher.js) */
+.kcc-theme-modal .modal-content {
+    border-radius: 14px;
+    border: none;
+}
+.kcc-fam-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--kcc-muted);
+    margin: 14px 0 6px;
+}
+.kcc-fam-label:first-child { margin-top: 0; }
+.kcc-swatch-row {
+    display: flex;
+    gap: 8px;
+}
+.kcc-swatch {
+    flex: 1;
+    height: 36px;
+    border-radius: 9px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    position: relative;
+    padding: 0;
+}
+.kcc-swatch.active {
+    border-color: #17201e;
+}
+.kcc-swatch.active::after {
+    content: "\2713";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
+}
+.kcc-custom-pal {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-top: 8px;
+}
+.kcc-custom-pal .kcc-color-field {
+    text-align: center;
+}
+.kcc-custom-pal input[type="color"] {
+    width: 40px;
+    height: 36px;
+    border: 1px solid var(--kcc-line);
+    border-radius: 8px;
+    padding: 2px;
+    background: #fff;
+    cursor: pointer;
+}
+.kcc-custom-pal label {
+    display: block;
+    font-size: 9.5px;
+    color: var(--kcc-muted);
+    margin-top: 3px;
+}

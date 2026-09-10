@@ -22,6 +22,7 @@
           href="<?= asset_url('assets/css/themes/' . setting('theme', 'default') . '.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/general.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/backend.css') ?>">
+    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/ki-command-center.min.css') ?>">
 
     <?php component('company_color_style', ['company_color' => setting('company_color')]); ?>
 
@@ -94,6 +95,7 @@
 <script src="<?= asset_url('assets/js/utils/session_actions.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/active_sessions_widget.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/next_availability_widget.js') ?>"></script>
+<script src="<?= asset_url('assets/js/ki-theme-switcher.min.js') ?>"></script>
 
 <style>
     /* Ki Reservation (2026-09-10) - sidebar navigation. Mobile-first: #sidebar is a Bootstrap

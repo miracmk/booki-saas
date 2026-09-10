@@ -58,6 +58,15 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
 
         <ul class="nav flex-column flex-grow-1 overflow-auto px-2 sidebar-nav">
             <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'd-none'; ?>
+            <?php $active = $active_menu == 'dashboard' ? 'active' : ''; ?>
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('dashboard') ?>" class="nav-link text-white" data-tippy-content="Genel bakış">
+                    <i class="fas fa-gauge-high me-2"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_APPOINTMENTS ? 'active' : ''; ?>
             <li class="nav-item <?= $active . $hidden ?>">
                 <a href="<?= site_url(
@@ -270,8 +279,20 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                                         Lisans
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" href="<?= site_url('custom_domain') ?>">
+                                        <i class="fas fa-globe me-2"></i>
+                                        Özel Alan Adı
+                                    </a>
+                                </li>
                             <?php endif; ?>
 
+                            <li class="nav-item">
+                                <a class="nav-link text-white-50 kcc-theme-trigger" href="#">
+                                    <i class="fas fa-palette me-2"></i>
+                                    Renk Teması
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-white-50" href="<?= site_url('account') ?>">
                                     <i class="fas fa-user me-2"></i>

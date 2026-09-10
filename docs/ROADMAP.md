@@ -75,10 +75,22 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 ### 🔲 Dalga 5 — Kurumsal / Ölçek (Faz 34·48·49·50·51·52)
 - [x] ~~Organization katmanı~~ — karar verildi, ek iş gerekmiyor (yukarı bkz.)
 - [ ] PWA — manifest.json + service worker, önce sağlayıcı (staff) günlük görünümü
-- [ ] White-label — "Powered by Ki" kapatma, custom domain
+- [x] **Custom domain — sırasından ÖNE ÇEKİLİP TAMAMLANDI (2026-09-10, kullanıcı talebiyle, henüz commit
+      edilmedi)** — tenant self-service akış (domain talep → DNS TXT/CNAME doğrulama → host cron ile
+      otomatik sertifika+nginx). Mimari detay: `docs/SESSION_NOTES.md` bölüm 7.4. "Powered by Ki" kapatma
+      (branding toggle) kısmı bu kapsamda DEĞİL, hâlâ yapılmadı.
+- [ ] White-label — "Powered by Ki" kapatma (branding toggle — custom domain'den ayrı, yukarı bkz.)
 - [ ] SaaS Admin genişletme — abonelik/fatura/kullanım metrikleri
 - [ ] License/Entitlement sistemi — plan alanını gerçek feature-flag kontrolüne bağla
 - [ ] Dokümantasyon — /docs, en son (önceki dalgalar API/özellik ekledikçe güncellenecek)
+
+### 🟢 Roadmap-dışı ek — Command Center Dashboard + Tema Motoru (2026-09-10, kullanıcı talebiyle, henüz commit edilmedi)
+- [x] Yeni gerçek Dashboard landing sayfası (önceden yoktu — giriş direkt Takvim'e düşüyordu). Gerçek
+      KPI'lar (bugünkü randevu/gelir/aktif seans/doluluk), takvimin mevcut canlı-seans altyapısını yeniden
+      kullanıyor. Detay: `docs/SESSION_NOTES.md` bölüm 7.3.
+- [x] Görsel tema katmanı: 4 renk ailesi × 3 ton + özel 3'lü palet, mevcut Bootstrap temasının üstüne
+      (view/controller/model'e dokunmadan). Detay: bölüm 7.2.
+- [ ] Faz 3.6 Analytics view'i (şu an ham JSON) yeni Dashboard'un görsel diline henüz TAŞINMADI — ayrı iş.
 
 ## Kapsam Dışı / Ayrı Konu
 
@@ -89,4 +101,4 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 | Çoklu-organizasyon (tek çatı altında N tenant) | Kullanıcı kararı: her organizasyon ayrı tenant satın alımı olarak kalacak |
 
 ---
-*Son güncelleme (2026-09-10): Dalga 3 (Faz 3.1-3.6) tamamlandı — WhatsApp'ta sadece kullanıcının kendi yapacağı telefon/QR eşleştirme testi kaldı. Sıradaki: Dalga 4 (Marketplace Olgunlaştırma).*
+*Son güncelleme (2026-09-10, oturum 2): Dalga 3 (Faz 3.1-3.6) tamamlandı — WhatsApp'ta sadece kullanıcının kendi yapacağı telefon/QR eşleştirme testi kaldı. Dalga 5'ten custom domain öne çekilip tamamlandı (henüz commit edilmedi) + roadmap-dışı Command Center Dashboard/tema motoru eklendi (henüz commit edilmedi) — detay `docs/SESSION_NOTES.md` bölüm 7. Sıradaki: Dalga 4 (Marketplace Olgunlaştırma) + bu turun commit onayı.*

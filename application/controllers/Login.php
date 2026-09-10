@@ -35,7 +35,7 @@ class Login extends EA_Controller
         $this->load->library('timezones');
 
         script_vars([
-            'dest_url' => session('dest_url', site_url('calendar')),
+            'dest_url' => session('dest_url', site_url('dashboard')),
         ]);
     }
 
@@ -47,14 +47,14 @@ class Login extends EA_Controller
         method('get');
 
         if (session('user_id')) {
-            redirect('calendar');
+            redirect('dashboard');
             return;
         }
 
         html_vars([
             'page_title' => lang('login'),
             'base_url' => config('base_url'),
-            'dest_url' => session('dest_url', site_url('calendar')),
+            'dest_url' => session('dest_url', site_url('dashboard')),
             'company_name' => setting('company_name'),
             'require_captcha' => setting('require_captcha'),
             'altcha_enabled' => setting('altcha_enabled'),

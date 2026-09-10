@@ -48,7 +48,7 @@ class Onboarding extends EA_Controller
         method('get');
 
         if (setting('onboarding_completed') === '1') {
-            redirect('calendar');
+            redirect('dashboard');
             return;
         }
 
