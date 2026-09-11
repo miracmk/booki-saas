@@ -10,23 +10,38 @@
  * overrides the Bootstrap 5 CSS custom properties (--bs-primary and friends)
  * at runtime so every rule below that reads var(--bs-primary...) repaints
  * live when a theme/custom palette is picked.
+ *
+ * 2026-09-11 redesign - "ferah ama enerjik" pass (user request: not a
+ * dark/light MODE toggle, a full light-first visual refresh). The sidebar
+ * moved from a solid dark bg-primary fill to a light surface with the brand
+ * color reserved for the active item / accents, and KPI tiles/buttons got a
+ * livelier gradient treatment. Business logic/markup untouched except 4
+ * cosmetic icon-color classes added in dashboard.php.
  * ---------------------------------------------------------------------------- */
 
 :root {
-    --kcc-bg: #f5f7f6;
-    --kcc-line: #e5e9e7;
-    --kcc-muted: #78827f;
-    --kcc-shadow: 0 1px 2px rgba(20, 35, 30, .04), 0 8px 30px rgba(20, 35, 30, .035);
+    --kcc-bg: #f6f7fb;
+    --kcc-surface: #ffffff;
+    --kcc-line: #e8eaf1;
+    --kcc-muted: #6b7280;
+    --kcc-text: #1f2430;
+    --kcc-shadow: 0 1px 2px rgba(31, 41, 55, .04), 0 10px 30px rgba(31, 41, 55, .06);
+    --kcc-shadow-lg: 0 4px 10px rgba(31, 41, 55, .05), 0 20px 44px rgba(31, 41, 55, .09);
+    --kcc-accent-violet: #7c5cff;
+    --kcc-accent-blue: #2f8cf0;
+    --kcc-accent-amber: #f5a623;
+    --kcc-accent-coral: #ff6b6b;
 }
 
 body {
     background: var(--kcc-bg);
+    color: var(--kcc-text);
 }
 
 /* Cards */
 .card {
     border-color: var(--kcc-line);
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: var(--kcc-shadow);
 }
 .card-header {
@@ -37,11 +52,23 @@ body {
 
 /* Buttons */
 .btn {
-    border-radius: 9px;
+    border-radius: 10px;
     font-weight: 600;
 }
 .btn-sm {
     border-radius: 8px;
+}
+.btn-primary {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--kcc-accent-violet) 100%);
+    border: none;
+    box-shadow: 0 6px 16px rgba(var(--bs-primary-rgb), .32);
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    box-shadow: 0 8px 20px rgba(var(--bs-primary-rgb), .4);
+    filter: brightness(1.04);
+}
+.btn-outline-primary {
+    border-width: 1.5px;
 }
 
 /* Tables */
@@ -51,7 +78,7 @@ body {
     font-size: 10.5px;
     font-weight: 700;
     color: var(--kcc-muted);
-    background: #fafbfa;
+    background: #fafbfe;
     border-bottom-color: var(--kcc-line);
 }
 .table td, .table th {
@@ -70,34 +97,91 @@ body {
 }
 
 /* KPI-style stat tiles - opt in with class="kcc-kpi" on a .card */
+.kcc-kpi {
+    overflow: hidden;
+    position: relative;
+}
+.kcc-kpi::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--bs-primary), var(--kcc-accent-violet));
+}
 .kcc-kpi .kcc-kpi-icon {
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
     background: var(--bs-primary-bg-subtle);
     color: var(--bs-primary-text-emphasis);
     display: grid;
     place-items: center;
+    font-weight: 700;
 }
+.kcc-kpi .kcc-kpi-icon-blue { background: rgba(47, 140, 240, .14); color: var(--kcc-accent-blue); }
+.kcc-kpi .kcc-kpi-icon-amber { background: rgba(245, 166, 35, .16); color: var(--kcc-accent-amber); }
+.kcc-kpi .kcc-kpi-icon-violet { background: rgba(124, 92, 255, .14); color: var(--kcc-accent-violet); }
+.kcc-kpi .kcc-kpi-icon-coral { background: rgba(255, 107, 107, .14); color: var(--kcc-accent-coral); }
 .kcc-kpi h2, .kcc-kpi .kcc-kpi-value {
-    font-size: 26px;
+    font-size: 28px;
+    font-weight: 800;
     letter-spacing: -.03em;
     margin: 10px 0 4px;
 }
 .kcc-kpi .kcc-trend {
     font-size: 11px;
     font-weight: 700;
-    color: #29936f;
+    color: #1f9d6f;
 }
-.kcc-kpi .kcc-trend.warn { color: #c68a28; }
+.kcc-kpi .kcc-trend.warn { color: var(--kcc-accent-amber); }
 .kcc-kpi .kcc-trend.neutral { color: var(--kcc-muted); }
 
-/* Sidebar polish (structure untouched - only paint) */
-#sidebar #header-logo h6 {
-    letter-spacing: -.01em;
+/* ---- Sidebar: light surface, brand color reserved for active/accent ---- */
+#sidebar.bg-primary {
+    background: var(--kcc-surface) !important;
+    border-right: 1px solid var(--kcc-line);
+}
+#sidebar #header-logo h6.text-white,
+#sidebar .offcanvas-title.text-white,
+#sidebar .text-white {
+    color: var(--kcc-text) !important;
+}
+#sidebar .text-white-50 {
+    color: var(--kcc-muted) !important;
+}
+#sidebar .btn-close-white {
+    filter: none;
+}
+#sidebar .nav-link {
+    color: var(--kcc-text);
+    transition: background-color .15s ease, color .15s ease;
+}
+#sidebar .nav-link:hover {
+    background: var(--bs-primary-bg-subtle);
+    color: var(--bs-primary-text-emphasis);
 }
 #sidebar .nav-item.active > .nav-link {
-    box-shadow: inset 3px 0 0 rgba(255, 255, 255, .55);
+    background: linear-gradient(135deg, var(--bs-primary) 0%, var(--kcc-accent-violet) 100%);
+    color: #fff !important;
+    box-shadow: 0 6px 16px rgba(var(--bs-primary-rgb), .3);
+}
+#sidebar .nav-item.active > .nav-link i {
+    color: #fff;
+}
+#sidebar .border-top {
+    border-color: var(--kcc-line) !important;
+}
+
+/* Mobile top bar mirrors the same light treatment */
+nav#header.bg-primary {
+    background: var(--kcc-surface) !important;
+    border-bottom: 1px solid var(--kcc-line);
+}
+nav#header .text-white {
+    color: var(--kcc-text) !important;
+}
+nav#header .btn-link.text-white {
+    color: var(--kcc-text) !important;
 }
 
 /* Ki theme-switcher trigger, injected into the sidebar account submenu */
@@ -109,8 +193,9 @@ body {
 
 /* Theme picker modal (built purely client-side by ki-theme-switcher.js) */
 .kcc-theme-modal .modal-content {
-    border-radius: 14px;
+    border-radius: 16px;
     border: none;
+    box-shadow: var(--kcc-shadow-lg);
 }
 .kcc-fam-label {
     font-size: 10px;
@@ -128,7 +213,7 @@ body {
 .kcc-swatch {
     flex: 1;
     height: 36px;
-    border-radius: 9px;
+    border-radius: 10px;
     cursor: pointer;
     border: 2px solid transparent;
     position: relative;

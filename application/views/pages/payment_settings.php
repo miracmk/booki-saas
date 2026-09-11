@@ -226,4 +226,4 @@ $(function() {
 });
 </script>
 
-<?php end_section(); ?>
+<?php end_section('content'); ?>

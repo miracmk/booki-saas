@@ -32,7 +32,7 @@ $status_badge = [
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
                         <span>Bugünkü Randevular</span>
-                        <span class="kcc-kpi-icon"><i class="fas fa-calendar-alt"></i></span>
+                        <span class="kcc-kpi-icon kcc-kpi-icon-blue"><i class="fas fa-calendar-alt"></i></span>
                     </div>
                     <div class="kcc-kpi-value"><?= (int) $summary['appointment_count'] ?></div>
                     <span class="kcc-trend neutral">bugün için planlanan</span>
@@ -44,7 +44,7 @@ $status_badge = [
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
                         <span>Bugünkü Gelir</span>
-                        <span class="kcc-kpi-icon">₺</span>
+                        <span class="kcc-kpi-icon kcc-kpi-icon-amber">₺</span>
                     </div>
                     <div class="kcc-kpi-value">₺<?= number_format((float) $summary['revenue_collected'], 0, ',', '.') ?></div>
                     <span class="kcc-trend <?= $summary['revenue_pending'] > 0 ? 'warn' : 'neutral' ?>">
@@ -58,7 +58,7 @@ $status_badge = [
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
                         <span>Aktif Seanslar</span>
-                        <span class="kcc-kpi-icon"><i class="fas fa-stopwatch"></i></span>
+                        <span class="kcc-kpi-icon kcc-kpi-icon-coral"><i class="fas fa-stopwatch"></i></span>
                     </div>
                     <div class="kcc-kpi-value" id="dash-active-count"><?= (int) $summary['active_sessions_count'] ?></div>
                     <span class="kcc-trend neutral" id="dash-active-sub">canlı</span>
@@ -70,7 +70,7 @@ $status_badge = [
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
                         <span>Doluluk</span>
-                        <span class="kcc-kpi-icon">%</span>
+                        <span class="kcc-kpi-icon kcc-kpi-icon-violet">%</span>
                     </div>
                     <div class="kcc-kpi-value"><?= $summary['occupancy_pct'] !== null ? $summary['occupancy_pct'] . '%' : '—' ?></div>
                     <span class="kcc-trend neutral">bugün</span>

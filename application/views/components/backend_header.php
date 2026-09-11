@@ -274,12 +274,6 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-white-50" href="<?= site_url('license') ?>">
-                                        <i class="fas fa-key me-2"></i>
-                                        Lisans
-                                    </a>
-                                </li>
-                                <li class="nav-item">
                                     <a class="nav-link text-white-50" href="<?= site_url('custom_domain') ?>">
                                         <i class="fas fa-globe me-2"></i>
                                         Özel Alan Adı

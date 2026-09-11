@@ -145,16 +145,19 @@ Software License (see [LICENSE](LICENSE)).
   [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)) — not yet copied offsite (see
   [COMPLIANCE.md](COMPLIANCE.md) §2).
 
-## Licensing (self-hosted)
+## Licensing
 
-Ki Reservation enforces its commercial license via an offline,
-RS256-signed license key (Settings → Lisans, admin-only) — see
-`application/libraries/Licensing.php` for the full design rationale.
-Enforcement is deliberately **soft**: an expired or missing license shows
-an admin-visible warning banner and is recorded in the audit log, but
-never blocks the public booking page or any core business operation. The
-private signing key is held only by Ki Software and is never distributed
-with the product.
+Ki Reservation is **SaaS-only** — there is no self-hosted distribution
+and no offline license-key mechanism. Entitlement (plan, trial, license
+expiry) is tracked per tenant in the master database (`tenants.plan` /
+`trial_ends_at` / `license_expires_at`) and managed from the superadmin
+panel (`reservationadmin.kibusiness.co`); `EA_Controller::resolve_tenant()`
+enforces it. A self-hosted RS256-signed-JWT licensing system existed
+briefly (2026-08-24 to 2026-09-11) and was removed - it was a leftover
+self-hosted-product concept that never had a key-issuing tool and
+collided with the actual SaaS plan system above, permanently showing a
+"no license" warning on every tenant. May be revisited if a self-hosted
+offering is reintroduced.
 
 ## 8. Data retention & KVKK/privacy compliance
 

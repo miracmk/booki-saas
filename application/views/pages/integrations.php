@@ -210,6 +210,84 @@
                     </div>
                 </div>
 
+                <?php // Ki Reservation (2026-09-11 fix) - iyzico/PayTR/Stripe credentials, same
+                // "built but unlinked" bug as the two cards below. ?>
+                <div class="col-sm-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="fw-light mb-0">
+                                Ödeme
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 integration-info">
+                                <small>
+                                    iyzico, PayTR ve Stripe ödeme sağlayıcı kimlik bilgilerinizi buradan
+                                    yönetin.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer border-0">
+                            <a href="<?= site_url('payment_settings') ?>" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>
+                                <?= lang('configure') ?>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <?php // Ki Reservation (2026-09-11 fix) - was built (Whatsapp.php + Messaging_settings.php,
+                // dual-mode: resmi Meta Cloud API + QR bridge) but never linked from anywhere in the UI. ?>
+                <div class="col-sm-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="fw-light mb-0">
+                                WhatsApp
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 integration-info">
+                                <small>
+                                    Randevu bildirimlerini WhatsApp üzerinden gönderin - resmi Meta Business Cloud
+                                    API veya QR kod ile cihaz eşleştirme (bilgilendirilmiş onay gerektirir).
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer border-0">
+                            <a href="<?= site_url('whatsapp') ?>" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>
+                                <?= lang('configure') ?>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <?php // Ki Reservation (2026-09-11 fix) - SMS (Netgsm) + SMTP credentials, same "built but
+                // unlinked" bug as the WhatsApp card above. ?>
+                <div class="col-sm-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="fw-light mb-0">
+                                SMS ve E-posta (SMTP)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 integration-info">
+                                <small>
+                                    Netgsm üzerinden SMS bildirimleri ve kendi SMTP sunucunuzla e-posta gönderimi
+                                    için kimlik bilgilerini yapılandırın.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer border-0">
+                            <a href="<?= site_url('messaging_settings') ?>" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>
+                                <?= lang('configure') ?>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>

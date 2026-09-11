@@ -269,4 +269,4 @@
 <script src="<?= asset_url('assets/js/pages/whatsapp.js') ?>"></script>
 <?php end_section('scripts'); ?>
 
-<?php end_section(); ?>
+<?php end_section('content'); ?>

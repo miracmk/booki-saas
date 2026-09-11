@@ -3,23 +3,19 @@
 <?php section('content'); ?>
 
 <?php
-/**
- * @var bool $multi_tenant
- * @var array|null $domain_state
- * @var string $canonical_target
- */
-$state = $domain_state ?? [];
+$multi_tenant = (bool) vars('multi_tenant');
+$state = vars('domain_state') ?? [];
 $status = $state['custom_domain_status'] ?? 'none';
 ?>
 
 <div class="container backend-page py-4" id="custom-domain-page"
      data-status="<?= e($status) ?>"
-     data-canonical-target="<?= e($canonical_target) ?>"
+     data-canonical-target="<?= e(vars('canonical_target')) ?>"
      data-pending-domain="<?= e($state['custom_domain_pending'] ?? '') ?>"
      data-txt-value="<?= e($state['custom_domain_verification_token'] ? 'ki-verify=' . $state['custom_domain_verification_token'] : '') ?>"
      data-last-error="<?= e($state['custom_domain_last_error'] ?? '') ?>"
      data-active-domain="<?= e($state['custom_domain'] ?? '') ?>"
-     data-a-target="<?= e($canonical_ip ?? '') ?>">
+     data-a-target="<?= e(vars('canonical_ip') ?? '') ?>">
 
     <h4 class="mb-1 fw-light">Özel Alan Adı</h4>
     <p class="text-muted mb-4">Ki Reservation hesabınıza kendi alan adınızdan (örn. rezervasyon.firmaniz.com) erişilmesini sağlayın.</p>

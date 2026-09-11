@@ -34,31 +34,6 @@
 
 <main class="flex-shrink-0" id="main-content">
 
-    <?php
-    // Ki Reservation customization (2026-08-24) - license status banner. Admin-only (a provider/
-    // secretary has no ability to act on a licensing issue), and deliberately non-blocking - see
-    // Licensing.php's docblock for why this never prevents the page itself from loading/working.
-    if (session('role_slug') === DB_SLUG_ADMIN) {
-        try {
-            $CI = &get_instance();
-            $CI->load->library('licensing');
-            $license_status = $CI->licensing->status();
-
-            if (in_array($license_status['state'], ['missing', 'grace', 'expired', 'invalid'], true)) {
-                $banner_class = $license_status['state'] === 'expired' ? 'alert-danger' : 'alert-warning';
-                ?>
-                <div class="alert <?= $banner_class ?> mb-0 rounded-0 text-center py-2">
-                    <strong>Lisans:</strong> <?= e($license_status['message']) ?>
-                    <a href="<?= site_url('license') ?>" class="alert-link">Lisans durumunu görüntüle</a>
-                </div>
-                <?php
-            }
-        } catch (Throwable $e) {
-            log_message('error', 'License banner check failed: ' . $e->getMessage());
-        }
-    }
-    ?>
-
     <?php slot('content'); ?>
 
 </main>
@@ -103,8 +78,9 @@
        always-visible, fixed-position left column at/above the "md" breakpoint (768px), matching
        Bootstrap's own `offcanvas-md` behavior contract. */
     #sidebar .nav-link { padding: .55rem .75rem; border-radius: 6px; font-weight: 300; }
-    #sidebar .nav-link:hover { background: rgba(255, 255, 255, 0.08); }
-    #sidebar .nav-item.active > .nav-link { background: rgba(255, 255, 255, 0.16); font-weight: 600; }
+    /* Ki Reservation (2026-09-11 redesign) - hover/active paint moved to ki-command-center.min.css
+       (light-sidebar design); this file only keeps layout-only rules now. */
+    #sidebar .nav-item.active > .nav-link { font-weight: 600; }
     #sidebar .nav-link .fa-chevron-down { transition: transform .2s ease; }
     #sidebar .nav-link[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
 

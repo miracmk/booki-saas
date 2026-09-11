@@ -253,4 +253,4 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
 });
 </script>
 
-<?php end_section(); ?>
+<?php end_section('content'); ?>

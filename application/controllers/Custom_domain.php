@@ -43,7 +43,13 @@ class Custom_domain extends EA_Controller
      */
     private function master_tenant_row(): ?array
     {
-        if (!is_multi_tenant_mode()) {
+        // Ki Reservation (2026-09-11 fix) - NOT is_multi_tenant_mode() here: by the time a controller
+        // method runs, resolve_tenant() has already swapped $this->db to the TENANT's own database
+        // (which has no `tenants` table), so that check always reads as false and this feature looked
+        // "multi-tenant only, but broken on every real tenant". tenant_context() is what actually means
+        // "this request was resolved to some tenant" - see EA_Controller::enforce_onboarding()'s
+        // identical note for the same bug class.
+        if (!tenant_context()) {
             return null;
         }
 
@@ -103,7 +109,7 @@ class Custom_domain extends EA_Controller
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'privileges' => $this->roles_model->get_permissions_by_slug(session('role_slug')),
-            'multi_tenant' => is_multi_tenant_mode(),
+            'multi_tenant' => (bool) tenant_context(),
             'domain_state' => $row,
             'canonical_target' => self::CANONICAL_CNAME_TARGET,
             'canonical_ip' => self::CANONICAL_SERVER_IP,
@@ -126,7 +132,7 @@ class Custom_domain extends EA_Controller
                 abort(403, 'Forbidden');
             }
 
-            if (!is_multi_tenant_mode()) {
+            if (!tenant_context()) {
                 throw new RuntimeException('Bu özellik yalnızca çoklu kiracılı bulut dağıtımında kullanılabilir.');
             }
 
