@@ -276,7 +276,7 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
         // Ki Reservation (2026-09-11 fix) - config.php has csrf_protection=true, so a POST without
         // this field was always rejected before reaching the controller (matches the http_client.js
         // pattern used everywhere else in the app, e.g. account_http_client.js).
-        csrf_token: '<?= e($this->security->get_csrf_hash()) ?>',
+        csrf_token: '<?= e(vars('csrf_token')) ?>',
     };
 
     $.post('<?= base_url('messaging_settings/save_settings') ?>', data, function(response) {
