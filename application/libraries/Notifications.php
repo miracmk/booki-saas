@@ -250,6 +250,28 @@ class Notifications
     }
 
     /**
+     * Ki Reservation (2026-09-11) - send the customer's extra notification channel (on top of the
+     * email that's already sent unconditionally elsewhere) through whichever channel the tenant
+     * picked in Ayarlar > SMS ve WhatsApp Ayarları > Bildirim Motoru. Defaults to 'telegram' (see
+     * migration 136) so existing tenants keep the exact behavior notify_appointment_saved() always
+     * had before this setting existed. 'email' means "no extra channel" - email already covers it.
+     * Each underlying send_*() call is already self-gating (its own enabled flag + configured-ness
+     * check) and best-effort, so this never needs its own try/catch.
+     */
+    private function dispatch_default_channel(array $user, string $text): void
+    {
+        $settings = $this->CI->messaging_settings_model->get_settings();
+        $channel = $settings['default_notification_channel'] ?? 'telegram';
+
+        match ($channel) {
+            'sms' => $this->send_sms($user, $text),
+            'whatsapp' => $this->send_whatsapp($user, $text),
+            'telegram' => $this->send_telegram($user, $text),
+            default => null,
+        };
+    }
+
+    /**
      * Ki Reservation (Dalga 3 / Faz 3.5) - stable tenant identifier for the
      * WhatsApp bridge session keys. Multi-tenant mode uses the tenant's subdomain;
      * standalone deployments fall back to a fixed 'default' key so the sidecar's
@@ -453,7 +475,10 @@ class Notifications
                     $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
                 }
 
-                $this->send_telegram($customer, $subject . "\n" . $service['name'] . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'] . "\n" . $appointment['start_datetime']);
+                $this->dispatch_default_channel(
+                    $customer,
+                    $subject . "\n" . $service['name'] . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'] . "\n" . $appointment['start_datetime'],
+                );
             }
 
             // Notify provider.
@@ -731,6 +756,11 @@ class Notifications
                 } catch (Throwable $e) {
                     $this->log_exception($e, 'appointment-deleted to customer', $appointment['id'] ?? null);
                 }
+
+                $this->dispatch_default_channel(
+                    $customer,
+                    lang('appointment_cancelled_title') . "\n" . $service['name'] . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'] . "\n" . $appointment['start_datetime'],
+                );
             }
 
             // Notify admins.

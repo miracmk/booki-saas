@@ -47,6 +47,7 @@ class Messaging_settings_model extends EA_Model
                 'smtp_pass' => null,
                 'smtp_from_name' => null,
                 'smtp_from_address' => null,
+                'default_notification_channel' => 'telegram',
             ];
         }
 
@@ -84,7 +85,7 @@ class Messaging_settings_model extends EA_Model
             'sms_notifications_enabled', 'whatsapp_notifications_enabled', 'whatsapp_mode',
             'whatsapp_unofficial_status', 'whatsapp_unofficial_name',
             'whatsapp_unofficial_consent_at', 'whatsapp_bridge_url', 'smtp_host', 'smtp_port',
-            'smtp_crypto', 'smtp_from_name', 'smtp_from_address'];
+            'smtp_crypto', 'smtp_from_name', 'smtp_from_address', 'default_notification_channel'];
         $encrypted_fields = ['netgsm_username', 'netgsm_password', 'whatsapp_phone_number_id',
             'whatsapp_access_token', 'whatsapp_waba_id', 'whatsapp_webhook_verify_token',
             'whatsapp_bridge_secret', 'smtp_user', 'smtp_pass'];

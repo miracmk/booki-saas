@@ -50,6 +50,7 @@ class Messaging_settings extends EA_Controller
             'smtp_pass' => $settings['smtp_pass'] ? '***' : '',
             'smtp_from_name' => $settings['smtp_from_name'],
             'smtp_from_address' => $settings['smtp_from_address'],
+            'default_notification_channel' => $settings['default_notification_channel'] ?? 'telegram',
         ];
 
         html_vars([
@@ -92,6 +93,7 @@ class Messaging_settings extends EA_Controller
             check('smtp_pass', 'string|null');
             check('smtp_from_name', 'string|null');
             check('smtp_from_address', 'string|null');
+            check('default_notification_channel', 'string|null');
 
             $data = [
                 'sms_gateway' => trim((string) request('sms_gateway', 'none')) ?: 'none',
@@ -118,6 +120,9 @@ class Messaging_settings extends EA_Controller
                 'smtp_pass' => trim((string) request('smtp_pass', '')) ?: null,
                 'smtp_from_name' => trim((string) request('smtp_from_name', '')) ?: null,
                 'smtp_from_address' => trim((string) request('smtp_from_address', '')) ?: null,
+                'default_notification_channel' => in_array(request('default_notification_channel'), ['email', 'sms', 'whatsapp', 'telegram'], true)
+                    ? request('default_notification_channel')
+                    : null,
             ];
 
             $this->messaging_settings_model->save_settings($data);
