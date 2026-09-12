@@ -56,16 +56,29 @@ class Availability
      * @param array $providers Candidate providers (must already be filtered to ones assigned to the service).
      * @param int $limit How many slots to return.
      * @param int $max_days How many days forward to scan before giving up.
+     * @param bool $one_per_provider Ki Reservation (2026-09-12) - when true, stop after the FIRST (earliest)
+     *   hour found for each provider instead of collecting every open hour that provider has today. Without
+     *   this, a single early provider with many open hours can fill the entire $limit budget by itself,
+     *   starving every other provider of a slot - exactly the bug behind Calendar::get_next_availability()'s
+     *   per-provider "İlk Müsaitlik" strip reporting "no availability" for almost everyone. Appointments.php's
+     *   ::first_availability() (the "suggest 3 upcoming slots" wizard helper) intentionally wants the globally
+     *   earliest N slots regardless of provider, so it keeps the old (false) behavior.
      *
      * @return array List of ['date' => 'Y-m-d', 'hour' => 'H:i', 'provider_id' => int, 'provider_name' =>
      *   string, 'station_id' => int|null, 'station_name' => string|null], earliest first.
      *
      * @throws Exception
      */
-    public function find_first_available_slots(array $service, array $providers, int $limit = 3, int $max_days = 60): array
-    {
+    public function find_first_available_slots(
+        array $service,
+        array $providers,
+        int $limit = 3,
+        int $max_days = 60,
+        bool $one_per_provider = false,
+    ): array {
         $slots = [];
         $duration = new DateInterval('PT' . (int) $service['duration'] . 'M');
+        $providers_with_slot = [];
 
         for ($day_offset = 0; $day_offset < $max_days && count($slots) < $limit; $day_offset++) {
             $date = (new DateTime('today'))->modify("+{$day_offset} day")->format('Y-m-d');
@@ -75,7 +88,15 @@ class Availability
                     break;
                 }
 
-                $available_hours = $this->get_available_hours($date, $service, $provider);
+                if ($one_per_provider && isset($providers_with_slot[$provider['id']])) {
+                    continue;
+                }
+
+                // ignore_advance_timeout=true: every current caller of find_first_available_slots()
+                // (Calendar::get_next_availability(), Appointments::first_availability()) is a
+                // staff-only tool gated behind PRIV_APPOINTMENTS, never the public booking widget - see
+                // get_available_hours() docblock note above for why that distinction matters here.
+                $available_hours = $this->get_available_hours($date, $service, $provider, null, true);
 
                 foreach ($available_hours as $hour) {
                     if (count($slots) >= $limit) {
@@ -110,6 +131,15 @@ class Availability
                         'station_id' => $station_id,
                         'station_name' => $station_name,
                     ];
+
+                    // Only stop scanning this provider once we've found an hour that's actually
+                    // seatable (a free station, or the provider needs none) - an hour with no free
+                    // station is unusable and the caller filters it back out, so stopping here would
+                    // wrongly report "no availability" even though a later hour that same day works.
+                    if ($one_per_provider && ($station_id !== null || empty($station_ids))) {
+                        $providers_with_slot[$provider['id']] = true;
+                        break;
+                    }
                 }
             }
         }
@@ -134,6 +164,7 @@ class Availability
         array $service,
         array $provider,
         ?int $exclude_appointment_id = null,
+        bool $ignore_advance_timeout = false,
     ): array {
         if ($this->CI->blocked_periods_model->is_entire_date_blocked($date)) {
             return [];
@@ -147,7 +178,16 @@ class Availability
             $available_hours = $this->generate_available_hours($date, $service, $available_periods);
         }
 
-        $available_hours = $this->consider_book_advance_timeout($date, $available_hours, $provider);
+        // Ki Reservation (2026-09-12) - $ignore_advance_timeout=true skips the "book_advance_timeout"
+        // buffer below. That setting exists to stop ONLINE customers self-booking a slot starting too
+        // soon for staff to prepare (public Booking.php always passes false, unchanged) - it should NOT
+        // also delay the internal "İlk Müsaitlik" staff view of who's free right now for a walk-in
+        // (find_first_available_slots() passes true). Bug report: at 15:48 with book_advance_timeout=30,
+        // a provider free from 16:00 was reported as first-available at 16:30 (16:00/16:15 both fell
+        // inside the +30min threshold) even though reception could seat a walk-in there immediately.
+        if (!$ignore_advance_timeout) {
+            $available_hours = $this->consider_book_advance_timeout($date, $available_hours, $provider);
+        }
 
         $available_hours = $this->consider_future_booking_limit($date, $available_hours, $provider);
 

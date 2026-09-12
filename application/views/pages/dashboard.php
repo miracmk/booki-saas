@@ -26,6 +26,17 @@ $status_badge = [
         <div class="text-muted small"><?= e($today_label ?? vars('today_label')) ?></div>
     </div>
 
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small fw-semibold">İlk Müsaitlik</span>
+            </div>
+            <div id="next-availability-strip" class="d-flex flex-wrap gap-2">
+                <span class="text-muted small">Yükleniyor...</span>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3 mb-3">
         <div class="col-6 col-lg-3">
             <div class="card kcc-kpi h-100">
@@ -187,6 +198,10 @@ $status_badge = [
 
 <?php section('scripts'); ?>
 
+<!-- Needed by the global next_availability_widget.js for the "İlk Müsaitlik" strip above -
+     calendar.php loads this too, but dashboard.php previously didn't since it has no calendar
+     of its own. -->
+<script src="<?= asset_url('assets/js/http/calendar_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/pages/dashboard.min.js') ?>"></script>
 
 <?php end_section('scripts'); ?>

@@ -83,6 +83,7 @@ const PRIV_INVOICES = 'invoices'; // Ki Reservation customization (Dalga 1, 2026
 const PRIV_POS = 'pos'; // Ki Reservation customization (Dalga 1, 2026-08-28)
 const PRIV_MARKETING = 'marketing'; // Ki Reservation customization (Dalga 3 / Faz 3.3, 2026-09-09)
 const PRIV_REVIEWS = 'reviews'; // Ki Reservation customization (Dalga 3 / Faz 3.4, 2026-09-09)
+const PRIV_AI_AGENT = 'ai_agent'; // Ki Reservation customization (Dalga 4, 2026-09-12)
 
 const DATE_FORMAT_DMY = 'DMY';
 const DATE_FORMAT_MDY = 'MDY';

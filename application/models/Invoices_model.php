@@ -191,6 +191,43 @@ class Invoices_model extends EA_Model
     }
 
     /**
+     * Ki Reservation (2026-09-12) - finalized invoices (issued/paid/partially_paid - draft and void
+     * excluded, matching what an accounting system should actually receive) in a date range, joined with
+     * customer name and each invoice's item descriptions concatenated (one row per invoice, not per line
+     * item - most accounting import formats expect one row per document). Used by
+     * Invoices::export_csv().
+     *
+     * @param string $date_from 'Y-m-d'
+     * @param string $date_to 'Y-m-d'
+     * @return array
+     */
+    public function get_for_export(string $date_from, string $date_to): array
+    {
+        $invoices = $this->db
+            ->select('i.*, u.first_name as customer_first_name, u.last_name as customer_last_name')
+            ->from('invoices i')
+            ->join('users u', 'u.id = i.id_users_customer', 'left')
+            ->where_in('i.status', ['issued', 'paid', 'partially_paid'])
+            ->where('DATE(i.created_at) >=', $date_from)
+            ->where('DATE(i.created_at) <=', $date_to)
+            ->order_by('i.created_at', 'ASC')
+            ->get()
+            ->result_array();
+
+        foreach ($invoices as &$invoice) {
+            $this->cast($invoice);
+
+            $invoice['item_descriptions'] = $this->db
+                ->select('description')
+                ->where('id_invoices', $invoice['id'])
+                ->get('invoice_items')
+                ->result_array();
+        }
+
+        return $invoices;
+    }
+
+    /**
      * Mark an invoice as issued (draft -> issued, sets issued_at).
      *
      * @param int $invoice_id Invoice ID.

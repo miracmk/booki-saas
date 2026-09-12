@@ -31,6 +31,29 @@
     --kcc-accent-blue: #2f8cf0;
     --kcc-accent-amber: #f5a623;
     --kcc-accent-coral: #ff6b6b;
+
+    /* 2026-09-12 typography pass - modern SaaS grade type (Inter for UI text,
+     * a monospace fallback stack for numeric/tabular content). Overrides
+     * Bootstrap's --bs-font-sans-serif (system font stack) so every rule that
+     * reads var(--bs-body-font-family) picks this up automatically - no
+     * per-component overrides needed. Loaded via Google Fonts <link> in
+     * backend_layout.php (Inter, weights 400-800). */
+    --bs-font-sans-serif: 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bs-body-font-family: var(--bs-font-sans-serif);
+    --kcc-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+body {
+    font-family: var(--bs-body-font-family);
+    font-feature-settings: "cv11", "ss01", "salt";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.kcc-kpi-value, .card .h1, .card .h2, .card .h3, .display-1, .display-2, .display-3, .display-4 {
+    font-family: var(--kcc-font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
 }
 
 body {
@@ -255,4 +278,322 @@ nav#header .btn-link.text-white {
     font-size: 9.5px;
     color: var(--kcc-muted);
     margin-top: 3px;
+}
+
+/* ----------------------------------------------------------------------------
+ * 2026-09-12 - Calendar "Notion-style" pass (Dalga 4 UI modernization plan,
+ * item 1). Presentation-layer only: FullCalendar's own DOM/classes and the
+ * table-view JS are untouched, this only restyles them. Uses FullCalendar's
+ * own --fc-* custom properties where possible (its documented override
+ * surface) instead of fighting .fc-* internals with high-specificity rules.
+ * ---------------------------------------------------------------------------- */
+
+#calendar-toolbar {
+    background: var(--kcc-surface);
+    border: 1px solid var(--kcc-line);
+    border-radius: 14px;
+    box-shadow: var(--kcc-shadow);
+}
+#calendar-toolbar .btn-light {
+    background: var(--kcc-surface);
+    border: 1px solid var(--kcc-line);
+    color: var(--kcc-text);
+}
+#calendar-toolbar .btn-light:hover, #calendar-toolbar .btn-light:focus {
+    background: var(--kcc-bg);
+    color: var(--kcc-text);
+}
+
+#calendar-shell {
+    background: var(--kcc-surface);
+    border: 1px solid var(--kcc-line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--kcc-shadow);
+}
+#calendar-page #calendar {
+    margin-bottom: 0;
+}
+
+#calendar {
+    --fc-border-color: var(--kcc-line);
+    --fc-neutral-bg-color: var(--kcc-bg);
+    --fc-page-bg-color: var(--kcc-surface);
+    --fc-now-indicator-color: var(--bs-primary);
+    --fc-today-bg-color: rgba(var(--bs-primary-rgb), .04);
+}
+
+#calendar .fc-header .fc-button.btn-primary,
+#calendar .fc-header .fc-button.btn-primary:hover,
+#calendar .fc-header .fc-button.btn-primary:focus {
+    background-image: linear-gradient(135deg, var(--bs-primary) 0%, var(--kcc-accent-violet) 100%) !important;
+}
+
+/* Events: soft cards with a color accent bar instead of solid flat fills. */
+#calendar .fc-event {
+    border: none;
+    border-left: 3px solid var(--bs-primary);
+    border-radius: 10px;
+    background-color: rgba(var(--bs-primary-rgb), .12);
+    color: var(--kcc-text);
+    box-shadow: var(--kcc-shadow);
+    padding: 4px 8px;
+    font-size: 12.5px;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+#calendar .fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--kcc-shadow-lg);
+}
+#calendar-page .fc-event-time {
+    font-weight: 600;
+    font-size: 11.5px;
+}
+#calendar-page .fc-event-title {
+    font-weight: 500;
+    font-size: 11.5px;
+}
+#calendar .fc-daygrid-day:hover, #calendar .fc-timegrid-col:hover {
+    background: rgba(var(--bs-primary-rgb), .02);
+}
+
+/* Unavailability/break/custom blocks: flat repeating-gradient textures instead
+ * of the old JPG images (each stays visually distinct by angle/tint so staff
+ * keep the same at-a-glance signal). */
+#calendar-page #calendar .fc-unavailability {
+    background-image: repeating-linear-gradient(45deg, var(--kcc-line), var(--kcc-line) 6px, var(--kcc-bg) 6px, var(--kcc-bg) 12px);
+    background-blend-mode: normal;
+    border-radius: 8px;
+    border-left: 3px solid var(--kcc-muted);
+    font-weight: 600;
+    color: var(--kcc-text);
+    border-top: 1px solid var(--kcc-line);
+    border-right: 1px solid var(--kcc-line);
+    border-bottom: 1px solid var(--kcc-line);
+}
+#calendar-page #calendar .fc-unavailability.fc-blocked-period {
+    background-image: none;
+    text-shadow: none;
+}
+#calendar-page #calendar .fc-break {
+    background-image: repeating-linear-gradient(135deg, rgba(var(--bs-warning-rgb), .18), rgba(var(--bs-warning-rgb), .18) 6px, var(--kcc-bg) 6px, var(--kcc-bg) 12px);
+    border-left: 3px solid var(--bs-warning);
+}
+#calendar-page #calendar .fc-custom {
+    background-image: repeating-linear-gradient(90deg, rgba(var(--bs-info-rgb), .18), rgba(var(--bs-info-rgb), .18) 6px, var(--kcc-bg) 6px, var(--kcc-bg) 12px);
+    border-left: 3px solid var(--bs-info);
+}
+#calendar .fc-unavailability {
+    background: var(--kcc-bg);
+}
+
+/* Table/board view: same soft-card language as the default FullCalendar view. */
+#calendar .calendar-view .date-column .date-column-title {
+    background: var(--kcc-surface);
+    border-right: 1px solid var(--kcc-line);
+    color: var(--kcc-muted);
+    font-weight: 600;
+}
+#calendar .calendar-view .date-column .provider-column {
+    border-right: 1px solid var(--kcc-line);
+}
+#calendar .calendar-view .date-column .provider-column h6 {
+    background: var(--kcc-surface);
+    border-bottom: 1px solid var(--kcc-line);
+    border-radius: 10px 10px 0 0;
+    font-weight: 600;
+    color: var(--kcc-text);
+}
+#calendar .calendar-view .date-column .provider-column .event {
+    border-radius: 8px;
+    box-shadow: var(--kcc-shadow);
+    border: none;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+#calendar .calendar-view .date-column .provider-column .event:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--kcc-shadow-lg);
+}
+#calendar .calendar-view .date-column .provider-column .event.appointment {
+    background: rgba(var(--bs-primary-rgb), .85);
+    color: var(--bs-white);
+}
+#calendar .calendar-view .date-column .provider-column .event.unavailability {
+    background: var(--kcc-muted);
+    color: var(--bs-white);
+}
+
+/* Popover (appointment detail card) - rounder, more generous spacing. */
+.popover {
+    border: none;
+    border-radius: 14px;
+    box-shadow: var(--kcc-shadow-lg);
+}
+.popover .popover-header {
+    background: var(--kcc-surface);
+    border-bottom: 1px solid var(--kcc-line);
+    border-radius: 14px 14px 0 0;
+    font-weight: 600;
+}
+.popover .popover-body {
+    padding: 12px 14px;
+}
+
+/* ----------------------------------------------------------------------------
+ * 2026-09-12 - "İlk Müsaitlik" strip (Dalga 4 UI modernization plan, item 2).
+ * One compact pill per room/provider - see next_availability_widget.js.
+ * ---------------------------------------------------------------------------- */
+.kcc-availability-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: var(--kcc-surface);
+    border: 1px solid var(--kcc-line);
+    box-shadow: var(--kcc-shadow);
+    font-size: 12.5px;
+    white-space: nowrap;
+}
+/* Two always-present labeled sections per pill ("Terapist: X", "Oda: Y"),
+ * followed by the time/duration or "Müsaitlik yok" - user feedback asked for
+ * both fields to stay visible/labeled regardless of availability, not just
+ * silently dropped when there's no room to show. */
+.kcc-availability-field {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    padding-right: 8px;
+    border-right: 1px solid var(--kcc-line);
+    margin-right: 2px;
+}
+.kcc-availability-field-label {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--kcc-muted);
+}
+.kcc-availability-field-value {
+    font-weight: 600;
+    color: var(--kcc-text);
+}
+.kcc-availability-time {
+    color: var(--kcc-muted);
+}
+.kcc-availability-window {
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.kcc-availability-pill-now {
+    border-color: rgba(var(--bs-primary-rgb), .35);
+}
+.kcc-availability-pill-now .kcc-availability-time {
+    color: var(--bs-primary);
+    font-weight: 700;
+}
+.kcc-availability-pill-ok .kcc-availability-window {
+    background: rgba(var(--bs-success-rgb), .15);
+    color: var(--bs-success);
+}
+.kcc-availability-pill-tight .kcc-availability-window {
+    background: rgba(var(--bs-warning-rgb), .18);
+    color: var(--bs-warning-text-emphasis, var(--bs-warning));
+}
+.kcc-availability-pill-none {
+    opacity: .6;
+}
+.kcc-availability-pill-none .kcc-availability-time {
+    color: var(--bs-danger);
+}
+
+/* ----------------------------------------------------------------------------
+ * 2026-09-12 - Quick-win pass on the CRUD list/form pages (Customers, Services,
+ * Providers, Stations, Admins, Secretaries, Service Categories, Blocked
+ * Periods, Webhooks - all share this exact .filter-records/.record-details
+ * toggle layout, see backend.css). CSS-only - no markup/JS changes, so every
+ * page picks this up automatically.
+ * ---------------------------------------------------------------------------- */
+.backend-page .filter-records,
+.backend-page .record-details {
+    background: var(--kcc-surface);
+    border: 1px solid var(--kcc-line);
+    border-radius: 16px;
+    box-shadow: var(--kcc-shadow);
+    padding: 20px;
+}
+.backend-page .filter-records .results .entry {
+    border-radius: 10px;
+    padding: 10px 12px;
+    transition: background-color .15s ease;
+}
+.backend-page .filter-records .results .entry:hover {
+    background-color: rgba(var(--bs-primary-rgb), .06);
+}
+.backend-page h4.fw-light {
+    font-weight: 600 !important;
+    font-size: 1.15rem;
+}
+
+/* ----------------------------------------------------------------------------
+ * 2026-09-12 - Notification bell panel (Dalga 4 UI modernization plan, item 3).
+ * See notification_panel.js / Notifications_feed.php.
+ * ---------------------------------------------------------------------------- */
+.kcc-notif-trigger .kcc-notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    padding: 2px 5px;
+}
+.kcc-notif-panel {
+    width: 340px;
+    max-width: 90vw;
+    padding: 0;
+    border: 1px solid var(--kcc-line);
+    border-radius: 14px;
+    box-shadow: var(--kcc-shadow-lg);
+    overflow: hidden;
+}
+.kcc-notif-header {
+    padding: 12px 14px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--kcc-text);
+    background: var(--kcc-bg);
+    border-bottom: 1px solid var(--kcc-line);
+}
+.kcc-notif-list {
+    max-height: 360px;
+    overflow-y: auto;
+}
+.kcc-notif-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--kcc-line);
+}
+.kcc-notif-item:last-child {
+    border-bottom: none;
+}
+.kcc-notif-item-unread {
+    background: rgba(var(--bs-primary-rgb), .04);
+}
+.kcc-notif-item-icon {
+    margin-top: 3px;
+    font-size: 12px;
+}
+.kcc-notif-item-title {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--kcc-text);
+}
+.kcc-notif-item-subtitle {
+    font-size: 12px;
+    color: var(--kcc-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

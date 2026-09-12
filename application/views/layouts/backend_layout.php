@@ -14,6 +14,13 @@
     <link rel="icon" type="image/x-icon" href="<?= asset_url('assets/img/favicon.ico') ?>">
     <link rel="icon" sizes="192x192" href="<?= asset_url('assets/img/logo.png') ?>">
 
+    <!-- Modern SaaS type (Inter + JetBrains Mono) - see ki-command-center.min.css for the
+         --bs-font-sans-serif override that wires this in everywhere. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/trumbowyg/trumbowyg.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/select2/select2.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/flatpickr/flatpickr.min.css') ?>">
@@ -70,6 +77,7 @@
 <script src="<?= asset_url('assets/js/utils/session_actions.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/active_sessions_widget.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/next_availability_widget.js') ?>"></script>
+<script src="<?= asset_url('assets/js/components/notification_panel.js') ?>"></script>
 <script src="<?= asset_url('assets/js/ki-theme-switcher.min.js') ?>"></script>
 
 <style>

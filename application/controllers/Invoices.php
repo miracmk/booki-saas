@@ -251,4 +251,84 @@ class Invoices extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Ki Reservation (2026-09-12) - "Muhasebe Dışa Aktar": a generic, one-row-per-invoice CSV that
+     * Turkish accounting/ERP software (Logo, Mikro, Netsis, Zirve, İşBaşı, ETA, Paraşüt, KolayBi, ...)
+     * can import by hand today. This is NOT a live push integration to any of those systems - most of
+     * them (the classic on-premise ones) have no public cloud API a SaaS could call directly; Paraşüt
+     * and KolayBi do have real REST APIs and are the natural next-phase candidates for a genuine push
+     * connector once API credentials are available (out of scope for this pass).
+     */
+    public function export_csv(): void
+    {
+        try {
+            method('get');
+
+            if (cannot('view', PRIV_INVOICES)) {
+                abort(403, 'Forbidden');
+            }
+
+            check('start_date', 'date');
+            check('end_date', 'date');
+
+            $start_date = request('start_date');
+            $end_date = request('end_date');
+
+            if ($end_date < $start_date) {
+                throw new InvalidArgumentException('Bitiş tarihi başlangıç tarihinden önce olamaz.');
+            }
+
+            $invoices = $this->invoices_model->get_for_export($start_date, $end_date);
+
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="muhasebe_' . $start_date . '_' . $end_date . '.csv"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+
+            $output = fopen('php://output', 'w');
+
+            // UTF-8 BOM + ';' delimiter so Excel (Turkish locale, ',' is the decimal separator) opens
+            // Turkish characters and columns correctly without a manual "import as UTF-8" step - same
+            // convention as Reports::export_csv().
+            fwrite($output, "\xEF\xBB\xBF");
+
+            fputcsv($output, [
+                'Tarih', 'Fatura No', 'Müşteri', 'Vergi/TC No', 'Açıklama',
+                'Ara Toplam', 'KDV Tutarı', 'Toplam', 'Para Birimi', 'Durum',
+            ], ';');
+
+            $money = fn($value) => number_format((float) $value, 2, ',', '');
+            $status_label = [
+                'issued' => 'Kesildi',
+                'paid' => 'Ödendi',
+                'partially_paid' => 'Kısmi Ödendi',
+            ];
+
+            foreach ($invoices as $invoice) {
+                $customer_name = trim(($invoice['customer_first_name'] ?? '') . ' ' . ($invoice['customer_last_name'] ?? '')) ?: '-';
+                $descriptions = implode('; ', array_column($invoice['item_descriptions'], 'description'));
+
+                fputcsv($output, [
+                    (new DateTime($invoice['created_at']))->format('d.m.Y'),
+                    $invoice['invoice_number'],
+                    $customer_name,
+                    // Ki Reservation (2026-09-12) - customers have no tax-ID/TC-kimlik field today; left
+                    // blank rather than guessed. Add one to Customers_model if real e-Fatura-grade export
+                    // is needed later.
+                    '',
+                    $descriptions ?: '-',
+                    $money($invoice['subtotal']),
+                    $money($invoice['tax_total']),
+                    $money($invoice['total']),
+                    $invoice['currency'],
+                    $status_label[$invoice['status']] ?? $invoice['status'],
+                ], ';');
+            }
+
+            fclose($output);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }

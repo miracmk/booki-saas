@@ -21,6 +21,7 @@ App.Pages.Invoices = (function () {
     addEventListeners();
     populateCustomerSelect();
     search();
+    initializeExport();
   }
 
   function addEventListeners() {
@@ -35,6 +36,35 @@ App.Pages.Invoices = (function () {
     $tbody.on('click', 'button.issue-btn', onIssueClick);
     $tbody.on('click', 'button.paid-btn', onMarkPaidClick);
     $tbody.on('click', 'button.void-btn', onVoidClick);
+  }
+
+  /**
+   * "Muhasebe Dışa Aktar" (2026-09-12) - GET-based CSV download, same pattern as
+   * Reports.js's export-csv (no CSRF needed, CI3 only checks it on POST).
+   */
+  function initializeExport() {
+    const today = moment().format('YYYY-MM-DD');
+    $('#invoice-export-start').val(today);
+    $('#invoice-export-end').val(today);
+
+    $('#invoice-export-csv').on('click', function () {
+      const startDate = $('#invoice-export-start').val();
+      const endDate = $('#invoice-export-end').val();
+
+      if (!startDate || !endDate) {
+        App.Layouts.Backend.displayNotification('Başlangıç ve bitiş tarihi seçmelisiniz.');
+        return;
+      }
+
+      if (endDate < startDate) {
+        App.Layouts.Backend.displayNotification('Bitiş tarihi başlangıç tarihinden önce olamaz.');
+        return;
+      }
+
+      window.location.href = App.Utils.Url.siteUrl(
+        'invoices/export_csv?start_date=' + startDate + '&end_date=' + endDate,
+      );
+    });
   }
 
   function populateCustomerSelect() {

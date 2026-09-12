@@ -24,7 +24,12 @@ App.Pages.Whatsapp = (function () {
         const params = new URLSearchParams(Object.assign({ csrf_token: vars('csrf_token') }, data || {}));
         fetch(action, {
             method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                // Without this, fetch() sends a plain-string body as text/plain, PHP never
+                // populates $_POST, and CI3's CSRF check (which reads $_POST) always 403s.
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
             body: params.toString(),
         })
             .then((response) => response.json())

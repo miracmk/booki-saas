@@ -2185,11 +2185,20 @@ class Calendar extends EA_Controller
             $probe_service = $services[0];
             $probe_service['duration'] = 40;
 
-            $slots = $this->availability->find_first_available_slots($probe_service, $providers, count($providers), 1);
+            // Ki Reservation (2026-09-12 bugfix): $one_per_provider=true is what makes this actually
+            // return one slot PER PROVIDER - without it, find_first_available_slots() keeps collecting
+            // every open hour for whichever provider it looks at first until $limit is exhausted, so a
+            // single provider with a busy-but-open day could starve every other provider of a slot at
+            // all (the reported "her koşulda müsaitlik yok" bug - almost every row showed unavailable).
+            // The generous limit multiplier is slack for providers whose first few open hours have no
+            // free station (find_first_available_slots keeps scanning that provider's hours until a
+            // seatable one turns up or the shared budget runs out).
+            $slots = $this->availability->find_first_available_slots($probe_service, $providers, count($providers) * 5, 1, true);
 
-            // A provider with stations configured but no free one at their first open hour isn't
-            // actually usable at that hour - drop it so a later provider (or none) wins instead of
-            // reporting a slot the desk can't actually seat anyone in.
+            // Defensive backstop (should rarely trigger now): a provider with stations configured but
+            // no free one at their first open hour isn't actually usable at that hour - drop it so a
+            // later provider (or none) wins instead of reporting a slot the desk can't actually seat
+            // anyone in.
             $providers_by_id = [];
             foreach ($providers as $p) {
                 $providers_by_id[(int) $p['id']] = $p;
@@ -2201,60 +2210,90 @@ class Calendar extends EA_Controller
                 return $slot['station_id'] !== null || empty($p['stations'] ?? []);
             }));
 
-            if (empty($slots)) {
-                json_response(['available' => false]);
-                return;
-            }
-
+            // Dalga 4 UI modernization (2026-09-12): report one row PER PROVIDER instead of
+            // collapsing to the single globally-earliest slot, so the panel can show a
+            // room/provider-by-room first-availability strip instead of one badge. The slot
+            // search above already computes a first-available slot per provider (limit =
+            // count($providers)); sorting ascending then taking the first occurrence per
+            // provider_id just keeps each provider's OWN earliest slot instead of discarding it.
             usort($slots, fn($a, $b) => strcmp($a['date'] . ' ' . $a['hour'], $b['date'] . ' ' . $b['hour']));
 
-            $slot = $slots[0];
-            $slot_start = new DateTime($slot['date'] . ' ' . $slot['hour']);
-            $now = new DateTime();
-
-            // Next appointment for that provider after this slot - defines how big the window is.
-            $next_start_row = $this->db
-                ->select('start_datetime')
-                ->from('appointments')
-                ->where('id_users_provider', $slot['provider_id'])
-                ->where('is_unavailability', 0)
-                ->where('start_datetime >', $slot_start->format('Y-m-d H:i:s'))
-                ->order_by('start_datetime', 'asc')
-                ->limit(1)
-                ->get()
-                ->row_array();
-
-            $window_end = $next_start_row ? new DateTime($next_start_row['start_datetime']) : null;
-
-            // Working-day end, from the provider's own plan (falls back to the company default) - a
-            // simplification vs. find_first_available_slots() itself: working_plan_exceptions for
-            // today are not re-applied here, only the base weekly plan, so this closing-time text can
-            // be off on an exception day even though the actual slot search above already honored it.
-            $provider = $providers_by_id[$slot['provider_id']] ?? null;
-            $working_plan_json = $provider['settings']['working_plan'] ?? setting('company_working_plan');
-            $working_plan = json_decode((string) $working_plan_json, true) ?: [];
-            $weekday = strtolower($slot_start->format('l'));
-            $day_end_time = $working_plan[$weekday]['end'] ?? null;
-
-            if ($day_end_time) {
-                $day_end = new DateTime($slot['date'] . ' ' . $day_end_time);
-
-                if (!$window_end || $day_end < $window_end) {
-                    $window_end = $day_end;
+            $first_slot_by_provider = [];
+            foreach ($slots as $slot) {
+                if (!isset($first_slot_by_provider[$slot['provider_id']])) {
+                    $first_slot_by_provider[$slot['provider_id']] = $slot;
                 }
             }
 
-            $window_minutes = $window_end ? max(0, (int) round(($window_end->getTimestamp() - $slot_start->getTimestamp()) / 60)) : null;
+            $now = new DateTime();
+            $rows = [];
 
-            json_response([
-                'available' => true,
-                'provider_id' => $slot['provider_id'],
-                'provider_name' => $slot['provider_name'],
-                'station_name' => $slot['station_name'],
-                'time' => $slot_start->format('H:i'),
-                'is_now' => $slot_start->getTimestamp() <= $now->getTimestamp() + 300,
-                'window_minutes' => $window_minutes,
-            ]);
+            foreach ($providers as $provider) {
+                $provider_id = (int) $provider['id'];
+                $slot = $first_slot_by_provider[$provider_id] ?? null;
+
+                if (!$slot) {
+                    $rows[] = [
+                        'provider_id' => $provider_id,
+                        'provider_name' => trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')),
+                        'station_id' => null,
+                        'station_name' => null,
+                        'time' => null,
+                        'is_now' => false,
+                        'window_minutes' => null,
+                        'available' => false,
+                    ];
+                    continue;
+                }
+
+                $slot_start = new DateTime($slot['date'] . ' ' . $slot['hour']);
+
+                // Next appointment for that provider after this slot - defines how big the window is.
+                $next_start_row = $this->db
+                    ->select('start_datetime')
+                    ->from('appointments')
+                    ->where('id_users_provider', $slot['provider_id'])
+                    ->where('is_unavailability', 0)
+                    ->where('start_datetime >', $slot_start->format('Y-m-d H:i:s'))
+                    ->order_by('start_datetime', 'asc')
+                    ->limit(1)
+                    ->get()
+                    ->row_array();
+
+                $window_end = $next_start_row ? new DateTime($next_start_row['start_datetime']) : null;
+
+                // Working-day end, from the provider's own plan (falls back to the company default) - a
+                // simplification vs. find_first_available_slots() itself: working_plan_exceptions for
+                // today are not re-applied here, only the base weekly plan, so this closing-time text can
+                // be off on an exception day even though the actual slot search above already honored it.
+                $working_plan_json = $provider['settings']['working_plan'] ?? setting('company_working_plan');
+                $working_plan = json_decode((string) $working_plan_json, true) ?: [];
+                $weekday = strtolower($slot_start->format('l'));
+                $day_end_time = $working_plan[$weekday]['end'] ?? null;
+
+                if ($day_end_time) {
+                    $day_end = new DateTime($slot['date'] . ' ' . $day_end_time);
+
+                    if (!$window_end || $day_end < $window_end) {
+                        $window_end = $day_end;
+                    }
+                }
+
+                $window_minutes = $window_end ? max(0, (int) round(($window_end->getTimestamp() - $slot_start->getTimestamp()) / 60)) : null;
+
+                $rows[] = [
+                    'provider_id' => $slot['provider_id'],
+                    'provider_name' => $slot['provider_name'],
+                    'station_id' => $slot['station_id'] ?? null,
+                    'station_name' => $slot['station_name'],
+                    'time' => $slot_start->format('H:i'),
+                    'is_now' => $slot_start->getTimestamp() <= $now->getTimestamp() + 300,
+                    'window_minutes' => $window_minutes,
+                    'available' => true,
+                ];
+            }
+
+            json_response(['rows' => $rows]);
         } catch (Throwable $e) {
             json_exception($e);
         }

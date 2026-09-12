@@ -158,6 +158,14 @@ App.Pages.Reports = (function () {
             $('.export-column-checkbox').prop('checked', false);
         });
 
+        $('#export-end-of-day').on('click', () => {
+            const todayStr = moment().format('YYYY-MM-DD');
+            $startDate.val(todayStr);
+            $endDate.val(todayStr);
+            $('.export-column-checkbox').prop('checked', true);
+            $('#export-csv').trigger('click');
+        });
+
         $('#export-csv').on('click', () => {
             const startDate = $startDate.val();
             const endDate = $endDate.val();

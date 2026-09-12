@@ -36,7 +36,20 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
             aria-controls="sidebar" aria-label="Menüyü aç">
         <i class="fas fa-bars fa-lg"></i>
     </button>
-    <span class="text-white fw-bold ms-2" style="font-size: 15px;"><?= e($header_company_name) ?></span>
+    <span class="text-white fw-bold ms-2 flex-grow-1" style="font-size: 15px;"><?= e($header_company_name) ?></span>
+    <?php if (can('view', PRIV_CUSTOMERS)): ?>
+        <div class="dropdown">
+            <button type="button" class="btn btn-link text-white position-relative p-1 kcc-notif-trigger"
+                    data-bs-toggle="dropdown" aria-label="Bildirimler">
+                <i class="fas fa-bell"></i>
+                <span class="badge rounded-pill bg-danger kcc-notif-badge" style="display: none;">0</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end kcc-notif-panel">
+                <div class="kcc-notif-header">Bildirimler</div>
+                <div class="kcc-notif-list"></div>
+            </div>
+        </div>
+    <?php endif; ?>
 </nav>
 
 <nav id="sidebar" class="offcanvas-md offcanvas-start bg-primary text-white" tabindex="-1"
@@ -50,10 +63,23 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
     <div class="offcanvas-body d-flex flex-column p-0">
         <div id="header-logo" class="d-none d-md-flex align-items-center p-3">
             <img src="<?= e($header_company_logo) ?>" alt="logo" class="me-2" style="width: 40px; height: 40px;">
-            <div>
+            <div class="flex-grow-1">
                 <h6 class="mb-0 fw-bold text-white" style="font-size: 14px;"><?= e($header_company_name) ?></h6>
                 <small class="d-block text-white-50" style="font-size: 11px;">Online Appointment Scheduler</small>
             </div>
+            <?php if (can('view', PRIV_CUSTOMERS)): ?>
+                <div class="dropdown">
+                    <button type="button" class="btn btn-link text-white position-relative p-1 kcc-notif-trigger"
+                            data-bs-toggle="dropdown" aria-label="Bildirimler">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge rounded-pill bg-danger kcc-notif-badge" style="display: none;">0</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end kcc-notif-panel">
+                        <div class="kcc-notif-header">Bildirimler</div>
+                        <div class="kcc-notif-list"></div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <ul class="nav flex-column flex-grow-1 overflow-auto px-2 sidebar-nav">
@@ -63,6 +89,15 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                 <a href="<?= site_url('dashboard') ?>" class="nav-link text-white" data-tippy-content="Genel bakış">
                     <i class="fas fa-gauge-high me-2"></i>
                     Dashboard
+                </a>
+            </li>
+
+            <?php $hidden = can('view', PRIV_AI_AGENT) ? '' : 'd-none'; ?>
+            <?php $active = $active_menu == PRIV_AI_AGENT ? 'active' : ''; ?>
+            <li class="nav-item <?= $active . $hidden ?>">
+                <a href="<?= site_url('ai_agent') ?>" class="nav-link text-white" data-tippy-content="AI Asistan">
+                    <i class="fas fa-robot me-2"></i>
+                    AI Asistan
                 </a>
             </li>
 

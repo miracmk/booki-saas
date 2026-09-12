@@ -2,7 +2,153 @@
 
 Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
-Son güncelleme: 2026-09-10
+Son güncelleme: 2026-09-12
+
+## 0.5 2026-09-11/12 OTURUMU — WhatsApp CSRF bug, Tipografi, AI Asistan, UI Modernizasyon Dalga 4
+
+Önceki oturum (commit `64255a1`, "UI modernizasyonu") SESSION_NOTES'a hiç yazılmadan yarıda kesilmişti
+(sidebar/gradient/KPI restyle canlıda ama dokümante edilmemiş) - bu oturum onu tamamladı + üstüne yeni
+işler ekledi. Hepsi canlıya alındı, `docker compose build app && up -d app` ile deploy edildi,
+ASSET_VERSION sırayla `20260912-1` → `20260912-4` bump edildi.
+
+- **WhatsApp QR bug (kritik, köprüyle ilgisi yoktu):** `assets/js/pages/whatsapp.js`'in kendi `fetch()`
+  tabanlı `post()` yardımcısı `Content-Type` header'ı hiç göndermiyordu → tarayıcı body'yi `text/plain`
+  yolluyordu → PHP `$_POST`'u hiç dolduramıyordu → CI3 CSRF kontrolü (haklı olarak) her POST'u 403'le
+  reddediyordu (`save_mode` VE `qr_start` ikisi de). Kök neden apache access log'unda `403` durum kodları
+  görülüp `Security::csrf_verify()`'a kadar izlenerek bulundu. Düzeltme: `'Content-Type':
+  'application/x-www-form-urlencoded'` eklendi (hem `.js` hem `.min.js`).
+- **wa-bridge varsayılanı:** `Messaging_settings_model::get_settings()` artık `whatsapp_bridge_url`/`secret`
+  boşsa `WA_BRIDGE_URL`/`WA_BRIDGE_SECRET` env değişkenlerine (kendi `wa-bridge` container'ımız) düşüyor -
+  panel hiç doldurulmadan da köprü çalışır durumda gelir, tenant kendi değerini girerse o üstün gelir.
+- **Tipografi:** Inter (UI metni) + JetBrains Mono (KPI/sayısal değerler), Google Fonts üzerinden
+  `backend_layout.php`'ye eklendi, `--bs-font-sans-serif` override'ı `ki-command-center.min.css`'de -
+  sadece admin paneli (backend), müşteri booking/portal sayfaları kapsam dışı bırakıldı.
+- **AI Asistan (`Ai_agent_client.php` + `Ai_agent.php` + `pages/ai_agent.php`):** Ayrı, admin-paneli-içi
+  bir agent - `Ai_llm_client.php` (public booking widget asistanı, tek atış yapılandırılmış JSON) ile
+  KARIŞTIRILMASIN. OpenRouter üzerinden gerçek tool-calling döngüsü (`search_customers`, `get_customer`,
+  `get_customer_appointments` salt-okunur; `propose_customer_update` YAZMAZ, sadece
+  `ai_agent_pending_changes` tablosuna onay kuyruğuna ekler - admin onaylayana kadar hiçbir müşteri kaydı
+  değişmez). Migration 137: `ai_agent_pending_changes` tablosu + `ea_roles.ai_agent` bitmask (admin=15).
+  Varsayılan model `openrouter/free` (gerçek $0 - Hermes/Nous markalı modellerin şu an ücretsiz varyantı
+  YOK, en ucuzu ~$0.70-1/M token, kullanıcıya bildirildi). **Eksik: `OPENROUTER_API_KEY` kullanıcıdan
+  bekleniyor** (openrouter.ai hesabı kullanıcının kendisi açmalı, ben açamam) - key gelene kadar agent
+  "yapılandırılmadı" mesajı döner, hiçbir tenant'ı etkilemez.
+- **UI Modernizasyon Dalga 4 (bir Plan alt-ajanının kod-tabanlı raporuna göre uygulandı):**
+  1. Takvim "Notion tarzı" - CSS-only (FullCalendar'ın kendi `--fc-*` custom property'leri + `.fc-event`
+     yumuşak kart/gölge/renk-şerit, JPG doku yerine düz `repeating-linear-gradient`, toolbar
+     `bg-dark`'tan açık yüzeye), iş mantığına/JS'e dokunulmadı.
+  2. İlk müsaitlik tek bar → çoklu bar: `Calendar::get_next_availability()` artık `usort()+$slots[0]`
+     ile TEK sonuca indirgemek yerine `{rows: [...]}` döndürüyor (her sağlayıcı için oda/saat/pencere) -
+     backend zaten bu veriyi hesaplıyordu, sadece atılan kısmı kurtarıldı. `next_availability_widget.js`
+     yeniden yazıldı (pill/strip render), Dashboard'a `#next-availability-strip` eklendi (calendar_http_client.js
+     dashboard.php'ye de yüklendi, önceden sadece calendar.php'de vardı).
+  3. Bildirim zili: yeni `Notifications_feed::recent()` (mevcut `whatsapp_messages` tablosunu normalize
+     eder, YENİ tablo/migration yok), `backend_header.php`'ye bell+dropdown (mobil nav + masaüstü sidebar
+     header, ikisi de - bu app'te ayrı bir topbar yok, hesap menüsü de sidebar altında), okunmuşluk durumu
+     sadece localStorage'da (sunucu tarafı yok, bilinçli minimum viable).
+  4. Customers/Services/Providers/Stations/Admins/Secretaries/Service_categories/Blocked_periods/Webhooks
+     (`.filter-records`/`.record-details` ortak deseni) - tek bir CSS bloğuyla hepsine kart/gölge/hover
+     verildi, markup/JS'e dokunulmadı.
+- **Doğrulama:** her adımdan sonra `php -l` (tüm değiştirilen dosyalar) + `node -c` (JS) + CSS brace
+  sayımı + rebuild/redeploy + `curl` ile ilgili route'ların 500 vermediği (yalnızca beklenen 307/403)
+  kontrol edildi. Migration 137 `docker exec ... console migrate` ile salonflora'ya uygulandı, şema
+  `DESCRIBE` ile doğrulandı.
+- **Kritik takip bug'ı (aynı gün, kullanıcı canlıda test edip bildirdi): "her koşulda müsaitlik yok".**
+  Kök neden `Availability::find_first_available_slots()` içindeydi, benim yeni `{rows: [...]}`
+  kodumda değil: fonksiyon `$limit` bütçesini sağlayıcı başına DEĞİL, genel toplamda tüketiyordu -
+  ilk taranan sağlayıcının o gün açık TÜM saatlerini tek tek `$slots`'a ekliyordu, `$limit` (=
+  `count(providers)`) çoğunlukla o TEK sağlayıcının saatleriyle dolup taşıyor, sıradaki sağlayıcılar
+  hiç değerlendirilmeden döngü bitiyordu → benim "sağlayıcı başına ilk slotu al" kodum onlar için
+  gerçekten boş dizi buluyordu (available:false), veri doğruydu ama üretilme şekli yanlıştı. Düzeltme:
+  fonksiyona `bool $one_per_provider` parametresi eklendi (varsayılan `false` - `Appointments.php::
+  first_availability()` sihirbaz yardımcısı bilerek eski davranışı korur, o gerçekten "genel en erken
+  N slot" istiyor); `true` iken bir sağlayıcı için SEATABLE (oda bulunan) ilk saat bulunur bulunmaz o
+  sağlayıcı "bitti" işaretlenip sıradakine geçiliyor. `Calendar::get_next_availability()` artık
+  `find_first_available_slots(..., count($providers) * 5, 1, true)` çağırıyor (×5 pay, oda bulunamayan
+  ilk saatleri atlayıp devam edebilmesi için). **Doğrulama:** geçici bir `console debug_availability
+  <subdomain>` komutuyla (test sonrası kaldırıldı) salonflora'da gerçek veriyle çalıştırıldı - önce
+  muhtemelen 1 sağlayıcı tüm bütçeyi tüketiyordu, düzeltme sonrası 5 sağlayıcıdan 4'ü gerçek saat/oda
+  döndürdü (5.'si muhtemelen gerçekten müsait değil - ayrı bir konu, izlenmedi).
+- **Pill layout düzeltmesi (kullanıcı geri bildirimi):** her pill artık koşulsuz iki etiketli alan
+  gösteriyor ("Terapist: X", "Oda: Y" - müsait olmasa bile "-" ile), ardından saat/süre ya da
+  "Müsaitlik yok". Önceki sürüm müsait değilken oda etiketini hiç göstermiyordu.
+- **⚠️ ÖNEMLİ deploy tuzağı (bu turda ben düştüm, tekrar düşülmesin):** `asset_helper.php::asset_url()`
+  `DEBUG_MODE=FALSE` iken (canlıda her zaman) HER `.js`/`.css` referansını otomatik olarak `.min.js`/
+  `.min.css`'e çeviriyor - view'de `whatsapp.js` yazsan bile tarayıcıya giden gerçek dosya
+  `whatsapp.min.js`'dir. Bu turda üç dosyada bu yüzden "değişiklik görünmüyor" yaşandı:
+  `next_availability_widget.js`'i düzelttim ama `.min.js` kopyası ESKİ kaldı (tarayıcı hep eskisini
+  yükledi - kullanıcının "hala aynı görüyorum" şikayetinin kök nedeni), `notification_panel.js` ve
+  `ai_agent.js` için `.min.js` dosyası HİÇ YOKTU (404, script sessizce hiç yüklenmedi - bildirim zili
+  ve AI Asistan sayfası tamamen çalışmıyordu, hiçbir hata görünmeden). **Kural: bu projede build
+  pipeline'ı yok (webpack/terser yok), `.min.js` dosyaları elle senkron tutuluyor - herhangi bir
+  `assets/js/**/*.js` dosyası değiştirildiğinde/oluşturulduğunda `.min.js` kopyası da (gerçek
+  minifikasyon şart değil, içerik aynı da olabilir) mutlaka güncellenmeli/oluşturulmalı, yoksa canlıda
+  hiçbir etkisi olmaz.** CSS tarafında bu tuzak yok (`ki-command-center.min.css` zaten tek dosya, gerçek
+  minify değil - ama diğer `.css`/`.min.css` çiftleri için aynı kural geçerli olabilir, kontrol edilmedi).
+
+## 0.6 2026-09-12 (devam) — Reports/Analitik CSRF bug'ı + Gün Sonu Raporu + CalDAV/Google açıklaması
+
+- **"Analitik raporlar çalışmıyor" - kök neden bulundu:** `pages/reports.php`'nin sonundaki inline
+  `<script>` (Faz 3.6'da eklenmiş, dosyanın geri kalanından farklı bir yazar/desen) CSRF token'ı
+  `$('meta[name="csrf-token"]').attr('content')` ile okumaya çalışıyordu - ama `backend_layout.php`'de
+  böyle bir `<meta>` etiketi HİÇ YOK. `token` değişkeni hep `undefined` oluyordu, her POST (ciro/kapasite/
+  kalıcılık raporu) CSRF kontrolünden 403 dönüyordu, üç kart da hata mesajı gösteriyordu. Düzeltme: aynı
+  sayfanın geri kalanının zaten kullandığı `vars('csrf_token')` PHP helper'ına geçirildi.
+  Ayrıca üç kart da `JSON.stringify(...)` ile ham JSON döküyordu (SESSION_NOTES'ta zaten bilinen bir
+  eksiklik - "henüz tasarım turu yapılmadı") - gerçek KPI kutucukları + tablolara çevrildi, sayfa
+  açılışında otomatik ilk yükleme eklendi (önceden "Getir" tıklanana kadar hiçbir şey yüklenmiyordu).
+- **"Dışa Aktar" açılır/kapanır yapıldı** (kullanıcı isteği) - Bootstrap `collapse` ile.
+- **"Gün Sonu Raporu" tek tık butonu eklendi** - mevcut CSV export altyapısı zaten "sütun seçilmezse
+  TÜMÜNÜ kapsar" şeklinde çalışıyordu (`Reports::export_csv()`), yeni buton sadece tarihi bugüne çekip
+  tüm sütun checkbox'larını işaretleyip mevcut "CSV İndir"i tetikliyor - yeni backend YOK. **Not: bu
+  gerçek `.xlsx` değil, CSV (Excel'de doğrudan açılır) - kullanıcıya söylendi, gerçek xlsx isterse
+  PhpSpreadsheet gibi bir kütüphane eklenmesi gerekir (şu an yok).**
+- **CalDAV vs Google Calendar netleştirildi (kullanıcı karıştırmıştı):** CalDAV paneli (URL/kullanıcı/şifre)
+  Google DIŞI takvimler için (Nextcloud/iCloud/Fastmail vb.) - Google artık normal hesaplarda CalDAV
+  basic-auth'u desteklemiyor. Uygulamada zaten ayrı, doğru bir Google Calendar OAuth entegrasyonu var
+  (`Google.php` + `Google_calendar_settings.php`) - kurulum: (1) superadmin panelinde bir kerelik
+  `google_client_id`/`google_client_secret` (Google Cloud Console'da OAuth client + `/google/oauth_callback`
+  redirect URI kullanıcı tarafından oluşturulmalı, ben hesap açamam), (2) her sağlayıcı kendi hesabından
+  "Entegrasyonlar → Google Calendar" ile bağlanır, şifre girmez.
+- **Reklam/kaynak takibi (Google Ads/Meta/WhatsApp attribution) - kod taraması yapıldı, netlik kazandı:**
+  GA4 zaten var ama SADECE `booking_layout.php`'de basit sayfa görüntüleme scripti olarak
+  (`components/google_analytics_script.php`, `Google_analytics_settings.php`) - gerçek bir "randevu
+  tamamlandı" dönüşüm olayı hiç ateşlenmiyor. Meta Pixel/Conversions API kodda YOK. UTM/kaynak yakalama
+  (hangi randevu Google'dan/Meta'dan/WhatsApp'tan geldi) da YOK. salonflora.tr (ana site)'deki GA4/Pixel
+  kurulumu bu randevu uygulamasına hiç bağlı değil, ayrı bir sistem. **Uygulanması için kullanıcıdan Meta
+  Pixel ID + Conversions API token + Google Ads dönüşüm ID'si gerekiyor - henüz verilmedi, bekleniyor.**
+
+## 0.7 2026-09-12 (devam 2) — İlk Müsaitlik "book_advance_timeout" bug'ı + Muhasebe dışa aktarım + araştırma
+
+- **Kritik bug (kullanıcı bildirdi): "saat 15:48'de ilk müsaitlik 16:30 veriyor, 50dk sonra, ama boşsa
+  daha erken olmalı".** Kök neden: `Availability::consider_book_advance_timeout()` - genel
+  `book_advance_timeout` ayarı (salonflora'da 30 dk) TÜM `get_available_hours()` çağrılarına
+  uygulanıyordu, hem gerçek MÜŞTERİ online randevu akışına (`Booking.php` - burada doğru, müşteri son
+  30 dk içine online randevu alamaz) HEM DE personelin "İlk Müsaitlik" iç görünümüne (resepsiyonun
+  "şu an kim boş, walk-in müşteriyi nereye oturtayım" sorusu - bu ayrı bir kullanım, aynı tampon süreye
+  ihtiyacı yok). 15:48 + 30dk = 16:18 eşiği; sağlayıcı 16:00'da boş olsa bile 16:00 VE 16:15 bu eşiğin
+  altında kaldığı için elenip ilk kalan 16:30 gösteriliyordu. Düzeltme: `get_available_hours()`'a
+  `bool $ignore_advance_timeout = false` parametresi eklendi (varsayılan false = müşteri akışı hiç
+  değişmedi), `find_first_available_slots()` (sadece personel araçları - Calendar/Appointments - kullanır,
+  hiçbir zaman public booking) artık `true` geçiyor.
+- **Muhasebe "Dışa Aktar" (evrensel CSV) kuruldu:** `Invoices_model::get_for_export()` (issued/paid/
+  partially_paid, taslak/iptal hariç, fatura başına tek satır, kalemler birleştirilip açıklamaya
+  yazılıyor) + `Invoices::export_csv()` (Reports'taki BOM+`;` deseniyle birebir aynı) + `invoices.php`'ye
+  açılır/kapanır dışa aktar kartı. **Not: müşteri kaydında vergi/TC no alanı YOK, sütun boş bırakıldı -
+  gerçek e-Fatura-seviyesi export için bu alan sonradan eklenmeli.**
+- **Muhasebe yazılımları araştırması (bir alt-ajan, 19 web araması/fetch, kaynak listesiyle):** Sekiz
+  sistemden SADECE **Paraşüt, KolayBi, İşbaşı (Logo'nun bulut ürünü)** gerçek bulut REST API'sine sahip
+  (Paraşüt'ün OAuth2/alan şeması tam doğrulandı; KolayBi/İşbaşı'nın portal+auth'u doğrulandı ama tam
+  fatura endpoint şeması hesap/giriş gerektirdiği için doğrulanamadı). **Logo (Tiger/Go3), Mikro, Netsis,
+  Zirve, ETA - hepsi yerel/on-premise mimari (SQL-direct, yerel Windows servisi, veya bayi-arabulucu
+  bağlantı) - bulut SaaS'ın genel olarak erişebileceği bir API YOK**, tek gerçekçi yol CSV/XML içe
+  aktarma (Zirve'de resmi format bile bulunamadı, belirsiz). Ayrıca not: bu sistemlerin çoğunun asıl
+  değeri GİB e-Fatura/e-Arşiv bağlantısı olması - e-fatura KESME ayrı ve daha büyük bir konu (entegratör
+  API'si), sadece "muhasebeye veri aktarma"dan farklı - kullanıcıya ayrıca sorulacak.
+  **Sıradaki adım (kullanıcı onayı bekliyor): Paraşüt/KolayBi/İşbaşı'ndan hangisi için gerçek push
+  entegrasyonu (API credential gerektirir) öncelikli olsun?**
+- **Commit durumu:** Bu turda kullanıcı AÇIKÇA commit+push istedi - bu notun hemen altında commit
+  atıldı (bkz. git log). Canonical ve deploy `src/` senkron (`diff` ile her dosya tek tek doğrulandı).
 
 ---
 

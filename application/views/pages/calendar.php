@@ -3,7 +3,7 @@
 <?php section('content'); ?>
 
 <div class="container-fluid backend-page pt-0 pb-0" id="calendar-page">
-    <div class="row mb-3 text-white py-3 bg-dark" id="calendar-toolbar">
+    <div class="row mb-3 py-3" id="calendar-toolbar">
         <div id="calendar-filter" class="col-lg-3">
             <div class="calendar-filter-items">
                 <select id="select-filter-item"
@@ -98,8 +98,10 @@
         </div>
     </div>
 
-    <div id="calendar">
-        <!-- Dynamically Generated Content -->
+    <div id="calendar-shell">
+        <div id="calendar">
+            <!-- Dynamically Generated Content -->
+        </div>
     </div>
 </div>
 

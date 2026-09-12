@@ -21,7 +21,7 @@ class Messaging_settings_model extends EA_Model
         $row = $this->db->get('messaging_settings')->row_array();
 
         if (!$row) {
-            return [
+            $row = [
                 'id' => null,
                 'sms_gateway' => 'none',
                 'netgsm_username' => null,
@@ -49,18 +49,29 @@ class Messaging_settings_model extends EA_Model
                 'smtp_from_address' => null,
                 'default_notification_channel' => 'telegram',
             ];
+        } else {
+            // Decrypt sensitive fields
+            $row['netgsm_username'] = sf_pii_decrypt($row['netgsm_username']);
+            $row['netgsm_password'] = sf_pii_decrypt($row['netgsm_password']);
+            $row['whatsapp_phone_number_id'] = sf_pii_decrypt($row['whatsapp_phone_number_id']);
+            $row['whatsapp_access_token'] = sf_pii_decrypt($row['whatsapp_access_token']);
+            $row['whatsapp_waba_id'] = sf_pii_decrypt($row['whatsapp_waba_id']);
+            $row['whatsapp_webhook_verify_token'] = sf_pii_decrypt($row['whatsapp_webhook_verify_token']);
+            $row['whatsapp_bridge_secret'] = sf_pii_decrypt($row['whatsapp_bridge_secret']);
+            $row['smtp_user'] = sf_pii_decrypt($row['smtp_user']);
+            $row['smtp_pass'] = sf_pii_decrypt($row['smtp_pass']);
         }
 
-        // Decrypt sensitive fields
-        $row['netgsm_username'] = sf_pii_decrypt($row['netgsm_username']);
-        $row['netgsm_password'] = sf_pii_decrypt($row['netgsm_password']);
-        $row['whatsapp_phone_number_id'] = sf_pii_decrypt($row['whatsapp_phone_number_id']);
-        $row['whatsapp_access_token'] = sf_pii_decrypt($row['whatsapp_access_token']);
-        $row['whatsapp_waba_id'] = sf_pii_decrypt($row['whatsapp_waba_id']);
-        $row['whatsapp_webhook_verify_token'] = sf_pii_decrypt($row['whatsapp_webhook_verify_token']);
-        $row['whatsapp_bridge_secret'] = sf_pii_decrypt($row['whatsapp_bridge_secret']);
-        $row['smtp_user'] = sf_pii_decrypt($row['smtp_user']);
-        $row['smtp_pass'] = sf_pii_decrypt($row['smtp_pass']);
+        // The admin can always override these per tenant, but ship our own
+        // "ki-wa-bridge" sidecar (bridge/, deploy compose service `wa-bridge`) as
+        // the default unofficial-mode bridge so the QR wizard works out of the
+        // box without requiring manual setup first.
+        if (empty($row['whatsapp_bridge_url'])) {
+            $row['whatsapp_bridge_url'] = getenv('WA_BRIDGE_URL') ?: 'http://wa-bridge:3000';
+        }
+        if (empty($row['whatsapp_bridge_secret'])) {
+            $row['whatsapp_bridge_secret'] = getenv('WA_BRIDGE_SECRET') ?: null;
+        }
 
         return $row;
     }

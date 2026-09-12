@@ -1,35 +1,28 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - "İlk Müsaitlik" widget (2026-09-10).
+ * Ki Reservation - "İlk Müsaitlik" widget (2026-09-10, redesigned 2026-09-12).
  *
- * Small toolbar indicator, left side of the calendar filter row, answering "who's free, in which
- * room, and for how long" at a glance - reception doesn't have to eyeball the grid. Reuses
- * Calendar::get_next_availability() (server-side, itself built on the same Availability library the
- * booking wizard uses for provider/station matching).
+ * Renders a horizontal strip of compact pills, one per provider, each showing
+ * room/station, next available time, how long that window lasts, and the
+ * provider's name - reception sees who's free where at a glance instead of
+ * eyeballing the calendar grid. Reuses Calendar::get_next_availability()
+ * (server-side, itself built on the same Availability library the booking
+ * wizard uses for provider/station matching) which as of 2026-09-12 returns
+ * one row PER PROVIDER instead of a single globally-earliest slot.
+ *
+ * Mounts in up to two places, sharing the same render logic:
+ *   - `#next-availability-strip` (dashboard.php) - unfiltered, all providers.
+ *   - `#calendar-filter` (calendar.php toolbar) - respects the provider/service
+ *     filter select, same as the original single-badge version.
  * ---------------------------------------------------------------------------- */
 App.Components.NextAvailabilityWidget = (function () {
     const POLL_INTERVAL_MS = 60000;
 
-    let $widget;
-    let pollTimer = null;
-
-    /**
-     * Inject the widget element into the toolbar's left column.
-     */
-    function buildDom() {
-        $widget = $('<div/>', {
-            id: 'next-availability-widget',
-            class: 'badge bg-light text-dark mb-2 mb-lg-0 d-inline-block',
-            css: {fontSize: '.8rem', fontWeight: 'normal', padding: '.5rem .75rem'},
-            text: '…',
-        });
-
-        $('#calendar-filter').prepend($widget);
-    }
+    const mounts = []; // [{ $container, getProviderId }]
 
     /**
      * @returns {number|null} The selected provider's ID, or null if "Tümü"/a service is selected.
      */
-    function getSelectedProviderId() {
+    function getCalendarFilterProviderId() {
         const $selected = $('#select-filter-item option:selected');
 
         if ($selected.attr('type') !== 'provider') {
@@ -39,76 +32,103 @@ App.Components.NextAvailabilityWidget = (function () {
         return $selected.val();
     }
 
+    function pillClass(row) {
+        if (!row.available) {
+            return 'kcc-availability-pill kcc-availability-pill-none';
+        }
+
+        if (row.is_now) {
+            return 'kcc-availability-pill kcc-availability-pill-now';
+        }
+
+        if (Number.isFinite(row.window_minutes) && row.window_minutes < 20) {
+            return 'kcc-availability-pill kcc-availability-pill-tight';
+        }
+
+        return 'kcc-availability-pill kcc-availability-pill-ok';
+    }
+
     /**
-     * Fetch and render the current "next availability" state.
+     * A labeled "Terapist: X" / "Oda: Y" chip - always both present (even when unavailable, with a
+     * "-" placeholder) so every pill has the same two-section shape, per user feedback.
      */
-    function poll() {
-        if (!$widget) {
+    function field(label, value) {
+        return $('<span/>', { class: 'kcc-availability-field' })
+            .append($('<span/>', { class: 'kcc-availability-field-label', text: label }))
+            .append($('<span/>', { class: 'kcc-availability-field-value', text: value || '-' }));
+    }
+
+    function renderRow(row) {
+        const $pill = $('<div/>', { class: pillClass(row) });
+
+        $pill.append(field('Terapist', row.provider_name));
+        $pill.append(field('Oda', row.station_name));
+
+        if (!row.available) {
+            $pill.append($('<span/>', { class: 'kcc-availability-time', text: 'Müsaitlik yok' }));
+            return $pill;
+        }
+
+        $pill.append($('<span/>', { class: 'kcc-availability-time', text: row.is_now ? 'Şimdi' : row.time }));
+
+        if (Number.isFinite(row.window_minutes)) {
+            $pill.append($('<span/>', { class: 'kcc-availability-window', text: '~' + row.window_minutes + ' dk' }));
+        }
+
+        return $pill;
+    }
+
+    function render($container, rows) {
+        $container.empty();
+
+        if (!rows || !rows.length) {
+            $container.append($('<span/>', { class: 'text-muted small', text: 'Müsaitlik bilgisi yok.' }));
             return;
         }
 
-        App.Http.Calendar.getNextAvailability(getSelectedProviderId())
+        rows.forEach((row) => $container.append(renderRow(row)));
+    }
+
+    function pollMount(mount) {
+        App.Http.Calendar.getNextAvailability(mount.getProviderId())
             .done((response) => {
-                render(response);
+                render(mount.$container, (response && response.rows) || []);
             })
             .fail(() => {
-                $widget.text('İlk müsaitlik alınamadı').removeClass('bg-danger text-white').addClass('bg-light text-dark');
+                mount.$container.empty().append(
+                    $('<span/>', { class: 'text-danger small', text: 'İlk müsaitlik alınamadı.' }),
+                );
             });
     }
 
-    /**
-     * @param {Object} data - Response from get_next_availability.
-     */
-    function render(data) {
-        if (!data || !data.available) {
-            $widget
-                .text('Müsaitlik yok')
-                .removeClass('bg-light text-dark')
-                .addClass('bg-danger text-white');
-            return;
-        }
-
-        const parts = [];
-
-        if (data.provider_name) {
-            parts.push(data.provider_name);
-        }
-
-        if (data.station_name) {
-            parts.push(data.station_name);
-        }
-
-        parts.push(data.is_now ? 'Şimdi müsait' : data.time);
-
-        let text = 'İlk müsait: ' + parts.join(' · ');
-
-        if (Number.isFinite(data.window_minutes)) {
-            text += ' (~' + data.window_minutes + ' dk)';
-        }
-
-        $widget
-            .text(text)
-            .removeClass('bg-danger text-white')
-            .addClass('bg-light text-dark');
+    function pollAll() {
+        mounts.forEach(pollMount);
     }
 
-    /**
-     * Initialize the widget. Only meaningful on the calendar page (default view, not the table view -
-     * that one has no #calendar-filter/#select-filter-item single-select).
-     */
     function initialize() {
-        if (!$('#calendar-page').length || !$('#calendar-filter').length) {
+        const $dashboardStrip = $('#next-availability-strip');
+
+        if ($dashboardStrip.length) {
+            mounts.push({ $container: $dashboardStrip, getProviderId: () => null });
+        }
+
+        if ($('#calendar-page').length && $('#calendar-filter').length) {
+            const $calendarStrip = $('<div/>', {
+                id: 'next-availability-widget',
+                class: 'd-flex flex-wrap gap-2 mb-2 mb-lg-0',
+            });
+            $('#calendar-filter').prepend($calendarStrip);
+            mounts.push({ $container: $calendarStrip, getProviderId: getCalendarFilterProviderId });
+
+            $('#select-filter-item').on('change', () => pollMount(mounts[mounts.length - 1]));
+        }
+
+        if (!mounts.length) {
             return;
         }
 
-        buildDom();
-        poll();
-
-        // Re-poll whenever the provider/service filter changes (same event calendar_default_view.js
-        // already listens on for reloading appointments).
-        $('#select-filter-item').on('change', poll);
-
-        pollTimer = setInterval(poll, POLL_INTERVAL_MS);
+        pollAll();
+        setInterval(pollAll, POLL_INTERVAL_MS);
     }
 
     document.addEventListener('DOMContentLoaded', initialize);
