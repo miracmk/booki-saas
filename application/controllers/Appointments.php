@@ -85,7 +85,8 @@ class Appointments extends EA_Controller
             $providers = array_values(
                 array_filter(
                     $available_providers,
-                    static fn(array $provider) => in_array($service['id'], $provider['services'], true),
+                    static fn(array $provider) => in_array($service['id'], $provider['services'], true) &&
+                        !empty($provider['settings']['working_plan'] ?? null),
                 ),
             );
 

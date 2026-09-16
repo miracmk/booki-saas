@@ -2169,6 +2169,13 @@ class Calendar extends EA_Controller
                 $providers = $this->providers_model->get_available_providers();
             }
 
+            // A provider with no working plan settings row (incomplete/legacy account - see
+            // Providers_model::get_settings(), which returns [] when user_settings has no matching
+            // row) can't be scheduled at all; keeping them in the candidate list only produces an
+            // "Undefined array key working_plan" warning in Availability::get_available_periods()
+            // on every poll. Drop them here instead of letting every caller defend against it.
+            $providers = array_values(array_filter($providers, fn($p) => !empty($p['settings']['working_plan'] ?? null)));
+
             if (empty($providers)) {
                 json_response(['available' => false]);
                 return;
