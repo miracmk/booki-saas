@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -95,8 +95,8 @@ App.Pages.Providers = (function () {
             $('#select-all-services, #select-none-services').prop('disabled', false);
             $('#provider-stations input:checkbox').prop('disabled', false); // Salon Flora customization
             $('#select-all-stations, #select-none-stations').prop('disabled', false); // Salon Flora customization
-            $('#provider-skills input:checkbox').prop('disabled', false); // Ki Reservation (2026-08-26)
-            $('#select-all-skills, #select-none-skills, #new-skill-name, #add-skill-button').prop('disabled', false); // Ki Reservation (2026-08-26)
+            $('#provider-skills input:checkbox').prop('disabled', false); // BooKi (2026-08-26)
+            $('#select-all-skills, #select-none-skills, #new-skill-name, #add-skill-button').prop('disabled', false); // BooKi (2026-08-26)
             $('#provider-service-commissions select, #provider-service-commissions input').prop('disabled', false); // Salon Flora customization
             $providers
                 .find(
@@ -130,8 +130,8 @@ App.Pages.Providers = (function () {
             $('#select-all-services, #select-none-services').prop('disabled', false);
             $('#provider-stations input:checkbox').prop('disabled', false); // Salon Flora customization
             $('#select-all-stations, #select-none-stations').prop('disabled', false); // Salon Flora customization
-            $('#provider-skills input:checkbox').prop('disabled', false); // Ki Reservation (2026-08-26)
-            $('#select-all-skills, #select-none-skills, #new-skill-name, #add-skill-button').prop('disabled', false); // Ki Reservation (2026-08-26)
+            $('#provider-skills input:checkbox').prop('disabled', false); // BooKi (2026-08-26)
+            $('#select-all-skills, #select-none-skills, #new-skill-name, #add-skill-button').prop('disabled', false); // BooKi (2026-08-26)
             $('#provider-service-commissions select, #provider-service-commissions input').prop('disabled', false); // Salon Flora customization
 
             // Apply default working plan
@@ -156,8 +156,8 @@ App.Pages.Providers = (function () {
             $('#select-all-services, #select-none-services').prop('disabled', false);
             $('#provider-stations input:checkbox').prop('disabled', false); // Salon Flora customization
             $('#select-all-stations, #select-none-stations').prop('disabled', false); // Salon Flora customization
-            $('#provider-skills input:checkbox').prop('disabled', false); // Ki Reservation (2026-08-26)
-            $('#select-all-skills, #select-none-skills, #new-skill-name, #add-skill-button').prop('disabled', false); // Ki Reservation (2026-08-26)
+            $('#provider-skills input:checkbox').prop('disabled', false); // BooKi (2026-08-26)
+            $('#select-all-skills, #select-none-skills, #new-skill-name, #add-skill-button').prop('disabled', false); // BooKi (2026-08-26)
             $('#provider-service-commissions select, #provider-service-commissions input').prop('disabled', false); // Salon Flora customization
             $providers
                 .find(
@@ -280,7 +280,7 @@ App.Pages.Providers = (function () {
             // ignored in favor of) the assigned service's own station list.
             provider.station_restriction_enabled = $('#station-restriction-enabled').prop('checked');
 
-            // Ki Reservation (2026-08-26): include provider skills.
+            // BooKi (2026-08-26): include provider skills.
             provider.skills = [];
             $('#provider-skills input:checkbox').each((index, checkboxEl) => {
                 if ($(checkboxEl).prop('checked')) {
@@ -377,7 +377,7 @@ App.Pages.Providers = (function () {
         });
 
         /**
-         * Ki Reservation (2026-08-26) - Event: Select All/None Skills Button "Click"
+         * BooKi (2026-08-26) - Event: Select All/None Skills Button "Click"
          */
         $providers.on('click', '#select-all-skills', () => {
             $('#provider-skills input:checkbox').prop('checked', true);
@@ -388,7 +388,7 @@ App.Pages.Providers = (function () {
         });
 
         /**
-         * Ki Reservation (2026-08-26) - Event: Add New Skill Button "Click"
+         * BooKi (2026-08-26) - Event: Add New Skill Button "Click"
          *
          * Finds or creates the skill by name on the server, then appends (or checks, if it already
          * existed) its checkbox in the #provider-skills list, so it can be assigned without a
@@ -582,7 +582,7 @@ App.Pages.Providers = (function () {
         $('#provider-stations input:checkbox').prop('disabled', true).prop('checked', false);
         $('#select-all-stations, #select-none-stations').prop('disabled', true);
         $('#station-restriction-enabled').prop('disabled', true).prop('checked', false);
-        // Ki Reservation (2026-08-26)
+        // BooKi (2026-08-26)
         $('#provider-skills input:checkbox').prop('disabled', true).prop('checked', false);
         $('#select-all-skills, #select-none-skills, #new-skill-name, #add-skill-button').prop('disabled', true);
         App.Pages.Providers.renderServiceCommissions();
@@ -680,7 +680,7 @@ App.Pages.Providers = (function () {
         });
         $('#station-restriction-enabled').prop('checked', Number(provider.station_restriction_enabled) === 1);
 
-        // Ki Reservation (2026-08-26): a provider may have more than one skill.
+        // BooKi (2026-08-26): a provider may have more than one skill.
         $('#provider-skills input:checkbox').prop('checked', false);
         (provider.skills || []).forEach((providerSkillId) => {
             $('#provider-skills input[data-id="' + providerSkillId + '"]').prop('checked', true);
@@ -862,7 +862,7 @@ App.Pages.Providers = (function () {
             }).appendTo('#provider-stations');
         });
 
-        // Ki Reservation (2026-08-26): render the skill checkboxes.
+        // BooKi (2026-08-26): render the skill checkboxes.
         (vars('skills') || []).forEach((skill) => {
             App.Pages.Providers.appendSkillCheckbox(skill, false);
         });
@@ -875,7 +875,7 @@ App.Pages.Providers = (function () {
     }
 
     /**
-     * Ki Reservation (2026-08-26) - append one skill checkbox to #provider-skills. Used both for the
+     * BooKi (2026-08-26) - append one skill checkbox to #provider-skills. Used both for the
      * initial render (from vars('skills')) and when an admin adds a brand-new skill inline (see the
      * '#add-skill-button' click handler).
      *

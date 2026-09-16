@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -74,8 +74,8 @@ class Booking extends EA_Controller
         $this->load->model('settings_model');
         $this->load->model('consents_model');
         $this->load->model('stations_model'); // Salon Flora customization
-        $this->load->model('payment_settings_model'); // Ki Reservation payment infrastructure
-        $this->load->model('payment_transactions_model'); // Ki Reservation payment infrastructure
+        $this->load->model('payment_settings_model'); // BooKi payment infrastructure
+        $this->load->model('payment_transactions_model'); // BooKi payment infrastructure
 
         $this->load->library('timezones');
         $this->load->library('synchronization');
@@ -606,7 +606,7 @@ class Booking extends EA_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
 
-            // Ki Reservation payment infrastructure - create payment intent if deposits are required and a gateway is active
+            // BooKi payment infrastructure - create payment intent if deposits are required and a gateway is active
             $payment_intent = null;
 
             try {
@@ -667,7 +667,7 @@ class Booking extends EA_Controller
             } catch (Throwable $e) {
                 log_message('error', 'Booking::register - payment intent creation failed: ' . $e->getMessage());
 
-                // Ki Reservation bugfix - when a deposit is required, an unpaid booking must not silently succeed
+                // BooKi bugfix - when a deposit is required, an unpaid booking must not silently succeed
                 // (the customer would believe they are booked and their deposit was collected). Delete the
                 // just-created appointment so the slot is freed, then fail loudly.
                 if (!empty($appointment_id)) {
@@ -710,7 +710,7 @@ class Booking extends EA_Controller
                 $manage_mode,
             );
 
-            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_created event.
+            // BooKi (Dalga 3 / Faz 3.1) - Communication Hub: appointment_created event.
             // Best-effort by contract - publish() logs, never throws.
             $this->load->library('communication_hub');
             $this->communication_hub->publish(
@@ -718,7 +718,7 @@ class Booking extends EA_Controller
                 compact('appointment', 'service', 'provider', 'customer', 'settings'),
             );
 
-            // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+            // BooKi (Dalga 3 / Faz 3.2) - Automation Engine: same event.
             $this->load->library('automation_engine');
             $this->automation_engine->evaluate(
                 'appointment_created',
@@ -1032,7 +1032,7 @@ class Booking extends EA_Controller
      * @return array Returns the ID of the provider that can provide the requested service.
      */
     /**
-     * Register a series of recurring appointments (Ki Reservation, Dalga 1).
+     * Register a series of recurring appointments (BooKi, Dalga 1).
      *
      * This is a separate entry point from register() - the single-appointment
      * booking flow above is completely untouched by this method. Each

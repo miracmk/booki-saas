@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Email (SMTP) settings (Dalga 3 / Faz 3.6, 2026-09-10).
+ * BooKi - Email (SMTP) settings (Dalga 3 / Faz 3.6, 2026-09-10).
  *
  * Tenant SMTP override + platform fallback SMTP with promo footer.
  *
@@ -16,7 +16,7 @@
  *
  * If tenant provides smtp_host, that SMTP config is used.
  * Otherwise, platform fallback SMTP (.env MAIL_SMTP_*) is used, and a
- * promo footer ("Sent via Ki Reservation") is appended to the email body.
+ * promo footer ("Sent via BooKi") is appended to the email body.
  * -------------------------------------------------------------------------- */
 
 class Migration_Add_email_settings_to_messaging extends CI_Migration

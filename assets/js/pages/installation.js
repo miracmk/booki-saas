@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -40,7 +40,7 @@ App.Pages.Installation = (function () {
     });
 
     /**
-     * Event: Install Ki Reservation Button "Click"
+     * Event: Install BooKi Button "Click"
      */
     $install.on('click', () => {
         if (!validate()) {
@@ -62,7 +62,7 @@ App.Pages.Installation = (function () {
             dataType: 'json',
         }).done(() => {
             $alert
-                .text('Ki Reservation has been successfully installed!')
+                .text('BooKi has been successfully installed!')
                 .addClass('alert-success')
                 .prop('hidden', false);
 

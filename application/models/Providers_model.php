@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -329,7 +329,7 @@ class Providers_model extends EA_Model
             $provider['settings'] = $this->get_settings($provider['id']);
             $provider['services'] = $this->get_service_ids($provider['id']);
             $provider['stations'] = $this->get_station_ids($provider['id']); // Salon Flora customization
-        $provider['skills'] = $this->get_skill_ids($provider['id']); // Ki Reservation (2026-08-26)
+        $provider['skills'] = $this->get_skill_ids($provider['id']); // BooKi (2026-08-26)
             $provider['service_commissions'] = $this->get_service_commissions($provider['id']); // Salon Flora customization
         }
 
@@ -436,7 +436,7 @@ class Providers_model extends EA_Model
     }
 
     /**
-     * Ki Reservation (2026-08-26) - get the skill IDs a provider is assigned to. Mirrors
+     * BooKi (2026-08-26) - get the skill IDs a provider is assigned to. Mirrors
      * get_station_ids() exactly, but skills carry no availability logic.
      *
      * @param int $provider_id Provider ID.
@@ -457,7 +457,7 @@ class Providers_model extends EA_Model
     }
 
     /**
-     * Ki Reservation (2026-08-26) - replace the skill assignments for a provider. Mirrors
+     * BooKi (2026-08-26) - replace the skill assignments for a provider. Mirrors
      * set_station_ids() exactly.
      *
      * @param int $provider_id Provider ID.
@@ -493,7 +493,7 @@ class Providers_model extends EA_Model
         $service_ids = $provider['services'];
         $station_ids = $provider['stations'] ?? []; // Salon Flora customization
         $service_commissions = $provider['service_commissions'] ?? []; // Salon Flora customization
-        $skill_ids = $provider['skills'] ?? []; // Ki Reservation (2026-08-26)
+        $skill_ids = $provider['skills'] ?? []; // BooKi (2026-08-26)
 
         $settings = $provider['settings'];
 
@@ -519,7 +519,7 @@ class Providers_model extends EA_Model
         $this->set_service_ids($provider['id'], $service_ids);
         $this->set_station_ids($provider['id'], $station_ids); // Salon Flora customization
         $this->set_service_commissions($provider['id'], $service_commissions); // Salon Flora customization
-        $this->set_skill_ids($provider['id'], $skill_ids); // Ki Reservation (2026-08-26)
+        $this->set_skill_ids($provider['id'], $skill_ids); // BooKi (2026-08-26)
 
         return $provider['id'];
     }
@@ -616,7 +616,7 @@ class Providers_model extends EA_Model
         $service_ids = $provider['services'];
         $station_ids = $provider['stations'] ?? []; // Salon Flora customization
         $service_commissions = $provider['service_commissions'] ?? []; // Salon Flora customization
-        $skill_ids = $provider['skills'] ?? []; // Ki Reservation (2026-08-26)
+        $skill_ids = $provider['skills'] ?? []; // BooKi (2026-08-26)
 
         $settings = $provider['settings'];
 
@@ -652,7 +652,7 @@ class Providers_model extends EA_Model
         $this->set_service_ids($provider['id'], $service_ids);
         $this->set_station_ids($provider['id'], $station_ids); // Salon Flora customization
         $this->set_service_commissions($provider['id'], $service_commissions); // Salon Flora customization
-        $this->set_skill_ids($provider['id'], $skill_ids); // Ki Reservation (2026-08-26)
+        $this->set_skill_ids($provider['id'], $skill_ids); // BooKi (2026-08-26)
 
         return $provider['id'];
     }
@@ -738,7 +738,7 @@ class Providers_model extends EA_Model
         // Salon Flora customization: clean up the station assignments and commission overrides, no FK cascade.
         $this->db->delete('stations_providers', ['id_users' => $provider_id]);
         $this->db->delete('provider_service_commissions', ['id_users' => $provider_id]);
-        $this->db->delete('provider_skill_assignments', ['id_users' => $provider_id]); // Ki Reservation (2026-08-26)
+        $this->db->delete('provider_skill_assignments', ['id_users' => $provider_id]); // BooKi (2026-08-26)
 
         $this->db->delete('users', ['id' => $provider_id]);
     }
@@ -931,7 +931,7 @@ class Providers_model extends EA_Model
         $provider['settings'] = $this->get_settings($provider['id']);
         $provider['services'] = $this->get_service_ids($provider['id']);
         $provider['stations'] = $this->get_station_ids($provider['id']); // Salon Flora customization
-        $provider['skills'] = $this->get_skill_ids($provider['id']); // Ki Reservation (2026-08-26)
+        $provider['skills'] = $this->get_skill_ids($provider['id']); // BooKi (2026-08-26)
         $provider['service_commissions'] = $this->get_service_commissions($provider['id']); // Salon Flora customization
 
         return $provider;
@@ -990,7 +990,7 @@ class Providers_model extends EA_Model
             $provider['settings'] = $this->get_settings($provider['id']);
             $provider['services'] = $this->get_service_ids($provider['id']);
             $provider['stations'] = $this->get_station_ids($provider['id']); // Salon Flora customization
-        $provider['skills'] = $this->get_skill_ids($provider['id']); // Ki Reservation (2026-08-26)
+        $provider['skills'] = $this->get_skill_ids($provider['id']); // BooKi (2026-08-26)
             $provider['service_commissions'] = $this->get_service_commissions($provider['id']); // Salon Flora customization
         }
 
@@ -1053,7 +1053,7 @@ class Providers_model extends EA_Model
             $provider['settings'] = $this->get_settings($provider['id']);
             $provider['services'] = $this->get_service_ids($provider['id']);
             $provider['stations'] = $this->get_station_ids($provider['id']); // Salon Flora customization
-        $provider['skills'] = $this->get_skill_ids($provider['id']); // Ki Reservation (2026-08-26)
+        $provider['skills'] = $this->get_skill_ids($provider['id']); // BooKi (2026-08-26)
             $provider['service_commissions'] = $this->get_service_commissions($provider['id']); // Salon Flora customization
         }
 

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -67,8 +67,8 @@ class Customers extends EA_Controller
         $this->load->model('customers_model');
         $this->load->model('secretaries_model');
         $this->load->model('roles_model');
-        $this->load->model('providers_model'); // Ki Reservation (2026-08-26)
-        $this->load->model('skills_model'); // Ki Reservation (2026-08-26)
+        $this->load->model('providers_model'); // BooKi (2026-08-26)
+        $this->load->model('skills_model'); // BooKi (2026-08-26)
 
         $this->load->library('accounts');
         $this->load->library('permissions');
@@ -120,7 +120,7 @@ class Customers extends EA_Controller
             $secretary_providers = $secretary['providers'];
         }
 
-        // Ki Reservation (2026-08-26) - {id, name, skills: [skill names]} for every provider that has
+        // BooKi (2026-08-26) - {id, name, skills: [skill names]} for every provider that has
         // at least one skill, used by the customer insight panel to suggest a provider whose skill
         // matches the customer's favorite/most-requested service (see customers.js:renderInsights()).
         // Kept as a lightweight, best-effort SIGNAL (case-insensitive name matching, no service<->skill
@@ -157,7 +157,7 @@ class Customers extends EA_Controller
             'secretary_providers' => $secretary_providers,
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
-            'providers_with_skills' => $providers_with_skills, // Ki Reservation (2026-08-26)
+            'providers_with_skills' => $providers_with_skills, // BooKi (2026-08-26)
         ]);
 
         html_vars([
@@ -435,7 +435,7 @@ class Customers extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - "Müşteri Paneli": grant (or change) a customer's own login
+     * BooKi (2026-08-26) - "Müşteri Paneli": grant (or change) a customer's own login
      * credentials, so they can access CustomerPortal.php going forward - separate from any other
      * customer field edit, since it touches `user_settings` rather than `users`.
      */

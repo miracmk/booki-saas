@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Jobs Model (Faz 32+33, 2026-08-28).
+ * BooKi - Jobs Model (Faz 32+33, 2026-08-28).
  *
  * Thin CRUD layer and database-specific queries for the jobs table.
  * Used by Queue library and the observability/monitoring layer.

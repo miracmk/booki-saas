@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - POS, wave 1 (2026-08-28).
+ * BooKi - POS, wave 1 (2026-08-28).
  *
  * The ONE migration in this wave that touches the pre-existing
  * payment_transactions table (migration 103) - deliberately the LAST schema

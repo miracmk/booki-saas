@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - AI Asistan (Dalga 4, 2026-09-12).
+ * BooKi - AI Asistan (Dalga 4, 2026-09-12).
  *
  * Admin-panel-internal AI agent (tool-calling, provider-agnostic via
  * OpenRouter - see Ai_agent_client.php) that can answer small data questions

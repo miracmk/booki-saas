@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - SMS and WhatsApp messaging settings table (2026-08-27).
+ * BooKi - SMS and WhatsApp messaging settings table (2026-08-27).
  *
  * Stores Netgsm SMS and Meta WhatsApp Business Cloud API credentials per tenant.
  * Single row per deployment - settings applied globally to all tenant notifications.

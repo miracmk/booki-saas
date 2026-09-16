@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Recurring appointments, wave 1 (2026-08-28).
+ * BooKi - Recurring appointments, wave 1 (2026-08-28).
  *
  * recurrence_groups: one row per "create a series of N appointments" request.
  * Individual appointments link back to their group via

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -71,7 +71,7 @@ class Google_sync
             return $setting_value;
         }
 
-        // Ki Reservation (2026-08-26) - "Ki Business Google OAuth": falls back to the shared,
+        // BooKi (2026-08-26) - "Ki Business Google OAuth": falls back to the shared,
         // superadmin-configured platform-wide Client ID before the CLI-only config() constant, so a
         // tenant that never set its OWN Google Cloud project still gets working Calendar sync.
         $master_value = master_setting('google_client_id');
@@ -117,7 +117,7 @@ class Google_sync
 
         $this->client = new Google_Client();
         $this->client->setHttpClient($http);
-        $this->client->setApplicationName('Ki Reservation');
+        $this->client->setApplicationName('BooKi');
         $this->client->setClientId($this->get_client_id());
         $this->client->setClientSecret($this->get_client_secret());
         $this->client->setRedirectUri(site_url('google/oauth_callback'));
@@ -132,7 +132,7 @@ class Google_sync
      * Get Google OAuth authorization url.
      *
      * This url must be used to redirect the user to the Google user consent page,
-     * where the user grants access to his data for the Ki Reservation app.
+     * where the user grants access to his data for the BooKi app.
      *
      * @param string|null $state Optional state parameter for CSRF protection.
      */
@@ -179,7 +179,7 @@ class Google_sync
      *
      * This method must be executed every time we need to make actions on a provider's Google Calendar account. A new
      * token is necessary and the only way to get it is to use the stored refresh token that was provided when the
-     * provider granted consent to Ki Reservation for use his Google Calendar account.
+     * provider granted consent to BooKi for use his Google Calendar account.
      *
      * @param string $refresh_token The provider's refresh token. This value is stored in the database and used every
      * time we need to make actions to his Google Calendar account.
@@ -194,7 +194,7 @@ class Google_sync
     /**
      * Salon Flora customization (2026-08-25) - create a NEW, dedicated Google Calendar under the
      * currently-authenticated account (call refresh_token() first) and return its id. Used right after a
-     * provider's first OAuth consent so their appointments land in their own "Ki Reservation" calendar
+     * provider's first OAuth consent so their appointments land in their own "BooKi" calendar
      * instead of cluttering (or being buried in) their personal "primary" calendar.
      *
      * @param string $summary Calendar display name, e.g. "Salon Flora - Ayşe Yılmaz".
@@ -205,10 +205,10 @@ class Google_sync
      * @throws \Google\Service\Exception
      */
     /**
-     * Ki Reservation (2026-09-12) - privacy gate: whether the customer's name/email get added as a
+     * BooKi (2026-09-12) - privacy gate: whether the customer's name/email get added as a
      * Google Calendar event attendee (which also makes Google email THEM an invite/notification with
      * the appointment details). Default OFF - a provider's Google Calendar is their own personal
-     * account, potentially synced to other devices/services outside Ki Reservation's control, so
+     * account, potentially synced to other devices/services outside BooKi's control, so
      * customer PII only goes there if the tenant explicitly opts in. When off, the event still exists
      * (provider sees the appointment/service/time) - it just never names or emails the customer.
      */
@@ -234,7 +234,7 @@ class Google_sync
     /**
      * Add an appointment record to its providers Google Calendar account.
      *
-     * This method checks whether the appointment's provider has enabled the Google Sync utility of Ki Reservation
+     * This method checks whether the appointment's provider has enabled the Google Sync utility of BooKi
      * and the stored access token is still valid. If yes, the selected appointment record is going to be added to the
      * Google Calendar account.
      *
@@ -329,7 +329,7 @@ class Google_sync
      * Update an existing appointment that is already synced with Google Calendar.
      *
      * This method updates the Google Calendar event item that is connected with the provided appointment record of
-     * Ki Reservation.
+     * BooKi.
      *
      * @param array $appointment Appointment data.
      * @param array $provider Provider data.

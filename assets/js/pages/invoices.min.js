@@ -1,5 +1,5 @@
 /**
- * Invoices page JavaScript (Ki Reservation, Dalga 1).
+ * Invoices page JavaScript (BooKi, Dalga 1).
  *
  * Lists invoices, builds a new invoice from a customer's billable
  * (completed, uninvoiced) appointments, issues/marks paid/voids.

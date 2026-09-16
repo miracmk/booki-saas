@@ -4,7 +4,7 @@
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-    <title>Installation | Ki Reservation</title>
+    <title>Installation | BooKi</title>
 
     <link rel="icon" type="image/x-icon" href="<?= asset_url('assets/img/favicon.ico') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/themes/default.css') ?>">
@@ -21,7 +21,7 @@
         <div class="row">
             <div class="col-lg-9 offset-lg-1">
                 <h1 class="text-dark-emphasis fw-light py-5">
-                    Ki Reservation Installation
+                    BooKi Installation
                 </h1>
             </div>
         </div>    
@@ -33,17 +33,17 @@
         <div class="col-lg-9 offset-lg-1">
 
             <div>
-                <h3>Welcome to the Ki Reservation installation page.</h3>
+                <h3>Welcome to the BooKi installation page.</h3>
 
                 <p class="text-break">
-                    This page will help you set the main settings of your Ki Reservation installation. You will be able to
+                    This page will help you set the main settings of your BooKi installation. You will be able to
                     edit these settings and many more in the backend session of your system. Remember to use the
                     <strong class="text-primary">
                         <?= site_url('user/login') ?>
                     </strong> 
-                    URL to connect to the backend section of Ki Reservation.
+                    URL to connect to the backend section of BooKi.
 
-                    If you face any problems during the usage of Ki Reservation you can always check the
+                    If you face any problems during the usage of BooKi you can always check the
                     <a href="https://kisoftware.com">Documentation</a> for getting help.
                     You may also submit new issues on
                     <a href="https://github.com/miracmk/ki-reservation/issues">GitHub Issues</a>
@@ -178,8 +178,8 @@
 
             <div class="mb-3">
                 <h3>License</h3>
-                Ki Reservation is licensed under the <span class="badge text-bg-primary">Ki Software License</span>. By using the
-                code of Ki Reservation in any way <br> you agree with the terms described in the following url:
+                BooKi is licensed under the <span class="badge text-bg-primary">Ki Software License</span>. By using the
+                code of BooKi in any way <br> you agree with the terms described in the following url:
                 <a href="https://github.com/miracmk/ki-reservation/blob/main/LICENSE">https://github.com/miracmk/ki-reservation/blob/main/LICENSE</a>
             </div>
 
@@ -187,7 +187,7 @@
 
             <button type="button" id="install" class="btn btn-primary mb-3">
                 <i class="icon-white icon-ok me-2"></i>
-                Install Ki Reservation
+                Install BooKi
             </button>
             
             
@@ -201,7 +201,7 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-9 offset-lg-1 py-3">
-                Powered by <a href="https://kisoftware.com">Ki Reservation</a>
+                Powered by <a href="https://kisoftware.com">BooKi</a>
             </div>
         </div>
     </div>

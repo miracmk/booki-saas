@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Waitlist controller (Dalga 1, 2026-08-28).
+ * BooKi - Waitlist controller (Dalga 1, 2026-08-28).
  *
  * Handles CRUD + join operations for the customer waitlist.
  * Access: admin/secretary manage the list; providers can view their own.

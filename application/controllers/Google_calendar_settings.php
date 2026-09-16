@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -68,7 +68,7 @@ class Google_calendar_settings extends EA_Controller
                 'value' => setting('display_add_to_google_calendar', '1'),
             ],
             [
-                // Ki Reservation (2026-09-12) - privacy gate, see Google_sync::customer_sharing_enabled().
+                // BooKi (2026-09-12) - privacy gate, see Google_sync::customer_sharing_enabled().
                 // Default OFF: a provider's Google Calendar is their own personal account, so customer
                 // name/email only get added as an event attendee (which also makes Google email the
                 // customer an invite) if the tenant explicitly opts in.

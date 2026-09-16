@@ -3,7 +3,7 @@
 <?php section('content'); ?>
 
 <?php
-// Ki Reservation (2026-09-11 fix) - vars() does NOT support dot-notation (CI_Config::item() is a
+// BooKi (2026-09-11 fix) - vars() does NOT support dot-notation (CI_Config::item() is a
 // flat array lookup), so every vars('settings.xxx') call this file used to make was always
 // returning null - dropdown "selected" state, saved-value placeholders and checkboxes never
 // reflected the real saved settings. Assign once here and read the array directly instead (same
@@ -168,7 +168,7 @@ $settings = vars('settings') ?? [];
                 <div class="card-body">
                     <p class="form-text text-muted">
                         Eğer kendi SMTP sunucunuz varsa aşağıya bilgilerini girin. Boş bırakırsanız
-                        e-postalar platformun kendi sunucusundan, altında küçük bir "Ki Reservation ile
+                        e-postalar platformun kendi sunucusundan, altında küçük bir "BooKi ile
                         gönderildi" tanıtım notu ile gönderilir.
                     </p>
 
@@ -273,7 +273,7 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
         smtp_from_name: document.getElementById('smtp-from-name').value || null,
         smtp_from_address: document.getElementById('smtp-from-address').value || null,
         default_notification_channel: document.getElementById('default-notification-channel').value,
-        // Ki Reservation (2026-09-11 fix) - config.php has csrf_protection=true, so a POST without
+        // BooKi (2026-09-11 fix) - config.php has csrf_protection=true, so a POST without
         // this field was always rejected before reaching the controller (matches the http_client.js
         // pattern used everywhere else in the app, e.g. account_http_client.js).
         csrf_token: '<?= e(vars('csrf_token')) ?>',

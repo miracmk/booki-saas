@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -131,14 +131,35 @@ class Customers_model extends EA_Model
         }
 
         if (empty($customer['id'])) {
-            return $this->insert($customer);
+            $customer_id = $this->insert($customer);
+            $customer['id'] = $customer_id;
+
+            $this->enqueue_crm('customer.created', $customer_id);
+
+            return $customer_id;
         } else {
-            return $this->update($customer);
+            $customer_id = $this->update($customer);
+
+            $this->enqueue_crm('customer.updated', $customer_id);
+
+            return $customer_id;
         }
     }
 
     /**
-     * Ki Reservation (2026-08-26) - "Müşteri Paneli": customers, unlike admin/provider/secretary,
+     * BooKi (2026-09-16) - Zoho CRM integration: write a PII-free pointer to the tenant's
+     * crm_outbox so the `console crm_sync` worker can mirror this customer into CRM. Deliberately
+     * fail-safe (Crm_sync::enqueue() never throws).
+     */
+    private function enqueue_crm(string $action, int $customer_id): void
+    {
+        $this->load->library('crm_sync');
+
+        $this->crm_sync->enqueue($action, $customer_id);
+    }
+
+    /**
+     * BooKi (2026-08-26) - "Müşteri Paneli": customers, unlike admin/provider/secretary,
      * never had login credentials before - this is the one place that sets them. Mirrors
      * Providers_model::set_settings()'s salt+hash pattern; `user_settings` is a generic per-user
      * table already shared across every role, nothing new needed there.

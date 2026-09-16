@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Queue Library (Faz 32+33, 2026-08-28).
+ * BooKi - Queue Library (Faz 32+33, 2026-08-28).
  *
  * Unified job queue management: pushing jobs, reserving them for processing,
  * and marking completion/failure with exponential backoff retry logic.

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Marketing (Dalga 3 / Faz 3.3, 2026-09-09).
+ * BooKi - Marketing (Dalga 3 / Faz 3.3, 2026-09-09).
  *
  * Three new tables:
  *   marketing_segments  – named customer lists with type + rules JSON

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -166,7 +166,11 @@ class Appointment_booking_service
 
             // Step 6: Check for duplicate customer appointments
             if ($this->CI->customers_model->exists($customer)) {
-                $customer_id = $this->CI->customers_model->find_record_id($customer);
+                // Reuse the existing customer record - save() validates email uniqueness BEFORE its own
+                // exists() fallback runs, so unless the resolved id is set HERE it throws "email already
+                // in use" for every returning customer (Booking.php, by contrast, pre-resolves the id the
+                // same way before calling save()).
+                $customer['id'] = $this->CI->customers_model->find_record_id($customer);
 
                 $existing_appointments = $this->CI->appointments_model->get([
                     'id_users_customer' => $customer_id,
@@ -260,7 +264,7 @@ class Appointment_booking_service
                 $this->CI->stations_model->release_station_locks($station_locks_held);
             }
 
-            // Step 11: Create payment intent if deposits are required (Ki Reservation payment infrastructure)
+            // Step 11: Create payment intent if deposits are required (BooKi payment infrastructure)
             $payment_intent = null;
 
             try {

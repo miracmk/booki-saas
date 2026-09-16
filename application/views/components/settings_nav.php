@@ -42,7 +42,7 @@
         </a>
     </li>
 
-    <?php // Ki Reservation (2026-08-26) - içe/dışa aktarma sihirbazı. ?>
+    <?php // BooKi (2026-08-26) - içe/dışa aktarma sihirbazı. ?>
     <li class="nav-item mb-3">
         <a class="nav-link px-0 py-2" href="<?= site_url('data_transfer') ?>">
             Veriler

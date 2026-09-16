@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation (Dalga 3 / Faz 3.3) - Marketing Segments Model
+ * BooKi (Dalga 3 / Faz 3.3) - Marketing Segments Model
  *
  * Named customer lists. Each segment has a type + JSON rules; member_count is a
  * cached count that staff refresh explicitly (per segment or all). The actual

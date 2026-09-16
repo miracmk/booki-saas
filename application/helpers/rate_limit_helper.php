@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Open Source Web Scheduler
+ * BooKi - Open Source Web Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - payment webhooks controller (2026-08-27).
+ * BooKi - payment webhooks controller (2026-08-27).
  *
  * Public webhook endpoints for payment gateways (iyzico, PayTR, Stripe).
  * CSRF protection is disabled for these endpoints (see routes.php csrf_exclude_uris).
@@ -194,7 +194,7 @@ class Payment_webhooks extends EA_Controller
                 }
             }
 
-            // Ki Reservation (Dalga 1) - if this transaction is linked to a POS order (see
+            // BooKi (Dalga 1) - if this transaction is linked to a POS order (see
             // Orders_model::checkout(), migration 121's id_orders column), flip the order's status
             // in step with the transaction's. update_status() above already persisted the
             // transaction status change unconditionally - this is a pure best-effort side effect,

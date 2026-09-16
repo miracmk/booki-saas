@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -34,7 +34,7 @@ class Google extends EA_Controller
     }
 
     /**
-     * Complete synchronization of appointments between Google Calendar and Ki Reservation.
+     * Complete synchronization of appointments between Google Calendar and BooKi.
      *
      * This method will completely sync the appointments of a provider with his Google Calendar account. The sync period
      * needs to be relatively small, because a lot of API calls might be necessary and this will lead to consuming the
@@ -250,10 +250,10 @@ class Google extends EA_Controller
                     $google_event = $CI->google_sync->get_event($provider, $local_event['id_google_calendar']);
 
                     if ($google_event->getStatus() == 'cancelled') {
-                        throw new Exception('Event is cancelled, remove the record from Ki Reservation.');
+                        throw new Exception('Event is cancelled, remove the record from BooKi.');
                     }
 
-                    // If Google Calendar event is different from Ki Reservation appointment then update Ki Reservation record.
+                    // If Google Calendar event is different from BooKi appointment then update BooKi record.
                     // Both sides must be evaluated in the provider's timezone to get consistent timestamps.
                     // Local datetimes are stored as timezone-naive strings in the provider's timezone, so
                     // wrap them with the provider timezone before calling getTimestamp().
@@ -303,12 +303,12 @@ class Google extends EA_Controller
                         $local_event['notes'] !== $google_event_notes;
 
                     // Salon Flora customization (2026-08-25) - ASYMMETRIC two-way sync, matching what
-                    // Calendly/Cal.com do (see project research notes): Ki Reservation is always the
+                    // Calendly/Cal.com do (see project research notes): BooKi is always the
                     // source of truth for a real APPOINTMENT (a customer booking) - if it diverges from
                     // Google, we push our values back to Google rather than letting a remote edit
                     // silently rewrite the booking. Unavailabilities are the opposite on purpose: they
                     // exist specifically to mirror a provider's OWN personal Google Calendar events into
-                    // Ki Reservation, so Google stays authoritative for those.
+                    // BooKi, so Google stays authoritative for those.
                     if ($is_different) {
                         if ($local_event['is_unavailability']) {
                             $local_event['start_datetime'] = $google_event_start->format('Y-m-d H:i:s');
@@ -327,7 +327,7 @@ class Google extends EA_Controller
                     } else {
                         // Salon Flora customization (2026-08-25) - a real appointment must NEVER be
                         // silently deleted just because its Google event disappeared (accidental
-                        // deletion, a therapist clearing their calendar, etc.). Ki Reservation stays the
+                        // deletion, a therapist clearing their calendar, etc.). BooKi stays the
                         // source of truth: keep the appointment and RE-CREATE the Google event instead.
                         try {
                             $recreated_event = $CI->google_sync->add_appointment(
@@ -354,7 +354,7 @@ class Google extends EA_Controller
                 }
             }
 
-            // Add Google Calendar events that do not exist in Ki Reservation.
+            // Add Google Calendar events that do not exist in BooKi.
             $google_calendar = $provider['settings']['google_calendar'];
 
             try {
@@ -430,7 +430,7 @@ class Google extends EA_Controller
                         ? (string) $google_event->getDescription()
                         : trim($google_event_summary . ' ' . $google_event->getDescription());
 
-                // Record doesn't exist in the Ki Reservation, so add the event now.
+                // Record doesn't exist in the BooKi, so add the event now.
                 $local_event = [
                     'start_datetime' => $google_event_start->format('Y-m-d H:i:s'),
                     'end_datetime' => $google_event_end->format('Y-m-d H:i:s'),
@@ -723,7 +723,7 @@ class Google extends EA_Controller
                 }
 
                 if (!empty($appointment_match)) {
-                    // Ki Reservation stays the source of truth for real bookings (asymmetric sync
+                    // BooKi stays the source of truth for real bookings (asymmetric sync
                     // policy, see Google::sync()). A cancelled/edited appointment event on the Google
                     // side is left for the next full `console sync` cron, which already knows how to
                     // recreate/repush it correctly - avoids duplicating that logic here.
@@ -854,8 +854,8 @@ class Google extends EA_Controller
      * tokens in the future.
      *
      * IMPORTANT: Because it is necessary to authorize the application using the web server flow (see official
-     * documentation of OAuth), every Ki Reservation installation should use its own calendar api key. So in every
-     * api console account, the "http://path-to-Ki Reservation/google/oauth_callback" should be included in an
+     * documentation of OAuth), every BooKi installation should use its own calendar api key. So in every
+     * api console account, the "http://path-to-BooKi/google/oauth_callback" should be included in an
      * allowed redirect URL.
      *
      * @throws Exception
@@ -921,7 +921,7 @@ class Google extends EA_Controller
                 $this->google_sync->refresh_token($token['refresh_token']);
 
                 $calendar_name = trim(
-                    (setting('company_name') ?: 'Ki Reservation') . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'],
+                    (setting('company_name') ?: 'BooKi') . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'],
                 );
 
                 try {

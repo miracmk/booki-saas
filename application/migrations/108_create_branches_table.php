@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Multi-branch support (single tenant, multiple physical locations).
+ * BooKi - Multi-branch support (single tenant, multiple physical locations).
  *
  * Adds branches table and optional id_branches foreign key columns to providers,
  * stations, and appointments to enable filtering by branch while maintaining

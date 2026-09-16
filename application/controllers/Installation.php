@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -53,7 +53,7 @@ class Installation extends EA_Controller
     }
 
     /**
-     * Installs Ki Reservation on the server.
+     * Installs BooKi on the server.
      */
     public function perform(): void
     {

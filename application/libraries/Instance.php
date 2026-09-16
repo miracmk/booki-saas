@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -15,7 +15,7 @@ require_once __DIR__ . '/../core/EA_Migration.php';
 /**
  * Instance library.
  *
- * Handles all Ki Reservation instance related functionality.
+ * Handles all BooKi instance related functionality.
  *
  * @package Libraries
  */

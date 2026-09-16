@@ -3,7 +3,7 @@
 use GuzzleHttp\Client;
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - WhatsApp unofficial-mode bridge client (Dalga 3 / Faz 3.5,
+ * BooKi - WhatsApp unofficial-mode bridge client (Dalga 3 / Faz 3.5,
  * 2026-09-10).
  *
  * Thin REST client for the separate Node sidecar container ("ki-wa-bridge",

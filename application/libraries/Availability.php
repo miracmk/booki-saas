@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -46,7 +46,7 @@ class Availability
     }
 
     /**
-     * Ki Reservation (2026-08-26) - "İlk Müsaitlik" (first availability): scan forward from today
+     * BooKi (2026-08-26) - "İlk Müsaitlik" (first availability): scan forward from today
      * across every provider assigned to the service, and return the first N distinct date/hour slots
      * found, each already matched to the specific free provider + station (room) that would be used -
      * reuses get_available_hours() (which already excludes fully-booked stations) plus
@@ -56,7 +56,7 @@ class Availability
      * @param array $providers Candidate providers (must already be filtered to ones assigned to the service).
      * @param int $limit How many slots to return.
      * @param int $max_days How many days forward to scan before giving up.
-     * @param bool $one_per_provider Ki Reservation (2026-09-12) - when true, stop after the FIRST (earliest)
+     * @param bool $one_per_provider BooKi (2026-09-12) - when true, stop after the FIRST (earliest)
      *   hour found for each provider instead of collecting every open hour that provider has today. Without
      *   this, a single early provider with many open hours can fill the entire $limit budget by itself,
      *   starving every other provider of a slot - exactly the bug behind Calendar::get_next_availability()'s
@@ -178,7 +178,7 @@ class Availability
             $available_hours = $this->generate_available_hours($date, $service, $available_periods);
         }
 
-        // Ki Reservation (2026-09-12, fixed same day) - consider_book_advance_timeout() does TWO
+        // BooKi (2026-09-12, fixed same day) - consider_book_advance_timeout() does TWO
         // things at once: (1) always strip hours that are simply in the past (today only), and (2)
         // additionally strip hours within the "book_advance_timeout" buffer from now. Only (2) should
         // be skippable ($ignore_advance_timeout=true, used by the internal "İlk Müsaitlik" staff view -
@@ -756,7 +756,7 @@ class Availability
      * @param string $date The selected date.
      * @param array $available_hours Already generated available hours.
      * @param array $provider Provider information.
-     * @param bool $ignore_advance_timeout Ki Reservation (2026-09-12) - when true, skip only the
+     * @param bool $ignore_advance_timeout BooKi (2026-09-12) - when true, skip only the
      *   configurable "book_advance_timeout" buffer (customer-booking guardrail) while still ALWAYS
      *   stripping hours that are simply in the past relative to right now - see call-site docblock in
      *   get_available_hours() for why these two are deliberately not both controlled by this flag.

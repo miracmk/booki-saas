@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -146,7 +146,7 @@ class Login extends EA_Controller
                     'Failed login attempt for username: ' . $username . ' from IP: ' . $this->input->ip_address(),
                 );
 
-                // Ki Reservation customization - audit trail for failed authentication attempts.
+                // BooKi customization - audit trail for failed authentication attempts.
                 audit_log('auth.login_failed', null, null, ['username' => $username]);
 
                 // Use constant time response to prevent username enumeration
@@ -174,10 +174,10 @@ class Login extends EA_Controller
 
             log_message('info', 'Successful login for user: ' . $username . ' from IP: ' . $this->input->ip_address());
 
-            // Ki Reservation customization - audit trail for successful authentication.
+            // BooKi customization - audit trail for successful authentication.
             audit_log('auth.login_success', 'user', (int) $user_data['user_id']);
 
-            // Ki Reservation (2026-08-26) - "Müşteri Paneli": a customer has no access to /calendar
+            // BooKi (2026-08-26) - "Müşteri Paneli": a customer has no access to /calendar
             // (their role has zero permissions there) - login.js's default dest_url fallback assumes
             // staff, so tell it explicitly where a customer belongs instead.
             json_response([
@@ -265,7 +265,7 @@ class Login extends EA_Controller
             $this->session->sess_regenerate(true);
             session($user_data);
 
-            // Ki Reservation - keep audit_log parity with validate()'s non-MFA success path, so a
+            // BooKi - keep audit_log parity with validate()'s non-MFA success path, so a
             // query for 'auth.login_success' finds every completed login regardless of whether it
             // went through a TOTP challenge.
             audit_log('auth.login_success', 'user', $user_id);

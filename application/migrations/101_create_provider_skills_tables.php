@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - provider skills/specialties (2026-08-26).
+ * BooKi - provider skills/specialties (2026-08-26).
  *
  * A lightweight catalog (`provider_skills`) + a many-to-many assignment table
  * (`provider_skill_assignments`), mirroring the existing stations_providers pattern

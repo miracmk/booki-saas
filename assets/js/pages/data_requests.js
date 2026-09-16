@@ -1,5 +1,5 @@
 /**
- * Data Requests page JavaScript (Ki Reservation, Faz 30, KVKK/GDPR, 2026-08-28).
+ * Data Requests page JavaScript (BooKi, Faz 30, KVKK/GDPR, 2026-08-28).
  *
  * Lets staff review customer KVKK requests: export requests are informational
  * (fully self-service, built and emailed automatically); erasure requests need

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Health check controller (Faz 32+33, 2026-08-28).
+ * BooKi - Health check controller (Faz 32+33, 2026-08-28).
  *
  * Provides unauthenticated health monitoring endpoints for infrastructure
  * observability. Both endpoints return 200 with status data on success or

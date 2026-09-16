@@ -210,7 +210,7 @@
                     </div>
                 </div>
 
-                <?php // Ki Reservation (2026-09-11 fix) - iyzico/PayTR/Stripe credentials, same
+                <?php // BooKi (2026-09-11 fix) - iyzico/PayTR/Stripe credentials, same
                 // "built but unlinked" bug as the two cards below. ?>
                 <div class="col-sm-6 mb-4">
                     <div class="card h-100">
@@ -236,7 +236,7 @@
                     </div>
                 </div>
 
-                <?php // Ki Reservation (2026-09-11 fix) - was built (Whatsapp.php + Messaging_settings.php,
+                <?php // BooKi (2026-09-11 fix) - was built (Whatsapp.php + Messaging_settings.php,
                 // dual-mode: resmi Meta Cloud API + QR bridge) but never linked from anywhere in the UI. ?>
                 <div class="col-sm-6 mb-4">
                     <div class="card h-100">
@@ -262,7 +262,7 @@
                     </div>
                 </div>
 
-                <?php // Ki Reservation (2026-09-11 fix) - SMS (Netgsm) + SMTP credentials, same "built but
+                <?php // BooKi (2026-09-11 fix) - SMS (Netgsm) + SMTP credentials, same "built but
                 // unlinked" bug as the WhatsApp card above. ?>
                 <div class="col-sm-6 mb-4">
                     <div class="card h-100">

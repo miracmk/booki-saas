@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -122,7 +122,7 @@ App.Http.Providers = (function () {
     }
 
     /**
-     * Ki Reservation (2026-08-26) - find or create a skill by name.
+     * BooKi (2026-08-26) - find or create a skill by name.
      *
      * @param {String} name
      *

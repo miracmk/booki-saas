@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Waitlist Model
+ * BooKi - Waitlist Model
  *
  * CRUD + matching queries for waitlist_entries. The actual "who to notify
  * when a slot opens" orchestration lives in Waitlist_service - this model

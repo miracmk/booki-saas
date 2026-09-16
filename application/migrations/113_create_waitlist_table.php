@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Waitlist, wave 1 (2026-08-28).
+ * BooKi - Waitlist, wave 1 (2026-08-28).
  *
  * waitlist_entries: a customer's request to be notified when a slot opens up
  * for a service (optionally with a specific provider and/or date/time window

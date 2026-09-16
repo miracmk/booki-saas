@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - WhatsApp messages log model (2026-08-27).
+ * BooKi - WhatsApp messages log model (2026-08-27).
  *
  * Manages the whatsapp_messages table - inbound/outbound message history.
  * Mirrors the pattern of telegram_messages.

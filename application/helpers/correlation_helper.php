@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Correlation ID helper (Faz 32+33, 2026-08-28).
+ * BooKi - Correlation ID helper (Faz 32+33, 2026-08-28).
  *
  * Generates or retrieves a request correlation ID for distributed tracing.
  * Reads from X-Request-ID header if present, falls back to random generation.

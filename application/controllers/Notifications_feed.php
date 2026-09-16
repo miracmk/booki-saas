@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Notification bell feed (Dalga 4, 2026-09-12).
+ * BooKi - Notification bell feed (Dalga 4, 2026-09-12).
  *
  * Deliberately NOT named `Notifications` - that name is already taken by
  * application/libraries/Notifications.php (the outbound SENDING library).

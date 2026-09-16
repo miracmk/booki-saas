@@ -1,5 +1,5 @@
 /**
- * Reviews moderation page JavaScript (Ki Reservation, Dalga 3 / Faz 3.4).
+ * Reviews moderation page JavaScript (BooKi, Dalga 3 / Faz 3.4).
  *
  * Renders review requests per status tab and handles publish/reject moderation.
  */

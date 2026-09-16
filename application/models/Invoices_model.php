@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Invoices Model
+ * BooKi - Invoices Model
  *
  * An invoice aggregates charges (appointments, packages, products,
  * memberships) into one billing document for a customer. This model only
@@ -191,7 +191,7 @@ class Invoices_model extends EA_Model
     }
 
     /**
-     * Ki Reservation (2026-09-12) - finalized invoices (issued/paid/partially_paid - draft and void
+     * BooKi (2026-09-12) - finalized invoices (issued/paid/partially_paid - draft and void
      * excluded, matching what an accounting system should actually receive) in a date range, joined with
      * customer name and each invoice's item descriptions concatenated (one row per invoice, not per line
      * item - most accounting import formats expect one row per document). Used by

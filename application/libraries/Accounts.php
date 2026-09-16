@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -422,7 +422,7 @@ class Accounts
         // and running this library; the library's own real signature differs from what an
         // assumed/typical constructor shape would suggest). getQRText()/verifyCode() never call
         // the provider, so any IQRCodeProvider instance satisfies the constructor here.
-        $tfa = new \RobThree\Auth\TwoFactorAuth($this->totp_qr_provider(), 'Ki Reservation');
+        $tfa = new \RobThree\Auth\TwoFactorAuth($this->totp_qr_provider(), 'BooKi');
 
         // Verify with ±1 time step window (30s drift each direction)
         $isValid = $tfa->verifyCode($secret, $code, 1);
@@ -575,7 +575,7 @@ class Accounts
      */
     public function generate_totp_secret(int $user_id): array
     {
-        $tfa = new \RobThree\Auth\TwoFactorAuth($this->totp_qr_provider(), 'Ki Reservation');
+        $tfa = new \RobThree\Auth\TwoFactorAuth($this->totp_qr_provider(), 'BooKi');
 
         // Generate a new secret
         $secret = $tfa->createSecret(160); // 160 bits for stronger entropy
@@ -601,7 +601,7 @@ class Accounts
 
         // Generate the otpauth URI
         $otpauth_uri = $tfa->getQRCodeImageAsDataUri(
-            'Ki Reservation (' . $email . ')',
+            'BooKi (' . $email . ')',
             $secret,
         );
 

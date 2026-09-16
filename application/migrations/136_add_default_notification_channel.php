@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Bildirim Motoru varsayılan kanalı (2026-09-11).
+ * BooKi - Bildirim Motoru varsayılan kanalı (2026-09-11).
  *
  * Adds to `messaging_settings`:
  *   - default_notification_channel   ENUM('email','sms','whatsapp','telegram'),

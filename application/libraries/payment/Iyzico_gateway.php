@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - iyzico payment gateway (2026-08-27).
+ * BooKi - iyzico payment gateway (2026-08-27).
  *
  * Implementation of Payment_gateway_interface for iyzico.
  * API docs: https://docs.iyzipay.com/

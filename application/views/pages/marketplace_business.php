@@ -11,7 +11,7 @@ extract(html_vars());
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($page_title); ?> - Ki Reservation</title>
+    <title><?php echo htmlspecialchars($page_title); ?> - BooKi</title>
     <style>
         * {
             margin: 0;

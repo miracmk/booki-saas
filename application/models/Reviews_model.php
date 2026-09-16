@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation (Dalga 3 / Faz 3.4) - Reviews Model
+ * BooKi (Dalga 3 / Faz 3.4) - Reviews Model
  *
  * Tenant-side review request source of truth:
  *

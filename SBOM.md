@@ -1,4 +1,4 @@
-# SBOM — Ki Reservation (Software Bill of Materials)
+# SBOM — BooKi (Software Bill of Materials)
 
 Generated 2026-08-24. Lists every third-party dependency bundled with Ki
 Reservation — PHP (via Composer), frontend JS/CSS (`assets/vendor/`), and

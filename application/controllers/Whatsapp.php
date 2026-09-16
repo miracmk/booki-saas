@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - WhatsApp Business Cloud API integration controller (2026-08-27).
+ * BooKi - WhatsApp Business Cloud API integration controller (2026-08-27).
  *
  * Admin-facing settings page plus the public webhook endpoint that Meta
  * calls for incoming messages and status updates.
@@ -218,7 +218,7 @@ class Whatsapp extends EA_Controller
             $body = $message['body'];
 
             // Try to match the sender to a known user by WhatsApp ID.
-            // Ki Reservation (Dalga 3 / Faz 3.5) - users.whatsapp_wa_id (added by
+            // BooKi (Dalga 3 / Faz 3.5) - users.whatsapp_wa_id (added by
             // migration 133) is what makes this match possible; before that the
             // column did not exist and every incoming message landed with a null
             // user. Details in match_user_by_wa_id().
@@ -246,7 +246,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - switch the active sender mode between the
+     * BooKi (Dalga 3 / Faz 3.5) - switch the active sender mode between the
      * official Meta Cloud API and the unofficial bridge. Switching to 'unofficial'
      * requires the informed-consent timer to be logged first (see the wizard).
      */
@@ -294,7 +294,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - persist the unofficial bridge's REST base
+     * BooKi (Dalga 3 / Faz 3.5) - persist the unofficial bridge's REST base
      * URL and its shared secret. The secret is PII-encrypted by the model exactly like
      * the Meta access token. Empty values are ignored (never wipe a working config);
      * the UI treats leaving them blank as "keep current".
@@ -346,7 +346,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - busy check for the wizard: whether the
+     * BooKi (Dalga 3 / Faz 3.5) - busy check for the wizard: whether the
      * active mode's credentials actually reach a connected device/account.
      */
     public function check_connection(): void
@@ -409,7 +409,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - send a test message through the active mode
+     * BooKi (Dalga 3 / Faz 3.5) - send a test message through the active mode
      * and log it in whatsapp_messages, proving the end-to-end path works.
      */
     public function send_test(): void
@@ -432,7 +432,7 @@ class Whatsapp extends EA_Controller
             $settings = $this->messaging_settings_model->get_settings();
             $mode = $settings['whatsapp_mode'] ?? 'official';
 
-            $result = $this->send_whatsapp($to_phone, 'Ki Reservation - test mesajı.', $mode);
+            $result = $this->send_whatsapp($to_phone, 'BooKi - test mesajı.', $mode);
 
             if (!$result['success']) {
                 throw new RuntimeException('Gönderilemedi: ' . $result['error']);
@@ -442,7 +442,7 @@ class Whatsapp extends EA_Controller
                 'id_users' => null,
                 'wa_id' => $to_phone,
                 'direction' => 'out',
-                'message' => 'Ki Reservation - test mesajı.',
+                'message' => 'BooKi - test mesajı.',
                 'status' => 'sent',
             ]);
 
@@ -453,7 +453,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - ask the bridge to begin a coupling session
+     * BooKi (Dalga 3 / Faz 3.5) - ask the bridge to begin a coupling session
      * for this tenant; the resulting QR code is fetched via qr_status() polling.
      */
     public function qr_start(): void
@@ -497,7 +497,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - poll the bridge for the current session
+     * BooKi (Dalga 3 / Faz 3.5) - poll the bridge for the current session
      * state (and QR data while connecting). Cache the status in messaging_settings
      * so the panel can show a badge without a round-trip.
      */
@@ -549,7 +549,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - end the bridge session for this tenant
+     * BooKi (Dalga 3 / Faz 3.5) - end the bridge session for this tenant
      * (logout the paired device) and reset the cached status.
      */
     public function qr_logout(): void
@@ -577,7 +577,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - public endpoint the ki-wa-bridge calls
+     * BooKi (Dalga 3 / Faz 3.5) - public endpoint the ki-wa-bridge calls
      * when the paired device receives an inbound message. Authenticated with the
      * shared bridge secret (X-Bridge-Secret header), never with the admin session.
      */
@@ -651,7 +651,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - resolve an inbound sender to a known
+     * BooKi (Dalga 3 / Faz 3.5) - resolve an inbound sender to a known
      * customer by their whatsapp_wa_id (exact, then digit-normalized fallback).
      *
      * @return array|null
@@ -680,7 +680,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - send a message through either WhatsApp
+     * BooKi (Dalga 3 / Faz 3.5) - send a message through either WhatsApp
      * transport. Returns ['success' => bool, 'message_id' => ?string, 'error' => ?string].
      */
     private function send_whatsapp(string $to, string $text, string $mode): array
@@ -703,7 +703,7 @@ class Whatsapp extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - stable tenant identifier for bridge calls.
+     * BooKi (Dalga 3 / Faz 3.5) - stable tenant identifier for bridge calls.
      */
     private function tenant_identifier(): string
     {

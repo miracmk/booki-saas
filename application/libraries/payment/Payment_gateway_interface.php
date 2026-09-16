@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - payment gateway interface (2026-08-27).
+ * BooKi - payment gateway interface (2026-08-27).
  *
  * Contract for all payment gateway implementations (iyzico, PayTR, Stripe).
  * Each gateway must implement these methods to work with the payment system.

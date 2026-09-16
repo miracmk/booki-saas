@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -431,7 +431,7 @@ App.Pages.Customers = (function () {
             ...row('Tercih Ettiği Saat Dilimi', favoriteTime ? `${favoriteTime.key} (${favoriteTime.count})` : '-'),
         );
 
-        // Ki Reservation (2026-08-26) - a best-effort SIGNAL, not an authoritative recommendation: match
+        // BooKi (2026-08-26) - a best-effort SIGNAL, not an authoritative recommendation: match
         // the customer's favorite service against provider skill tags via simple case-insensitive
         // substring matching (there is no service<->skill foreign key). Only shown when it actually
         // finds something, and skipped entirely when the customer's favorite provider already has the

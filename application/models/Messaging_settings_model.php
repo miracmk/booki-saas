@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Messaging settings model (2026-08-27).
+ * BooKi - Messaging settings model (2026-08-27).
  *
  * Manages SMS/WhatsApp configuration. Single row per deployment.
  * Handles PII encryption/decryption of credentials.

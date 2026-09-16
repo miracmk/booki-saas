@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Waitlist (Dalga 1, 2026-08-28).
+ * BooKi - Waitlist (Dalga 1, 2026-08-28).
  *
  * Orchestrates joining the waitlist and notifying matching entries when a
  * slot opens up (an appointment is cancelled/deleted). Called from the two

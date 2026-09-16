@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -38,7 +38,7 @@ class Providers extends EA_Controller
         'id_roles',
         'stations', // Salon Flora customization - array, replaces the old single id_stations column
         'station_restriction_enabled', // Salon Flora customization - when set, "stations" narrows the service's own station list instead of being ignored
-        'skills', // Ki Reservation (2026-08-26) - array of provider_skills IDs, see Skills_model
+        'skills', // BooKi (2026-08-26) - array of provider_skills IDs, see Skills_model
         'commission_type', // Salon Flora customization - default/fallback commission rate
         'commission_value', // Salon Flora customization
         'commission_overtime_bonus', // Salon Flora customization - one-time bonus over 1 hour (hourly type only)
@@ -50,7 +50,7 @@ class Providers extends EA_Controller
     public array $optional_provider_fields = [
         'services' => [],
         'stations' => [], // Salon Flora customization
-        'skills' => [], // Ki Reservation (2026-08-26)
+        'skills' => [], // BooKi (2026-08-26)
         'commission_type' => 'percentage', // Salon Flora customization
         'commission_value' => 0, // Salon Flora customization
         'commission_overtime_bonus' => 0, // Salon Flora customization
@@ -85,7 +85,7 @@ class Providers extends EA_Controller
         $this->load->model('services_model');
         $this->load->model('roles_model');
         $this->load->model('stations_model'); // Salon Flora customization
-        $this->load->model('skills_model'); // Ki Reservation (2026-08-26)
+        $this->load->model('skills_model'); // BooKi (2026-08-26)
 
         $this->load->library('accounts');
         $this->load->library('timezones');
@@ -139,7 +139,7 @@ class Providers extends EA_Controller
             'default_language' => setting('default_language'),
             'default_timezone' => setting('default_timezone'),
             'stations' => $this->stations_model->to_options(), // Salon Flora customization
-            'skills' => $this->skills_model->to_options(), // Ki Reservation (2026-08-26)
+            'skills' => $this->skills_model->to_options(), // BooKi (2026-08-26)
         ]);
 
         html_vars([
@@ -150,7 +150,7 @@ class Providers extends EA_Controller
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
             'services' => $this->services_model->get(),
             'stations' => $this->stations_model->to_options(), // Salon Flora customization
-            'skills' => $this->skills_model->to_options(), // Ki Reservation (2026-08-26)
+            'skills' => $this->skills_model->to_options(), // BooKi (2026-08-26)
         ]);
 
         $this->load->view('pages/providers');
@@ -404,7 +404,7 @@ class Providers extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - find or create a skill by name and return it, so an admin can add
+     * BooKi (2026-08-26) - find or create a skill by name and return it, so an admin can add
      * a new skill inline while editing a provider (see the "Yeni yetenek ekle" input in providers.js)
      * without a dedicated catalog management page.
      */

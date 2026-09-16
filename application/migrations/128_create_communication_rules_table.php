@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Communication Hub (Dalga 3 / Faz 3.1, 2026-09-08).
+ * BooKi - Communication Hub (Dalga 3 / Faz 3.1, 2026-09-08).
  *
  * Per-tenant routing table that drives the Communication Hub engine
  * (application/libraries/Communication_hub.php). Each row binds:

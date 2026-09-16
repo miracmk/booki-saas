@@ -1,4 +1,4 @@
-# Key Management — Ki Reservation
+# Key Management — BooKi
 
 This document covers how PII encryption keys are stored, and the
 procedure for rotating them. See
@@ -36,7 +36,7 @@ procedure for rotating them. See
 
 ## Key rotation procedure
 
-Ki Reservation does not yet have automated key rotation tooling. To
+BooKi does not yet have automated key rotation tooling. To
 rotate `SF_PII_ENC_KEY` and/or `SF_PII_HASH_KEY` manually:
 
 1. **Generate new keys:**

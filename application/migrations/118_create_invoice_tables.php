@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Internal Invoicing, wave 1 (2026-08-28).
+ * BooKi - Internal Invoicing, wave 1 (2026-08-28).
  *
  * invoices + invoice_items: a billing document that aggregates charges from
  * appointments, packages, products, and memberships into one customer-facing

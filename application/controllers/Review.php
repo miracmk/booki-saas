@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation (Dalga 3 / Faz 3.4) - Public Review Controller
+ * BooKi (Dalga 3 / Faz 3.4) - Public Review Controller
  *
  * Serves the single-use review form a customer reaches via the {review_link} in
  * the post-appointment SMS/WhatsApp message on the tenant's OWN host:

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Netgsm SMS gateway implementation (2026-08-27).
+ * BooKi - Netgsm SMS gateway implementation (2026-08-27).
  *
  * Netgsm REST API integration. Credentials are expected to be passed to the
  * constructor (typically from messaging_settings table, already decrypted).

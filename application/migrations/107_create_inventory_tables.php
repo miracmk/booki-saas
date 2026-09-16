@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Inventory/stock management (products, stock movements, appointment products).
+ * BooKi - Inventory/stock management (products, stock movements, appointment products).
  *
  * Supports product management, stock tracking, and linking products to appointments.
  * products: product catalog with SKU, pricing, stock levels.

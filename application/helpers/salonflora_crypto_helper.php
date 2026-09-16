@@ -35,7 +35,7 @@ if (!function_exists('sf_pii_enc_key')) {
      */
     function sf_pii_enc_key(): string
     {
-        // Ki Reservation (2026-08-26) - multi-tenant mode: each tenant has its own key, resolved and
+        // BooKi (2026-08-26) - multi-tenant mode: each tenant has its own key, resolved and
         // decrypted once per request by Tenant_resolver (see tenant_helper.php's docblock). Never
         // statically cached here - a single PHP worker process can serve different tenants across
         // requests. Single-tenant/standalone deployments (tenant_context() stays null) fall through
@@ -76,7 +76,7 @@ if (!function_exists('sf_pii_hash_key')) {
      */
     function sf_pii_hash_key(): string
     {
-        // Ki Reservation (2026-08-26) - see the identical comment in sf_pii_enc_key().
+        // BooKi (2026-08-26) - see the identical comment in sf_pii_enc_key().
         $tenant = tenant_context();
 
         if ($tenant !== null) {

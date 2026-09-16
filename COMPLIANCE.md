@@ -4,7 +4,7 @@ Last updated 2026-08-24. This document does two things: (1) separates
 which of the standards on the business's radar are actually about *this
 software* versus about *the physical salon business*, and (2) gives a
 concrete technical gap analysis for the two that are — ISO/IEC 27001 and
-SOC 2 — against what Ki Reservation has today.
+SOC 2 — against what BooKi has today.
 
 **This document is engineering input to a certification effort, not a
 certification itself.** ISO 27001 and SOC 2 are audited by an accredited
@@ -15,7 +15,7 @@ amount of code closes that gap alone — see §3.
 
 ## 1. Which standards are actually about the software?
 
-| Standard | About | Ki Reservation relevant? |
+| Standard | About | BooKi relevant? |
 |---|---|---|
 | **ISO/IEC 27001** | Information Security Management System (ISMS) — how an organization protects data | **Yes — primary target of this document** |
 | **SOC 2** (Type I/II) | Trust Services Criteria (security, availability, processing integrity, confidentiality, privacy) for a service organization | **Yes — primary target of this document** |
@@ -34,7 +34,7 @@ amount of code closes that gap alone — see §3.
 | ISO 50001 | Energy Management | **No** — physical facility energy use |
 
 **Bottom line:** of everything on the list, **ISO/IEC 27001 and SOC 2**
-are the two where Ki Reservation (the software) is actually part of the
+are the two where BooKi (the software) is actually part of the
 answer. Everything else is a business/facility/staff certification that
 Ki Software's engineering work has no bearing on — pursue those directly
 with the relevant bodies (MEB, MYK, the local belediye, an ISO-accredited

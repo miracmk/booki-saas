@@ -38,10 +38,10 @@
 
 /*
  *---------------------------------------------------------------
- * KI RESERVATION CONFIGURATION
+ * BooKi CONFIGURATION
  *---------------------------------------------------------------
  *
- * Include Ki Reservation configuration file so that it is available
+ * Include BooKi configuration file so that it is available
  * globally in the application. You can access configuration information
  * through the static Config class.
  *

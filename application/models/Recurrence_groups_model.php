@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Recurrence Groups Model
+ * BooKi - Recurrence Groups Model
  *
  * Thin CRUD for recurrence_groups (series metadata: frequency, occurrence
  * counts, status). The actual per-occurrence booking logic lives in the

@@ -1,4 +1,4 @@
-# Ki Reservation - Changelog
+# BooKi - Changelog
 
 This file contains the code changes that were introduced into each release so that it is easy for
 developers to maintain and readjust their custom modifications on the main project codebase.
@@ -68,7 +68,7 @@ developers to maintain and readjust their custom modifications on the main proje
 
 ### Changed
 
-- Rebranded to Ki Reservation under the Ki Software License (see LICENSE)
+- Rebranded to BooKi under the Ki Software License (see LICENSE)
 
 ## [1.6.0] - 2026-05-27
 

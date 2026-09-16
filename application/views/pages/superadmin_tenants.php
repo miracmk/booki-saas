@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ki Reservation - Admin</title>
+    <title>BooKi - Admin</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f5f6f8; margin: 0; color: #222; }
@@ -42,7 +42,7 @@
 </head>
 <body>
     <header>
-        <h1>Ki Reservation — SaaS Yönetimi</h1>
+        <h1>BooKi — SaaS Yönetimi</h1>
         <div>
             <span style="margin-right:1rem"><?= e(vars('superadmin_username')) ?></span>
             <a href="<?= site_url('superadmin_settings') ?>" style="margin-right:1rem;">Platform Ayarları</a>

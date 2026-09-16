@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation (Dalga 3 / Faz 3.4) - Review Service
+ * BooKi (Dalga 3 / Faz 3.4) - Review Service
  *
  * Shared logic between the public review flow and the tenant admin moderation:
  *

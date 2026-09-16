@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -662,7 +662,7 @@ class Calendar extends EA_Controller
                 );
             }
 
-            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_created event,
+            // BooKi (Dalga 3 / Faz 3.1) - Communication Hub: appointment_created event,
             // only for genuinely NEW appointments (staff-side creation on the calendar). Edits to
             // existing appointments are not a "created" event. Best-effort by contract.
             if (!$manage_mode) {
@@ -672,7 +672,7 @@ class Calendar extends EA_Controller
                     compact('appointment', 'service', 'provider', 'customer', 'settings'),
                 );
 
-                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                // BooKi (Dalga 3 / Faz 3.2) - Automation Engine: same event.
                 $this->load->library('automation_engine');
                 $this->automation_engine->evaluate(
                     'appointment_created',
@@ -932,7 +932,7 @@ class Calendar extends EA_Controller
                 $deviation_type === 'early' ? $early_exit_approved_by : null,
             );
 
-            // Ki Reservation (Dalga 1) - membership session tracking: consume a session from an
+            // BooKi (Dalga 1) - membership session tracking: consume a session from an
             // active membership if one exists for this customer/service, checked BEFORE packages
             // (a membership is a recurring, already-paid-for entitlement; a package is a one-time
             // purchase - if a customer has both, the membership is used first so its per-period
@@ -976,7 +976,7 @@ class Calendar extends EA_Controller
                 }
             }
 
-            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_completed event.
+            // BooKi (Dalga 3 / Faz 3.1) - Communication Hub: appointment_completed event.
             // Best-effort - a notification hiccup must never fail the checkout itself. The legacy
             // Notifications path had NO "seans tamamlandı" send at all; this is the first one.
             try {
@@ -998,7 +998,7 @@ class Calendar extends EA_Controller
                     'settings' => $hub_settings,
                 ]);
 
-                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                // BooKi (Dalga 3 / Faz 3.2) - Automation Engine: same event.
                 $this->load->library('automation_engine');
                 $this->automation_engine->evaluate('appointment_completed', [
                     'appointment' => $appointment,
@@ -1105,7 +1105,7 @@ class Calendar extends EA_Controller
                 log_message('warning', 'Package session restore failed for appointment ' . $appointment_id . ': ' . $package_error->getMessage());
             }
 
-            // Ki Reservation (Dalga 1) - restore a membership session if one was consumed (before
+            // BooKi (Dalga 1) - restore a membership session if one was consumed (before
             // clearing times) - mirrors the package restore above.
             try {
                 $this->load->model('customer_memberships_model');
@@ -1611,7 +1611,7 @@ class Calendar extends EA_Controller
                 'time_format' => setting('time_format'),
             ];
 
-            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_cancelled event.
+            // BooKi (Dalga 3 / Faz 3.1) - Communication Hub: appointment_cancelled event.
             // Published BEFORE the DB delete so templates still see the full appointment row
             // (mirrors the webhook trigger below). Gated on the admin's explicit `notify_users`
             // choice - unchecking it means "send nothing", which must stay true for the hub too.
@@ -1633,7 +1633,7 @@ class Calendar extends EA_Controller
                     );
                 }
 
-                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                // BooKi (Dalga 3 / Faz 3.2) - Automation Engine: same event.
                 try {
                     $this->load->library('automation_engine');
                     $this->automation_engine->evaluate('appointment_cancelled', [
@@ -1670,7 +1670,7 @@ class Calendar extends EA_Controller
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $appointment);
 
-            // Ki Reservation (Dalga 1) - a cancelled appointment may free up a slot someone is
+            // BooKi (Dalga 1) - a cancelled appointment may free up a slot someone is
             // waiting for. Best-effort, never blocks the cancellation itself.
             try {
                 $this->load->library('waitlist_service');
@@ -2185,7 +2185,7 @@ class Calendar extends EA_Controller
             $probe_service = $services[0];
             $probe_service['duration'] = 40;
 
-            // Ki Reservation (2026-09-12 bugfix): $one_per_provider=true is what makes this actually
+            // BooKi (2026-09-12 bugfix): $one_per_provider=true is what makes this actually
             // return one slot PER PROVIDER - without it, find_first_available_slots() keeps collecting
             // every open hour for whichever provider it looks at first until $limit is exhausted, so a
             // single provider with a busy-but-open day could starve every other provider of a slot at
@@ -2300,7 +2300,7 @@ class Calendar extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-09-12) - room/station side of the "İlk Müsaitlik" strip (user feedback: the
+     * BooKi (2026-09-12) - room/station side of the "İlk Müsaitlik" strip (user feedback: the
      * original provider-only view needed a room-grouped counterpart, "odaların müsaitliğini kontrol
      * etmesi gerekiyor"). Unlike the provider view (which has to walk a generated hour grid because a
      * provider's next FREE slot depends on their own working plan), a station/room has no working plan

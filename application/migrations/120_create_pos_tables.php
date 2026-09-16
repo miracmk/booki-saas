@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - POS, wave 1 (2026-08-28).
+ * BooKi - POS, wave 1 (2026-08-28).
  *
  * orders + order_items: a point-of-sale style sale (walk-in or tied to a
  * customer), mixing products/services/packages/memberships in one basket.

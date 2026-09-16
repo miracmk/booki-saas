@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation customization - "Accounting/ERP Connector" (2026-08-27):
+ * BooKi customization - "Accounting/ERP Connector" (2026-08-27):
  * Stores OAuth credentials and configuration for integrating with accounting systems
  * (initially Paraşüt, extensible via the Accounting_connector_interface).
  *

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -138,7 +138,7 @@ class Superadmin_tenants extends EA_Controller
         unset($tenant);
 
         html_vars([
-            'page_title' => 'Ki Reservation - Kiracılar',
+            'page_title' => 'BooKi - Kiracılar',
             'csrf_token' => $this->security->get_csrf_hash(),
             'superadmin_username' => session('superadmin_username'),
             'tenants' => $tenants,
@@ -290,7 +290,7 @@ class Superadmin_tenants extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-27) - Update tenant's marketplace profile settings. Only updates the
+     * BooKi (2026-08-27) - Update tenant's marketplace profile settings. Only updates the
      * marketplace-related columns without affecting plan/license tracking (which update_plan() handles).
      */
     public function update_marketplace_profile(): void

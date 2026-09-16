@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -71,7 +71,7 @@ App.Http.Caldav = (function () {
     }
 
     /**
-     * Trigger the sync process between Ki Reservation and Caldav Calendar.
+     * Trigger the sync process between BooKi and Caldav Calendar.
      *
      * @param {Number} providerId
      *

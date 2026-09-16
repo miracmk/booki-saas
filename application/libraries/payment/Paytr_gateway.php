@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - PayTR payment gateway (2026-08-27).
+ * BooKi - PayTR payment gateway (2026-08-27).
  *
  * Stub implementation of Payment_gateway_interface for PayTR.
  * Will be implemented in a future phase.

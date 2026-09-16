@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Memberships, wave 1 (2026-08-28).
+ * BooKi - Memberships, wave 1 (2026-08-28).
  *
  * customer_membership_sessions: structural mirror of customer_package_sessions
  * (migration 106) - one row per appointment that consumed a session from a

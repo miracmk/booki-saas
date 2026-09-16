@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Payment transactions model (2026-08-27).
+ * BooKi - Payment transactions model (2026-08-27).
  *
  * Handles payment_transactions table operations. Provides CRUD methods for
  * audit trail of payment attempts/completions.

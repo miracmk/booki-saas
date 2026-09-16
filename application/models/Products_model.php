@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Products Model
+ * BooKi - Products Model
  *
  * Handles database operations for inventory/product management.
  * ---------------------------------------------------------------------------- */

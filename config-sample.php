@@ -1,6 +1,6 @@
 <?php
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -10,7 +10,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * Ki Reservation Configuration File
+ * BooKi Configuration File
  *
  * Set your installation BASE_URL * without the trailing slash * and the database
  * credentials in order to connect to the database. You can enable the DEBUG_MODE

@@ -19,7 +19,7 @@
                 </div>
                 <div class="card-body">
                     <p class="form-text text-muted">
-                        Ki Reservation tek bir tarayıcıda iki WhatsApp gönderim yöntemi sunar. Değişiklik
+                        BooKi tek bir tarayıcıda iki WhatsApp gönderim yöntemi sunar. Değişiklik
                         randevu bildirimlerinin hangi hat üzerinden gideceğini anında değiştirir.
                     </p>
 

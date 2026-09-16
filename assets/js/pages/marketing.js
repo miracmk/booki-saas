@@ -1,5 +1,5 @@
 /**
- * Marketing page JavaScript (Ki Reservation, Dalga 3 / Faz 3.3).
+ * Marketing page JavaScript (BooKi, Dalga 3 / Faz 3.3).
  *
  * Handles segment CRUD + counting and campaign CRUD + batched broadcast sends.
  */

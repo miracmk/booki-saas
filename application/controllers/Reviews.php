@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Reviews (Dalga 3 / Faz 3.4).
+ * BooKi - Reviews (Dalga 3 / Faz 3.4).
  *
  * Tenant admin page + JSON API for moderating customer reviews. Reviews arrive
  * here as "pending" (customer already submitted via the single-use link) and are

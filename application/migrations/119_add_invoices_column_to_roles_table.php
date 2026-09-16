@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Internal Invoicing, wave 1 (2026-08-28).
+ * BooKi - Internal Invoicing, wave 1 (2026-08-28).
  *
  * Permission column for the new Invoices admin section - same bitmask
  * pattern as migration 073/114/117.

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Meta WhatsApp Business Cloud API client (2026-08-27).
+ * BooKi - Meta WhatsApp Business Cloud API client (2026-08-27).
  *
  * Mirrors the Telegram_client pattern - talks to Meta's Cloud API directly
  * with credentials stored in messaging_settings (already decrypted at load time).

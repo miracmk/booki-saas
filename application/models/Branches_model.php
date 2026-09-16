@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Branches model
+ * BooKi - Branches model
  *
  * Handles CRUD operations for branches (physical locations within a single tenant).
  * Each tenant has at least one default branch; branches are optional for

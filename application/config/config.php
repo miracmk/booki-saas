@@ -138,7 +138,7 @@ if ($requested_language !== null && !in_array($requested_language, $languages, t
     $requested_language = null; // Invalid language, ignore it
 }
 
-// Ki Reservation (2026-09-10) - this used to fall back to the VISITOR'S BROWSER Accept-Language
+// BooKi (2026-09-10) - this used to fall back to the VISITOR'S BROWSER Accept-Language
 // header before Config::LANGUAGE, silently overriding the platform's own configured default
 // (Turkish) for anyone whose browser happened to be set to English/etc. A site operator who
 // explicitly configured Config::LANGUAGE should win unless the visitor (or their saved account
@@ -422,6 +422,8 @@ $config['csrf_cookie_name'] = 'csrf_cookie';
 $config['csrf_expire'] = 7200;
 $config['csrf_exclude_uris'] = [
     'api/v1/.*',
+    // Agent API - server-to-server bearer-token calls (no CSRF cookie possible)
+    'agent/v1/.*',
     'booking/.*',
     'booking_cancellation/.*',
     'booking_confirmation/.*',

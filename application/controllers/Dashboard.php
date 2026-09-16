@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Dashboard controller (Command Center, 2026-09-10).
+ * BooKi - Dashboard controller (Command Center, 2026-09-10).
  *
  * The backend's new landing page (replaces "land straight on the calendar").
  * Server-rendered: today's KPIs (appointment count, revenue, occupancy),
@@ -102,7 +102,7 @@ class Dashboard extends EA_Controller
             ->join('services', 'services.id = appointments.id_services', 'inner')
             ->join('stations', 'stations.id = appointments.id_stations', 'left')
             ->where('appointments.is_unavailability', false)
-            // Ki Reservation bugfix (2026-09-10) - CI's query builder only auto-prefixes/backticks a
+            // BooKi bugfix (2026-09-10) - CI's query builder only auto-prefixes/backticks a
             // bare "table.column" condition key; wrapped in DATE(...) it's passed through completely
             // raw, so "appointments.start_datetime" (no dbprefix) doesn't match the real
             // "ea_appointments" table. Bare "start_datetime" is unambiguous here (no other joined

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -32,7 +32,7 @@ class Superadmin_settings extends EA_Controller
         method('get');
 
         html_vars([
-            'page_title' => 'Ki Reservation - Platform Ayarları',
+            'page_title' => 'BooKi - Platform Ayarları',
             'csrf_token' => $this->security->get_csrf_hash(),
             'superadmin_username' => session('superadmin_username'),
             'google_client_id' => master_setting('google_client_id') ?? '',

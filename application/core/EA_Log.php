@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * Ki Reservation log.
+ * BooKi log.
  *
  * @property EA_Benchmark $benchmark
  * @property EA_Cache $cache
@@ -66,7 +66,7 @@ class EA_Log extends CI_Log
         // app the moment anything tries to log (confirmed - this exact mistake was caught by a
         // real `console master_install` run, not just php -l, which does not catch this class
         // of error since it's a runtime/inheritance-compatibility check, not a syntax error).
-        // Ki Reservation (Dalga 2) - IMPORTANT: stock CI_Log::write_log() (system/core/Log.php)
+        // BooKi (Dalga 2) - IMPORTANT: stock CI_Log::write_log() (system/core/Log.php)
         // gates on $this->_levels[$level], and that array's keys are UPPERCASE
         // ('ERROR'=>1,'DEBUG'=>2,'INFO'=>3,'ALL'=>4) - but log_message() (system/core/Common.php)
         // never uppercases $level, and every call site in this codebase (129+) passes lowercase

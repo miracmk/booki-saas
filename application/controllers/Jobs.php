@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Jobs monitoring controller (Faz 32+33, 2026-08-28).
+ * BooKi - Jobs monitoring controller (Faz 32+33, 2026-08-28).
  *
  * Provides an admin interface for viewing queue status and manually retrying
  * failed jobs. Access is gated on the PRIV_SYSTEM_SETTINGS permission.

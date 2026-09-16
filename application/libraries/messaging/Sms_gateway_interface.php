@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - SMS gateway interface (2026-08-27).
+ * BooKi - SMS gateway interface (2026-08-27).
  *
  * Contract for SMS providers (Netgsm, etc). Implementations must never throw
  * exceptions - failures are returned in the result array with 'success' => false

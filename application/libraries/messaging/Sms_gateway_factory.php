@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - SMS gateway factory (2026-08-27).
+ * BooKi - SMS gateway factory (2026-08-27).
  *
  * Creates appropriate SMS gateway instance based on configuration.
  * Returns null if no gateway is configured or if gateway type is unknown.

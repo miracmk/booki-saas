@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Memberships, wave 1 (2026-08-28).
+ * BooKi - Memberships, wave 1 (2026-08-28).
  *
  * membership_plans: subscription plan definitions (e.g. "Aylık 4 Seans Cilt
  * Bakımı Üyeliği" - price + billing period + how many sessions of a service

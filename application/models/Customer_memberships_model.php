@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Customer Memberships Model
+ * BooKi - Customer Memberships Model
  *
  * Handles the customer-facing subscription instances (customer_memberships)
  * and their session consumption (customer_membership_sessions) - structural

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * Ki Reservation model.
+ * BooKi model.
  *
  * @property EA_Benchmark $benchmark
  * @property EA_Cache $cache

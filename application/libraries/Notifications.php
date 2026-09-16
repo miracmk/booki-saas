@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -36,7 +36,7 @@ class Notifications
         $this->CI->load->model('providers_model');
         $this->CI->load->model('secretaries_model');
         $this->CI->load->model('settings_model');
-        // Ki Reservation (Dalga 1) - SMS/WhatsApp channel settings, see send_sms()/send_whatsapp().
+        // BooKi (Dalga 1) - SMS/WhatsApp channel settings, see send_sms()/send_whatsapp().
         $this->CI->load->model('messaging_settings_model');
 
         $this->CI->load->library('email_messages');
@@ -44,7 +44,7 @@ class Notifications
         $this->CI->load->library('timezones');
         // Salon Flora customization - native Telegram channel, alongside email (see send_telegram()).
         $this->CI->load->library('telegram_client');
-        // Ki Reservation (Dalga 2) - queue gate for send_sms()/send_whatsapp()/send_telegram() and
+        // BooKi (Dalga 2) - queue gate for send_sms()/send_whatsapp()/send_telegram() and
         // the appointment-saved/deleted email paths. MUST be loaded here - every one of those methods
         // calls $this->CI->queue->enabled(), which would fatal ("call to a member function on null")
         // on every single notification send if this library were never loaded, regardless of whether
@@ -106,7 +106,7 @@ class Notifications
     }
 
     /**
-     * Ki Reservation (Dalga 1) - best-effort SMS notification via whichever gateway is configured
+     * BooKi (Dalga 1) - best-effort SMS notification via whichever gateway is configured
      * in messaging_settings (currently: Netgsm). No-ops silently if SMS notifications are disabled,
      * no gateway is configured, or the recipient has no phone number - mirrors send_telegram()'s
      * degrade-gracefully contract. This is the first real appointment-notification call site for
@@ -166,7 +166,7 @@ class Notifications
     }
 
     /**
-     * Ki Reservation (Dalga 1) - best-effort WhatsApp notification via the WhatsApp Business API.
+     * BooKi (Dalga 1) - best-effort WhatsApp notification via the WhatsApp Business API.
      * No-ops silently if WhatsApp notifications are disabled, the gateway isn't configured, or the
      * recipient has no phone number - mirrors send_telegram()'s degrade-gracefully contract. This is
      * the first appointment-notification call site for Whatsapp_client; previously it was only used
@@ -213,7 +213,7 @@ class Notifications
         }
 
         try {
-            // Ki Reservation (Dalga 3 / Faz 3.5) - dual-mode sender routing. The
+            // BooKi (Dalga 3 / Faz 3.5) - dual-mode sender routing. The
             // whatsapp_mode setting decides which transport carries notifications:
             //   official   -> Meta WhatsApp Business Cloud API (Whatsapp_client)
             //   unofficial -> the ki-wa-bridge Node sidecar (Whatsapp_bridge).
@@ -250,7 +250,7 @@ class Notifications
     }
 
     /**
-     * Ki Reservation (2026-09-11) - send the customer's extra notification channel (on top of the
+     * BooKi (2026-09-11) - send the customer's extra notification channel (on top of the
      * email that's already sent unconditionally elsewhere) through whichever channel the tenant
      * picked in Ayarlar > SMS ve WhatsApp Ayarları > Bildirim Motoru. Defaults to 'telegram' (see
      * migration 136) so existing tenants keep the exact behavior notify_appointment_saved() always
@@ -272,7 +272,7 @@ class Notifications
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.5) - stable tenant identifier for the
+     * BooKi (Dalga 3 / Faz 3.5) - stable tenant identifier for the
      * WhatsApp bridge session keys. Multi-tenant mode uses the tenant's subdomain;
      * standalone deployments fall back to a fixed 'default' key so the sidecar's
      * per-tenant session storage stays uniform.
@@ -285,7 +285,7 @@ class Notifications
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.1) - generic best-effort email for the Communication Hub's
+     * BooKi (Dalga 3 / Faz 3.1) - generic best-effort email for the Communication Hub's
      * email channel. Unlike the specialized appointment emails (which carry full appointment data
      * and an ICS attachment), this is a short, plain notice built by the hub from its rule template.
      * No-ops silently if the recipient has no email address - mirrors the other channels' degrade-
@@ -343,7 +343,7 @@ class Notifications
     }
 
     /**
-     * Ki Reservation (Dalga 1) - notify a waitlist entry's customer that a matching slot has opened
+     * BooKi (Dalga 1) - notify a waitlist entry's customer that a matching slot has opened
      * up. Sends via whichever channel(s) the entry requested (see waitlist_entries.notify_channel),
      * each independently best-effort - a failure on one channel never blocks the other or the caller
      * (Waitlist_service::check_and_notify_on_opening(), itself called from the non-blocking
@@ -692,7 +692,7 @@ class Notifications
         array $settings,
         string $cancellation_reason = '',
     ): void {
-        // Ki Reservation (Dalga 2) - deliberately NOT queued, unlike notify_appointment_saved().
+        // BooKi (Dalga 2) - deliberately NOT queued, unlike notify_appointment_saved().
         // By the time this method is called, the appointment row is already DELETED from the DB
         // (Calendar.php/Appointments.php call appointments_model->delete() BEFORE calling this) -
         // a queued job storing only appointment_id could never re-fetch it later, since there is
@@ -1008,7 +1008,7 @@ class Notifications
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.1) - queued handler for the Communication Hub's generic
+     * BooKi (Dalga 3 / Faz 3.1) - queued handler for the Communication Hub's generic
      * email channel (called by Job_dispatcher). Re-fetches the user and sends a simple HTML mail.
      *
      * @param EA_Controller|CI_Controller $CI

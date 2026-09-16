@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Notification bell panel (Dalga 4, 2026-09-12).
+ * BooKi - Notification bell panel (Dalga 4, 2026-09-12).
  *
  * Minimum viable default: polls Notifications_feed::recent() (currently just
  * normalized whatsapp_messages), renders into every `.kcc-notif-panel` on the

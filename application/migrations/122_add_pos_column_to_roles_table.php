@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - POS, wave 1 (2026-08-28).
+ * BooKi - POS, wave 1 (2026-08-28).
  *
  * Permission column for the new POS admin section - same bitmask pattern as
  * migration 073/114/117/119.

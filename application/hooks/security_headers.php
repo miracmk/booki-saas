@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -34,7 +34,7 @@ function add_security_headers(): void
     // Permissions policy - restrict sensitive features
     header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 
-    // Ki Reservation customization (2026-08-24, ISO 27001/SOC 2 hardening) - Content-Security-Policy.
+    // BooKi customization (2026-08-24, ISO 27001/SOC 2 hardening) - Content-Security-Policy.
     // Every asset (JS/CSS/fonts/images) is self-hosted (see SBOM.md) - nothing here is loaded from a
     // third-party CDN - so a same-origin-only policy costs nothing functionally. 'unsafe-inline' is
     // still required for both script-src and style-src: the app relies on inline <script> blocks (the

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -55,7 +55,7 @@ class Booking_confirmation extends EA_Controller
 
         $add_to_google_url = $this->google_sync->get_add_to_google_url($appointment['id']);
 
-        // Ki Reservation (2026-09-12) - conversion tracking (Meta Pixel "Schedule" + a GA4 custom
+        // BooKi (2026-09-12) - conversion tracking (Meta Pixel "Schedule" + a GA4 custom
         // event) fires once here, the one place we know for certain a booking actually succeeded (see
         // pages/booking_confirmation.php's inline script). Not a Google Ads /AW- conversion yet - that
         // needs a dedicated conversion action + label created in the tenant's Google Ads account first

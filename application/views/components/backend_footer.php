@@ -37,7 +37,7 @@
     </div>
 
     <div class="text-muted small">
-        <a href="https://kisoftware.com" target="_blank" class="text-muted">Powered by Ki Reservation (Ki Software License)</a>
+        <a href="https://kisoftware.com" target="_blank" class="text-muted">Powered by BooKi (Ki Software License)</a>
     </div>
 </div>
 

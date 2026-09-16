@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - real-time, multi-module Google Sheets sync (2026-08-25).
+ * BooKi - real-time, multi-module Google Sheets sync (2026-08-25).
  *
  * A "sync" is one configured pipe: one module (appointments/customers/providers) -> one sheet tab in a
  * connected spreadsheet, with a field->column mapping the user chose (see

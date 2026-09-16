@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Google Ads Gateway Token setting (Dalga 3 / Faz 3.1 placeholder).
+ * BooKi - Google Ads Gateway Token setting (Dalga 3 / Faz 3.1 placeholder).
  *
  * Adds google_ads_gateway_token to the ea_settings table for future Google Ads
  * integration. Settings are tenant-scoped.

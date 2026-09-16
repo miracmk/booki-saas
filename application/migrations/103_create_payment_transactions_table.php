@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - payment transactions ledger (2026-08-27).
+ * BooKi - payment transactions ledger (2026-08-27).
  *
  * Audit trail of all payment attempts/completions. Links to appointments (may be null
  * for unlinked transactions) and customers. Tracks status changes and raw gateway responses.

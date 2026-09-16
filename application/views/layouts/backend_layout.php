@@ -81,18 +81,18 @@
 <script src="<?= asset_url('assets/js/ki-theme-switcher.min.js') ?>"></script>
 
 <style>
-    /* Ki Reservation (2026-09-10) - sidebar navigation. Mobile-first: #sidebar is a Bootstrap
+    /* BooKi (2026-09-10) - sidebar navigation. Mobile-first: #sidebar is a Bootstrap
        offcanvas (off-screen drawer) by default; the media query below turns it into a normal,
        always-visible, fixed-position left column at/above the "md" breakpoint (768px), matching
        Bootstrap's own `offcanvas-md` behavior contract. */
     #sidebar .nav-link { padding: .55rem .75rem; border-radius: 6px; font-weight: 300; }
-    /* Ki Reservation (2026-09-11 redesign) - hover/active paint moved to ki-command-center.min.css
+    /* BooKi (2026-09-11 redesign) - hover/active paint moved to ki-command-center.min.css
        (light-sidebar design); this file only keeps layout-only rules now. */
     #sidebar .nav-item.active > .nav-link { font-weight: 600; }
     #sidebar .nav-link .fa-chevron-down { transition: transform .2s ease; }
     #sidebar .nav-link[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
 
-    /* Ki Reservation (2026-09-10) - Bootstrap's own `.offcanvas-md` breakpoint rules force
+    /* BooKi (2026-09-10) - Bootstrap's own `.offcanvas-md` breakpoint rules force
        .offcanvas-body to `flex-grow:0; overflow-y:visible` at >=768px (it assumes a "static, just
        render inline" mode, not a persistent full-height column) - that broke both "push the account
        block to the bottom" and "only the middle nav list scrolls". These overrides apply at every

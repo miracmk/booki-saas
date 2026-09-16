@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Multi-session packages (customer packages / package sessions).
+ * BooKi - Multi-session packages (customer packages / package sessions).
  *
  * Supports sale and tracking of packages (e.g. "5-session massage packages").
  * customer_packages: one row per package purchase, with total_sessions, used_sessions,

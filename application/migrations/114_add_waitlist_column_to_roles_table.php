@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Waitlist, wave 1 (2026-08-28).
+ * BooKi - Waitlist, wave 1 (2026-08-28).
  *
  * Permission column for the new Waitlist admin section (see the generic
  * bitmask-based permission_helper.php, consumed by

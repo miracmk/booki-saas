@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Stripe payment gateway (2026-08-27).
+ * BooKi - Stripe payment gateway (2026-08-27).
  *
  * Stub implementation of Payment_gateway_interface for Stripe.
  * Will be implemented in a future phase.

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -240,7 +240,7 @@ if (!function_exists('filter_sensitive_settings')) {
      */
     function filter_sensitive_settings(array $settings): array
     {
-        $sensitive_setting_names = ['api_token', 'google_client_secret', 'ldap_password'];
+        $sensitive_setting_names = ['api_token', 'agent_api_key', 'google_client_secret', 'ldap_password'];
         return array_values(
             array_filter($settings, function ($setting) use ($sensitive_setting_names) {
                 if (isset($setting['name'])) {

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -68,7 +68,7 @@ class Ldap_client
         $user = $this->CI->accounts->get_user_by_username($username);
 
         if (empty($user['ldap_dn'])) {
-            return null; // User does not exist in Ki Reservation
+            return null; // User does not exist in BooKi
         }
 
         // Connect to LDAP server

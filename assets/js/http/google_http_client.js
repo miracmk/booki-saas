@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -71,7 +71,7 @@ App.Http.Google = (function () {
     }
 
     /**
-     * Trigger the sync process between Ki Reservation and Google Calendar.
+     * Trigger the sync process between BooKi and Google Calendar.
      *
      * @param {Number} providerId
      *

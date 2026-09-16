@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -359,7 +359,7 @@ class Email_messages
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.1) - send a simple HTML mail without any of the
+     * BooKi (Dalga 3 / Faz 3.1) - send a simple HTML mail without any of the
      * appointment template machinery. Used by the Communication Hub's generic email channel
      * (Notifications::send_generic_email()) for short, event-driven notices that don't
      * need an ICS attachment or the appointment-templating layer. Reuses the same mailer

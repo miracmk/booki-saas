@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Orders (POS) Model
+ * BooKi - Orders (POS) Model
  *
  * A point-of-sale style basket (orders + order_items), checked out through
  * the existing payment gateway abstraction. checkout() is a NEW consumer of

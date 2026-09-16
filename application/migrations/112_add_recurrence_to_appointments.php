@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Recurring appointments, wave 1 (2026-08-28).
+ * BooKi - Recurring appointments, wave 1 (2026-08-28).
  *
  * Adds a nullable link from an appointment to the recurrence series it
  * belongs to (recurrence_groups, migration 111) plus its position within

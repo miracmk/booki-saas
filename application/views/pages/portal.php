@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Ki Reservation</title>
+    <title>BooKi</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -52,7 +52,7 @@
 </head>
 <body>
     <div class="card">
-        <h1>Ki Reservation</h1>
+        <h1>BooKi</h1>
         <p class="hint">Firma kullanıcı adınızı veya e-postanızı girin, sizi doğru firmaya yönlendirelim.</p>
         <div class="msg error" id="msg"></div>
         <form id="portal-form">

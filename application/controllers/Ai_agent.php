@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - AI Asistan admin controller (Dalga 4, 2026-09-12).
+ * BooKi - AI Asistan admin controller (Dalga 4, 2026-09-12).
  *
  * Thin controller: conversation state lives in the PHP session, all the
  * actual chat/tool-calling logic is in Ai_agent_client. This file is only

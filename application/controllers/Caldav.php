@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -205,10 +205,10 @@ class Caldav extends EA_Controller
                     $caldav_event = $CI->caldav_sync->get_event($provider, $local_event['id_caldav_calendar']);
 
                     if (!$caldav_event || $caldav_event['status'] === 'CANCELLED') {
-                        throw new Exception('Event is cancelled, remove the record from Ki Reservation.');
+                        throw new Exception('Event is cancelled, remove the record from BooKi.');
                     }
 
-                    // If CalDAV Calendar event is different from Ki Reservation appointment then update Ki Reservation record.
+                    // If CalDAV Calendar event is different from BooKi appointment then update BooKi record.
                     $local_event_start = strtotime($local_event['start_datetime']);
                     $local_event_end = strtotime($local_event['end_datetime']);
 
@@ -233,14 +233,14 @@ class Caldav extends EA_Controller
                     // our credentials.
                     throw $e;
                 } catch (Throwable) {
-                    // Appointment not found on CalDAV Calendar, delete from Ki Reservation.
+                    // Appointment not found on CalDAV Calendar, delete from BooKi.
                     $events_model->delete($local_event['id']);
 
                     $local_event['id_caldav_calendar'] = null;
                 }
             }
 
-            // Add CalDAV Calendar events that do not exist in Ki Reservation.
+            // Add CalDAV Calendar events that do not exist in BooKi.
 
             try {
                 $caldav_events = $CI->caldav_sync->get_sync_events($provider, $start_date_time, $end_date_time);
@@ -298,7 +298,7 @@ class Caldav extends EA_Controller
                         continue;
                     }
 
-                    // Record doesn't exist in the Ki Reservation, so add the event now.
+                    // Record doesn't exist in the BooKi, so add the event now.
 
                     $local_event = [
                         'start_datetime' => $caldav_event['start_datetime'],
@@ -361,7 +361,7 @@ class Caldav extends EA_Controller
 
             // Re-wrap so json_exception() prefixes the user-visible message with the
             // "CalDAV Sync" label (untranslated, so the user knows the failure comes
-            // from the calendar synchronization and not from Ki Reservation itself).
+            // from the calendar synchronization and not from BooKi itself).
             json_exception(new RuntimeException('CalDAV Sync: ' . $e->getMessage(), $e->getCode(), $e));
         }
     }

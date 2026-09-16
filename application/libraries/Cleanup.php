@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -181,7 +181,7 @@ class Cleanup
                 $this->CI->customers_model->anonymize((int) $customer['id']);
                 $anonymized_count++;
 
-                // Ki Reservation customization - runs in CLI/cron context (no session), so id_users/
+                // BooKi customization - runs in CLI/cron context (no session), so id_users/
                 // actor_role are correctly null here - that absence IS the signal that this was the
                 // automated retention job, not a human-triggered erasure.
                 audit_log('customer.anonymize', 'customer', (int) $customer['id'], [

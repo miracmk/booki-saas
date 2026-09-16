@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Data Requests Model (Faz 30, KVKK/GDPR)
+ * BooKi - Data Requests Model (Faz 30, KVKK/GDPR)
  *
  * Thin CRUD layer for data export/erasure request tracking.
  * ---------------------------------------------------------------------------- */

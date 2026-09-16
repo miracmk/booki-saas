@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -555,7 +555,7 @@ App.Http.Calendar = (function () {
     }
 
     /**
-     * Ki Reservation (2026-09-12) - room/station side of the "İlk Müsaitlik" strip.
+     * BooKi (2026-09-12) - room/station side of the "İlk Müsaitlik" strip.
      */
     function getRoomAvailability() {
         const url = App.Utils.Url.siteUrl('calendar/get_room_availability');

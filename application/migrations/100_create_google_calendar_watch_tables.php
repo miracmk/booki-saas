@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Google Calendar push-notification sync (Faz 2/3/4, 2026-08-26).
+ * BooKi - Google Calendar push-notification sync (Faz 2/3/4, 2026-08-26).
  *
  * Adds incremental sync (Google `syncToken`) and webhook push notifications
  * (`events.watch()`) on top of the existing full-window `console sync` cron.

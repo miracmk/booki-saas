@@ -1,5 +1,5 @@
 /**
- * POS page JavaScript (Ki Reservation, Dalga 1).
+ * POS page JavaScript (BooKi, Dalga 1).
  *
  * Builds a basket, creates an order, lists existing orders, checks out via
  * the active payment gateway, voids an order.

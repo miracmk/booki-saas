@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -143,7 +143,7 @@ class Data_transfer extends EA_Controller
 
             $payload = $this->read_uploaded_payload();
 
-            // Ki Reservation (2026-08-26) - imported (historical) customers don't all have every
+            // BooKi (2026-08-26) - imported (historical) customers don't all have every
             // field a fresh tenant's public-booking-form requirements (require_last_name/email/
             // phone_number, '1' by default) demand - same relaxation Console::migrate_salonflora_live_data()
             // applies, restored right after.
@@ -345,7 +345,7 @@ class Data_transfer extends EA_Controller
         $payload = json_decode($content, true);
 
         if (!is_array($payload) || ($payload['format'] ?? null) !== 'ki_reservation_export_v1') {
-            throw new InvalidArgumentException('Geçersiz dosya formatı - bu Ki Reservation dışa aktarma dosyası değil.');
+            throw new InvalidArgumentException('Geçersiz dosya formatı - bu BooKi dışa aktarma dosyası değil.');
         }
 
         return $payload;

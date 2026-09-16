@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Branches controller
+ * BooKi - Branches controller
  *
  * Handles branch (physical location) related operations. Provides CRUD
  * functionality for managing branches in a single tenant. Restricted to

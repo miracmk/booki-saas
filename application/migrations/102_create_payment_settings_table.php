@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - payment gateway settings (2026-08-27).
+ * BooKi - payment gateway settings (2026-08-27).
  *
  * Single-row configuration table per tenant DB, storing active payment gateway
  * selection (iyzico, PayTR, Stripe, or none) and corresponding API credentials.

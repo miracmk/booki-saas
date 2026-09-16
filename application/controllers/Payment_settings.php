@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Payment settings controller (2026-08-27).
+ * BooKi - Payment settings controller (2026-08-27).
  *
  * Admin-facing payment gateway configuration page (select active gateway,
  * enter API credentials, configure deposit requirements).

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -318,7 +318,7 @@ class Google_integrations extends EA_Controller
             $this->google_integrations_client->authenticate_connection($connection);
 
             if ($mode === 'create') {
-                $name = trim((string) request('value')) ?: 'Ki Reservation';
+                $name = trim((string) request('value')) ?: 'BooKi';
                 $result = $this->google_integrations_client->create_drive_folder($name);
             } elseif ($mode === 'existing') {
                 $folder_id = Google_integrations_client::extract_drive_folder_id((string) request('value', ''));
@@ -369,7 +369,7 @@ class Google_integrations extends EA_Controller
             $this->google_integrations_client->authenticate_connection($connection);
 
             if ($mode === 'create') {
-                $name = trim((string) request('value')) ?: 'Ki Reservation';
+                $name = trim((string) request('value')) ?: 'BooKi';
                 $result = $this->google_integrations_client->create_spreadsheet($name);
             } elseif ($mode === 'existing') {
                 $spreadsheet_id = Google_integrations_client::extract_spreadsheet_id((string) request('value', ''));

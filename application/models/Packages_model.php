@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Customer Packages Model
+ * BooKi - Customer Packages Model
  *
  * Handles database operations for multi-session package management.
  * ---------------------------------------------------------------------------- */

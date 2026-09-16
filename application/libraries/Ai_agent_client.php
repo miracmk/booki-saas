@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -297,7 +297,7 @@ class Ai_agent_client
     private function build_system_prompt(): string
     {
         return <<<PROMPT
-Sen Ki Reservation admin panelinde çalışan bir iç asistansın. Personel (admin/sekreter) sana müşteri
+Sen BooKi admin panelinde çalışan bir iç asistansın. Personel (admin/sekreter) sana müşteri
 kayıtları ve randevu geçmişi hakkında küçük sorular sorar.
 
 KURALLAR:
@@ -337,7 +337,7 @@ PROMPT;
                     'Content-Type: application/json',
                     // OpenRouter uses these for its (optional) app leaderboard - harmless to include.
                     'HTTP-Referer: https://reservationapp.kibusiness.co',
-                    'X-Title: Ki Reservation AI Asistan',
+                    'X-Title: BooKi AI Asistan',
                 ],
             ]);
 

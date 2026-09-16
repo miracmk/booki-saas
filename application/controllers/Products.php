@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Products controller.
+ * BooKi - Products controller.
  *
  * Handles CRUD operations for inventory/product management.
  * Access: admin/secretary only.

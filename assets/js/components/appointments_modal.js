@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -882,7 +882,7 @@ App.Components.AppointmentsModal = (function () {
         /**
          * Event: "İlk Müsaitlik" Button "Click"
          *
-         * Ki Reservation (2026-08-26) - find the first 3 upcoming slots for the selected service
+         * BooKi (2026-08-26) - find the first 3 upcoming slots for the selected service
          * (each already matched to a specific free provider + station) and let staff pick one.
          */
         $firstAvailabilityBtn.on('click', () => {
@@ -942,7 +942,7 @@ App.Components.AppointmentsModal = (function () {
     }
 
     /**
-     * Ki Reservation (2026-08-26) - apply a slot picked from the "İlk Müsaitlik" results: sets the
+     * BooKi (2026-08-26) - apply a slot picked from the "İlk Müsaitlik" results: sets the
      * date/time, triggers the service→provider cascade, then the provider→station cascade (reusing
      * the exact same change handlers a manual selection would trigger), pre-selecting the station
      * that was already matched free for this slot.

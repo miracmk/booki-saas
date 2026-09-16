@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -124,7 +124,7 @@ class Marketplace extends EA_Controller
             ->result_array();
 
         html_vars([
-            'page_title' => 'Ki Reservation Marketplace',
+            'page_title' => 'BooKi Marketplace',
             'tenants' => $tenants,
             'categories' => array_column($categories, 'category'),
             'cities' => array_column($cities, 'city'),

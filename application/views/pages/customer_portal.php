@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e(setting('company_name') ?: 'Ki Reservation') ?> - Randevularım</title>
+    <title><?= e(setting('company_name') ?: 'BooKi') ?> - Randevularım</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f5f6f8; margin: 0; color: #222; }
@@ -28,7 +28,7 @@
 </head>
 <body>
     <header>
-        <h1><?= e(setting('company_name') ?: 'Ki Reservation') ?></h1>
+        <h1><?= e(setting('company_name') ?: 'BooKi') ?></h1>
         <a href="<?= site_url('logout') ?>">Çıkış</a>
     </header>
 

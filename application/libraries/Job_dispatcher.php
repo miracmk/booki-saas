@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Job Dispatcher (Faz 32+33, 2026-08-28).
+ * BooKi - Job Dispatcher (Faz 32+33, 2026-08-28).
  *
  * Dispatches queued jobs to their registered handlers.
  *

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Ki Reservation - Admin</title>
+    <title>BooKi - Admin</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -34,7 +34,7 @@
 </head>
 <body>
     <div class="card">
-        <h1>Ki Reservation</h1>
+        <h1>BooKi</h1>
         <p class="hint">SaaS Yönetim Paneli</p>
         <div class="msg" id="msg"></div>
         <form id="superadmin-login-form">

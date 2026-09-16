@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Open Source Web Scheduler
+ * BooKi - Open Source Web Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -41,7 +41,7 @@ class Webhooks_client
         $this->CI->load->model('appointments_model');
         $this->CI->load->model('settings_model');
         $this->CI->load->model('webhooks_model');
-        // Ki Reservation (Dalga 2) - queue gate for call(), see do_call()/handle_queued_delivery().
+        // BooKi (Dalga 2) - queue gate for call(), see do_call()/handle_queued_delivery().
         // MUST be loaded here - call() references $this->CI->queue->enabled(), which would fatal on
         // every webhook trigger if this library were never loaded. Same missing-load bug found and
         // fixed in Notifications.php's constructor - see that comment for the full explanation.

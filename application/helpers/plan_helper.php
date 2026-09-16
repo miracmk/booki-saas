@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Paket/Plan feature gating (Dalga 4, 2026-09-12).
+ * BooKi - Paket/Plan feature gating (Dalga 4, 2026-09-12).
  *
  * Four tiers: Free, Basic, Premium, Elite (Elite = every feature, no exceptions).
  * The tenant's tier is still just the existing free-text `tenants.plan` column

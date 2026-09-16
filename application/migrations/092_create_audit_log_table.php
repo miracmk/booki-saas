@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - audit log for ISO 27001 / HIPAA-style access accountability
+ * BooKi - audit log for ISO 27001 / HIPAA-style access accountability
  * (2026-08-24). Records who did what, when, and from where, for the actions
  * that matter most for compliance review: authentication, and any action
  * that reads/writes/erases customer or provider PII or financial data. Not

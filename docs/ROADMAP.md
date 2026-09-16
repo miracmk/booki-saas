@@ -1,4 +1,4 @@
-# Ki Reservation — 52 Faz Yol Haritası
+# BooKi — 52 Faz Yol Haritası
 
 > Rakip analizine dayalı büyüme roadmap'inin devamı. Bu belge, kod tabanının doğrudan taranmasıyla (grep + dosya okuma, tahmin yok) hazırlanan boşluk analizini ve 5 dalgalık uygulama planını takip eder. Her dalga: izole Docker testi → diff doğrulama → `/code-review` → deploy disipliniyle ayrı ayrı tamamlanır ve burada işaretlenir.
 >
@@ -38,6 +38,21 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 | 22 | Localization | 🟡 Kısmi | 40+ dil dosyası hazır, sadece aktif değil; currency config yok |
 
 ## Uygulama Planı — Öncelik Dalgaları
+
+### 🔄 Dalga 0 — BooKi Markalaşması, Pazarlama & Büyüme Altyapısı (2026-09-16, kullanıcı talebiyle yeni dalga) — dev ortamda ilerliyor, canlıya dokunulmadı
+- [x] **0.1 Kod tabanı yeniden markalaşması — TAMAMLANDI (2026-09-16, dev'de doğrulandı)** — 562 dosyada "Ki Reservation" / "KI RESERVATION" → "BooKi" bulk sed (415 PHP dahil, php -l sıfır hata): views, email şablonları, error sayfaları, JS, CSS, composer.json (`BooKi - Online Appointment Scheduler`), `config-sample.php`, `index.php`, `installation.php`, backend_header fallback `'BooKi'`, backend_footer "Powered by BooKi (Ki Software License)", kullanıcıya görünen tüm başlıklar. DB tablo adları (`ki_reservation`, `ea_` prefix) BİLİNÇLİ değiştirilmedi (tombstone, Faz 0.11 opsiyonel). Alt marka "Ki Software" (kisoftware.com) firma adı olarak korundu.
+- [x] **0.1b İki-aşamalı dev/prod ortamı — TAMAMLANDI (2026-09-16)** — kanonik repo `miracmk/booki-saas`, dev deploy `/opt/ki-ecosystem/ki-booki-dev/` (containers `ki-booki-dev-app` 8080+8081, `ki-booki-dev-db` 3307; DB `ki_booki_dev_master` + dev superadmin `admin/BookiAdmin#2026` + dev tenant `devsalon`), `scripts/dev-sync.sh` kanonik→dev rsync, `/etc/hosts` `booki-app.dev booki-admin.dev booki.dev devsalon-booki-app.dev`. Dev'de canlı test edildi: /health OK, portal 200, tenant 200, superadmin 200. Prod deploy dizini (`ki-reservation/`) VE canlı ortam HİÇBİR değişiklik almadı.
+- [ ] **0.2 Landing sayfası — booki.kibusiness.co** — clean server-rendered PHP (SPA değil), design reference manus.space kulesi (tokens: `--primary #1b5e64`, `--navy #0a1724`, Manrope + DM Serif Display + DM Sans); SEO meta, canlı arama motoru, lead formu buraya bağlanacak
+- [ ] **0.3 Domain & DNS & SSL** — Cloudflare CNAMEs: `booki.kibusiness.co` (landing), `bookie-app.kibusiness.co` (tenant app), `booki-admin.kibusiness.co` (superadmin); eski domain'ler (`reservationapp/reservationadmin/reservation.kibusiness.co`) 301 ile yeni url'lere yönlendirilecek; NPM Let's Encrypt sertifikaları; prod switchover SONRA
+- [ ] **0.4 Analytics (GA4 + GTM + Google Ads + Meta Pixel + GSC)** — `google_analytics_settings` / `master_settings` üzerinden cloud_id & measurement_id; placement tracking kullanıcıdan gelecek (GA4 ID, GTM ID, Ads ID, Pixel ID, GSC verification bekleniyor)
+- [ ] **0.5 Lead formu & CRM (Zoho)** — landing üzerinde lead form → `ea_leads` (master DB) → e-posta bildirimi → Zoho CRM; Zoho credentials kullanıcıdan bekleniyor
+- [ ] **0.6 Kiracı metrikleri (SaaS admin)** — başına randevu/gelir/müşteri/aktif aylık metrikler superadmin panelinde
+- [ ] **0.7 Paket & fiyatlandırma katmanı** — `ea_packages` fiyatlandırma şeması + plan-alan feature-flag
+- [ ] **0.8 Ödeme takibi** — gelir/komisyon raporlaması (önceki POS/invoice katmanının üstüne SaaS). **Mevzuat:** mevcut para akışı yok; gerçek para/provizyon gerektiğinde lisanslı ödeme kuruluşu + tüketici koruma incelemesi AYRI konu.
+- [ ] **0.9 Harici integrasyonlar** — Google Business Profile randevu linki standartları, Meta OAuth durumu, Zoho CRM pipeline; OAuth/API anahtarları kullanıcıdan bekleniyor
+- [ ] **0.10 Superadmin genişletmeleri** — tenant provisioning UX, saklı anahtarlar, plan yönetimi
+- [ ] **0.11 (opsiyonel) Tombstone** — `ki_reservation` adlı tablo/sütun/değişken/fil adı kalıntıları temizliği (işlevsel etki yok)
+- [ ] **0.12 Test & validasyon** — dev'de uçtan uca senaryolar (tenant oluştur → randevu → lead → analitik), sonra canlıya sunum
 
 ### ✅ Dalga 1 — Gelir ve Operasyon Temeli (Faz 7·8·9·12·13) — TAMAMLANDI (2026-08-28, izole Docker'da doğrulandı, canlıya deploy edilmedi)
 - [x] Recurring Appointments — `id_recurrence_group` nullable kolon, seri randevu mantığı (commit `1d8e930`, izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
@@ -101,4 +116,4 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 | Çoklu-organizasyon (tek çatı altında N tenant) | Kullanıcı kararı: her organizasyon ayrı tenant satın alımı olarak kalacak |
 
 ---
-*Son güncelleme (2026-09-10, oturum 2): Dalga 3 (Faz 3.1-3.6) tamamlandı — WhatsApp'ta sadece kullanıcının kendi yapacağı telefon/QR eşleştirme testi kaldı. Dalga 5'ten custom domain öne çekilip tamamlandı (henüz commit edilmedi) + roadmap-dışı Command Center Dashboard/tema motoru eklendi (henüz commit edilmedi) — detay `docs/SESSION_NOTES.md` bölüm 7. Sıradaki: Dalga 4 (Marketplace Olgunlaştırma) + bu turun commit onayı.*
+*Son güncelleme (2026-09-16, oturum 9): Dalga 0 başladı — repo `booki-saas` oldu, iki-aşamalı dev/prod ortamı kuruldu (dev: `ki-booki-dev`, prod dokunulmadı), kod tabanı %100 "BooKi" markasına geçildi (562 dosya, 415 PHP clean lint, dev'de tüm ekranlar doğrulandı). Dev superadmin + ilk dev tenant'ı (`devsalon`) çalışıyor. Sıradaki: Dalga 0.2 landing sayfası — detay `docs/SESSION_NOTES.md` bölüm 9.*

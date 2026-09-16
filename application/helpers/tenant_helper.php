@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - multi-tenant SaaS support (2026-08-26).
+ * BooKi - multi-tenant SaaS support (2026-08-26).
  *
  * The SAME codebase serves two deployment shapes:
  *
@@ -71,7 +71,7 @@ if (!function_exists('is_multi_tenant_mode')) {
 
 if (!function_exists('master_setting')) {
     /**
-     * Ki Reservation (2026-08-26) - read (or write, if $value is passed) a platform-wide key/value
+     * BooKi (2026-08-26) - read (or write, if $value is passed) a platform-wide key/value
      * setting from the master DB's `master_settings` table (e.g. the shared "Ki Business" Google
      * OAuth Client ID/Secret - see Google_sync::get_client_id()/get_client_secret()).
      *

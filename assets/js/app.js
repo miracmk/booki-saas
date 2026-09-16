@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -30,7 +30,7 @@ window.App = (function () {
         }
 
         if (App.Utils.Message) {
-            App.Utils.Message.show('Ki Reservation', lang('unexpected_issues_message'));
+            App.Utils.Message.show('BooKi', lang('unexpected_issues_message'));
 
             $('<div/>', {
                 'class': 'card',

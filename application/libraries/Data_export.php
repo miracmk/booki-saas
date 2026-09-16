@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Data Export (Faz 30, KVKK/GDPR).
+ * BooKi - Data Export (Faz 30, KVKK/GDPR).
  *
  * Builds a full personal-data export for a customer and packages it to disk.
  * Every data section is gathered in isolation (per-section try/catch) so a

@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -32,7 +32,7 @@
             'google_integrations/oauth/' + ownerType + '/' + ownerId + '?services=' + services.join(','),
         );
 
-        window.open(authUrl, 'Ki Reservation', 'width=800, height=600');
+        window.open(authUrl, 'BooKi', 'width=800, height=600');
 
         const onMessage = (event) => {
             if (event.origin !== window.location.origin || event.data !== 'google_integrations_oauth_success') {
@@ -196,14 +196,14 @@
                         .join(''),
                 );
 
-                // Ki Reservation (2026-08-26) - prefill from whichever tab ends up selected by default.
+                // BooKi (2026-08-26) - prefill from whichever tab ends up selected by default.
                 prefillFromExistingHeader();
             })
             .fail(() => $select.html('<option>Sayfa listesi alınamadı</option>'));
     }
 
     /**
-     * Ki Reservation (2026-08-26) - fetch the selected tab's existing header row (Google_integrations::
+     * BooKi (2026-08-26) - fetch the selected tab's existing header row (Google_integrations::
      * sheet_header()) and, for any cell whose text exactly matches a known field's label
      * (case-insensitive), pre-check that field's checkbox. Gives the admin a head start when reusing
      * a spreadsheet that already has a header row from a previous export/manual setup, without

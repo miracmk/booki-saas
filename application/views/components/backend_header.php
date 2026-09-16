@@ -8,7 +8,7 @@
 ?>
 
 <?php
-// Ki Reservation (2026-08-26) - "N gün kaldı" advance warning, admin role only (see
+// BooKi (2026-08-26) - "N gün kaldı" advance warning, admin role only (see
 // EA_Controller::build_expiry_warning()). The hard cutoff (402, once actually expired) is enforced
 // separately in EA_Controller::resolve_tenant() - this is purely the advance notice before that.
 $expiry_warning = vars('expiry_warning');
@@ -21,14 +21,14 @@ $expiry_warning = vars('expiry_warning');
 <?php endif; ?>
 
 <?php
-// Ki Reservation (2026-09-10) - sidebar navigation redesign. Below the "md" breakpoint (768px),
+// BooKi (2026-09-10) - sidebar navigation redesign. Below the "md" breakpoint (768px),
 // Bootstrap's `offcanvas-md` turns #sidebar into a real dismissible offcanvas panel, triggered by
 // this thin top bar's hamburger button. At/above "md" it renders as a normal, always-visible,
 // fixed-position column (see the CSS block in backend_layout.php) - this thin bar is hidden there
 // via `d-md-none`. #header keeps its ID here (not on the sidebar) so calendar_default_view.js's/
 // calendar_table_view.js's `$('#header').outerHeight()` height budget still works unmodified: 0 on
 // desktop (element hidden), this bar's real height on mobile.
-$header_company_name = vars('company_name') ?: 'KI RESERVATION';
+$header_company_name = vars('company_name') ?: 'BooKi';
 $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
 ?>
 <nav id="header" class="d-md-none navbar navbar-dark bg-primary py-2 px-2">

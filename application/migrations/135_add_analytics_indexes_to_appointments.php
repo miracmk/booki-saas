@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Analytics indexes on appointments table (Faz 3.6, 2026-09-10).
+ * BooKi - Analytics indexes on appointments table (Faz 3.6, 2026-09-10).
  *
  * Adds composite indexes to optimize daily revenue reports and analytics queries
  * on the appointments table. Idempotent: checks with SHOW INDEX before adding.

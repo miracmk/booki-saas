@@ -1,7 +1,7 @@
 <?php
 /**
  * @var string $google_analytics_code
- * @var string|null $meta_pixel_id Ki Reservation (2026-09-12) - Meta Pixel, optional, tenant setting
+ * @var string|null $meta_pixel_id BooKi (2026-09-12) - Meta Pixel, optional, tenant setting
  *   `meta_pixel_id` (mirrors `google_analytics_code`'s pattern). Standard events (PageView here,
  *   Schedule fired separately on booking_confirmation.php) let Meta Ads attribute bookings the same
  *   way the tenant's main marketing site already does (see salonflora.tr's own Pixel setup).

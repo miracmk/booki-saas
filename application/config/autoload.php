@@ -67,7 +67,7 @@ $autoload['helper'] = [
     'array',
     'asset',
     'config',
-    'correlation', // Ki Reservation (2026-08-28) - correlation_id() for distributed tracing
+    'correlation', // BooKi (2026-08-28) - correlation_id() for distributed tracing
     'date',
     'debug',
     'env',
@@ -79,17 +79,17 @@ $autoload['helper'] = [
     'password',
     'path',
     'permission',
-    'plan', // Ki Reservation (2026-09-12) - Free/Basic/Premium/Elite feature gating, see the helper's docblock
+    'plan', // BooKi (2026-09-12) - Free/Basic/Premium/Elite feature gating, see the helper's docblock
     'rate_limit',
     'routes',
-    'salonflora_audit', // Ki Reservation customization - audit_log() (see the helper's docblock)
+    'salonflora_audit', // BooKi customization - audit_log() (see the helper's docblock)
     'salonflora_crypto', // Salon Flora customization - PII encryption/hashing (see the helper's docblock)
     'security',
     'session',
     'setting',
     'string',
-    'tenant', // Ki Reservation (2026-08-26) - tenant_context()/is_multi_tenant_mode(), see the helper's docblock
-    'tenant_master_crypto', // Ki Reservation (2026-08-26) - protects tenant secrets in the master DB
+    'tenant', // BooKi (2026-08-26) - tenant_context()/is_multi_tenant_mode(), see the helper's docblock
+    'tenant_master_crypto', // BooKi (2026-08-26) - protects tenant secrets in the master DB
     'url',
     'validation',
 ];

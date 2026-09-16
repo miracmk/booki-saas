@@ -5,7 +5,7 @@
 <?php
 // Salon Flora customization - whitelabeling: use the tenant's own logo/name (General Settings) when
 // set, falling back to the platform default.
-$login_company_name = vars('company_name') ?: 'Ki Reservation';
+$login_company_name = vars('company_name') ?: 'BooKi';
 $login_company_logo = vars('company_logo') ?: asset_url('assets/img/logo.png');
 ?>
 
@@ -130,7 +130,7 @@ $login_company_logo = vars('company_logo') ?: asset_url('assets/img/logo.png');
 <script src="<?= asset_url('assets/js/http/login_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/pages/login.js') ?>"></script>
 <script>
-    // Ki Reservation (2026-08-26) - prefill the username when arriving from the multi-tenant
+    // BooKi (2026-08-26) - prefill the username when arriving from the multi-tenant
     // portal (reservationapp.kibusiness.co), which already identified this user's own tenant.
     (function () {
         const params = new URLSearchParams(window.location.search);

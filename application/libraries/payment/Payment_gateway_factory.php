@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - payment gateway factory (2026-08-27).
+ * BooKi - payment gateway factory (2026-08-27).
  *
  * Creates the appropriate gateway instance based on payment settings.
  * ---------------------------------------------------------------------------- */

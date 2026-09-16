@@ -1,4 +1,4 @@
-# Ki Reservation — Oturum Notları
+# BooKi — Oturum Notları
 
 Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
@@ -169,7 +169,7 @@ gerçek dönüşüm + WhatsApp bridge stale-session + Randevu modal tek sütun +
 - **Meta Pixel + GA4 gerçek dönüşüm izleme kuruldu:** salonflora.tr'nin kendi HTML'i WebFetch/curl ile
   incelenip gerçek ID'ler bulundu (GA4 `G-QR8ZLZR0YG`, Google Ads `AW-18387388133`, Meta Pixel
   `28609365721988471` + ikincil `1592092416045154`, ayrıca kendi `/capi/` server-side CAPI gateway'i var -
-  o gateway'in access token'ı salonflora.tr'nin KENDİ backend'inde, Ki Reservation'a taşınamaz/gerekmiyor).
+  o gateway'in access token'ı salonflora.tr'nin KENDİ backend'inde, BooKi'a taşınamaz/gerekmiyor).
   Bulundu: `google_analytics_script.php` bileşeni GA4 için VARDI ama Meta Pixel hiç yoktu; ayrıca
   `booking_confirmation.php` script'i zaten vardı ama SADECE sayfa görüntüleme yapıyordu, gerçek bir
   "randevu tamamlandı" olayı hiç ateşlenmiyordu. Düzeltme: component'e Meta Pixel eklendi,
@@ -241,7 +241,7 @@ gerçek dönüşüm + WhatsApp bridge stale-session + Randevu modal tek sütun +
   `syncToken` ile periyodik çekim (polling) mümkün - "n8n ucu/webhook ucu" isteği bu yüzden gerçek bir
   webhook değil, n8n'in kendi cron'uyla bizim bir endpoint'i tetiklemesi şeklinde tasarlanacak. Sıradaki
   oturumda: `Google_contacts_sync` kütüphanesi (People API), bir Console/cron komutu (incremental sync),
-  Ki Reservation→Contacts push hook'u (Customers_model::save() sonrası).
+  BooKi→Contacts push hook'u (Customers_model::save() sonrası).
 - **Paket/Plan sistemi (Free/Basic/Premium/Elite) kuruldu (kullanıcı: "ayarlarsın" diyerek sınırları bana
   bıraktı - bu BİR ÜRÜN KARARI, ilk taslak, ayarlanabilir):** `plan_helper.php` (yeni, autoload'a eklendi)
   - `plan_feature_matrix()` her tier'ın YENİ eklediği özellikleri tanımlıyor (kümülatif), `plan_allows(
@@ -372,7 +372,7 @@ fark edilen birkaç gerçek prod bug'ı düzeltildi. Hepsi commit'lendi ve push'
 
 - **Platform SMTP fallback (migration 134):** Tenant kendi SMTP'sini `messaging_settings`'e girerse onu
   kullanır; girmezse önce Superadmin Platform Ayarları'ndaki (`master_setting('platform_smtp_*')`), o da
-  boşsa `.env` `MAIL_SMTP_*`'i fallback olarak kullanır ve gönderilen e-postaya küçük bir "Ki Reservation
+  boşsa `.env` `MAIL_SMTP_*`'i fallback olarak kullanır ve gönderilen e-postaya küçük bir "BooKi
   ile gönderildi" notu ekler (`Email_messages::resolve_smtp_config()`). **Platform fallback SMTP hâlâ
   boş** — kullanıcı kendi girecek (`reservationadmin.kibusiness.co/superadmin_settings`).
 - **Superadmin'den kiracı admin hesabı tam yönetimi:** `Superadmin_tenants.php`'ye `get_admin_account`/
@@ -627,3 +627,123 @@ Commit durumu: canonical'de hiçbir şey commit'lenmedi (kullanıcı onayı bekl
 `application/libraries/Appointment_booking_service.php`, `application/libraries/payment/Iyzico_gateway.php`,
 `application/controllers/Google.php`, `application/controllers/Ai_assistant.php`, `tokensave-docs/` (yeni),
 `docs/SESSION_NOTES.md`. Deploy'a rsync + `docker compose build app` + ASSET_VERSION bump onaya bırakıldı.
+
+## 8.1 2026-09-16 OTURUMU (devam) — Platform admin, kirsv-mcp, Zoho CRM outbox sync
+
+Amaç: platform (tenant DEĞİL) tarafının çalışır hale getirilmesi — admin girişi, MCP sunucusu ve Zoho CRM
+entegrasyonu. URL/DNS/NPM/proxy tarafı kullanıcı tarafından başka bir ajana devredildi.
+
+### Platform admin (TAMAM + doğrulandı)
+
+- `donkimonki` / `5562BooKi..` master admin hesabı oluşturuldu (`Console::admin_master`,
+  `ea_master_admins` satırı: kimuratkilinc/kibusiness.global@gmail.com yanında).
+- Login doğrulandı: `POST /index.php/superadmin_auth/validate` (form-encoded: `username`, `password`,
+  `csrf_token`) → `{"success":true}`; cookie session ile `superadmin_tenants` 200 dönüyor, kullanıcı adı
+  render oluyor. CSRF: token her GET'te yenileniyor (`csrf_token=' + encodeURIComponent('...')`).
+
+### kirsv-mcp (TAMAM + canlı)
+
+- MCP sunucusu REST tabanlı, `docker-compose.yml`'de `kirsv-mcp` servisi, `:8765/mcp` healthy.
+- 9 tool stdio + HTTP streamable her iki modda doğrulandı; canlı Salon Flora verileriyle test edildi.
+
+### Zoho CRM sync (TAMAM — gerçek Zoho kimliği BEKLİYOR)
+
+Mimari: her tenant DB'sinde outbox (+ id_map), yapılandırma master `ea_master_settings` +
+`master_setting()`; worker Zoho REST v8'e yazar.
+
+- **Migration 138**: `crm_outbox` (id, action, appointment_id, customer_id, status, attempts, error,
+  created_at, synced_at; status index) + `crm_id_map` (local_type, local_id, zoho_module, zoho_id,
+  synced_at; UNIQUE (local_type,local_id,zoho_module)). `console migrate` salonflora'da uygulandı.
+- **`Crm_sync` library**: `CRM_ACTIONS` (customer.created/updated, appointment.created/updated/cancelled),
+  `enqueue()` yalnızca `crm_sync_enabled=1` iken (statik cache, outbox yoksa no-op, asla booking'i kırmaz);
+  `run(subdomain, dry_run)`; Zoho OAuth refresh-token + REST v8 (bölge host'ları eu/us/com/in/au/uk/jp);
+  Contact upsert (Email dupe check), Deal create/update/cancel (Stage Qualification→Lost), id_map;
+  dry-run satırları TÜKETMEZ (sent yazmaz, attempts artırmaz); hata → attempts++, >=5 → 'failed';
+  PII: first/last_name düz metin, gerisi `sf_pii_is_encrypted()`/`sf_pii_decrypt()`.
+- **Model hook'ları**: `Appointments_model::save()` (created/updated, is_unavailability hariç),
+  `delete()` (cancelled), `Customers_model::save()` (created/updated) → `enqueue_crm()`.
+- **Console komutları**: `crm_config` (get/set, gizli alanları maskeler) + `crm_sync [subdomain] [--dry-run]`.
+- PII önemli düzeltme: `decode_customer_*` helper'ları YOKTUR (önceki keşif hatalıydı) — email/telefon
+  SFENC1 şifreli, decrypt `sf_pii_*` ile.
+- **Uçtan uca doğrulandı** (salonflora, agent API token): booking → outbox'a customer.created +
+  appointment.created yazıldı; `crm_sync salonflora --dry-run` doğru payload üretti (Contact upsert +
+  Deals create: "Şahika Genç - Klasik Masaj - 40 Dakika", Amount 2000, Stage Qualification, Description
+  satırları); iptal → appointment.cancelled enqueue edildi; dry-run sonrası satırlar pending kaldı.
+- Test verisi temizlendi (randevu iptal edildi, test kullanıcı 566 + outbox satırları silindi).
+- **Yapılandırma şu an**: `crm_sync_enabled=1` (kuyruk dolar, worker "Zoho credentials are missing"
+  raporlar), `zoho_region=eu`, `zoho_contact_lookup_field=Contact_Name`; client_id/secret/refresh boş.
+  Gerçek kimlikler gelince `crm_config` ile girilir, canlı `crm_sync` beklemedeki satırları boşaltır.
+
+### Temizlik
+
+- Salonflora tenant'ında yanlışlıkla oluşturulan admin (ea_users id 565 donkimonki + user_settings) silindi
+  (platform yolunun tenant default'u değil; MCP yalnızca kurallı admin/API yollarını kullanır).
+
+### Commit durumu
+
+Canonical'de commit onay bekleniyor. Değişen dosyalar: `application/migrations/138_create_crm_tables.php`,
+`application/libraries/Crm_sync.php`, `application/controllers/Console.php`,
+`application/models/Appointments_model.php`, `application/models/Customers_model.php`,
+`docs/SESSION_NOTES.md`. Deploy: rsync + `docker compose build app` + `up -d app` + `console migrate`
+yapıldı, migration zaten uygulandı.
+
+### Sıradaki (engel: gerçek Zoho kimlikleri)
+
+1. Gerçek client_id/client_secret/refresh_token gelince `crm_config` ile gir + `crm_sync salonflora` çalıştır.
+2. Reschedule (updated) payload'ı da dry-run'da gözden geçir (ilk booking öncesi id_map boş olduğu için
+   appointment.updated yolu gerçek veriyle test edilmedi — kod DÜZ yazıldı: created sonrası map var, update PUT).
+3. Canlı `crm_sync`'i kron job'a bağla (ör. 5 dk, tüm tenantlar, dry-run değil).
+---
+
+## 9. Oturum — BooKi Markalaşması + İki-Aşamalı Dev/Prod (2026-09-16)
+
+### Bağlam ve kararlar
+
+Kullanıcının "BooKi" marka değişikliği isteğiyle başlandı. Repo `miracmk/ki-reservation-saas` → `miracmk/booki-saas` olarak yeniden adlandırıldı (gh CLI yok, doğrudan GitHub API + remote URL güncellendi).
+
+**Domain şeması (kesinleşti):**
+- Landing: `booki.kibusiness.co`
+- Tenant uygulaması: `bookie-app.kibusiness.co`
+- Superadmin: `booki-admin.kibusiness.co`
+- Eski: `reservationapp/reservationadmin/reservation.kibusiness.co` → yeni url'lere 301. (Önceki oturumda `booki-app.kibusiness.co` rezerve durumdaydı; kullanıcı `bookie-app` doğru ada karar verdiğinden bu şemaya geçildi; ROADMAP 0.3 bu şemayı yansıtıyor.)
+
+**İki-aşamalı sistem (kullanıcı onayıyla kararlaştırıldı):**
+- Kanonik: `/opt/ki-ecosystem/ki-reservation-src/` — git (booki-saas), kod düzenlemeleri BURADA
+- Dev deploy: `/opt/ki-ecosystem/ki-booki-dev/` — test edilecek her şey
+- Prod: `/opt/ki-ecosystem/ki-reservation/` — kullanıcı onayı OLMADAN hiçbir şey değişmez
+- Ritim: kanonik → `scripts/dev-sync.sh` → dev'de test → onay → prod rsync + compose build + ASSET_VERSION bump
+
+### Dev ortamı kurulumu
+
+- `/opt/ki-ecosystem/ki-booki-dev/`: prod'dan kopyalanan `Dockerfile` + `docker-entrypoint.sh` (useragent → "BooKi"), `docker-compose.yml` (project `ki-booki-dev`, containers `ki-booki-dev-app` 8080:80 + 8081:80, `ki-booki-dev-db` 3307:3306), `scripts/dev-sync.sh` (kanonik→dev src rsync), `.var/.env` (dev-only anahtarlar).
+- DB: `ki_booki_dev_master` (53276 MySQL); migration'lar + `console master_install` çalıştırıldı (`ea_tenants`, `master_admins`, `master_settings` kuruldu).
+- Dev anahtarlar gerçek base64-encoded 32-byte olarak üretildi (`EA_APP_KEY`, `TENANT_MASTER_KEY`, `BACKUP_ENCRYPTION_KEY`) — bu, `console tenant_create`'in "invalid key" hatasını çözdü.
+- Dev superadmin: `admin` / `admin@booki.dev` / `BookiAdmin#2026`.
+- Dev tenant: `devsalon` (id 1, DB `ki_tenant_devsalon`, login `administrator`/`administrator`).
+- `/etc/hosts`: `127.0.0.1 booki-app.dev booki-admin.dev booki.dev devsalon-booki-app.dev`. **Önemli:** `EA_Controller::resolve_tenant()` HTTP_HOST'dan port'u söküyor (satır 163) — bu yüzden dev env var'ları port'suz domain'ler (`booki-app.dev` vb.) olmalı; tarayıcıda `:8080`/`:8081` ile erişilir.
+
+### Doğrulamalar (dev)
+
+- `/health` → `{"status":"ok",...}`
+- `booki-app.dev:8080/portal` (portal) → 200, `<title>BooKi</title>`
+- `devsalon-booki-app.dev:8080` (tenant) → 200, login sayfası
+- `booki-admin.dev:8081/` (superadmin) → 200, `<title>BooKi - Admin</title>` / `<h1>BooKi</h1>`
+- **Debug notu:** `/superadmin/login` 404 verdi çünkü superadmin default controller `superadmin_auth` — doğru URL kök (`/`), `/superadmin/login` değil.
+
+### Rebrand işlemi
+
+- 562 dosyada `Ki Reservation` / `KI RESERVATION` → `BooKi` (sed, vendor/system/.git hariç). 415 PHP dosyası `php -l` temiz (0 hata).
+- Kapsananlar: views, email şablonları (subject + footer), error sayfaları, `installation.php`, `backend_header` fallback (`'BooKi'`), `backend_footer` ("Powered by BooKi (Ki Software License)"), `composer.json`, `config-sample.php`, `index.php`, portal/login/superadmin_login/customer_portal, JS/CSS asset başlıkları, docs.
+- **Bilinçli korunan:** DB adları (`ki_reservation`, `ea_` prefix), "Ki Software" (firma adı, kisoftware.com), container/fil adları (tombstone Faz 0.11 opsiyonel).
+- Kanonik → dev senkron edildi, `docker compose up -d --build --force-recreate app` ile yeniden derlendi.
+
+### Commit durumu
+
+Kanonik'te 562 dosyada rebrand + ROADMAP/SESSION_NOTES güncellemeleri **henüz commit edilmedi** — kullanıcı onayı bekleniyor. Prod'a hiçbir değişiklik gitmedi.
+
+### Sıradaki
+
+1. Kullanıcı onayı: rebrand commit'i (required: booki-saas branch), sonra dev push test.
+2. Dalga 0.2 — landing sayfası (booki.kibusiness.co): server-rendered PHP, manus kulesi tasarım token'ları.
+3. Dalga 0.3 — DNS/SSL (Cloudflare CNAME + NPM cert), sonra prod switchover.
+4. Kullanıcıdan beklenen girdiler: GA4/GTM/Ads/Pixel ID'leri, GSC doğrulaması, Zoho CRM kimlikleri, Cloudflare CNAME listesi.

@@ -1,5 +1,5 @@
 /**
- * Memberships page JavaScript (Ki Reservation, Dalga 1).
+ * Memberships page JavaScript (BooKi, Dalga 1).
  *
  * Handles plan creation, selling a plan to a customer, listing/renewing/
  * cancelling customer memberships.

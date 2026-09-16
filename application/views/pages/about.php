@@ -6,10 +6,10 @@
     <div id="about" class="col-lg-8 offset-lg-2">
 
         <div class="text-center my-5">
-            <img src="<?= base_url('assets/img/logo.png') ?>" alt="Ki Reservation Logo" class="mb-5">
+            <img src="<?= base_url('assets/img/logo.png') ?>" alt="BooKi Logo" class="mb-5">
 
             <h3>
-                Ki Reservation
+                BooKi
             </h3>
             <h6 class="text-primary">
                 Online Appointment Scheduler

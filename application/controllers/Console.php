@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -34,7 +34,7 @@ class Console extends EA_Controller
         parent::__construct();
 
         $this->load->dbutil();
-        $this->load->dbforge(); // Ki Reservation (2026-08-26) - used by master_install()
+        $this->load->dbforge(); // BooKi (2026-08-26) - used by master_install()
 
         $this->load->library('instance');
         $this->load->library('cleanup');
@@ -52,7 +52,7 @@ class Console extends EA_Controller
     /**
      * Perform a console installation.
      *
-     * Use this method to install Ki Reservation directly from the terminal.
+     * Use this method to install BooKi directly from the terminal.
      *
      * Usage:
      *
@@ -74,14 +74,14 @@ class Console extends EA_Controller
     /**
      * Migrate the database to the latest state.
      *
-     * Use this method to upgrade an Ki Reservation instance to the latest database state.
+     * Use this method to upgrade an BooKi instance to the latest database state.
      *
      * Notice:
      *
      * Do not use this method to install the app as it will not seed the database with the initial entries (admin,
      * provider, service, settings etc.).
      *
-     * Ki Reservation (2026-08-26) - multi-tenant aware: if the connected 'default' DB is a master DB
+     * BooKi (2026-08-26) - multi-tenant aware: if the connected 'default' DB is a master DB
      * (has a `tenants` table, see is_multi_tenant_mode()), migrates EVERY active tenant's own database
      * in turn instead of the 'default' connection itself - "every code update auto-applies to every
      * tenant" (see project plan). A single tenant failing is logged to `tenant_migration_log` and does
@@ -139,7 +139,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - create the master DB schema (`tenants`, `tenant_migration_log`).
+     * BooKi (2026-08-26) - create the master DB schema (`tenants`, `tenant_migration_log`).
      * Run this ONCE, against a deployment whose 'default' connection points at the intended master
      * DB, before provisioning any tenant with tenant_create(). Separate from the regular
      * application/migrations/ sequence (those apply to TENANT databases) - the master schema is tiny
@@ -216,7 +216,7 @@ class Console extends EA_Controller
             echo '"tenant_migration_log" table already exists, skipped.' . PHP_EOL;
         }
 
-        // Ki Reservation (2026-08-26) - SaaS admin panel (reservationadmin.kibusiness.co) support.
+        // BooKi (2026-08-26) - SaaS admin panel (reservationadmin.kibusiness.co) support.
         // master_admins is a credential store entirely separate from any tenant's own users - Ki
         // Software's own staff, not tied to a tenant, never resolved via EA_Controller::resolve_tenant().
         if (!$this->db->table_exists('master_admins')) {
@@ -250,13 +250,13 @@ class Console extends EA_Controller
             'trial_ends_at' => ['type' => 'DATETIME', 'null' => true],
             'license_expires_at' => ['type' => 'DATETIME', 'null' => true],
             'suspended_at' => ['type' => 'DATETIME', 'null' => true],
-            // Ki Reservation (2026-08-27) - Marketplace support
+            // BooKi (2026-08-27) - Marketplace support
             'marketplace_opt_in' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'null' => false],
             'category' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
             'city' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
             'cover_image_url' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'short_description' => ['type' => 'TEXT', 'null' => true],
-            // Ki Reservation (2026-09-10) - tenant self-service custom domain (Custom_domain.php
+            // BooKi (2026-09-10) - tenant self-service custom domain (Custom_domain.php
             // controller). 'custom_domain' (above) is the LIVE, routed domain - untouched here until
             // the host-side domain-worker.sh actually provisions it. 'custom_domain_pending' is what
             // the tenant just requested, tracked separately so a bad/incomplete request never clobbers
@@ -282,7 +282,7 @@ class Console extends EA_Controller
             }
         }
 
-        // Ki Reservation (2026-08-27) - Marketplace reviews table (master DB, aggregates ratings from all tenants)
+        // BooKi (2026-08-27) - Marketplace reviews table (master DB, aggregates ratings from all tenants)
         if (!$this->db->table_exists('reviews')) {
             $this->dbforge->add_field([
                 'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
@@ -316,7 +316,7 @@ class Console extends EA_Controller
             echo '"reviews" table already exists, skipped.' . PHP_EOL;
         }
 
-        // Ki Reservation (2026-08-26) - "Ki Business Google OAuth": a platform-wide key/value settings
+        // BooKi (2026-08-26) - "Ki Business Google OAuth": a platform-wide key/value settings
         // table (superadmin-editable) so tenants can connect Google Calendar using Ki Software's own
         // shared OAuth Client instead of each needing their own Google Cloud project - see
         // master_setting() (tenant_helper.php) and Google_sync::get_client_id()/get_client_secret().
@@ -339,7 +339,7 @@ class Console extends EA_Controller
             echo '"master_settings" table already exists, skipped.' . PHP_EOL;
         }
 
-        // Ki Reservation (Dalga 2, 2026-08-28) - health_token gates GET /health/deep (see
+        // BooKi (Dalga 2, 2026-08-28) - health_token gates GET /health/deep (see
         // Health.php). It must be a MASTER-level secret, not a per-tenant setting: that endpoint
         // checks master DB reachability and iterates every tenant, so $this->db is the master
         // connection at the point the token is checked - a tenant `settings` row would never be
@@ -352,7 +352,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - create a SaaS super-admin account (reservationadmin.kibusiness.co
+     * BooKi (2026-08-26) - create a SaaS super-admin account (reservationadmin.kibusiness.co
      * login) in the master DB. Requires master_install() to have been run first.
      *
      * Usage: php index.php console superadmin_create <username> <email> <password>
@@ -391,7 +391,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - provision a brand-new tenant: creates its database, generates
+     * BooKi (2026-08-26) - provision a brand-new tenant: creates its database, generates
      * fresh (tenant-specific, never reused across tenants) PII encryption keys, runs the full
      * migration set against it, seeds the default admin/service/provider, and registers it in the
      * master `tenants` table. Requires master_install() to have been run first.
@@ -496,7 +496,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - one-off, re-runnable COPY (never a move) of Salon Flora's live
+     * BooKi (2026-08-26) - one-off, re-runnable COPY (never a move) of Salon Flora's live
      * standalone data (services, stations, providers, customers, appointments) into its own
      * `salonflora` tenant in this multi-tenant instance. The live system
      * (rezervasyon.salonflora.tr / salonflora-ea-app + salonflora-ea-db) is ONLY ever read from - not
@@ -716,7 +716,7 @@ class Console extends EA_Controller
 
         setting(['require_email' => '0', 'require_phone_number' => '0', 'require_last_name' => '0']);
 
-        // Ki Reservation (2026-09-12) - IDEMPOTENCY ADDED: this script's first run already imported
+        // BooKi (2026-09-12) - IDEMPOTENCY ADDED: this script's first run already imported
         // 516 customers / 174 appointments into the (no longer empty) salonflora tenant - confirmed via
         // direct row counts before making this change. Re-running the original insert-only logic would
         // have duplicated every category/service/station/provider/customer/appointment a second time.
@@ -831,7 +831,7 @@ class Console extends EA_Controller
                     'services' => array_values(array_filter($new_service_ids)),
                     'stations' => array_values(array_filter($new_station_ids)),
                     'settings' => [
-                        // Ki Reservation (2026-08-26) - the old bcrypt hash cannot be carried over as-is:
+                        // BooKi (2026-08-26) - the old bcrypt hash cannot be carried over as-is:
                         // Providers_model::insert() always re-hashes whatever is in 'password' as if it
                         // were plaintext. A migrated provider gets this fixed temporary password instead
                         // (reported to the user, must be changed on first login) - their username stays
@@ -1032,7 +1032,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - point (or clear) a tenant's custom domain in the master DB.
+     * BooKi (2026-08-26) - point (or clear) a tenant's custom domain in the master DB.
      * Purely a DB update - actually provisioning the domain (DNS check, Let's Encrypt HTTP-01
      * certificate, nginx server block) is the host-side script's job
      * (/opt/apps/ki-rezervasyon/scripts/add-custom-domain.sh), which calls this as its last step.
@@ -1074,7 +1074,338 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-09-10) - tenant self-service custom domain, part 2/3: list every tenant
+     * Generate (or set) the per-tenant `agent_api_key` setting consumed by the Agent API
+     * (application/controllers/Agent_api.php). The MCP server and any other agent client must
+     * present this value as a Bearer token; tenants without a key respond 503 to agent calls.
+     *
+     * Passing an explicit value stores it verbatim (rotate by passing a new one). When $value is
+     * empty a fresh 64-hex key is generated and printed.
+     *
+     * Usage:
+     *
+     * php index.php console agent_key <subdomain> [value]
+     *
+     * php index.php console agent_key salonflora
+     */
+    public function agent_key(string $subdomain = '', string $value = ''): void
+    {
+        $value = trim($value);
+
+        if (!is_multi_tenant_mode()) {
+            if ($value === '') {
+                $value = bin2hex(random_bytes(32));
+            }
+
+            setting(['agent_api_key' => $value]);
+
+            echo 'agent_api_key set to: ' . $value . PHP_EOL;
+
+            return;
+        }
+
+        $subdomain = strtolower(trim($subdomain));
+
+        $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+
+        if (!$tenant) {
+            show_error('No tenant with subdomain "' . $subdomain . '" was found.');
+
+            return;
+        }
+
+        $this->connect_tenant($tenant);
+
+        if ($value === '') {
+            $value = bin2hex(random_bytes(32));
+        }
+
+        setting(['agent_api_key' => $value]);
+
+        $this->connect_master();
+
+        echo 'agent_api_key for tenant "' . $subdomain . '" set to: ' . $value . PHP_EOL;
+    }
+
+    /**
+     * Add/reset the login credential of an Administrator user (username login, not email).
+     *
+     * Mirrors agent_key()'s tenant resolution so it works in both single-tenant and multi-tenant
+     * mode. Uses the production Admins_model::save() path (PII encryption, bcrypt password hashing
+     * via user_settings, username/email uniqueness) rather than raw SQL.
+     *
+     * php index.php console admin_add <subdomain> <username> <password> [first_name] [last_name] [email]
+     *
+     * php index.php console admin_add salonflora donkimonki "5562BooKi.." Donki Monki donkimonki@salonflora.tr
+     */
+    public function admin_add(
+        string $subdomain,
+        string $username,
+        string $password,
+        string $first_name = '',
+        string $last_name = '',
+        string $email = '',
+    ): void {
+        $username = trim($username);
+        $password = $password;
+        $first_name = trim($first_name) !== '' ? trim($first_name) : $username;
+        $email = trim($email) !== '' ? trim($email) : $username . '@salonflora.tr';
+
+        if ($username === '') {
+            show_error('Username cannot be empty.');
+
+            return;
+        }
+
+        if (!is_multi_tenant_mode()) {
+            $this->create_admin_user($username, $password, $first_name, $last_name, $email);
+
+            echo 'Admin "' . $username . '" is ready. Login with username + password.' . PHP_EOL;
+
+            return;
+        }
+
+        $subdomain = strtolower(trim($subdomain));
+
+        $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+
+        if (!$tenant) {
+            show_error('No tenant with subdomain "' . $subdomain . '" was found.');
+
+            return;
+        }
+
+        $this->connect_tenant($tenant);
+
+        $created = $this->create_admin_user($username, $password, $first_name, $last_name, $email);
+
+        $this->connect_master();
+
+        echo 'Admin "' . $username . '" for tenant "' . $subdomain . '" is '
+            . ($created ? 'ready' : 'already set, credentials reset') . '. Login with username + password.' . PHP_EOL;
+    }
+
+    private function create_admin_user(
+        string $username,
+        string $password,
+        string $first_name,
+        string $last_name,
+        string $email,
+    ): bool {
+        $this->load->model('admins_model');
+
+        $existing = $this->db
+            ->from('users')
+            ->join('user_settings', 'user_settings.id_users = users.id', 'inner')
+            ->where(['username' => $username])
+            ->get()
+            ->row_array();
+
+        // Upsert: keep any existing admin user while forcing the requested username/password.
+        $admin = [
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'email' => $email,
+            'settings' => [
+                'username' => $username,
+                'password' => $password,
+            ],
+        ];
+
+        if (!empty($existing)) {
+            $admin['id'] = (int) $existing['id'];
+        }
+
+        $this->admins_model->save($admin);
+
+        return empty($existing);
+    }
+
+    /**
+     * Manage the SaaS platform super-admin (reservationadmin.kibusiness.co) login credential.
+     *
+     * This writes to the MASTER database's `ea_master_admins` table (Ki Software staff, separate
+     * from any tenant's users - see Superadmin_auth.php). It intentionally never touches tenant
+     * databases and never calls connect_tenant(): in the console `$this->db` is already the master
+     * connection.
+     *
+     * php index.php console admin_master <username> <password> [email]
+     *
+     * php index.php console admin_master donkimonki "5562BooKi.."
+     */
+    public function admin_master(string $username, string $password, string $email = ''): void
+    {
+        $username = trim($username);
+        $email = trim($email) !== '' ? trim($email) : $username . '@kibusiness.co';
+
+        if ($username === '' || $password === '') {
+            show_error('Username and password are required.');
+
+            return;
+        }
+
+        $existing = $this->db
+            ->get_where('master_admins', ['username' => $username])
+            ->row_array();
+
+        $salt = generate_salt();
+        $hash = hash_password($salt, $password);
+
+        $values = [
+            'email' => $email,
+            'password' => $hash,
+            'salt' => $salt,
+        ];
+
+        if (!empty($existing)) {
+            $this->db->where('username', $username)->update('master_admins', $values);
+
+            echo 'Master admin "' . $username . '" updated (password reset). Login on reservationadmin.kibusiness.co.'
+                . PHP_EOL;
+
+            return;
+        }
+
+        $values['username'] = $username;
+        $values['created_at'] = date('Y-m-d H:i:s');
+
+        $this->db->insert('master_admins', $values);
+
+        echo 'Master admin "' . $username . '" created. Login on reservationadmin.kibusiness.co.' . PHP_EOL;
+    }
+
+    /**
+     * BooKi (2026-09-16) - configure the platform-wide Zoho CRM integration. Values are
+     * stored in master_settings (NOT per-tenant), so one configuration covers every tenant.
+     *
+     * Usage:
+     *
+     * php index.php console crm_config crm_sync_enabled 1
+     * php index.php console crm_config zoho_region eu
+     * php index.php console crm_config zoho_client_id ...
+     * php index.php console crm_config zoho_client_secret ...
+     * php index.php console crm_config zoho_refresh_token ...
+     * php index.php console crm_config zoho_contacts_module Contacts
+     * php index.php console crm_config zoho_appointments_module Deals
+     * php index.php console crm_config zoho_deal_stage_new Qualification
+     * php index.php console crm_config zoho_deal_stage_cancelled Lost
+     * php index.php console crm_config zoho_contact_lookup_field Contact_Name
+     *
+     * Run without arguments to print the current configuration (values masked where secret).
+     */
+    public function crm_config(?string $name = null, ?string $value = null): void
+    {
+        $allowed = [
+            'crm_sync_enabled',
+            'zoho_region',
+            'zoho_client_id',
+            'zoho_client_secret',
+            'zoho_refresh_token',
+            'zoho_contacts_module',
+            'zoho_appointments_module',
+            'zoho_deal_stage_new',
+            'zoho_deal_stage_cancelled',
+            'zoho_contact_lookup_field',
+        ];
+
+        if ($name !== null && $value !== null) {
+            $name = trim($name);
+
+            if (!in_array($name, $allowed, true)) {
+                show_error('Unknown CRM setting "' . $name . '". Allowed: ' . implode(', ', $allowed) . '.');
+
+                return;
+            }
+
+            master_setting($name, trim($value));
+
+            echo 'crm_config: ' . $name . ' = "' . trim($value) . '"' . PHP_EOL;
+
+            return;
+        }
+
+        echo 'Current Zoho CRM configuration' . PHP_EOL;
+
+        foreach ($allowed as $key) {
+            $display = master_setting($key);
+
+            if (in_array($key, ['zoho_client_id', 'zoho_client_secret', 'zoho_refresh_token'], true) && $display !== '') {
+                $display = str_repeat('*', 8) . mb_substr($display, -4);
+            }
+
+            echo '  ' . $key . ' = ' . ($display === '' ? '(empty)' : $display) . PHP_EOL;
+        }
+    }
+
+    /**
+     * BooKi (2026-09-16) - drain the Zoho CRM outbox of every active tenant (or of a single
+     * tenant). Pushes only pending customer/appointment events; idempotent afterwards ('sent' rows are
+     * never re-pushed). Safe to run from a cron.
+     *
+     * Usage:
+     *
+     * php index.php console crm_sync                 (all tenants)
+     * php index.php console crm_sync salonflora      (a single tenant)
+     * php index.php console crm_sync --dry-run       (build + print payloads, never contacts Zoho)
+     * php index.php console crm_sync salonflora --dry-run
+     */
+    public function crm_sync(string $arg1 = '', string $arg2 = ''): void
+    {
+        $subdomain = null;
+        $dry_run = false;
+
+        foreach ([$arg1, $arg2] as $arg) {
+            if ($arg === '--dry-run') {
+                $dry_run = true;
+            } elseif ($arg !== '') {
+                $subdomain = $arg;
+            }
+        }
+
+        $this->load->library('crm_sync');
+
+        if ($dry_run) {
+            echo '=== DRY RUN - no records will be written to Zoho ===' . PHP_EOL;
+        }
+
+        $report = $this->crm_sync->run($subdomain, $dry_run);
+
+        if (empty($report['configured'])) {
+            echo $report['message'] . PHP_EOL;
+
+            return;
+        }
+
+        if (empty($report['tenants'])) {
+            echo 'No active tenants to process.' . PHP_EOL;
+
+            return;
+        }
+
+        $totals = ['processed' => 0, 'sent' => 0, 'failed' => 0];
+
+        foreach ($report['tenants'] as $subdomain_name => $tenant_report) {
+            echo 'Tenant "' . $subdomain_name . '": '
+                . $tenant_report['processed'] . ' processed, '
+                . $tenant_report['sent'] . ' sent, '
+                . $tenant_report['failed'] . ' failed'
+                . PHP_EOL;
+
+            foreach ($tenant_report['errors'] as $error) {
+                echo '  ! ' . $error . PHP_EOL;
+            }
+
+            $totals['processed'] += $tenant_report['processed'];
+            $totals['sent'] += $tenant_report['sent'];
+            $totals['failed'] += $tenant_report['failed'];
+        }
+
+        echo 'Total: ' . $totals['processed'] . ' processed, '
+            . $totals['sent'] . ' sent, '
+            . $totals['failed'] . ' failed'
+            . PHP_EOL;
+    }
+
+    /**
      * whose requested domain has passed the in-app DNS ownership check (custom_domain_status =
      * 'dns_verified') and is waiting for the actual Let's Encrypt cert + nginx server block. A
      * host-side worker (scripts/domain-worker.sh, run on a cron) polls this, then for each row runs
@@ -1151,7 +1482,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-09-10) - tenant self-service custom domain, part 3/3: the host-side worker
+     * BooKi (2026-09-10) - tenant self-service custom domain, part 3/3: the host-side worker
      * calls this once it has finished (or failed) provisioning one tenant's pending domain from
      * domain_requests_pending() above. On success, add-custom-domain.sh has ALREADY pointed
      * `custom_domain` itself at the new value (its last step is tenant_set_custom_domain, unchanged) -
@@ -1198,7 +1529,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.1) - list the Communication Hub rules of every active tenant
+     * BooKi (Dalga 3 / Faz 3.1) - list the Communication Hub rules of every active tenant
      * (or a single tenant when a subdomain is given). Each row drives one event x recipient x channel
      * send - see Communication_hub::publish().
      *
@@ -1245,7 +1576,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.1) - set the channels (and enable/disable) of one
+     * BooKi (Dalga 3 / Faz 3.1) - set the channels (and enable/disable) of one
      * event x recipient Communication Hub rule. Creates the row if it does not exist yet.
      *
      * Usage: php index.php console communication_rule_set <event> <recipient> <channel> [enabled] [subdomain]
@@ -1344,7 +1675,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.1) - set a rule's email subject and message body template
+     * BooKi (Dalga 3 / Faz 3.1) - set a rule's email subject and message body template
      * ({{placeholder}} syntax, e.g. {service_name} / {customer_name} / {start_datetime} / {reason}).
      * Pass "-" to clear either field back to null (falls back to the built-in default at send time).
      *
@@ -1430,7 +1761,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.2) - list the Automation Engine rules of every active tenant
+     * BooKi (Dalga 3 / Faz 3.2) - list the Automation Engine rules of every active tenant
      * (or a single tenant when a subdomain is given). Rules are seeded disabled; enable them with
      * automation_rule_toggle.
      *
@@ -1476,7 +1807,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.2) - toggle one Automation Engine rule on/off per tenant.
+     * BooKi (Dalga 3 / Faz 3.2) - toggle one Automation Engine rule on/off per tenant.
      *
      * Usage: php index.php console automation_rule_toggle <id> <0|1> [subdomain]
      *
@@ -1560,7 +1891,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - swap $this->db to a tenant's own database AND set
+     * BooKi (2026-08-26) - swap $this->db to a tenant's own database AND set
      * tenant_context() so salonflora_crypto_helper.php uses this tenant's own PII keys (mirrors what
      * EA_Controller::resolve_tenant() does for web requests). $tenant must have
      * db_host/db_username/db_password/pii_enc_key/pii_hash_key (all tenant_master_encrypt()-ed) and
@@ -1596,7 +1927,7 @@ class Console extends EA_Controller
             'pii_hash_key' => tenant_master_decrypt($tenant['pii_hash_key']),
         ]);
 
-        // Ki Reservation (2026-08-26) - CRITICAL: dbforge is bound to whatever $this->db WAS at the
+        // BooKi (2026-08-26) - CRITICAL: dbforge is bound to whatever $this->db WAS at the
         // moment it was (lazily) loaded and does NOT follow later $this->db swaps on its own (unlike
         // models/migrations, which resolve $this->db dynamically via CI_Model/CI_Migration's __get
         // magic method proxying to get_instance()->db on every access). Without this explicit
@@ -1604,7 +1935,7 @@ class Console extends EA_Controller
         // database instead of the one just connected to.
         $this->load->dbforge();
 
-        // Ki Reservation (2026-08-26) - CI_Migration normally auto-creates its "migrations" tracking
+        // BooKi (2026-08-26) - CI_Migration normally auto-creates its "migrations" tracking
         // table, but only in its own constructor, which runs ONCE per process (the Loader caches
         // library instances) - for the FIRST tenant this Console process ever connects to, not every
         // one of them. Every subsequent tenant needs it created here instead, if missing.
@@ -1616,7 +1947,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - reconnect $this->db to the master DB ('default' connection group)
+     * BooKi (2026-08-26) - reconnect $this->db to the master DB ('default' connection group)
      * after connect_tenant() swapped it away, so the caller can go back to querying `tenants`.
      */
     private function connect_master(): void
@@ -1644,7 +1975,7 @@ class Console extends EA_Controller
     /**
      * Create a database backup file.
      *
-     * Use this method to back up your Ki Reservation data.
+     * Use this method to back up your BooKi data.
      *
      * Usage:
      *
@@ -1662,7 +1993,7 @@ class Console extends EA_Controller
     /**
      * Trigger the synchronization of all provider calendars with Google Calendar.
      *
-     * Use this method in a cronjob to automatically sync events between Ki Reservation and Google Calendar.
+     * Use this method in a cronjob to automatically sync events between BooKi and Google Calendar.
      *
      * Notice:
      *
@@ -1678,7 +2009,7 @@ class Console extends EA_Controller
      */
     public function sync(): void
     {
-        // Ki Reservation (2026-08-26) - multi-tenant aware, same pattern as migrate(): iterate every
+        // BooKi (2026-08-26) - multi-tenant aware, same pattern as migrate(): iterate every
         // active tenant's own database instead of running once against 'default' (the master DB has
         // no `providers`/`users` tables at all). Single-tenant/standalone deployments unaffected.
         if (!is_multi_tenant_mode()) {
@@ -1698,7 +2029,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - the original sync() body, run against whatever $this->db
+     * BooKi (2026-08-26) - the original sync() body, run against whatever $this->db
      * currently points to (a single tenant, or the standalone DB).
      */
     private function sync_current_db(): void
@@ -1735,7 +2066,7 @@ class Console extends EA_Controller
      */
     public function cleanup(): void
     {
-        // Ki Reservation (2026-08-26) - multi-tenant aware, same pattern as sync()/migrate().
+        // BooKi (2026-08-26) - multi-tenant aware, same pattern as sync()/migrate().
         if (!is_multi_tenant_mode()) {
             $this->cleanup->run();
 
@@ -1753,7 +2084,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-28) - process queued background jobs from the unified job queue.
+     * BooKi (2026-08-28) - process queued background jobs from the unified job queue.
      *
      * Reserves up to $limit pending jobs for this worker, executes them via Job_dispatcher,
      * marks successes/failures, and releases stale reservations (from crashed workers).
@@ -1775,7 +2106,7 @@ class Console extends EA_Controller
      */
     public function process_jobs(string $queue = 'default', int $limit = 50): void
     {
-        // Ki Reservation (2026-08-28) - multi-tenant aware, same pattern as sync()/cleanup()/migrate().
+        // BooKi (2026-08-28) - multi-tenant aware, same pattern as sync()/cleanup()/migrate().
         if (!is_multi_tenant_mode()) {
             $this->process_jobs_current_db($queue, (int) $limit);
 
@@ -1804,7 +2135,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-28) - process jobs for the currently-connected database
+     * BooKi (2026-08-28) - process jobs for the currently-connected database
      * (single tenant or standalone). Called per-tenant by process_jobs(), or directly
      * in single-tenant mode.
      *
@@ -1907,7 +2238,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.3) - list marketing segments.
+     * BooKi (Dalga 3 / Faz 3.3) - list marketing segments.
      *
      * Usage: php index.php console marketing_segments [subdomain]
      */
@@ -1953,7 +2284,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.3) - refresh segment member counts.
+     * BooKi (Dalga 3 / Faz 3.3) - refresh segment member counts.
      *
      * Usage: php index.php console marketing_refresh [subdomain]
      */
@@ -1989,7 +2320,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.3) - list marketing campaigns.
+     * BooKi (Dalga 3 / Faz 3.3) - list marketing campaigns.
      *
      * Usage: php index.php console marketing_campaigns [subdomain]
      */
@@ -2035,7 +2366,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.4) - issue a review request for one
+     * BooKi (Dalga 3 / Faz 3.4) - issue a review request for one
      * completed appointment per tenant, as if the automation rule had just fired.
      *
      * Usage: php index.php console review_issue <appointment_id> [subdomain]
@@ -2105,7 +2436,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.4) - list tenant review requests.
+     * BooKi (Dalga 3 / Faz 3.4) - list tenant review requests.
      *
      * Usage: php index.php console reviews list [status] [subdomain]
      *
@@ -2153,7 +2484,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Ki Reservation (Dalga 3 / Faz 3.4) - moderate one tenant review and mirror
+     * BooKi (Dalga 3 / Faz 3.4) - moderate one tenant review and mirror
      * the decision to the master DB (marketplace visibility).
      *
      * Usage: php index.php console review_status <review_id> <published|rejected> [subdomain]
@@ -2221,7 +2552,7 @@ class Console extends EA_Controller
     {
         $help = [
             '',
-            'Ki Reservation ' . config('version'),
+            'BooKi ' . config('version'),
             '',
             'Usage:',
             '',

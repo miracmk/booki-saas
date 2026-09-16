@@ -2,7 +2,7 @@
 
 <?php section('content'); ?>
 
-<h3 class="mb-3">Ki Reservation Update</h3>
+<h3 class="mb-3">BooKi Update</h3>
 
 <?php if (vars('success')): ?>
     <div>
@@ -11,7 +11,7 @@
         </div>
         
         <p>
-            You can now use the latest Ki Reservation version.
+            You can now use the latest BooKi version.
         </p>
         
         <a href="<?= site_url('about') ?>" class="btn btn-primary btn-large mb-3">

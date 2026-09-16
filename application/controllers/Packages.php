@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Packages controller.
+ * BooKi - Packages controller.
  *
  * Handles CRUD operations for multi-session customer packages.
  * Access: admin/secretary only.

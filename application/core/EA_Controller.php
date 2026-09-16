@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * Ki Reservation controller.
+ * BooKi controller.
  *
  * @property EA_Benchmark $benchmark
  * @property EA_Cache $cache
@@ -78,7 +78,7 @@ class EA_Controller extends CI_Controller
     {
         parent::__construct(); // Autoloads 'database' - $this->db now points at the 'default' connection group (see database.php).
 
-        $this->resolve_tenant(); // Ki Reservation (2026-08-26) - see the method's docblock.
+        $this->resolve_tenant(); // BooKi (2026-08-26) - see the method's docblock.
 
         $this->load->library('accounts');
 
@@ -94,7 +94,7 @@ class EA_Controller extends CI_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - a freshly created SaaS tenant has no company profile yet
+     * BooKi (2026-08-26) - a freshly created SaaS tenant has no company profile yet
      * (tenant_create() only seeds the generic EasyAppointments defaults). Redirects the tenant's own
      * admin to Onboarding until they submit it (tracked by the 'onboarding_completed' setting).
      * Standalone deployments (tenant_context() null - e.g. Salon Flora's own production) are never
@@ -130,7 +130,7 @@ class EA_Controller extends CI_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - multi-tenant SaaS support.
+     * BooKi (2026-08-26) - multi-tenant SaaS support.
      *
      * The SAME codebase serves single-tenant/standalone deployments (e.g. Salon Flora's own
      * production - the 'default' DB IS the tenant's own database, nothing to do here) and the
@@ -165,7 +165,7 @@ class EA_Controller extends CI_Controller
         $superadmin_domain = getenv('SUPERADMIN_DOMAIN') ?: 'reservationadmin.kibusiness.co';
         $marketplace_domain = getenv('MARKETPLACE_DOMAIN') ?: 'reservation.kibusiness.co';
 
-        // Ki Reservation (2026-08-26) - SaaS admin panel (reservationadmin.kibusiness.co): a completely
+        // BooKi (2026-08-26) - SaaS admin panel (reservationadmin.kibusiness.co): a completely
         // separate host from any tenant, never resolves to one - stays on the master DB for its whole
         // "Superadmin*" controller family (see SuperadminAuth.php's docblock). Any other controller
         // reached on this host 404s, same principle as Portal.php's bare-app-domain exception below.
@@ -177,7 +177,7 @@ class EA_Controller extends CI_Controller
             abort(404, 'Not Found');
         }
 
-        // Ki Reservation (2026-08-27) - Marketplace discovery portal (reservation.kibusiness.co): reads
+        // BooKi (2026-08-27) - Marketplace discovery portal (reservation.kibusiness.co): reads
         // from the master DB's `tenants` and `reviews` tables. Same host/controller exception pattern as
         // superadmin above - never tenant-resolves, stays on master DB.
         if ($host === $marketplace_domain) {
@@ -188,7 +188,7 @@ class EA_Controller extends CI_Controller
             abort(404, 'Not Found');
         }
 
-        // Ki Reservation (2026-08-28) - observability: health check endpoints work on any host
+        // BooKi (2026-08-28) - observability: health check endpoints work on any host
         // without tenant resolution, so monitoring can function even when tenant resolution itself
         // is broken (e.g., during DNS misconfiguration or a deployment in-flight).
         if (strtolower((string) $this->router->class) === 'health') {
@@ -219,7 +219,7 @@ class EA_Controller extends CI_Controller
             abort(404, 'Not Found');
         }
 
-        // Ki Reservation (2026-08-26) - license/trial expiry: checked on every request (no cron
+        // BooKi (2026-08-26) - license/trial expiry: checked on every request (no cron
         // needed) rather than a separate "expired" status value, so the superadmin panel's date
         // fields are the single source of truth - flipping `status` to suspended is still a distinct,
         // manual action (see Faz 5b's onboarding gate for the same "check inline, no background job"
@@ -256,11 +256,11 @@ class EA_Controller extends CI_Controller
             'subdomain' => $tenant['subdomain'],
             'pii_enc_key' => tenant_master_decrypt($tenant['pii_enc_key']),
             'pii_hash_key' => tenant_master_decrypt($tenant['pii_hash_key']),
-            // Ki Reservation (2026-08-26) - carried through so load_common_html_vars() can show an
+            // BooKi (2026-08-26) - carried through so load_common_html_vars() can show an
             // "expiring soon" banner well before the hard 402 cutoff above actually kicks in.
             'trial_ends_at' => $tenant['trial_ends_at'] ?? null,
             'license_expires_at' => $tenant['license_expires_at'] ?? null,
-            // Ki Reservation (2026-09-12) - Dalga 4 paket/plan sistemi (Free/Basic/Premium/Elite) -
+            // BooKi (2026-09-12) - Dalga 4 paket/plan sistemi (Free/Basic/Premium/Elite) -
             // see plan_helper.php::plan_allows(). Free-text on the master `tenants.plan` column
             // (unchanged schema) but now normalized to one of these 4 by the superadmin UI dropdown.
             'plan' => $tenant['plan'] ?? null,
@@ -291,7 +291,7 @@ class EA_Controller extends CI_Controller
         $query_language = request('language');
         $available_languages = config('available_languages');
 
-        // Ki Reservation (2026-09-10) - the tenant's own "Varsayılan Dil" (General Settings) used to
+        // BooKi (2026-09-10) - the tenant's own "Varsayılan Dil" (General Settings) used to
         // only pre-fill new user/customer records' OWN language field - it never actually changed
         // what language THIS request rendered in, which reads as "doesn't work" to whoever set it.
         // It's now also the fallback active language for anyone who hasn't personally chosen one
@@ -332,7 +332,7 @@ class EA_Controller extends CI_Controller
      */
     private function load_common_html_vars()
     {
-        // Ki Reservation (2026-08-26) - same reasoning as configure_timezone()'s existing guard: a
+        // BooKi (2026-08-26) - same reasoning as configure_timezone()'s existing guard: a
         // connected DB with no `settings` table happens for master-DB-only CLI commands
         // (console master_install/tenant_create, before a tenant DB is even selected/created) as well
         // as a not-yet-migrated fresh install.
@@ -346,7 +346,7 @@ class EA_Controller extends CI_Controller
             'csrf_token' => $this->security->get_csrf_hash(),
             // Salon Flora customization - whitelabeling: company_name/company_logo were already
             // editable in General Settings and consumed by the public booking page, but the backend
-            // header (backend_header.php) hardcoded "KI RESERVATION" + the platform's own logo
+            // header (backend_header.php) hardcoded "BooKi" + the platform's own logo
             // regardless of what a tenant configured. Loading them here, for every backend request,
             // makes the header consume the same setting the admin panel lets staff edit.
             'company_name' => $has_settings ? setting('company_name') : null,
@@ -356,7 +356,7 @@ class EA_Controller extends CI_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - "N gün kaldı" banner data for backend_header.php, shown only to
+     * BooKi (2026-08-26) - "N gün kaldı" banner data for backend_header.php, shown only to
      * the admin role (the only one who'd act on it) and only once the deadline is within reach - the
      * hard 402 cutoff in resolve_tenant() already covers "already expired", this is the advance
      * warning that comes before it.

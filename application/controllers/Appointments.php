@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -60,7 +60,7 @@ class Appointments extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-08-26) - "İlk Müsaitlik": given a service, find the first 3 (by default)
+     * BooKi (2026-08-26) - "İlk Müsaitlik": given a service, find the first 3 (by default)
      * upcoming date/hour slots across every provider assigned to it, each already matched to the
      * specific free provider + station (room) - see Availability::find_first_available_slots().
      */
@@ -326,7 +326,7 @@ class Appointments extends EA_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
 
-            // Ki Reservation (Dalga 3 / Faz 3.1) - Communication Hub: appointment_cancelled event.
+            // BooKi (Dalga 3 / Faz 3.1) - Communication Hub: appointment_cancelled event.
             // Best-effort and BEFORE the DB delete so templates still see the full appointment row.
             try {
                 $this->load->model('customers_model');
@@ -351,7 +351,7 @@ class Appointments extends EA_Controller
                     'cancellation_reason' => 'Randevu iptal edildi',
                 ]);
 
-                // Ki Reservation (Dalga 3 / Faz 3.2) - Automation Engine: same event.
+                // BooKi (Dalga 3 / Faz 3.2) - Automation Engine: same event.
                 $this->load->library('automation_engine');
                 $this->automation_engine->evaluate('appointment_cancelled', [
                     'appointment' => $appointment,
@@ -372,7 +372,7 @@ class Appointments extends EA_Controller
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_DELETE, $appointment);
 
-            // Ki Reservation (Dalga 1) - a cancelled appointment may free up a slot someone is
+            // BooKi (Dalga 1) - a cancelled appointment may free up a slot someone is
             // waiting for. Best-effort, never blocks the deletion itself.
             try {
                 $this->load->library('waitlist_service');

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Recurring Appointments (Dalga 1, 2026-08-28).
+ * BooKi - Recurring Appointments (Dalga 1, 2026-08-28).
  *
  * Creates a series of appointments (e.g. "every week for 8 weeks") by calling
  * Appointment_booking_service::create() once per occurrence - never a bulk

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Payment settings model (2026-08-27).
+ * BooKi - Payment settings model (2026-08-27).
  *
  * Handles the payment_settings table operations. Manages encryption of sensitive
  * API keys using sf_pii_encrypt/sf_pii_decrypt (same as customer PII).

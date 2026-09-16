@@ -1,9 +1,9 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - tenant self-service custom domain (2026-09-10).
+ * BooKi - tenant self-service custom domain (2026-09-10).
  *
- * Lets an admin point their own domain at their Ki Reservation account without
+ * Lets an admin point their own domain at their BooKi account without
  * filing a support request, mirroring the "add domain -> DNS instructions ->
  * verify -> status" flow of e.g. Zoho Billing's organization custom-domain
  * mapping. Three-stage pipeline, split by trust boundary:
@@ -30,7 +30,7 @@
 
 class Custom_domain extends EA_Controller
 {
-    // Ki Reservation (2026-09-10) - where a verified/active tenant domain should ultimately point.
+    // BooKi (2026-09-10) - where a verified/active tenant domain should ultimately point.
     // Mirrors scripts/add-custom-domain.sh's own DNS check (same server IP / canonical CNAME target).
     private const CANONICAL_CNAME_TARGET = 'reservationapp.kibusiness.co';
     private const CANONICAL_SERVER_IP = '168.231.109.167';
@@ -43,7 +43,7 @@ class Custom_domain extends EA_Controller
      */
     private function master_tenant_row(): ?array
     {
-        // Ki Reservation (2026-09-11 fix) - NOT is_multi_tenant_mode() here: by the time a controller
+        // BooKi (2026-09-11 fix) - NOT is_multi_tenant_mode() here: by the time a controller
         // method runs, resolve_tenant() has already swapped $this->db to the TENANT's own database
         // (which has no `tenants` table), so that check always reads as false and this feature looked
         // "multi-tenant only, but broken on every real tenant". tenant_context() is what actually means

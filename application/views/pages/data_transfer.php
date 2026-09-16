@@ -25,7 +25,7 @@
             <div class="card-body">
                 <h5 class="card-title">İçe Aktarma</h5>
                 <p class="text-muted small">
-                    Daha önce Ki Reservation'dan alınmış bir dışa aktarma dosyasını (.json) yükleyin. Önce bir
+                    Daha önce BooKi'dan alınmış bir dışa aktarma dosyasını (.json) yükleyin. Önce bir
                     önizleme göreceksiniz, hiçbir şey onaylamadan yazılmaz.
                 </p>
 

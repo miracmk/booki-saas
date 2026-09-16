@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * WhatsApp settings page (Dalga 3 / Faz 3.5 dual-mode panel).
  * ---------------------------------------------------------------------------- */

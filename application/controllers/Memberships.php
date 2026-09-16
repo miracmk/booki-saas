@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Memberships controller (Dalga 1, 2026-08-28).
+ * BooKi - Memberships controller (Dalga 1, 2026-08-28).
  *
  * Handles CRUD for membership plans (definitions) and customer memberships
  * (subscription instances), plus the explicit renew() action - see

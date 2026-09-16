@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Reports model (Faz 3.6, 2026-09-10).
+ * BooKi - Reports model (Faz 3.6, 2026-09-10).
  *
  * Extracted revenue calculation logic from Reports controller for reuse
  * across analytics, exports, and BI systems.

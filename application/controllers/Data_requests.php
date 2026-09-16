@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Data Requests admin controller (Faz 30, KVKK/GDPR, 2026-08-28).
+ * BooKi - Data Requests admin controller (Faz 30, KVKK/GDPR, 2026-08-28).
  *
  * Lets staff review and act on customer-initiated KVKK requests: export requests
  * are fully self-service (Customer_portal builds/emails them automatically), but

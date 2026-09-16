@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -122,7 +122,7 @@ App.Http.Appointments = (function () {
     }
 
     /**
-     * Ki Reservation (2026-08-26) - "İlk Müsaitlik": find the first upcoming date/hour slots for a
+     * BooKi (2026-08-26) - "İlk Müsaitlik": find the first upcoming date/hour slots for a
      * service, each already matched to a specific free provider + station.
      *
      * @param {Number|String} serviceId

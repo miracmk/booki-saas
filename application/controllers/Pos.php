@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - POS controller (Dalga 1, 2026-08-28).
+ * BooKi - POS controller (Dalga 1, 2026-08-28).
  *
  * Handles order creation and checkout via the existing payment gateway
  * abstraction. Access: admin/secretary/provider (register access).

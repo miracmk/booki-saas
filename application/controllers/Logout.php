@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -26,7 +26,7 @@ class Logout extends EA_Controller
     {
         method('get');
 
-        // Ki Reservation customization - capture before sess_destroy() clears session('user_id').
+        // BooKi customization - capture before sess_destroy() clears session('user_id').
         $logging_out_user_id = session('user_id');
 
         if ($logging_out_user_id) {

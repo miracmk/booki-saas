@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -302,7 +302,7 @@ class Telegram extends EA_Controller
 
                     $this->telegram_client->send_message(
                         $chat_id,
-                        '✅ Telegram hesabınız Ki Reservation ile bağlandı. Randevu bildirimlerini buradan da alacaksınız.',
+                        '✅ Telegram hesabınız BooKi ile bağlandı. Randevu bildirimlerini buradan da alacaksınız.',
                     );
                 } else {
                     $this->telegram_client->send_message(
@@ -335,7 +335,7 @@ class Telegram extends EA_Controller
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
 
-            // Ki Reservation (2026-08-26) - an inbound message is a real signal that Telegram is the
+            // BooKi (2026-08-26) - an inbound message is a real signal that Telegram is the
             // customer's most recent contact channel, so the CRM card no longer relies solely on staff
             // marking it manually (see Customers.php/customers.js). Only customers carry this field
             // meaningfully - a provider/admin/secretary messaging the bot is unrelated to CRM tracking.

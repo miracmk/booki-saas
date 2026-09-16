@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - audit log helper (ISO 27001 / HIPAA-style access
+ * BooKi - audit log helper (ISO 27001 / HIPAA-style access
  * accountability, 2026-08-24). One function, audit_log(), called from the
  * specific controller actions that matter for compliance review:
  * authentication (success/failure) and any create/update/delete/anonymize of

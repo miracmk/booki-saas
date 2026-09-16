@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Messaging settings controller (2026-08-27).
+ * BooKi - Messaging settings controller (2026-08-27).
  *
  * Admin-facing page for configuring SMS (Netgsm) and WhatsApp Business Cloud
  * API credentials. Handles both display (GET) and persistence (POST).

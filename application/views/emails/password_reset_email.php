@@ -15,7 +15,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>
-        <?= $subject ?> | Ki Reservation
+        <?= $subject ?> | BooKi
     </title>
     <style>
         /* -------------------------------------
@@ -432,7 +432,7 @@
                             <td class="content-block powered-by">
                                 Powered by
                                 <a href="https://kisoftware.com" style="text-decoration: none;">
-                                    Ki Reservation
+                                    BooKi
                                 </a>
                                 |
                                 <a href="<?= e($settings['company_link']) ?>" style="text-decoration: none;">

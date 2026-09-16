@@ -1,5 +1,5 @@
 /**
- * Waitlist page JavaScript (Ki Reservation, Dalga 1).
+ * Waitlist page JavaScript (BooKi, Dalga 1).
  *
  * Handles join/list/cancel operations for the customer waitlist.
  */

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Unified Background Jobs & Webhook Delivery Tracking (Faz 32+33, 2026-08-28).
+ * BooKi - Unified Background Jobs & Webhook Delivery Tracking (Faz 32+33, 2026-08-28).
  *
  * This table implements a unified job queue for all asynchronous work: email sends,
  * SMS/WhatsApp notifications, webhook deliveries, long-running exports, and more.

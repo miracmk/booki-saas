@@ -13,7 +13,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Error | Ki Reservation</title>
+    <title>Error | BooKi</title>
     <style>
         #error-container {
             background: #ffffff;
@@ -74,7 +74,7 @@
     <p>
         <small>
             Powered by
-            <a href="https://kisoftware.com">Ki Reservation</a>
+            <a href="https://kisoftware.com">BooKi</a>
         </small>
     </p>
 </div>

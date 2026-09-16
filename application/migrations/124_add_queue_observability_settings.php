@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Queue & Observability Settings (Faz 32+33, 2026-08-28).
+ * BooKi - Queue & Observability Settings (Faz 32+33, 2026-08-28).
  *
  * Seeds the initial configuration for the unified job queue:
  * - queue_enabled: whether jobs are processed (default: disabled during faz 33)

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation customization - "Loyalty Points Program" (2026-08-27):
+ * BooKi customization - "Loyalty Points Program" (2026-08-27):
  * Stores customer loyalty points earnings and redemptions.
  *
  * Points can be earned per appointment (configurable via Business_settings),

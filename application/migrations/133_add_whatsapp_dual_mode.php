@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - WhatsApp dual-mode (Dalga 3 / Faz 3.5, 2026-09-10).
+ * BooKi - WhatsApp dual-mode (Dalga 3 / Faz 3.5, 2026-09-10).
  *
  * Supports the two connection methods the roadmap promises per tenant:
  *

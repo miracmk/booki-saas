@@ -1,5 +1,5 @@
 /**
- * Jobs page JavaScript (Ki Reservation, Faz 32+33, 2026-08-28).
+ * Jobs page JavaScript (BooKi, Faz 32+33, 2026-08-28).
  *
  * Handles display and management of the job queue, including monitoring
  * queue status and manually retrying failed jobs.

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * Ki Reservation customization (2026-08-24) - read-only viewer for the audit_log table (see
+ * BooKi customization (2026-08-24) - read-only viewer for the audit_log table (see
  * salonflora_audit_helper.php). Admin-only (gated on PRIV_SYSTEM_SETTINGS, same as General Settings),
  * because this can reveal e.g. which staff member erased which customer and when.
  */

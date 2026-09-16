@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation (Dalga 3 / Faz 3.3) - Marketing Campaigns Model
+ * BooKi (Dalga 3 / Faz 3.3) - Marketing Campaigns Model
  *
  * Named broadcast campaigns. A campaign targets a segment; prepare_broadcast()
  * resolves the segment into campaign_recipients rows (pending); send_batch()

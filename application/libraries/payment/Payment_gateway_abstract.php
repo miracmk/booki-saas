@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - payment gateway abstract base class (2026-08-27).
+ * BooKi - payment gateway abstract base class (2026-08-27).
  *
  * Common functionality for all gateway implementations.
  * ---------------------------------------------------------------------------- */

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -65,7 +65,7 @@ class Migration_Create_totp_challenges_table extends EA_Migration
 
             $this->dbforge->create_table('totp_challenges');
 
-            // Ki Reservation - CI3's add_key() (system/database/DB_forge.php) only has 2 real
+            // BooKi - CI3's add_key() (system/database/DB_forge.php) only has 2 real
             // parameters ($key, $primary) - it silently ignores any 3rd/4th argument, so there is
             // no add_key(..., true) shortcut for a UNIQUE index in this codebase (confirmed by
             // actually inspecting a real generated schema: several pre-existing tables that pass

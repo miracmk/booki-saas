@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - multi-tenant SaaS support (2026-08-26).
+ * BooKi - multi-tenant SaaS support (2026-08-26).
  *
  * Protects each tenant's OWN secrets (their database password, their PII_ENC_KEY/PII_HASH_KEY) at
  * rest in the master `tenants` table, using a SEPARATE key (TENANT_MASTER_KEY, env var, only ever

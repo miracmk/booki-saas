@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - WhatsApp messages log table (2026-08-27).
+ * BooKi - WhatsApp messages log table (2026-08-27).
  *
  * Inbound/outbound WhatsApp message log for staff visibility and manual reply.
  * Mirrors the design of telegram_messages for consistency.

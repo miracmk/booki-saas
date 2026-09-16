@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Membership Plans Model
+ * BooKi - Membership Plans Model
  *
  * CRUD for membership_plans (the subscription definitions staff sell -
  * price, billing period, sessions granted per period). See

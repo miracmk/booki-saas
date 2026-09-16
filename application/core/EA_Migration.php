@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -13,7 +13,7 @@
 require_once BASEPATH . 'libraries/Migration.php';
 
 /**
- * Ki Reservation migration.
+ * BooKi migration.
  *
  * @property EA_Benchmark $benchmark
  * @property EA_Cache $cache

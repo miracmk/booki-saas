@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Invoices controller (Dalga 1, 2026-08-28).
+ * BooKi - Invoices controller (Dalga 1, 2026-08-28).
  *
  * Handles invoice creation (from staff-selected billable items), listing,
  * issuing, marking paid, voiding. Payment collection against an invoice is
@@ -255,7 +255,7 @@ class Invoices extends EA_Controller
     }
 
     /**
-     * Ki Reservation (2026-09-12) - "Muhasebe Dışa Aktar": a generic, one-row-per-invoice CSV that
+     * BooKi (2026-09-12) - "Muhasebe Dışa Aktar": a generic, one-row-per-invoice CSV that
      * Turkish accounting/ERP software (Logo, Mikro, Netsis, Zirve, İşBaşı, ETA, Paraşüt, KolayBi, ...)
      * can import by hand today. This is NOT a live push integration to any of those systems - most of
      * them (the classic on-premise ones) have no public cloud API a SaaS could call directly; Paraşüt
@@ -315,7 +315,7 @@ class Invoices extends EA_Controller
                     (new DateTime($invoice['created_at']))->format('d.m.Y'),
                     $invoice['invoice_number'],
                     $customer_name,
-                    // Ki Reservation (2026-09-12) - customers have no tax-ID/TC-kimlik field today; left
+                    // BooKi (2026-09-12) - customers have no tax-ID/TC-kimlik field today; left
                     // blank rather than guessed. Add one to Customers_model if real e-Fatura-grade export
                     // is needed later.
                     '',

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * Ki Reservation customization (2026-08-26) - read-only admin dashboard for the Google Calendar
+ * BooKi customization (2026-08-26) - read-only admin dashboard for the Google Calendar
  * push-notification sync (see Google_sync::register_watch()/get_incremental_events(),
  * Google::webhook(), google_calendar_watch_channels/google_calendar_sync_log tables). Admin-only
  * (gated on PRIV_SYSTEM_SETTINGS, same posture as Audit_log/General Settings).

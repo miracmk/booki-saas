@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -63,10 +63,39 @@ class Appointments_model extends EA_Model
         $this->validate($appointment);
 
         if (empty($appointment['id'])) {
-            return $this->insert($appointment);
+            $appointment_id = $this->insert($appointment);
+            $appointment['id'] = $appointment_id;
+
+            $this->enqueue_crm('appointment.created', $appointment);
+
+            return $appointment_id;
         } else {
-            return $this->update($appointment);
+            $appointment_id = $this->update($appointment);
+
+            $this->enqueue_crm('appointment.updated', $appointment);
+
+            return $appointment_id;
         }
+    }
+
+    /**
+     * BooKi (2026-09-16) - Zoho CRM integration: write a PII-free pointer to the tenant's
+     * crm_outbox so the `console crm_sync` worker can mirror this appointment into CRM. Deliberately
+     * fail-safe (Crm_sync::enqueue() never throws) and never called for unavailability blocks.
+     */
+    private function enqueue_crm(string $action, array $appointment): void
+    {
+        if (!empty($appointment['is_unavailability'])) {
+            return;
+        }
+
+        $this->load->library('crm_sync');
+
+        $this->crm_sync->enqueue(
+            $action,
+            !empty($appointment['id_users_customer']) ? (int) $appointment['id_users_customer'] : null,
+            (int) ($appointment['id'] ?? 0),
+        );
     }
 
     /**
@@ -425,6 +454,10 @@ class Appointments_model extends EA_Model
     public function delete(int $appointment_id): void
     {
         $this->db->delete('appointments', ['id' => $appointment_id]);
+
+        $this->load->library('crm_sync');
+
+        $this->crm_sync->enqueue('appointment.cancelled', null, $appointment_id);
     }
 
     /**

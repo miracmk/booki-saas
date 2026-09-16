@@ -5,7 +5,7 @@
 | App Configuration
 |--------------------------------------------------------------------------
 |
-| Declare some of the global config values of Ki Reservation.
+| Declare some of the global config values of BooKi.
 |
 */
 

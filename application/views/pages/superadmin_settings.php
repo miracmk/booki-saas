@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ki Reservation - Admin</title>
+    <title>BooKi - Admin</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f5f6f8; margin: 0; color: #222; }
@@ -23,7 +23,7 @@
 </head>
 <body>
     <header>
-        <h1>Ki Reservation — SaaS Yönetimi</h1>
+        <h1>BooKi — SaaS Yönetimi</h1>
         <div>
             <a href="<?= site_url('superadmin_tenants') ?>">Kiracılar</a>
             <a href="<?= site_url('superadmin_auth/logout') ?>">Çıkış</a>
@@ -57,7 +57,7 @@
             <h2 style="font-size:1.05rem;margin-top:0;">Platform SMTP / IMAP</h2>
             <p class="hint">
                 Bir kiracı kendi SMTP'sini bağlamadığı sürece randevu/hesap e-postaları buradaki
-                platform hesabından, altına küçük bir "Ki Reservation ile gönderildi" notu eklenerek
+                platform hesabından, altına küçük bir "BooKi ile gönderildi" notu eklenerek
                 gönderilir. IMAP alanları şu an sadece bilgi amaçlıdır, gelen kutusu okuma özelliği
                 henüz uygulanmadı.
             </p>
@@ -76,7 +76,7 @@
                 </label>
                 <input type="password" id="platform_smtp_pass" placeholder="<?= vars('platform_smtp_pass_set') ? '••••••••' : '' ?>">
                 <label>Gönderen Adı</label>
-                <input type="text" id="platform_smtp_from_name" placeholder="Ki Reservation" value="<?= e(vars('platform_smtp_from_name')) ?>">
+                <input type="text" id="platform_smtp_from_name" placeholder="BooKi" value="<?= e(vars('platform_smtp_from_name')) ?>">
                 <label>Gönderen Adresi</label>
                 <input type="text" id="platform_smtp_from_address" placeholder="noreply@kibusiness.co" value="<?= e(vars('platform_smtp_from_address')) ?>">
 

@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - "İlk Müsaitlik" widget (2026-09-10, redesigned 2026-09-12).
+ * BooKi - "İlk Müsaitlik" widget (2026-09-10, redesigned 2026-09-12).
  *
  * Renders a horizontal strip of compact pills, one per provider, each showing
  * room/station, next available time, how long that window lasts, and the

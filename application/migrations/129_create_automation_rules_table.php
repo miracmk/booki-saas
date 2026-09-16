@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Automation Engine (Dalga 3 / Faz 3.2, 2026-09-08).
+ * BooKi - Automation Engine (Dalga 3 / Faz 3.2, 2026-09-08).
  *
  * Per-tenant WHEN/IF/THEN rule engine. Each row is one rule:
  *   event       — the hub event this rule listens to

@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -117,7 +117,7 @@ class Google_integrations_client
 
         $this->client = new Google_Client();
         $this->client->setHttpClient($http);
-        $this->client->setApplicationName('Ki Reservation');
+        $this->client->setApplicationName('BooKi');
         $this->client->setClientId($this->get_client_id());
         $this->client->setClientSecret($this->get_client_secret());
         $this->client->setRedirectUri(site_url('google_integrations/oauth_callback'));

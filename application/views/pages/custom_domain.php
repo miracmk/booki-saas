@@ -18,7 +18,7 @@ $status = $state['custom_domain_status'] ?? 'none';
      data-a-target="<?= e(vars('canonical_ip') ?? '') ?>">
 
     <h4 class="mb-1 fw-light">Özel Alan Adı</h4>
-    <p class="text-muted mb-4">Ki Reservation hesabınıza kendi alan adınızdan (örn. rezervasyon.firmaniz.com) erişilmesini sağlayın.</p>
+    <p class="text-muted mb-4">BooKi hesabınıza kendi alan adınızdan (örn. rezervasyon.firmaniz.com) erişilmesini sağlayın.</p>
 
     <?php if (!$multi_tenant): ?>
         <div class="alert alert-info">Bu özellik yalnızca çoklu kiracılı bulut dağıtımında kullanılabilir.</div>

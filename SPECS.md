@@ -1,8 +1,8 @@
-# Ki Reservation — Feature Specification
+# BooKi — Feature Specification
 
 Version 1.0.0 · Last updated 2026-08-24
 
-This document is the single source of truth for what Ki Reservation does
+This document is the single source of truth for what BooKi does
 today, how it's built, and where it's headed. It's meant to be read by
 Ki Software engineers picking up the project, and by prospective
 licensees evaluating it.
@@ -11,7 +11,7 @@ licensees evaluating it.
 
 ## 1. What it is
 
-Ki Reservation is a self-hosted appointment/booking platform for service
+BooKi is a self-hosted appointment/booking platform for service
 businesses that need more than a generic calendar: physical resource
 (room/station) management, staff commission tracking, session/payment
 tracking, and compliance-grade handling of customer data. It began as a
@@ -147,7 +147,7 @@ Software License (see [LICENSE](LICENSE)).
 
 ## Licensing
 
-Ki Reservation is **SaaS-only** — there is no self-hosted distribution
+BooKi is **SaaS-only** — there is no self-hosted distribution
 and no offline license-key mechanism. Entitlement (plan, trial, license
 expiry) is tracked per tenant in the master database (`tenants.plan` /
 `trial_ends_at` / `license_expires_at`) and managed from the superadmin
@@ -207,7 +207,7 @@ ISO/IEC 27001 and SOC 2 gap analysis.
   appropriate for a single-server trust boundary but not yet for a
   multi-tenant SaaS posture (see KEY_MANAGEMENT.md §"Upgrading to a real
   KMS").
-- No automated test suite specific to the Ki Reservation customizations
+- No automated test suite specific to the BooKi customizations
   (the bundled `phpunit` dev dependency is inherited from upstream, not
   wired to the customized code paths).
 - Single-maintainer change process — no formal code review gate on the
@@ -278,7 +278,7 @@ round of work rather than rediscovering gaps from scratch each time.
       KEY_MANAGEMENT.md are the technical inputs; the rest (risk
       register, incident response plan, vendor management, staff
       training) is organizational work outside this codebase.
-- [ ] A proper multi-tenant architecture if Ki Reservation is offered as
+- [ ] A proper multi-tenant architecture if BooKi is offered as
       a hosted product to more than one customer (today's deployment
       model is one instance per customer, which is simpler but doesn't
       scale operationally past a handful of clients).

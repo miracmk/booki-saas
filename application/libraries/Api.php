@@ -3,7 +3,7 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -152,7 +152,7 @@ class Api
     #[NoReturn]
     public function request_authentication(): void
     {
-        header('WWW-Authenticate: Basic realm="Ki Reservation"');
+        header('WWW-Authenticate: Basic realm="BooKi"');
         header('HTTP/1.0 401 Unauthorized');
         exit('You are not authorized to use the API.');
     }

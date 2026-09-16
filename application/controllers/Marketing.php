@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Marketing (Dalga 3 / Faz 3.3).
+ * BooKi - Marketing (Dalga 3 / Faz 3.3).
  *
  * Admin page + JSON API for customer segments and broadcast campaigns.
  * Segments are named customer lists (vip / inactive / birthday / all / custom);

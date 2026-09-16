@@ -53,7 +53,7 @@ require_once __DIR__ . '/../helpers/routes_helper.php';
 
 $route['default_controller'] = 'booking';
 
-// Ki Reservation (2026-08-26) - multi-tenant SaaS: the bare app domain (reservationapp.kibusiness.co,
+// BooKi (2026-08-26) - multi-tenant SaaS: the bare app domain (reservationapp.kibusiness.co,
 // no tenant subdomain) has no booking page of its own - it's the "which company are you with?"
 // portal instead. See Portal.php / EA_Controller::resolve_tenant()'s bare-host exception.
 $portal_host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
@@ -62,7 +62,7 @@ if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'res
     $route['default_controller'] = 'portal';
 }
 
-// Ki Reservation (2026-08-26) - SaaS admin panel: reservationadmin.kibusiness.co has no booking page
+// BooKi (2026-08-26) - SaaS admin panel: reservationadmin.kibusiness.co has no booking page
 // either - it's the super-admin login/dashboard. See EA_Controller::resolve_tenant()'s superadmin
 // host exception (stays on the master DB for the whole "Superadmin*" controller family).
 if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'reservationadmin.kibusiness.co')) {
@@ -217,6 +217,34 @@ $route['api/v1/availabilities']['get'] = 'api/v1/availabilities_api_v1/get';
 
 /*
 | -------------------------------------------------------------------------
+| AGENT API ROUTING (server-to-server customer-representative agents)
+| -------------------------------------------------------------------------
+| Bearer-token secured JSON endpoints (per-tenant `agent_api_key` setting) used
+| by the MCP server for ElevenLabs / conversational voice-text agents. See
+| application/controllers/Agent_api.php and docs/AGENT_MCP.md.
+|
+*/
+
+$route['agent/v1/business']['get'] = 'agent_api/business';
+
+$route['agent/v1/services']['get'] = 'agent_api/services';
+
+$route['agent/v1/providers']['get'] = 'agent_api/providers';
+
+$route['agent/v1/availability']['get'] = 'agent_api/availability';
+
+$route['agent/v1/customers/lookup']['post'] = 'agent_api/customer_lookup';
+
+$route['agent/v1/customers/(:num)/appointments']['get'] = 'agent_api/customer_appointments/$1';
+
+$route['agent/v1/appointments']['post'] = 'agent_api/create_appointment';
+
+$route['agent/v1/appointments/(:num)/cancel']['post'] = 'agent_api/cancel_appointment/$1';
+
+$route['agent/v1/appointments/(:num)/reschedule']['post'] = 'agent_api/reschedule_appointment/$1';
+
+/*
+| -------------------------------------------------------------------------
 | CUSTOM ROUTING
 | -------------------------------------------------------------------------
 | You can add custom routes to the following section to define URL patterns
@@ -224,7 +252,7 @@ $route['api/v1/availabilities']['get'] = 'api/v1/availabilities_api_v1/get';
 |
 */
 
-// Ki Reservation (2026-08-28) - observability: health check endpoints
+// BooKi (2026-08-28) - observability: health check endpoints
 $route['health'] = 'health/index';
 $route['health/deep'] = 'health/deep';
 

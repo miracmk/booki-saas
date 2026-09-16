@@ -1,13 +1,13 @@
-# Ki Reservation
+# BooKi
 
-> **Ki Reservation** — Çok-kiracılı (multi-tenant) randevu/salon yönetim SaaS platformu.
+> **BooKi** — Çok-kiracılı (multi-tenant) randevu/salon yönetim SaaS platformu.
 > Güzellik/masaj salonlarına satılır. Self-hosted, Docker tabanlı.
 
 ## 📍 Kimlik
 
 | Alan | Değer |
 |------|-------|
-| **Ürün adı** | Ki Reservation |
+| **Ürün adı** | BooKi |
 | **Sahibi** | Miraç Murat KILINÇ |
 | **GitHub** | `ki-reservation-saas` (private, main) |
 | **Lokal (kaynak)** | `/opt/ki-ecosystem/ki-reservation-src/` |
