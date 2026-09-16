@@ -92,6 +92,13 @@ services:
       context: ./bridge
       dockerfile: Dockerfile
     container_name: ki-wa-bridge
+    # Host'ta 3000 dolu (Ki-Aetheris/Hermes agent'in kendi WhatsApp köprüsü
+    # 127.0.0.1:3000'de dinliyor) - köprüyü yalnızca host-lokal 3039'da yayınlıyoruz.
+    # Uygulama docker ağı üzerinden hâlâ http://wa-bridge:3000 ile konuşur; bu
+    # yayın yalnızca host tarafındaki tanı/hata ayıklama erişimi içindir ve
+    # loopback'e bağlıdır (secret her route'ta zorunlu, bkz. docs/whatsapp-bridge-contract.md).
+    ports:
+      - "127.0.0.1:3039:3000"
     restart: unless-stopped
     environment:
       PORT: "3000"
