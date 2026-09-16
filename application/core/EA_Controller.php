@@ -181,7 +181,10 @@ class EA_Controller extends CI_Controller
         // from the master DB's `tenants` and `reviews` tables. Same host/controller exception pattern as
         // superadmin above - never tenant-resolves, stays on master DB.
         if ($host === $marketplace_domain) {
-            if (strtolower((string) $this->router->class) === 'marketplace') {
+            if (
+                strtolower((string) $this->router->class) === 'marketplace'
+                || strtolower((string) $this->router->class) === 'landing'
+            ) {
                 return;
             }
 

@@ -69,6 +69,16 @@ if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'res
     $route['default_controller'] = 'superadmin_auth';
 }
 
+// BooKi (2026-09-16) - public marketing site on the marketplace host (booki.kibusiness.co).
+// The root of this host serves the Landing page; the discovery portal stays reachable at
+// /marketplace. See EA_Controller::resolve_tenant()'s marketplace host exception.
+$marketplace_domain = strtolower((string) (getenv('MARKETPLACE_DOMAIN') ?: 'booki.kibusiness.co'));
+
+if ($portal_host !== '' && $portal_host === $marketplace_domain) {
+    $route['default_controller'] = 'landing';
+    $route['marketplace'] = 'marketplace/index';
+}
+
 $route['404_override'] = '';
 
 $route['translate_uri_dashes'] = false;
