@@ -492,7 +492,9 @@ class Ai_assistant extends EA_Controller
             }
 
             return (bool) $setting['value'];
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            log_message('error', 'ai_assistant_enabled setting read failed: ' . $e->getMessage());
+
             return false;
         }
     }

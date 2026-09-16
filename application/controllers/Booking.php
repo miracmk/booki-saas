@@ -666,8 +666,25 @@ class Booking extends EA_Controller
                 }
             } catch (Throwable $e) {
                 log_message('error', 'Booking::register - payment intent creation failed: ' . $e->getMessage());
-                // Don't fail the entire booking - just log the payment error
-                // Payment can be processed separately or manually
+
+                // Ki Reservation bugfix - when a deposit is required, an unpaid booking must not silently succeed
+                // (the customer would believe they are booked and their deposit was collected). Delete the
+                // just-created appointment so the slot is freed, then fail loudly.
+                if (!empty($appointment_id)) {
+                    try {
+                        $this->appointments_model->delete((int) $appointment_id);
+                    } catch (Throwable $delete_error) {
+                        log_message(
+                            'error',
+                            'Booking::register - failed to delete appointment ' . $appointment_id .
+                                ' after payment error: ' . $delete_error->getMessage(),
+                        );
+                    }
+                }
+
+                throw new RuntimeException(
+                    'Ödeme başlatılamadı. Rezervasyonunuz gerçekleştirilmedi. Lütfen tekrar deneyin.',
+                );
             }
 
             $company_color = setting('company_color');

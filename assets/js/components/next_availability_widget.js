@@ -78,21 +78,42 @@ App.Components.NextAvailabilityWidget = (function () {
         return $pill;
     }
 
-    function render($container, rows) {
-        $container.empty();
+    function renderGroup($container, label, rows) {
+        const $group = $('<div/>', { class: 'kcc-availability-group' });
+        $group.append($('<div/>', { class: 'kcc-availability-group-label', text: label }));
+
+        const $row = $('<div/>', { class: 'd-flex flex-wrap gap-2' });
 
         if (!rows || !rows.length) {
-            $container.append($('<span/>', { class: 'text-muted small', text: 'Müsaitlik bilgisi yok.' }));
-            return;
+            $row.append($('<span/>', { class: 'text-muted small', text: 'Müsaitlik bilgisi yok.' }));
+        } else {
+            rows.forEach((row) => $row.append(renderRow(row)));
         }
 
-        rows.forEach((row) => $container.append(renderRow(row)));
+        $group.append($row);
+        $container.append($group);
+    }
+
+    /**
+     * 2026-09-12 - user feedback: the strip needs to be grouped ("gruplandırabilmeli"), separately
+     * showing therapist-based AND room-based availability (rooms weren't checked at all before) - two
+     * always-visible sections per mount rather than one flat provider-only list.
+     */
+    function render($container, providerRows, roomRows) {
+        $container.empty();
+        renderGroup($container, 'Terapistler', providerRows);
+        renderGroup($container, 'Odalar', roomRows);
     }
 
     function pollMount(mount) {
-        App.Http.Calendar.getNextAvailability(mount.getProviderId())
-            .done((response) => {
-                render(mount.$container, (response && response.rows) || []);
+        $.when(
+            App.Http.Calendar.getNextAvailability(mount.getProviderId()),
+            App.Http.Calendar.getRoomAvailability(),
+        )
+            .done((providerResponse, roomResponse) => {
+                const providerRows = (providerResponse[0] && providerResponse[0].rows) || [];
+                const roomRows = (roomResponse[0] && roomResponse[0].rows) || [];
+                render(mount.$container, providerRows, roomRows);
             })
             .fail(() => {
                 mount.$container.empty().append(
@@ -115,7 +136,7 @@ App.Components.NextAvailabilityWidget = (function () {
         if ($('#calendar-page').length && $('#calendar-filter').length) {
             const $calendarStrip = $('<div/>', {
                 id: 'next-availability-widget',
-                class: 'd-flex flex-wrap gap-2 mb-2 mb-lg-0',
+                class: 'mb-2 mb-lg-0',
             });
             $('#calendar-filter').prepend($calendarStrip);
             mounts.push({ $container: $calendarStrip, getProviderId: getCalendarFilterProviderId });

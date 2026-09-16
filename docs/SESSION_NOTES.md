@@ -2,7 +2,7 @@
 
 Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
-Son güncelleme: 2026-09-12
+Son güncelleme: 2026-09-16
 
 ## 0.5 2026-09-11/12 OTURUMU — WhatsApp CSRF bug, Tipografi, AI Asistan, UI Modernizasyon Dalga 4
 
@@ -149,6 +149,125 @@ ASSET_VERSION sırayla `20260912-1` → `20260912-4` bump edildi.
   entegrasyonu (API credential gerektirir) öncelikli olsun?**
 - **Commit durumu:** Bu turda kullanıcı AÇIKÇA commit+push istedi - bu notun hemen altında commit
   atıldı (bkz. git log). Canonical ve deploy `src/` senkron (`diff` ile her dosya tek tek doğrulandı).
+
+## 0.8 2026-09-12 (devam 3) — İlk Müsaitlik "3dk sonra müsait" regresyonu + Oda gruplama + Meta/GA4
+gerçek dönüşüm + WhatsApp bridge stale-session + Randevu modal tek sütun + Salon Flora canlı veri re-sync
+
+- **Regresyon (aynı gün içinde ikinci kez): "Nur'un 3dk sonra seansı var ama müsait şimdi diyor".**
+  Kök neden bir önceki düzeltmemdi: `consider_book_advance_timeout()` HEM "geçmiş saatleri at" HEM
+  "book_advance_timeout tamponunu at" işini aynı anda yapıyordu; `$ignore_advance_timeout=true` ikisini
+  birden kapatınca, bugün daha erken geçmiş boş bir aralık (örn. sabah 09:00-09:40) "ilk slot" olarak
+  seçilip geçmiş bir saat "şimdi müsait" gibi gösterildi. Düzeltme: iki filtre ayrıldı - geçmiş saat
+  filtresi HER ZAMAN çalışır (dakikaya yuvarlanmış "şimdi"ye göre, `<` ile), sadece buffer kısmı
+  `$ignore_advance_timeout` ile atlanabilir. `console debug_availability` ile canlı doğrulandı (geçici,
+  sonra kaldırıldı).
+- **Oda gruplama eklendi** (kullanıcı: "tümüne tıklayınca gruplandırabilmeli, odaların müsaitliğini de
+  kontrol etmesi lazım"): yeni `Calendar::get_room_availability()` - istasyonun kendi çalışma planı yok,
+  o yüzden provider tarafındaki gibi saat gridi taramak yerine doğrudan "şu an bu odayı işgal eden randevu
+  var mı, yoksa ne zaman biter" sorgusu. Strip artık "Terapistler" + "Odalar" iki ayrı etiketli bölüm
+  gösteriyor (tek düz liste yerine).
+- **Meta Pixel + GA4 gerçek dönüşüm izleme kuruldu:** salonflora.tr'nin kendi HTML'i WebFetch/curl ile
+  incelenip gerçek ID'ler bulundu (GA4 `G-QR8ZLZR0YG`, Google Ads `AW-18387388133`, Meta Pixel
+  `28609365721988471` + ikincil `1592092416045154`, ayrıca kendi `/capi/` server-side CAPI gateway'i var -
+  o gateway'in access token'ı salonflora.tr'nin KENDİ backend'inde, Ki Reservation'a taşınamaz/gerekmiyor).
+  Bulundu: `google_analytics_script.php` bileşeni GA4 için VARDI ama Meta Pixel hiç yoktu; ayrıca
+  `booking_confirmation.php` script'i zaten vardı ama SADECE sayfa görüntüleme yapıyordu, gerçek bir
+  "randevu tamamlandı" olayı hiç ateşlenmiyordu. Düzeltme: component'e Meta Pixel eklendi,
+  `booking_confirmation.php`'de gerçek dönüşüm ateşleniyor (GA4 custom event `randevu_tamamlandi` + Meta
+  standart event `Schedule`, ikisi de value/currency ile). **Google Ads `AW-` dönüşümü henüz YOK** - bunun
+  için tenant'ın kendi Google Ads hesabında ayrı bir dönüşüm eylemi/etiketi oluşturulması lazım, elimde o
+  etiket yok. salonflora tenant ayarlarına `google_analytics_code`/`meta_pixel_id` DB'ye yazıldı.
+- **WhatsApp bridge "Stream Errored" - kök neden bulundu ve temizlendi:** `docker exec` ile bridge'e
+  doğrudan sorulunca `{"status":"error","error":"Stream Errored (restart required)"}` görüldü - eski,
+  yarım kalmış bir `creds.json` (muhtemelen daha önceki bir test/deneme oturumundan) resume edilmeye
+  çalışılıyordu. Bridge'in kendi `/v1/session/salonflora/logout` uç noktası çağrılıp session dizini
+  temizlendi (`rmSync` ile), DB'de `whatsapp_unofficial_status` `disconnected`'a döndürüldü. Ayrıca
+  kullanıcı isteğiyle panelden "Köprü ayarları" (URL/secret manuel alanları) kaldırıldı - artık sadece QR
+  akışı görünüyor, backend hâlâ `save_bridge` endpoint'ini destekliyor (kullanılmıyor, zararsız).
+- **Randevu modalı tek sütun yapıldı + saat dilimi alanları gizlendi** (kullanıcı isteği) -
+  `appointments_modal.php`'de `col-12 col-sm-6` → `col-12` (4 yerde), iki saat dilimi bloğu `d-none`
+  (DOM'dan silinmedi - JS okumaları bozulmasın diye; `#timezone` select'inden `required` class'ı da
+  kaldırıldı, görünmeyen zorunlu alan formu kilitlemesin diye).
+- **Salon Flora canlı veri re-sync (BÜYÜK, dikkatli yapıldı):** `rezervasyon.salonflora.tr`'nin HÂLÂ
+  CANLI ve kullanılan eski EasyAppointments sistemi olduğu doğrulandı (bugün 16:45'e randevu girilmiş) -
+  aynı sunucuda (`salonflora-ea-db` container) çalıştığı için doğrudan erişim var, yeni kimlik bilgisi
+  gerekmedi. `Console::migrate_salonflora_live_data()` (ÖNCEKİ bir oturumda zaten yazılmış, dry/commit
+  modlu, PII-doğru bir script) tenant'ın ZATEN 516 müşteri/174 randevu ile bir kez migrate edilmiş
+  olduğunu gösterdi (SESSION_NOTES §Pazarlama doğrulamasında zaten kayıtlıymış) - ama script INSERT-ONLY
+  yazılmıştı, ikinci çalıştırma her şeyi ikinci kez kopyalardı. **Idempotency eklendi:** kategori/hizmet/
+  istasyon/sağlayıcı isim eşleşmesiyle, müşteri telefon-hash/email-hash/isim eşleşmesiyle (yeni tenant'ın
+  KENDİ pii_hash_key'iyle `sf_pii_hash()` yeniden hesaplanarak - eski sistemin hash'i doğrudan
+  karşılaştırılamaz, farklı anahtar), randevu (provider+start_datetime+is_unavailability) eşleşmesiyle -
+  hepsi "zaten var mı" kontrolü yapıp öyle insert ediyor. Kullanıcı özel talimatı: "Aybeniz H" ve
+  "Aybeniz Hanım" (eski sistemde iki ayrı kayıt) = "Aybeniz Erdogan" (yeni sistemde) aynı kişi - script
+  artık sadece AD ile eşleştirip (soyad değil) mevcut "Aybeniz Erdogan" kaydını "Aybeniz E." olarak
+  yeniden adlandırıyor (bir kereliğine, idempotent). **Commit sonucu (before→after satır sayıları ile
+  doğrulandı):** kategori 2→3, hizmet 5→41 (+36 eksik hizmet oluşturuldu), istasyon 3→3 (değişmedi),
+  sağlayıcı 5→5 (DUPLICATE YOK, hepsi isimle eşleşti), müşteri 516→554 (+38 yeni), randevu 174→210 (+36
+  yeni, 8'i eşleme eksikliğiyle atlandı - muhtemelen atlanan "Aybeniz Hanım" (id 1799) sağlayıcısına
+  doğrudan bağlı eski randevular). Kullanıcı bunu "şimdilik deneme/yedek" olarak tanımladı (kesin geçiş
+  DEĞİL) - eski sistem hâlâ canlı kalıyor. Migration sonrası `salonflora_salonflora-net` docker network
+  bağlantısı kaldırıldı (script'in docblock'u zaten "sadece bu one-off script için, sürekli olmasın"
+  diyordu).
+- **Kullanıcıdan gelen, HENÜZ BAŞLANMAYAN yeni istekler (sıraya alındı):** (1) yeni sistemdeki 554
+  müşteride telefon-bazlı ikinci bir deduplicate geçişi (bu re-sync'in KENDİSİ bunu kısmen yaptı ama
+  kullanıcı muhtemelen daha kapsamlı/manuel bir temizlik istiyor), (2) Google Contacts entegrasyonuyla
+  müşteri listesinin sürekli güncel tutulması, (3) müşteri kaydına "kaynak" alanları (son görüşme/son
+  ziyaret/son konuşma, dönüşüm oranı gibi CRM metrikleri). Hiçbiri için henüz kod yazılmadı - kapsamları
+  netleşmeden başlanmayacak.
+- **Commit durumu:** Bu turun değişiklikleri commit'lenmedi (yalnızca kullanıcı açıkça istediğinde
+  commit/push yapılıyor - bkz. üstteki kural). Canonical ve deploy `src/` senkron.
+
+## 0.9 2026-09-12 (devam 4) — Ek dedup sonucu + reservation@kibusiness.co + Google Calendar gizlilik + Paket/Plan sistemi
+
+- **Ek dedup:** telefon bazlı zaten 0 duplicate (migration sırasında hallolmuş). 97 müşteride telefon yok,
+  isim bazlı belirsiz gruplar var (3x "Barış", 2x "Murat" vb.) - GÜVENLE otomatik birleştirilemez (aynı
+  isimli farklı kişiler olabilir), kullanıcının manuel gözden geçirmesi bekleniyor, kod yazılmadı.
+- **reservation@kibusiness.co oluşturuldu** (`/opt/stalwart/yeni-mail.sh` ile, kibusiness.co domain) -
+  şifre `/opt/credentials/kibusiness-mail.env`. Salonflora tenant'ının `messaging_settings` SMTP alanlarına
+  (host mail.kibusiness.co:587 STARTTLS) uygulamanın kendi modeli üzerinden (şifreli) yazıldı - geçici bir
+  `Console::set_salonflora_smtp()` komutuyla, sonra koddan kaldırıldı. Memory'ye de işlendi
+  (`infra_credentials.md`).
+- **Google Calendar gizlilik anahtarı eklendi** (kullanıcı: müşteri bilgisi asla sızmasın, açarsa hem
+  etkinlikte hem davet e-postasında görünsün): yeni tenant ayarı `google_calendar_share_customer_data`
+  (varsayılan KAPALI) - `Google_sync::customer_sharing_enabled()` ile `add_appointment()`/
+  `update_appointment()`'daki müşteri-attendee eklenmesini kapıyor (kapalıyken müşteri adı/e-postası
+  event'e hiç eklenmiyor, Google davet e-postası da gitmiyor). Sağlayıcı-başına-otomatik-takvim özelliği
+  MEĞERSE ZATEN VARDI (2026-08-25'te eklenmiş, `Google.php::oauth_callback()` - yeni bir şey yazılmadı).
+  Ayar `Google_calendar_settings` sayfasına eklendi (mevcut generic `data-field` deseni sayesinde
+  controller/JS'e dokunmadan sadece view+index() array'ine ekleme yeterli oldu).
+- **Google Contacts iki yönlü senkron - SADECE PLANLANDI, KOD YAZILMADI.** Kullanıcıya önemli bir teknik
+  gerçek aktarıldı: Google'ın People (Contacts) API'si Calendar gibi push/webhook DESTEKLEMİYOR, sadece
+  `syncToken` ile periyodik çekim (polling) mümkün - "n8n ucu/webhook ucu" isteği bu yüzden gerçek bir
+  webhook değil, n8n'in kendi cron'uyla bizim bir endpoint'i tetiklemesi şeklinde tasarlanacak. Sıradaki
+  oturumda: `Google_contacts_sync` kütüphanesi (People API), bir Console/cron komutu (incremental sync),
+  Ki Reservation→Contacts push hook'u (Customers_model::save() sonrası).
+- **Paket/Plan sistemi (Free/Basic/Premium/Elite) kuruldu (kullanıcı: "ayarlarsın" diyerek sınırları bana
+  bıraktı - bu BİR ÜRÜN KARARI, ilk taslak, ayarlanabilir):** `plan_helper.php` (yeni, autoload'a eklendi)
+  - `plan_feature_matrix()` her tier'ın YENİ eklediği özellikleri tanımlıyor (kümülatif), `plan_allows(
+  $feature)` tenant_context()['plan']'a bakıyor (multi-tenant değilse/self-hosted'sa hep true - paket
+  kavramı sadece SaaS için), `require_plan_feature($feature)` sayfa yüklemede `abort(402,...)` ile kapatıyor.
+  Tier feature key'leri çoğunlukla mevcut PRIV_* sabitleri (yeniden kullanım) + birkaç ekstra key
+  (`whatsapp_unofficial`, `google_calendar`, `accounting_export`, `google_contacts_sync`).
+  **Free:** appointments/customers/services/blocked_periods/stations/user_settings/system_settings.
+  **+Basic:** reports/waitlist/webhooks/products. **+Premium:** marketing/invoices/pos/reviews/
+  memberships/packages/branches/whatsapp_unofficial/google_calendar/accounting_export. **+Elite:**
+  ai_agent/google_contacts_sync (henüz kod yok ama key hazır).
+  **Gerçekten kapıya konan controller'lar (constructor'da `require_plan_feature`):** Marketing, Invoices,
+  Pos, Reviews, Memberships, Packages, Branches, Ai_agent. **JSON-döndüren POST action'larda** (try/catch
+  içinde, `abort()` yerine `throw new RuntimeException` deseniyle - abort() JSON akışını bozar):
+  `Whatsapp::save_mode()` (mode=unofficial denendiğinde), `save_bridge()`, `qr_start()`. `Google::oauth()`
+  (Calendar bağlama girişimi) `require_plan_feature('google_calendar')` ile kapılı (buradaki gibi sayfa-
+  seviyesi 403 akışında `abort()` kullanmak doğru, JSON dönmüyor).
+  **tenant_context()'e `plan` eklendi** (`EA_Controller::resolve_tenant()`), superadmin'deki iki plan
+  text-input'u (`#c-plan`, `#p-plan`) 4 seçenekli `<select>`'e çevrildi (schema değişmedi, hâlâ
+  `tenants.plan varchar(32)` free-text - sadece UI kısıtlandı). **salonflora tenant'ı "Elite"e ayarlandı**
+  (mevcut "Premium LifeTime" değerini eşleşmeyen bir plan bırakırsa bu turda kurulan WhatsApp/AI Asistan/
+  Marketing/Invoices gibi özellikler birden kapanırdı - önce bunu yaptım). **Doğrulama:** salonflora
+  Elite planla tüm gated controller'lar (marketing/invoices/pos/reviews/memberships/packages/branches/
+  ai_agent/whatsapp) 307/403 döndü (500 yok, plan engeli yok) - ama gerçek 402 bloklamasını Free/Basic
+  planlı BAŞKA bir tenant ile test etmedim (şu an tek tenant var, salonflora).
+- **Commit durumu:** Bu turun değişiklikleri commit'lenmedi. Canonical ve deploy `src/` senkron.
 
 ---
 
@@ -436,3 +555,75 @@ bekleniyor.
 11. **Yeni — bu turdan:** Repo kökündeki `ki-reservation-command-center.html` (bu turun ilk, sonradan
     terk edilen statik mockup'ı — gerçek iş `src/`'e taşındı) kullanıcıyla teyit edilip silinmeli ya da
     arşive kaldırılmalı; şu an başıboş duruyor.
+
+## 8.0 2026-09-16 OTURUMU — Payment sessiz-hata düzeltmeleri + Vault dizini
+
+Amaç: görevini yerine getirmeyen / başarılı zannedilip sessizce hata veren uçları analiz edip kapatmak ve
+Vault'ta (TokenSave) bir dizin + son güncelleme bilgisi oluşturmak.
+
+Payment katmanı (2026-08-27 Dalga — şu an **dormant**: `ea_payment_settings.active_gateway = none`,
+`require_deposit = 0`, API key'leri boş, `ea_payment_transactions` 0 satır; düzeltmeler prod'da davranış
+değiştirmez, ödemeler etkinleştirilince güvenli olur):
+
+1. **`Iyzico_gateway::charge()`** sahte `status: succeeded` + sahte `provider_transaction_id` döndürüyordu →
+   artık açıkça `RuntimeException` fırlatıyor (Checkout Form akışında sunucu-taraflı charge adımı yoktur,
+   ödeme webhook/redirect ile mutabakatlaştırılır). Kodun hiçbir yerinde `charge()` çağrılmıyor → güvenli.
+2. **`Iyzico_gateway::parse_webhook_event()`** `intent_id` (conversationId) döndürmüyordu → webhook
+   `find_by_intent_id()` ile işlemi hiç bulamıyordu (işlem kaydı `provider_transaction_id`'yi de hiç
+   yazmadığı için ikinci arama yolu da çalışmıyordu). Artık `intent_id` dönüyor + iyzico'nun `paymentStatus`
+   anahtarı da `status` ile birlikte kabul ediliyor.
+3. **`Payment_webhooks.php:133` TODO tamamlandı:** başarılı ödemede işlem kaydından bağlı randevu bulunup
+   `Appointments_model::set_payment()` ile mutabakatlaştırılıyor. Kısmi depozito → `pending` (collected +
+   balance kaydedilir, `get_unpaid_sessions()`'ta hâlâ ödenmemiş görünür), tutar tamamı karşılıyorsa →
+   `collected` + `virtual_pos`. Mutabakat hatası webhook cevabını asla düşürmez (order-update bloğuyla aynı
+   best-effort desen, sadece `warning` loglanır).
+4. **`Booking::register` (satır 667) ve `Appointment_booking_service::create` (satır 321):** depozito
+   zorunluyken (`require_deposit` + aktif gateway) intent hatası yutulup `success:true` dönülüyordu →
+   müşteri "rezerve edildi, depozito alındı" sanıyordu. Artık yeni oluşturulan randevu siliniyor (slot
+   serbest), `Booking` `RuntimeException` fırlatıyor (`json_exception`), service `error_response`
+   ('`payment_init_failed`') dönüyor.
+5. **Kalan sessiz-hata adayları — karara bağlandı (bu tur):**
+   - `Netgsm::get_balance()`: uygulamada HİÇ çağrılmıyor (grep: yalnızca interface) + dürüstçe `null`
+     döndürüyor → dokümante stub, gerçek etkisi yok, değişiklik gerekmez. `send()` credential'ı boşsa
+     zaten `['success'=>false,'error'=>'not_configured']` döndürüyor (sessiz değil).
+   - `Parasut::create_invoice()`: sahte sonuç değil, açıkça `RuntimeException` fırlatıyor →
+     çağıranı `Appointments_model::trigger_auto_invoice_if_enabled()` da throw'u yutup `error` LOGLUYOR
+     (1368-1376) → zaten belirgin, dokunulmadı (ama kopyası hâlâ taşınmamış PHP foam değil — karakter
+     sayısı konuşuldu, ilgili değil).
+   - `Services_model::get_available_services(branch_id)`: branch filtre placeholder'ı — ancak 3 çağıranı
+     da (Calendar:198, Booking:163, Ai_assistant:194) branch_id'siz çağırıyor, bugün sıfır etki;
+     kodda açıkça "bu PR'da hizmetler branch-bağımsız" notu var → kasıtlı kapsam, değişiklik gerekmez.
+   - **`Google.php:126` (DÜZELTİLDİ):** prefetch başarısızken `existing_google_events = null` + HİÇ log
+     yoktu → null iken dedupe/matcher bloğu (172) atlanıp her yerel etkinlik yeniden push'lanıyordu
+     (mükerrer Google etkinliği riski, iz bırakmadan). Artık catch içinde `log_message('error', ...
+     Duplicate detection disabled for this run.)` var.
+   - **`Ai_assistant.php:495` (DÜZELTİLDİ):** `get_ai_assistant_enabled()` DB hatasında `false` dönerken
+     hiç log yoktu → artık `log_message('error', 'ai_assistant_enabled setting read failed: ...')`.
+6. **Stale/yetim `.min.js` — yanlış alarm, eylem gerekmiyor:** 108 min dosyanın 74'ü mtime'a göre
+   "stale", 3'ü "yetim" ama — view'ların SADECE 2 proje min.js referansı var: `pages/dashboard.min.js`
+   ve `pages/custom_domain.min.js` (105 referans düz `.js` yüklüyor). Bu ikisi 2026-09-10/11'de yazılan
+   MEVCUT uygulamanın ta kendisi (tek kaynak min dosya; okunur `.js` karşılığı yok → sürdürülebilirlik
+   notu, bug değil). Kalan 72 stale dosya hiçbir view'dan yüklenmiyor (miras, zararsız). `ki-theme-
+   switcher.min.js` referanssız. Minify aracı/pipeline repo'da yok; zaten kullanılmıyor.
+
+Vault (TokenSave v7.10.0):
+
+- `config.json`'da `docs_dir: "tokensave-docs"` tanımlıydı ama dizin **yoktu** → `/opt/ki-ecosystem/
+  ki-reservation-src/tokensave-docs/LAST-UPDATE.md` oluşturuldu (dizin + son güncelleme bilgisi: branch,
+  `last_synced_at`, önceki anlık görüntü, bu turun özeti).
+- `tokensave sync` çalıştırıldı: 19 eklenen / 59 değişen / 3 silinen (License* dosyaları çıktı).
+  `branch-meta.json` `last_synced_at: 1789046181` (2026-09-10, 5 gün bayat) → **1789554466 (2026-09-16
+  10:27:46 UTC)** olarak tazelendi.
+
+Doğrulama:
+
+- 4 değişen PHP dosyası `php -l` ile temiz.
+- `set_payment()` anlambilimi DB (`ea_appointments` dağılımı: collected 206, not_collected 2, pending 2) ve
+  `get_unpaid_sessions()` (`payment_status != collected`) ile uyumlu.
+- Live webhook/gateway akışları gerçek API key'i ve tarayıcı oturumu olmadan uçtan uca denenmedi (dormant).
+
+Commit durumu: canonical'de hiçbir şey commit'lenmedi (kullanıcı onayı bekleniyor). Değişen dosyalar:
+`application/controllers/Payment_webhooks.php`, `application/controllers/Booking.php`,
+`application/libraries/Appointment_booking_service.php`, `application/libraries/payment/Iyzico_gateway.php`,
+`application/controllers/Google.php`, `application/controllers/Ai_assistant.php`, `tokensave-docs/` (yeni),
+`docs/SESSION_NOTES.md`. Deploy'a rsync + `docker compose build app` + ASSET_VERSION bump onaya bırakıldı.

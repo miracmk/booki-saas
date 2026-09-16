@@ -114,7 +114,7 @@ class Communication_hub
                         continue;
                     }
 
-                    $this->send_channel_payload($channel, $recipient, $subject, $text);
+                    $this->send_channel($channel, $recipient, $subject, $text);
                 }
             }
         } catch (Throwable $e) {

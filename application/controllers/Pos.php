@@ -16,6 +16,8 @@ class Pos extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_POS);
+
         $this->load->model('orders_model');
         $this->load->model('customers_model');
         $this->load->model('products_model');

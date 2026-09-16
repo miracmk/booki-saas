@@ -260,6 +260,10 @@ class EA_Controller extends CI_Controller
             // "expiring soon" banner well before the hard 402 cutoff above actually kicks in.
             'trial_ends_at' => $tenant['trial_ends_at'] ?? null,
             'license_expires_at' => $tenant['license_expires_at'] ?? null,
+            // Ki Reservation (2026-09-12) - Dalga 4 paket/plan sistemi (Free/Basic/Premium/Elite) -
+            // see plan_helper.php::plan_allows(). Free-text on the master `tenants.plan` column
+            // (unchanged schema) but now normalized to one of these 4 by the superadmin UI dropdown.
+            'plan' => $tenant['plan'] ?? null,
         ]);
     }
 

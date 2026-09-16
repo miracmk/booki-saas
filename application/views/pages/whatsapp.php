@@ -163,24 +163,13 @@
                         </div>
                     <?php endif; ?>
 
-                    <h6 class="mt-3 mb-2"><i class="fas fa-network-wired"></i> Köprü ayarları</h6>
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label small" for="wa-bridge-url">Köprü REST adresi</label>
-                            <input type="text" class="form-control" id="wa-bridge-url"
-                                   placeholder="https://wa-bridge.example.com"
-                                   value="<?= e(vars('bridge_url') ?: '') ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small" for="wa-bridge-secret">Paylaşılan gizli anahtar</label>
-                            <input type="password" class="form-control" id="wa-bridge-secret"
-                                   placeholder="<?= vars('bridge_secret_set') ? '•••••••• (boş bırakılırsa korunur)' : 'Yeni anahtar' ?>">
-                        </div>
-                    </div>
-                    <button type="button" id="wa-save-bridge" class="btn btn-outline-secondary mb-3"
-                            data-busy-label="Kaydediliyor...">
-                        <i class="fas fa-save"></i> Köprü Ayarını Kaydet
-                    </button>
+                    <?php // 2026-09-12 - kullanıcı isteğiyle köprü URL/secret alanları kaldırıldı: bridge
+                          // artık kendi wa-bridge sidecar'ımıza varsayılan olarak bağlanıyor
+                          // (Messaging_settings_model::get_settings()), tenant'ın elle bir şey girmesi
+                          // gerekmiyor. Gizli input'lar korunuyor (save_bridge endpoint'i hâlâ var, ileride
+                          // farklı bir köprüye geçmek istenirse), sadece görünür alanlar kaldırıldı. ?>
+                    <input type="hidden" id="wa-bridge-url" value="<?= e(vars('bridge_url') ?: '') ?>">
+                    <input type="hidden" id="wa-bridge-secret" value="">
 
                     <h6 class="mt-3 mb-2"><i class="fas fa-qrcode"></i> Eşleştirme</h6>
                     <div class="d-flex gap-2 mb-3">

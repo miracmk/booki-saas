@@ -19,6 +19,8 @@ class Branches extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_BRANCHES);
+
         $this->load->model('branches_model');
         $this->load->model('roles_model');
 

@@ -266,6 +266,10 @@ class Whatsapp extends EA_Controller
                 throw new InvalidArgumentException('Geçersiz mod.');
             }
 
+            if ($mode === 'unofficial' && !plan_allows('whatsapp_unofficial')) {
+                throw new RuntimeException('Bu özellik mevcut paketinizde yok. Yükseltmek için bizimle iletişime geçin.');
+            }
+
             $consent = filter_var(request('consent', false), FILTER_VALIDATE_BOOLEAN);
             if ($mode === 'unofficial' && !$consent) {
                 throw new InvalidArgumentException('Resmi olmayan mod için bilgilendirilmiş onay gereklidir.');
@@ -302,6 +306,10 @@ class Whatsapp extends EA_Controller
 
             if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
                 throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            if (!plan_allows('whatsapp_unofficial')) {
+                throw new RuntimeException('Bu özellik mevcut paketinizde yok. Yükseltmek için bizimle iletişime geçin.');
             }
 
             check('bridge_url', 'string|null');
@@ -455,6 +463,10 @@ class Whatsapp extends EA_Controller
 
             if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
                 throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            if (!plan_allows('whatsapp_unofficial')) {
+                throw new RuntimeException('Bu özellik mevcut paketinizde yok. Yükseltmek için bizimle iletişime geçin.');
             }
 
             $settings = $this->messaging_settings_model->get_settings();

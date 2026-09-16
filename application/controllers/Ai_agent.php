@@ -21,6 +21,8 @@ class Ai_agent extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_AI_AGENT);
+
         $this->load->library('ai_agent_client');
     }
 

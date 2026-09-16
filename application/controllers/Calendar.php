@@ -2298,4 +2298,88 @@ class Calendar extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Ki Reservation (2026-09-12) - room/station side of the "İlk Müsaitlik" strip (user feedback: the
+     * original provider-only view needed a room-grouped counterpart, "odaların müsaitliğini kontrol
+     * etmesi gerekiyor"). Unlike the provider view (which has to walk a generated hour grid because a
+     * provider's next FREE slot depends on their own working plan), a station/room has no working plan
+     * of its own - it's simply occupied or not - so this is answered directly: find the appointment (if
+     * any) currently occupying each station right now, and if occupied, when it ends + who's in it.
+     */
+    public function get_room_availability(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                throw new RuntimeException('You do not have the required permissions for this task.');
+            }
+
+            $stations = $this->stations_model->get();
+            $now = new DateTime();
+            $now_str = $now->format('Y-m-d H:i:s');
+
+            $rows = [];
+
+            foreach ($stations as $station) {
+                $current = $this->db
+                    ->select('appointments.start_datetime, appointments.end_datetime, appointments.id_users_provider')
+                    ->from('appointments')
+                    ->where('id_stations', $station['id'])
+                    ->where('start_datetime <=', $now_str)
+                    ->where('end_datetime >', $now_str)
+                    ->order_by('start_datetime', 'asc')
+                    ->limit(1)
+                    ->get()
+                    ->row_array();
+
+                if (!$current) {
+                    $rows[] = [
+                        'station_id' => (int) $station['id'],
+                        'station_name' => $station['name'],
+                        'provider_name' => null,
+                        'time' => null,
+                        'is_now' => true,
+                        'window_minutes' => null,
+                        'available' => true,
+                    ];
+                    continue;
+                }
+
+                $free_at = new DateTime($current['end_datetime']);
+                $provider = $this->providers_model->find((int) $current['id_users_provider']);
+
+                // How long the room stays free once it opens up - the next appointment booked into it
+                // after this one ends, same "window" concept as the provider view.
+                $next_start_row = $this->db
+                    ->select('start_datetime')
+                    ->from('appointments')
+                    ->where('id_stations', $station['id'])
+                    ->where('start_datetime >', $current['end_datetime'])
+                    ->order_by('start_datetime', 'asc')
+                    ->limit(1)
+                    ->get()
+                    ->row_array();
+
+                $window_minutes = $next_start_row
+                    ? max(0, (int) round(((new DateTime($next_start_row['start_datetime']))->getTimestamp() - $free_at->getTimestamp()) / 60))
+                    : null;
+
+                $rows[] = [
+                    'station_id' => (int) $station['id'],
+                    'station_name' => $station['name'],
+                    'provider_name' => $provider ? trim($provider['first_name'] . ' ' . $provider['last_name']) : null,
+                    'time' => $free_at->format('H:i'),
+                    'is_now' => $free_at->getTimestamp() <= $now->getTimestamp() + 300,
+                    'window_minutes' => $window_minutes,
+                    'available' => true,
+                ];
+            }
+
+            json_response(['rows' => $rows]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }

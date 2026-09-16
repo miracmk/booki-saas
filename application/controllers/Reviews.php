@@ -18,6 +18,8 @@ class Reviews extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_REVIEWS);
+
         $this->load->library('accounts');
         $this->load->library('review_service');
     }

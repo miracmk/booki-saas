@@ -29,6 +29,8 @@ class Packages extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_PACKAGES);
+
         $this->load->model('packages_model');
         $this->load->model('customers_model');
         $this->load->model('services_model');

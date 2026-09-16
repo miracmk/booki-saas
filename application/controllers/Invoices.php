@@ -18,6 +18,8 @@ class Invoices extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_INVOICES);
+
         $this->load->model('invoices_model');
         $this->load->model('customers_model');
         $this->load->model('roles_model');

@@ -123,7 +123,14 @@ class Google extends EA_Controller
                     $start,
                     $end,
                 );
-            } catch (Throwable) {
+            } catch (Throwable $prefetch_error) {
+                log_message(
+                    'error',
+                    'Google::sync - failed to prefetch existing calendar events for provider ID '
+                    . $provider['id'] . ': ' . $prefetch_error->getMessage()
+                    . '. Duplicate detection disabled for this run.',
+                );
+
                 $existing_google_events = null;
             }
 
@@ -823,6 +830,8 @@ class Google extends EA_Controller
         if (cannot('edit', PRIV_USERS) && (int) $user_id !== (int) $provider_id) {
             show_error('Forbidden', 403);
         }
+
+        require_plan_feature('google_calendar');
 
         // Generate and store OAuth state parameter to prevent CSRF
         $oauth_state = bin2hex(random_bytes(32));

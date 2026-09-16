@@ -106,6 +106,23 @@
                                 </div>
                             </div>
 
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="google-calendar-share-customer-data"
+                                           data-field="google_calendar_share_customer_data">
+                                    <label class="form-check-label" for="google-calendar-share-customer-data">
+                                        Müşteri bilgisini takvim etkinliğinde paylaş
+                                    </label>
+                                </div>
+                                <div class="form-text text-muted">
+                                    Kapalıyken (varsayılan), sağlayıcının Google takviminde müşteri adı/e-postası
+                                    hiç görünmez ve Google müşteriye davet e-postası göndermez - sağlayıcı sadece
+                                    hizmet ve saati görür. Açarsanız müşterinin adı+e-postası etkinliğe katılımcı
+                                    olarak eklenir (Google bu durumda müşteriye otomatik bir davet/bildirim
+                                    e-postası da gönderir).
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 

@@ -128,7 +128,13 @@
                 <label>Custom Domain (opsiyonel)</label>
                 <input type="text" id="c-custom-domain" placeholder="rezervasyon.acme.com">
                 <label>Plan (opsiyonel)</label>
-                <input type="text" id="c-plan" placeholder="temel / genel">
+                <select id="c-plan">
+                    <option value="">— (Free varsayılan)</option>
+                    <option value="Free">Free</option>
+                    <option value="Basic">Basic</option>
+                    <option value="Premium">Premium</option>
+                    <option value="Elite">Elite</option>
+                </select>
                 <label>Deneme Süresi (gün, opsiyonel)</label>
                 <input type="number" id="c-trial-days" placeholder="14">
                 <div class="msg" id="create-msg"></div>
@@ -147,7 +153,13 @@
             <form id="plan-form">
                 <input type="hidden" id="p-tenant-id">
                 <label>Plan</label>
-                <input type="text" id="p-plan">
+                <select id="p-plan">
+                    <option value="">— (Free varsayılan)</option>
+                    <option value="Free">Free</option>
+                    <option value="Basic">Basic</option>
+                    <option value="Premium">Premium</option>
+                    <option value="Elite">Elite</option>
+                </select>
                 <label>Deneme Bitişi (YYYY-MM-DD HH:MM:SS, boş = yok)</label>
                 <input type="text" id="p-trial-ends-at">
                 <label>Lisans Bitişi (YYYY-MM-DD HH:MM:SS, boş = süresiz)</label>

@@ -33,7 +33,7 @@
                         <input id="appointment-id" type="hidden">
 
                         <div class="row">
-                            <div class="col-12 col-sm-6">
+                            <div class="col-12">
                                 <fieldset class="sf-step mb-3" data-step="1">
                                     <div class="mb-3">
                                         <label for="start-datetime" class="form-label">
@@ -255,8 +255,11 @@
                                 </div>
                             </div>
 
-                            <div class="col-12 col-sm-6">
-                                <div class="mb-3">
+                            <div class="col-12">
+                                <?php // 2026-09-12 - kullanıcı isteğiyle saat dilimi bilgisi gizlendi (görsel
+                                      // gürültü, personel için gereksiz). JS'in `.provider-timezone` metnini
+                                      // set etmesi zararsız olduğu için eleman DOM'da kalıyor, sadece d-none. ?>
+                                <div class="mb-3 d-none">
                                     <label class="form-label">
                                         <?= lang('timezone') ?>
                                     </label>
@@ -377,7 +380,7 @@
                         <input id="customer-id" type="hidden">
 
                         <div class="row">
-                            <div class="col-12 col-sm-6">
+                            <div class="col-12">
                                 <div class="mb-3">
                                     <label for="first-name" class="form-label">
                                         <?= lang('first_name') ?>
@@ -442,7 +445,7 @@
                                 <?php component('custom_fields'); ?>
 
                             </div>
-                            <div class="col-12 col-sm-6">
+                            <div class="col-12">
                                 <div class="mb-3">
                                     <label for="address" class="form-label">
                                         <?= lang('address') ?>
@@ -492,13 +495,16 @@
                                            maxlength="120"/>
                                 </div>
 
-                                <div class="mb-3">
+                                <?php // 2026-09-12 - kullanıcı isteğiyle gizlendi; `required` de kaldırıldı
+                                      // (görünmeyen bir alanı zorunlu tutmak formu kilitler), select DOM'da
+                                      // kalıyor (JS'in varsayılan değer ataması varsa bozulmasın diye). ?>
+                                <div class="mb-3 d-none">
                                     <label class="form-label" for="timezone">
                                         <?= lang('timezone') ?>
                                         <span class="text-danger" hidden>*</span>
                                     </label>
                                     <?php component('timezone_dropdown', [
-                                        'attributes' => 'id="timezone" class="form-select required"',
+                                        'attributes' => 'id="timezone" class="form-select"',
                                         'grouped_timezones' => vars('grouped_timezones'),
                                     ]); ?>
                                 </div>

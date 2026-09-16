@@ -79,6 +79,7 @@ $autoload['helper'] = [
     'password',
     'path',
     'permission',
+    'plan', // Ki Reservation (2026-09-12) - Free/Basic/Premium/Elite feature gating, see the helper's docblock
     'rate_limit',
     'routes',
     'salonflora_audit', // Ki Reservation customization - audit_log() (see the helper's docblock)

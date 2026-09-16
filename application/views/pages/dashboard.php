@@ -31,7 +31,7 @@ $status_badge = [
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted small fw-semibold">İlk Müsaitlik</span>
             </div>
-            <div id="next-availability-strip" class="d-flex flex-wrap gap-2">
+            <div id="next-availability-strip">
                 <span class="text-muted small">Yükleniyor...</span>
             </div>
         </div>

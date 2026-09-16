@@ -507,6 +507,17 @@ nav#header .btn-link.text-white {
 .kcc-availability-pill-none .kcc-availability-time {
     color: var(--bs-danger);
 }
+.kcc-availability-group + .kcc-availability-group {
+    margin-top: 10px;
+}
+.kcc-availability-group-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--kcc-muted);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
 
 /* ----------------------------------------------------------------------------
  * 2026-09-12 - Quick-win pass on the CRUD list/form pages (Customers, Services,

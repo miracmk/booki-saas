@@ -38,6 +38,8 @@ class Memberships extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_MEMBERSHIPS);
+
         $this->load->model('memberships_model');
         $this->load->model('customer_memberships_model');
         $this->load->model('customers_model');

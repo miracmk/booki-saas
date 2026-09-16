@@ -191,18 +191,14 @@ class Iyzico_gateway extends Payment_gateway_abstract
      */
     public function charge(string $intent_id, array $payload): array
     {
-        try {
-            // TODO: iyzico actual charge flow - this is a placeholder
-            return [
-                'status' => 'succeeded',
-                'provider_transaction_id' => $intent_id,
-                'raw_response' => json_encode(['note' => 'iyzico charge not yet implemented']),
-            ];
-        } catch (Throwable $e) {
-            $this->log_error('charge failed: ' . $e->getMessage());
-
-            throw $e;
-        }
+        // iyzico Checkout Form payments are captured by the bank during checkout and reported back through the
+        // webhook/redirect flow - there is no server-side "charge" step. Returning a fabricated 'succeeded'
+        // response here (as this method previously did) would silently fake a completed payment, so we fail
+        // loudly instead. Nothing in the codebase calls charge(); any future caller must reconcile via the
+        // iyzico webhook (see parse_webhook_event()).
+        throw new RuntimeException(
+            'iyzico charge() is not part of the Checkout Form flow - capture the payment via the iyzico webhook instead.',
+        );
     }
 
     /**
@@ -299,11 +295,18 @@ class Iyzico_gateway extends Payment_gateway_abstract
                 throw new RuntimeException('Invalid JSON in webhook body.');
             }
 
-            // TODO: Map iyzico webhook event structure to normalized format
+            // iyzico Checkout Form notifications carry the status both as 'status' and, on the applied/paid
+            // event, as 'paymentStatus'. Accept either spelling so the webhook resolves correctly regardless of
+            // which iyzico notification format is delivered.
+            $raw_status = strtoupper((string) ($event['status'] ?? $event['paymentStatus'] ?? ''));
+
             return [
                 'type' => $event['eventType'] ?? 'unknown',
+                // conversationId is the intent we stored in create_payment_intent() - the webhook handler looks
+                // the transaction up by this key first.
+                'intent_id' => $event['conversationId'] ?? null,
                 'transaction_id' => $event['paymentId'] ?? null,
-                'status' => $event['status'] === 'success' ? 'succeeded' : 'failed',
+                'status' => in_array($raw_status, ['SUCCESS', 'PAID', 'PROCESSED', 'APPROVED'], true) ? 'succeeded' : 'failed',
                 'amount' => (float) ($event['price'] ?? 0),
                 'currency' => $event['currency'] ?? 'TRY',
                 'metadata' => $event['metadata'] ?? [],

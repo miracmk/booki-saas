@@ -204,6 +204,19 @@ class Google_sync
      *
      * @throws \Google\Service\Exception
      */
+    /**
+     * Ki Reservation (2026-09-12) - privacy gate: whether the customer's name/email get added as a
+     * Google Calendar event attendee (which also makes Google email THEM an invite/notification with
+     * the appointment details). Default OFF - a provider's Google Calendar is their own personal
+     * account, potentially synced to other devices/services outside Ki Reservation's control, so
+     * customer PII only goes there if the tenant explicitly opts in. When off, the event still exists
+     * (provider sees the appointment/service/time) - it just never names or emails the customer.
+     */
+    private function customer_sharing_enabled(): bool
+    {
+        return filter_var(setting('google_calendar_share_customer_data', '0'), FILTER_VALIDATE_BOOLEAN);
+    }
+
     public function create_calendar(string $summary, ?string $timezone = null): string
     {
         $calendar = new Google_Service_Calendar_Calendar();
@@ -264,7 +277,12 @@ class Google_sync
         $event_provider->setEmail($provider['email']);
         $event->attendees[] = $event_provider;
 
-        if (!empty($customer['first_name']) && !empty($customer['last_name']) && !empty($customer['email'])) {
+        if (
+            $this->customer_sharing_enabled()
+            && !empty($customer['first_name'])
+            && !empty($customer['last_name'])
+            && !empty($customer['email'])
+        ) {
             $event_customer = new Google_Service_Calendar_EventAttendee();
             $event_customer->setDisplayName($customer['first_name'] . ' ' . $customer['last_name']);
             $event_customer->setEmail($customer['email']);
@@ -356,7 +374,12 @@ class Google_sync
         $event_provider->setEmail($provider['email']);
         $event->attendees[] = $event_provider;
 
-        if (!empty($customer['first_name']) && !empty($customer['last_name']) && !empty($customer['email'])) {
+        if (
+            $this->customer_sharing_enabled()
+            && !empty($customer['first_name'])
+            && !empty($customer['last_name'])
+            && !empty($customer['email'])
+        ) {
             $event_customer = new Google_Service_Calendar_EventAttendee();
             $event_customer->setDisplayName($customer['first_name'] . ' ' . $customer['last_name']);
             $event_customer->setEmail($customer['email']);

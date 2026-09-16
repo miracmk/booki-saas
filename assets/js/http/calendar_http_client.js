@@ -554,6 +554,17 @@ App.Http.Calendar = (function () {
         });
     }
 
+    /**
+     * Ki Reservation (2026-09-12) - room/station side of the "İlk Müsaitlik" strip.
+     */
+    function getRoomAvailability() {
+        const url = App.Utils.Url.siteUrl('calendar/get_room_availability');
+
+        return $.post(url, {
+            csrf_token: vars('csrf_token'),
+        });
+    }
+
     return {
         saveAppointment,
         saveAppointmentWithConflictHandling,
@@ -577,5 +588,6 @@ App.Http.Calendar = (function () {
         getAvailableProviders,
         getAvailableStations,
         getNextAvailability,
+        getRoomAvailability,
     };
 })();

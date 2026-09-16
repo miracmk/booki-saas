@@ -716,45 +716,65 @@ class Console extends EA_Controller
 
         setting(['require_email' => '0', 'require_phone_number' => '0', 'require_last_name' => '0']);
 
+        // Ki Reservation (2026-09-12) - IDEMPOTENCY ADDED: this script's first run already imported
+        // 516 customers / 174 appointments into the (no longer empty) salonflora tenant - confirmed via
+        // direct row counts before making this change. Re-running the original insert-only logic would
+        // have duplicated every category/service/station/provider/customer/appointment a second time.
+        // Every stage below now looks for an existing match FIRST and reuses its id; only genuinely new
+        // rows (created on the live system since the last run) get inserted. Safe to run again in the
+        // future for the same reason.
         $category_id_map = [];
 
         foreach ($old_categories as $category) {
-            $category_id_map[$category['id']] = $this->service_categories_model->save([
-                'name' => $category['name'],
-                'description' => $category['description'],
-            ]);
+            $existing = $this->db->get_where('service_categories', ['name' => $category['name']])->row_array();
+
+            $category_id_map[$category['id']] = $existing
+                ? (int) $existing['id']
+                : $this->service_categories_model->save([
+                    'name' => $category['name'],
+                    'description' => $category['description'],
+                ]);
         }
 
         $service_id_map = [];
 
         foreach ($old_services as $service) {
-            $service_id_map[$service['id']] = $this->services_model->save([
-                'name' => $service['name'],
-                'duration' => $service['duration'],
-                'price' => $service['price'],
-                'currency' => $service['currency'],
-                'description' => $service['description'],
-                'slot_interval' => $service['slot_interval'],
-                'color' => $service['color'],
-                'location' => $service['location'],
-                'attendants_number' => $service['attendants_number'],
-                'is_private' => $service['is_private'],
-                'id_service_categories' => $category_id_map[$service['id_service_categories']] ?? null,
-            ]);
+            $existing = $this->db->get_where('services', ['name' => $service['name']])->row_array();
+
+            $service_id_map[$service['id']] = $existing
+                ? (int) $existing['id']
+                : $this->services_model->save([
+                    'name' => $service['name'],
+                    'duration' => $service['duration'],
+                    'price' => $service['price'],
+                    'currency' => $service['currency'],
+                    'description' => $service['description'],
+                    'slot_interval' => $service['slot_interval'],
+                    'color' => $service['color'],
+                    'location' => $service['location'],
+                    'attendants_number' => $service['attendants_number'],
+                    'is_private' => $service['is_private'],
+                    'id_service_categories' => $category_id_map[$service['id_service_categories']] ?? null,
+                ]);
         }
 
         $station_id_map = [];
 
         foreach ($old_stations as $station) {
-            $station_id_map[$station['id']] = $this->stations_model->save([
-                'name' => $station['name'],
-                'notes' => $station['notes'],
-                'is_active' => $station['is_active'],
-                'services' => [], // fail-open in the source too (empty stations_services there)
-            ]);
+            $existing = $this->db->get_where('stations', ['name' => $station['name']])->row_array();
+
+            $station_id_map[$station['id']] = $existing
+                ? (int) $existing['id']
+                : $this->stations_model->save([
+                    'name' => $station['name'],
+                    'notes' => $station['notes'],
+                    'is_active' => $station['is_active'],
+                    'services' => [], // fail-open in the source too (empty stations_services there)
+                ]);
         }
 
         $provider_id_map = [];
+        $provider_role_id_new = $this->db->get_where('roles', ['slug' => DB_SLUG_PROVIDER])->row_array()['id'];
 
         foreach ($old_providers as $provider) {
             $new_service_ids = array_map(
@@ -766,6 +786,33 @@ class Console extends EA_Controller
                 fn($id) => $station_id_map[$id] ?? null,
                 $provider_station_ids[$provider['id']] ?? [],
             );
+
+            // Match by FIRST NAME ONLY (not last name) - the live system has the same real person
+            // duplicated under slightly different last names/honorifics (e.g. "Aybeniz H" here vs.
+            // "Aybeniz Hanım" as the skipped duplicate above, vs. "Aybeniz Erdogan" already in the
+            // tenant from an earlier run) - user confirmed these are all one person. First-name-only
+            // matching is safe here because the salon has a handful of staff, each with a distinct
+            // first name.
+            $existing_provider = $this->db
+                ->select('users.id, users.last_name')
+                ->from('users')
+                ->where('users.id_roles', $provider_role_id_new)
+                ->where('users.first_name', $provider['first_name'])
+                ->get()
+                ->row_array();
+
+            if ($existing_provider) {
+                $provider_id_map[$provider['id']] = (int) $existing_provider['id'];
+
+                // User-requested cleanup: normalize the display name to the same "İlk Ad İlk Harf."
+                // convention as the other providers (İlayda İ., Aslı O., ...), once.
+                if (mb_strtolower(trim((string) $existing_provider['last_name']), 'UTF-8') !== 'e.'
+                    && mb_strtolower((string) $provider['first_name'], 'UTF-8') === 'aybeniz') {
+                    $this->db->update('users', ['last_name' => 'E.'], ['id' => $existing_provider['id']]);
+                }
+
+                continue;
+            }
 
             try {
                 $provider_id_map[$provider['id']] = $this->providers_model->save([
@@ -828,6 +875,60 @@ class Console extends EA_Controller
 
             $norm = $normalize_name((string) $base['first_name'], (string) $pick('last_name'));
 
+            // Idempotency: this customer may already exist from an earlier run of this same script.
+            // phone_number_hash/email_hash in the OLD dump were computed with the LIVE system's own
+            // pii_hash_key - not comparable to this tenant's hashes - but we already have the
+            // DECRYPTED plaintext (from phase 1, before connect_tenant() switched keys), so
+            // sf_pii_hash() here recomputes it correctly under the NEW tenant's key for a real lookup.
+            $existing_customer_id = null;
+            $pick_phone = $pick('phone_number');
+            $pick_email = $pick('email');
+
+            if (!empty($pick_phone)) {
+                $match = $this->db
+                    ->select('users.id')
+                    ->from('users')
+                    ->join('roles', 'roles.id = users.id_roles', 'inner')
+                    ->where('roles.slug', DB_SLUG_CUSTOMER)
+                    ->where('users.phone_number_hash', sf_pii_hash($pick_phone))
+                    ->get()
+                    ->row_array();
+                $existing_customer_id = $match['id'] ?? null;
+            }
+
+            if (!$existing_customer_id && !empty($pick_email)) {
+                $match = $this->db
+                    ->select('users.id')
+                    ->from('users')
+                    ->join('roles', 'roles.id = users.id_roles', 'inner')
+                    ->where('roles.slug', DB_SLUG_CUSTOMER)
+                    ->where('users.email_hash', sf_pii_hash($pick_email))
+                    ->get()
+                    ->row_array();
+                $existing_customer_id = $match['id'] ?? null;
+            }
+
+            if (!$existing_customer_id && $norm['first_name'] !== '') {
+                $match = $this->db
+                    ->select('users.id')
+                    ->from('users')
+                    ->join('roles', 'roles.id = users.id_roles', 'inner')
+                    ->where('roles.slug', DB_SLUG_CUSTOMER)
+                    ->where('users.first_name', $norm['first_name'])
+                    ->where('users.last_name', $norm['last_name'])
+                    ->get()
+                    ->row_array();
+                $existing_customer_id = $match['id'] ?? null;
+            }
+
+            if ($existing_customer_id) {
+                $imported_customers++; // counted as "handled", not a fresh insert
+                foreach ($group as $row) {
+                    $customer_id_map[$row['id']] = (int) $existing_customer_id;
+                }
+                continue;
+            }
+
             try {
                 $new_id = $this->customers_model->save([
                     'first_name' => $norm['first_name'] !== '' ? $norm['first_name'] : $base['first_name'],
@@ -868,6 +969,18 @@ class Console extends EA_Controller
 
             if (!$new_provider_id || (!$appointment['is_unavailability'] && (!$new_customer_id || !$new_service_id))) {
                 $skipped_appointments++;
+                continue;
+            }
+
+            // Idempotency: same provider + same start time already imported = same appointment.
+            $already_exists = $this->db
+                ->where('id_users_provider', $new_provider_id)
+                ->where('start_datetime', $appointment['start_datetime'])
+                ->where('is_unavailability', $appointment['is_unavailability'])
+                ->get('appointments')
+                ->num_rows() > 0;
+
+            if ($already_exists) {
                 continue;
             }
 

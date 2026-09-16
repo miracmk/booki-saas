@@ -40,10 +40,34 @@
 
 <?php section('scripts'); ?>
 
-<?php component('google_analytics_script', ['google_analytics_code' => vars('google_analytics_code')]); ?>
+<?php component('google_analytics_script', [
+    'google_analytics_code' => vars('google_analytics_code'),
+    'meta_pixel_id' => vars('meta_pixel_id'),
+]); ?>
 <?php component('matomo_analytics_script', [
     'matomo_analytics_url' => vars('matomo_analytics_url'),
     'matomo_analytics_site_id' => vars('matomo_analytics_site_id'),
 ]); ?>
+
+<?php // 2026-09-12 - the ONE place we know for certain a booking actually succeeded (this view only
+      // renders after Booking_confirmation::of() finds a real appointment by hash) - fires the real
+      // conversion signal instead of the previous "GA4 script loads but nothing ever calls it as a
+      // conversion" gap. Meta "Schedule" is the standard event for an appointment being booked; the GA4
+      // side is a custom event (no dedicated Google Ads conversion action/label exists yet for this -
+      // that needs to be created in the tenant's Google Ads account first). ?>
+<script>
+    if (typeof gtag === 'function') {
+        gtag('event', 'randevu_tamamlandi', {
+            value: <?= (float) vars('conversion_value') ?>,
+            currency: 'TRY',
+        });
+    }
+    if (typeof fbq === 'function') {
+        fbq('track', 'Schedule', {
+            value: <?= (float) vars('conversion_value') ?>,
+            currency: 'TRY',
+        });
+    }
+</script>
 
 <?php end_section('scripts'); ?>

@@ -19,6 +19,8 @@ class Marketing extends EA_Controller
     {
         parent::__construct();
 
+        require_plan_feature(PRIV_MARKETING);
+
         $this->load->library('accounts');
     }
 

@@ -178,16 +178,18 @@ class Availability
             $available_hours = $this->generate_available_hours($date, $service, $available_periods);
         }
 
-        // Ki Reservation (2026-09-12) - $ignore_advance_timeout=true skips the "book_advance_timeout"
-        // buffer below. That setting exists to stop ONLINE customers self-booking a slot starting too
-        // soon for staff to prepare (public Booking.php always passes false, unchanged) - it should NOT
-        // also delay the internal "İlk Müsaitlik" staff view of who's free right now for a walk-in
-        // (find_first_available_slots() passes true). Bug report: at 15:48 with book_advance_timeout=30,
-        // a provider free from 16:00 was reported as first-available at 16:30 (16:00/16:15 both fell
-        // inside the +30min threshold) even though reception could seat a walk-in there immediately.
-        if (!$ignore_advance_timeout) {
-            $available_hours = $this->consider_book_advance_timeout($date, $available_hours, $provider);
-        }
+        // Ki Reservation (2026-09-12, fixed same day) - consider_book_advance_timeout() does TWO
+        // things at once: (1) always strip hours that are simply in the past (today only), and (2)
+        // additionally strip hours within the "book_advance_timeout" buffer from now. Only (2) should
+        // be skippable ($ignore_advance_timeout=true, used by the internal "İlk Müsaitlik" staff view -
+        // see docblock note above) - (1) must ALWAYS run regardless, or an already-passed free gap
+        // earlier today (e.g. 09:00-09:40 before a provider's first appointment) gets reported as an
+        // available slot, and since it's chronologically the day's earliest it wins "first slot" and
+        // then reads as "available NOW" (is_now compares against "now", and a past time is trivially
+        // <= now) even when the provider is mid-appointment or about to start one any second.
+        // Regression found live: "Nur'un 3 dk sonra seansı var ama müsait şimdi diyor" - exactly this,
+        // introduced by the very first version of $ignore_advance_timeout that skipped BOTH (1) and (2).
+        $available_hours = $this->consider_book_advance_timeout($date, $available_hours, $provider, $ignore_advance_timeout);
 
         $available_hours = $this->consider_future_booking_limit($date, $available_hours, $provider);
 
@@ -754,26 +756,42 @@ class Availability
      * @param string $date The selected date.
      * @param array $available_hours Already generated available hours.
      * @param array $provider Provider information.
+     * @param bool $ignore_advance_timeout Ki Reservation (2026-09-12) - when true, skip only the
+     *   configurable "book_advance_timeout" buffer (customer-booking guardrail) while still ALWAYS
+     *   stripping hours that are simply in the past relative to right now - see call-site docblock in
+     *   get_available_hours() for why these two are deliberately not both controlled by this flag.
      *
      * @return array Returns the updated available hours.
      *
      * @throws Exception
      */
-    protected function consider_book_advance_timeout(string $date, array $available_hours, array $provider): array
-    {
+    protected function consider_book_advance_timeout(
+        string $date,
+        array $available_hours,
+        array $provider,
+        bool $ignore_advance_timeout = false,
+    ): array {
         $provider_timezone = new DateTimeZone($provider['timezone']);
 
-        $book_advance_timeout = setting('book_advance_timeout', 0);
-        $book_advance_timeout = is_numeric($book_advance_timeout) ? max(0, (int) $book_advance_timeout) : 0;
+        $book_advance_timeout = 0;
 
+        if (!$ignore_advance_timeout) {
+            $book_advance_timeout = setting('book_advance_timeout', 0);
+            $book_advance_timeout = is_numeric($book_advance_timeout) ? max(0, (int) $book_advance_timeout) : 0;
+        }
+
+        // Floor to the current minute (not full "now" precision) so an hour that matches the CURRENT
+        // minute survives - only strictly earlier minutes (today's already-passed gaps) get removed.
+        // Using <= at full-second "now" precision would also throw out a provider who became free THIS
+        // very minute, which is exactly the "available right now" case the İlk Müsaitlik strip needs.
         $threshold = new DateTime('now', $provider_timezone);
-
+        $threshold->setTime((int) $threshold->format('H'), (int) $threshold->format('i'), 0);
         $threshold->modify('+' . $book_advance_timeout . ' minutes');
 
         foreach ($available_hours as $index => $value) {
             $available_hour = new DateTime($date . ' ' . $value, $provider_timezone);
 
-            if ($available_hour->getTimestamp() <= $threshold->getTimestamp()) {
+            if ($available_hour->getTimestamp() < $threshold->getTimestamp()) {
                 unset($available_hours[$index]);
             }
         }

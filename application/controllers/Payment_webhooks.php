@@ -126,13 +126,72 @@ class Payment_webhooks extends EA_Controller
                 $raw_body,
             );
 
-            // If payment succeeded, update appointment payment status
+            // If payment succeeded, reconcile the linked appointment's payment record. The transaction status
+            // above is already persisted at this point - this block is best-effort (like the order update below)
+            // and must never fail the webhook response itself.
             if ($event['status'] === 'succeeded' && !empty($transaction['id_appointments'])) {
-                $appointment_id = (int) $transaction['id_appointments'];
+                try {
+                    $appointment_id = (int) $transaction['id_appointments'];
 
-                // TODO: Call Appointments_model::set_payment() to mark appointment as paid
-                // This assumes Appointments_model has a set_payment() method
-                log_message('info', "Payment_webhooks::{$gateway} - payment succeeded for appointment {$appointment_id}");
+                    // find() throws if the appointment no longer exists -> caught below as a warning.
+                    $appointment = $this->appointments_model->find($appointment_id);
+
+                    // Total the customer is expected to pay: price_override when set, else the service price.
+                    $total = null;
+
+                    if (!empty($appointment['price_override'])) {
+                        $total = (float) $appointment['price_override'];
+                    } elseif (!empty($appointment['id_services'])) {
+                        $this->load->model('services_model');
+
+                        $service = $this->services_model->find((int) $appointment['id_services']);
+                        $total = !empty($service['price']) ? (float) $service['price'] : null;
+                    }
+
+                    if ($total === null || $total <= 0) {
+                        $total = (float) ($transaction['amount'] ?? 0);
+                    }
+
+                    $collected = (float) ($transaction['amount'] ?? 0);
+                    $balance = max(0.0, $total - $collected);
+
+                    // A deposit only ever covers part of the price, so the appointment stays 'pending' (shown as
+                    // unpaid in get_unpaid_sessions()) with the collected/remaining amounts recorded; when the
+                    // payment covers the full price it is marked 'collected'.
+                    if ($balance <= 0) {
+                        $this->appointments_model->set_payment(
+                            $appointment_id,
+                            PAYMENT_STATUS_COLLECTED,
+                            'virtual_pos',
+                            $total,
+                            0.0,
+                            false,
+                            0,
+                        );
+                    } else {
+                        $this->appointments_model->set_payment(
+                            $appointment_id,
+                            PAYMENT_STATUS_PENDING,
+                            'virtual_pos',
+                            $collected,
+                            $balance,
+                            false,
+                            0,
+                        );
+                    }
+
+                    log_message(
+                        'info',
+                        "Payment_webhooks::{$gateway} - payment succeeded for appointment {$appointment_id}"
+                            . " (collected: {$collected}, balance: {$balance})",
+                    );
+                } catch (Throwable $reconcile_error) {
+                    log_message(
+                        'warning',
+                        "Payment_webhooks::{$gateway} - appointment payment reconciliation failed for "
+                            . $transaction['id_appointments'] . ': ' . $reconcile_error->getMessage(),
+                    );
+                }
             }
 
             // Ki Reservation (Dalga 1) - if this transaction is linked to a POS order (see

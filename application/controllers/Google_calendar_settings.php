@@ -67,6 +67,14 @@ class Google_calendar_settings extends EA_Controller
                 'name' => 'display_add_to_google_calendar',
                 'value' => setting('display_add_to_google_calendar', '1'),
             ],
+            [
+                // Ki Reservation (2026-09-12) - privacy gate, see Google_sync::customer_sharing_enabled().
+                // Default OFF: a provider's Google Calendar is their own personal account, so customer
+                // name/email only get added as an event attendee (which also makes Google email the
+                // customer an invite) if the tenant explicitly opts in.
+                'name' => 'google_calendar_share_customer_data',
+                'value' => setting('google_calendar_share_customer_data', '0'),
+            ],
         ];
 
         script_vars([

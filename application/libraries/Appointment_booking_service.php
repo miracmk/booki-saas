@@ -320,7 +320,26 @@ class Appointment_booking_service
                 }
             } catch (Throwable $e) {
                 log_message('error', 'Appointment_booking_service::create - payment intent creation failed: ' . $e->getMessage());
-                // Don't fail the entire booking - just log the payment error
+
+                // When a deposit is required, a booking that cannot initiate payment must NOT silently succeed -
+                // the customer would walk away believing they are booked and the deposit was taken. Delete the
+                // just-created appointment to free the slot and surface a clear error instead.
+                if (!empty($appointment_id)) {
+                    try {
+                        $this->CI->appointments_model->delete((int) $appointment_id);
+                    } catch (Throwable $delete_error) {
+                        log_message(
+                            'error',
+                            'Appointment_booking_service::create - failed to delete appointment ' .
+                                $appointment_id . ' after payment error: ' . $delete_error->getMessage(),
+                        );
+                    }
+                }
+
+                return $this->error_response(
+                    'payment_init_failed',
+                    'Ödeme başlatılamadı. Rezervasyonunuz oluşturulmadı. Lütfen tekrar deneyin.',
+                );
             }
 
             $response = [
