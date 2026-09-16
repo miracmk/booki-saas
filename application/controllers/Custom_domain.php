@@ -32,7 +32,10 @@ class Custom_domain extends EA_Controller
 {
     // BooKi (2026-09-10) - where a verified/active tenant domain should ultimately point.
     // Mirrors scripts/add-custom-domain.sh's own DNS check (same server IP / canonical CNAME target).
-    private const CANONICAL_CNAME_TARGET = 'reservationapp.kibusiness.co';
+    private static function canonical_cname_target(): string
+    {
+        return getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+    }
     private const CANONICAL_SERVER_IP = '168.231.109.167';
 
     private const HOSTNAME_PATTERN = '/^(?=.{4,255}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/';
@@ -111,7 +114,7 @@ class Custom_domain extends EA_Controller
             'privileges' => $this->roles_model->get_permissions_by_slug(session('role_slug')),
             'multi_tenant' => (bool) tenant_context(),
             'domain_state' => $row,
-            'canonical_target' => self::CANONICAL_CNAME_TARGET,
+            'canonical_target' => self::canonical_cname_target(),
             'canonical_ip' => self::CANONICAL_SERVER_IP,
         ]);
 
@@ -185,7 +188,7 @@ class Custom_domain extends EA_Controller
                 'domain' => $domain,
                 'txt_host' => '_ki-verify.' . $domain,
                 'txt_value' => 'ki-verify=' . $token,
-                'cname_target' => self::CANONICAL_CNAME_TARGET,
+                'cname_target' => self::canonical_cname_target(),
                 'a_target' => self::CANONICAL_SERVER_IP,
             ]);
         } catch (Throwable $e) {
@@ -246,7 +249,7 @@ class Custom_domain extends EA_Controller
                 $problems[] = 'TXT kaydı (_ki-verify.' . $domain . ') bulunamadı veya değeri eşleşmiyor.';
             }
             if (!$target_ok) {
-                $problems[] = 'CNAME/A kaydı henüz sunucumuzu (' . self::CANONICAL_CNAME_TARGET . ') göstermiyor.';
+                $problems[] = 'CNAME/A kaydı henüz sunucumuzu (' . self::canonical_cname_target() . ') göstermiyor.';
             }
             $message = implode(' ', $problems) . ' DNS değişiklikleri yayılana kadar 5-30 dakika sürebilir.';
 
@@ -361,7 +364,7 @@ class Custom_domain extends EA_Controller
 
         foreach ($cname_records ?: [] as $record) {
             $target = rtrim((string) ($record['target'] ?? ''), '.');
-            if (strtolower($target) === self::CANONICAL_CNAME_TARGET) {
+            if (strtolower($target) === self::canonical_cname_target()) {
                 return true;
             }
         }

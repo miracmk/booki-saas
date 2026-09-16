@@ -221,10 +221,12 @@ class Superadmin_tenants extends EA_Controller
 
             $this->connect_master_db();
 
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+
             json_response([
                 'success' => true,
                 'subdomain' => $subdomain,
-                'login_url' => 'https://' . $subdomain . '-reservationapp.kibusiness.co/',
+                'login_url' => 'https://' . $subdomain . '-' . $app_domain . '/',
                 'admin_password' => $admin_password,
             ]);
         } catch (Throwable $e) {
@@ -545,7 +547,8 @@ class Superadmin_tenants extends EA_Controller
 
             $reset_data = $this->accounts->generate_reset_token($admin['username'], $admin['email']);
 
-            $host = $tenant['custom_domain'] ?: ($tenant['subdomain'] . '-reservationapp.kibusiness.co');
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+            $host = $tenant['custom_domain'] ?: ($tenant['subdomain'] . '-' . $app_domain);
             $reset_link = 'https://' . $host . '/recovery/reset?token=' . $reset_data['token'];
 
             $company_color = setting('company_color');

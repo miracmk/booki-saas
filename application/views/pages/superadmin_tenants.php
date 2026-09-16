@@ -86,7 +86,7 @@
                 $badge_label = $expired ? 'süresi doldu' : $tenant['status'];
                 ?>
                 <tr data-tenant-id="<?= e($tenant['id']) ?>" data-subdomain="<?= e($tenant['subdomain']) ?>">
-                    <td><?= e($tenant['subdomain']) ?>-reservationapp.kibusiness.co</td>
+                    <td><?= e($tenant['subdomain']) ?>-<?= e(getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co') ?></td>
                     <td><?= e($tenant['custom_domain'] ?? '—') ?></td>
                     <td><?= e($tenant['plan'] ?? '—') ?></td>
                     <td><span class="badge <?= e($badge_class) ?>"><?= e($badge_label) ?></span></td>

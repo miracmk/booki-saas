@@ -336,7 +336,7 @@ PROMPT;
                     'Authorization: Bearer ' . $api_key,
                     'Content-Type: application/json',
                     // OpenRouter uses these for its (optional) app leaderboard - harmless to include.
-                    'HTTP-Referer: https://reservationapp.kibusiness.co',
+                    'HTTP-Referer: https://' . (getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co'),
                     'X-Title: BooKi AI Asistan',
                 ],
             ]);

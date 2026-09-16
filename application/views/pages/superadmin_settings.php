@@ -36,7 +36,7 @@
             <p class="hint">
                 Buraya girilen Client ID/Secret, kendi Google Cloud projesi olmayan TÜM kiracılar için
                 paylaşılan (ortak) Google Takvim bağlantı kimliği olarak kullanılır. Her yeni kiracının
-                kendi callback URL'ini (<code>https://{subdomain}-reservationapp.kibusiness.co/index.php/google/oauth_callback</code>)
+                kendi callback URL'ini (<code>https://{subdomain}-<?= e(getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co') ?>/index.php/google/oauth_callback</code>)
                 bu OAuth Client'ın Google Cloud Console'daki "Authorized redirect URIs" listesine
                 eklemeniz gerekir.
             </p>
