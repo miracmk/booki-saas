@@ -2582,6 +2582,12 @@ class Console extends EA_Controller
                 continue;
             }
 
+            // BooKi (2026-09-16 bugfix) - each loop iteration must start from the master DB, since
+            // the previous iteration's connect_tenant() left $this->db pointed at that tenant's own
+            // database (which has no "tenants" table) - without this, every target after the first
+            // in a "demo_seed all" run fails this lookup silently.
+            $this->connect_master();
+
             $tenant = $this->db->get_where('tenants', ['subdomain' => $target])->row_array();
             if (!$tenant) {
                 echo '⚠ Tenant "' . $target . '" does not exist. Run: php index.php console tenant_create ' . $target . PHP_EOL;
