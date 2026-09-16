@@ -1,0 +1,134 @@
+name: ki-reservation
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: ki-reservation-app
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      # CLI-only fallback (e.g. cron-triggered emails) - real web requests compute base_url from the
+      # actual tenant subdomain in the request, see application/config/database.php.
+      BASE_URL: https://bookiapp.kibusiness.co
+      # Kiracı subdomain kalıbının çözüldüğü kök domain - EA_Controller::resolve_tenant() hem
+      # "{subdomain}-TENANT_APP_DOMAIN" (güncel) hem "{subdomain}.TENANT_APP_DOMAIN" (eski) kalıbını kabul eder.
+      TENANT_APP_DOMAIN: bookiapp.kibusiness.co
+      # SaaS admin paneli (kiracı CRUD + lisans takibi) bu domain'de - EA_Controller::resolve_tenant()
+      # bu host'ta master DB'de kalır, sadece "Superadmin*" controller ailesine izin verir.
+      SUPERADMIN_DOMAIN: admin-bookiapp.kibusiness.co
+      # Marketplace (tüketici keşif sitesi) bu domain'de - EA_Controller::resolve_tenant() bu host'ta
+      # da master DB'de kalır, sadece "Marketplace" controller'ına izin verir.
+      MARKETPLACE_DOMAIN: booki.kibusiness.co
+      LANGUAGE: turkish
+      DEBUG_MODE: "FALSE"
+      # 'default' connection group = the MASTER DB (holds only the `tenants` catalog). Each request is
+      # transparently re-pointed at the resolved tenant's own DB - see
+      # application/core/EA_Controller.php::resolve_tenant().
+      DB_HOST: db
+      DB_NAME: ki_reservation_master
+      DB_USERNAME: ki_reservation_master
+      DB_PASSWORD: ${DB_PASSWORD}
+      EA_APP_KEY: ${EA_APP_KEY}
+      TENANT_MASTER_KEY: ${TENANT_MASTER_KEY}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+      MAIL_PROTOCOL: mail
+      MAIL_SMTP_DEBUG: "0"
+      MAIL_SMTP_AUTH: "0"
+      MAIL_SMTP_HOST: ""
+      MAIL_SMTP_USER: ""
+      MAIL_SMTP_PASS: ""
+      MAIL_SMTP_CRYPTO: ""
+      MAIL_SMTP_PORT: "587"
+      MAIL_FROM_NAME: BooKi
+      MAIL_FROM_ADDRESS: no-reply@bookiapp.kibusiness.co
+      MAIL_REPLY_TO_ADDRESS: no-reply@bookiapp.kibusiness.co
+      # AI Assistant (application/libraries/Ai_llm_client.php) - Gemini birincil, Groq fallback (STT
+      # ve sohbet/randevu-niyeti çıkarımı için). Her ikisi de boşsa AI Assistant sessizce
+      # "kullanılamıyor" mesajı döner, hiçbir tenant'ı etkilemez (ai_assistant_enabled=false varsayılan).
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      # Unofficial WhatsApp mode default bridge (Messaging_settings_model::get_settings()) - points
+      # at our own `wa-bridge` sidecar service below so the QR wizard works without the admin having
+      # to fill in bridge URL/secret manually first. Per-tenant panel values still override this.
+      WA_BRIDGE_URL: http://wa-bridge:3000
+      WA_BRIDGE_SECRET: ${WA_BRIDGE_SECRET}
+      # AI Asistan admin-panel agent (Ai_agent_client.php, Dalga 4, 2026-09-12) - separate from the
+      # Ai_llm_client.php booking-widget assistant above. Provider-agnostic via OpenRouter (one API
+      # surface fronting many models) so swapping/adding providers later is a config change, not a
+      # rewrite. Empty key = agent replies with a "not configured" message, no tenant impact.
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      AI_AGENT_MODEL: ${AI_AGENT_MODEL:-openrouter/free}
+      # JS/CSS cache-busting token (see application/config/app.php) - bump on every deploy that
+      # changes a JS/CSS file.
+      ASSET_VERSION: "prod-20260916-001"
+    volumes:
+      - /opt/ki-ecosystem/ki-reservation/files:/var/www/html/storage
+    networks:
+      - ki-reservation-net
+
+  db:
+    image: mysql:8.0
+    container_name: ki-reservation-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ki_reservation_master
+      MYSQL_USER: ki_reservation_master
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - /opt/ki-ecosystem/ki-reservation/db/mysql:/var/lib/mysql
+    networks:
+      - ki-reservation-net
+
+  # Faz 3.5 part 2 - unofficial WhatsApp (resmi) mesaj gönderim sidecar'ı.
+  # Sözleşme: docs/whatsapp-bridge-contract.md (canonical repo). Baileys tabanlı,
+  # tenant başına izole oturumlar tutar; admin panelindeki WhatsApp Sihirbazı
+  # uygulama tarafından bridge'e bu servisin adı (http://wa-bridge:3000) ile ulaşır.
+  wa-bridge:
+    build:
+      context: ./bridge
+      dockerfile: Dockerfile
+    container_name: ki-wa-bridge
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      SESSIONS_DIR: /app/sessions
+      # Sözleşme gereği her istek X-Bridge-Secret taşımalıdır. Admin'in panelde
+      # girdiği secret ile buradaki değer BİREBİR aynı olmalıdır.
+      WA_BRIDGE_SECRET: ${WA_BRIDGE_SECRET}
+      # Opsiyonel kiracı bazlı secret override: '{"<tenant-key>":"<secret>"}' JSON.
+      WA_BRIDGE_TENANT_SECRETS: ${WA_BRIDGE_TENANT_SECRETS:-{}}
+      LOG_LEVEL: info
+    volumes:
+      # Oturum auth durumu (creds.json + QR) - files/ altında, .gitignore korumalı.
+      - /opt/ki-ecosystem/ki-reservation/files/wa-bridge-sessions:/app/sessions
+    networks:
+      - ki-reservation-net
+
+# Ki Reservation MCP sunucusu - rezervasyon ajanı için agent/v1 sözleşmesini MCP araçları
+  # olarak sunar (business/services/providers/availability/customer_lookup/customer_appointments/
+  # create_appointment/reschedule_appointment/cancel_appointment). HTTP streamable /mcp üzerinde.
+  # KI_AGENT_API_BASE + KI_AGENT_API_TOKEN hangi tenant agent API'sine bağlanacağını belirler
+  # (ör. https://salonflora-reservationapp.kibusiness.co/agent/v1).
+  kirsv-mcp:
+    build:
+      context: ./mcp/reservation-mcp
+      dockerfile: Dockerfile
+    container_name: kirsv-mcp
+    restart: unless-stopped
+    environment:
+      PORT: "8765"
+      BASE_PATH: /mcp
+      TRANSPORT: http
+      LOG_LEVEL: info
+      KI_AGENT_API_BASE: ${KI_AGENT_API_BASE:-}
+      KI_AGENT_API_TOKEN: ${KI_AGENT_API_TOKEN:-}
+    networks:
+      - ki-reservation-net
+
+networks:
+  ki-reservation-net:
+    driver: bridge

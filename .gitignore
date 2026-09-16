@@ -13,3 +13,9 @@ storage/backups/*
 .phpunit.cache/
 /tests/*.log
 .tokensave
+
+# Repo konsolidasyonu (2026-09-16) - artik/eski dosyalar, silinmedi ama artik izlenmiyor.
+/_arsiv/
+/deploy/.env
+/dev/.env
+node_modules/

@@ -1,0 +1,16 @@
+{
+  "name": "kirsv-mcp",
+  "version": "1.0.0",
+  "description": "Ki Reservation MCP server - exposes the platform's agent/v1 booking API as MCP tools for AI assistants/agents.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  }
+}

@@ -1,0 +1,98 @@
+# ============================================================
+# BooKi — GELİŞTİRME ORTAMI (Dev)
+# ------------------------------------------------
+# Kullanım:
+#   cd /opt/ki-ecosystem/ki-booki-dev
+#   COMPOSE_PROJECT_NAME=ki-booki-dev docker compose up -d --build
+#
+# Erişim:
+#   App   → http://localhost:8080
+#   Admin → http://localhost:8081  (SUPERADMIN_DOMAIN üzerinden)
+#   DB    → localhost:3307 (ki_booki_dev_master)
+#
+# Canlıdan izolasyon:
+#   - container adları: ki-booki-dev-*
+#   - ağ: ki-booki-dev-net (canlı ki-reservation-net'ten ayrı)
+#   - DB adı: ki_booki_dev_master (canlı ki_reservation_master'dan ayrı)
+#   - portlar: 8080/8081/3307 (canlı 80/3306 ile çakışmaz)
+# ============================================================
+name: ki-booki-dev
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: dev/Dockerfile
+    container_name: ki-booki-dev-app
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8080:80"
+      - "8081:80"
+    environment:
+      # CLI-only fallback (cron vb.) - web istekleri gerçek host'u kullanır
+      BASE_URL: https://devbookiapp.kibusiness.co
+      # Kiracı subdomain kalıbının çözüldüğü kök domain (port resolve_tenant() tarafından atılır)
+      # Kalıp: {tenant}-devbookiapp.kibusiness.co
+      TENANT_APP_DOMAIN: devbookiapp.kibusiness.co
+      # SaaS admin paneli domain'i
+      SUPERADMIN_DOMAIN: admin-devbookiapp.kibusiness.co
+      # Marketplace (dev'de app ile aynı)
+      MARKETPLACE_DOMAIN: booki.dev
+      LANGUAGE: turkish
+      DEBUG_MODE: "TRUE"
+      # 'default' connection group = MASTER DB (tenant kataloğu)
+      DB_HOST: db
+      DB_NAME: ki_booki_dev_master
+      DB_USERNAME: ki_booki_dev_master
+      DB_PASSWORD: ${DB_PASSWORD}
+      EA_APP_KEY: ${EA_APP_KEY}
+      TENANT_MASTER_KEY: ${TENANT_MASTER_KEY}
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
+      MAIL_PROTOCOL: mail
+      MAIL_SMTP_DEBUG: "0"
+      MAIL_SMTP_AUTH: "0"
+      MAIL_SMTP_HOST: ""
+      MAIL_SMTP_USER: ""
+      MAIL_SMTP_PASS: ""
+      MAIL_SMTP_CRYPTO: ""
+      MAIL_SMTP_PORT: "587"
+      MAIL_FROM_NAME: BooKi Dev
+      MAIL_FROM_ADDRESS: no-reply@localhost
+      MAIL_REPLY_TO_ADDRESS: no-reply@localhost
+      # AI Assistant dev'de kapalı (boş key = kullanılamıyor)
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      # Dev'de WhatsApp bridge yok - boş bırak
+      WA_BRIDGE_URL: ""
+      WA_BRIDGE_SECRET: ""
+      # AI Asistan admin-panel agent - dev'de kapalı
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      AI_AGENT_MODEL: openrouter/free
+      # JS/CSS cache-busting token - her dev deploy'da arttır
+      ASSET_VERSION: "dev-20260916-002"
+    volumes:
+      - /opt/ki-ecosystem/ki-booki-dev/files-dev:/var/www/html/storage
+    networks:
+      - ki-booki-dev-net
+
+  db:
+    image: mysql:8.0
+    container_name: ki-booki-dev-db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ki_booki_dev_master
+      MYSQL_USER: ki_booki_dev_master
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - /opt/ki-ecosystem/ki-booki-dev/db-dev/mysql:/var/lib/mysql
+    networks:
+      - ki-booki-dev-net
+
+networks:
+  ki-booki-dev-net:
+    driver: bridge
