@@ -21,7 +21,7 @@
                 </div>
             </form>
 
-            <h4 class="mb-3 fw-light">İstasyonlar</h4>
+            <h4 class="mb-3 fw-light"><?= lang('stations_heading') ?></h4>
 
             <div class="results overflow-auto" style="max-height: 650px;">
                 <!-- JS -->
@@ -66,7 +66,7 @@
                     <span class="text-danger" hidden>*</span>
                 </label>
                 <input id="name" class="form-control required" maxlength="256" disabled
-                       placeholder="Örn. İstasyon 1 - Masaj Odası">
+                       placeholder="<?= lang('stations_name_placeholder') ?>">
             </div>
 
             <div class="mb-3">
@@ -87,7 +87,7 @@
 
                 <div class="form-text text-muted">
                     <small>
-                        Pasif istasyonlar terapist atamasında görünmez.
+                        <?= lang('stations_inactive_hint') ?>
                     </small>
                 </div>
             </div>

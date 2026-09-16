@@ -2540,6 +2540,413 @@ class Console extends EA_Controller
     }
 
     /**
+     * Seed demo tenants with sample data.
+     *
+     * BooKi (Dalga 5) - populate demo/test tenants (demo-guzellik, demo-masaj, etc.)
+     * with vertical-specific services, staff, stations, and sample appointments.
+     * Supports dry-run mode to preview changes before committing.
+     *
+     * Usage:
+     *   php index.php console demo_seed hoteltest dry
+     *   php index.php console demo_seed hoteltest commit
+     *   php index.php console demo_seed all dry
+     *   php index.php console demo_seed all commit
+     *
+     * Security:
+     *   - Allowlist-only (PRIV_BRANCHES pattern): if subdomain is not in demo_seed_data(),
+     *     the command fails immediately with no writes.
+     *   - Salonflora specifically blocked (fail-closed).
+     *
+     * @param string $subdomain Tenant subdomain ('all' for all demo tenants) or empty for dry-run
+     * @param string $mode      'dry' (preview) or 'commit' (write to DB)
+     */
+    public function demo_seed(string $subdomain = '', string $mode = 'dry'): void
+    {
+        if (!is_multi_tenant_mode()) {
+            show_error('demo_seed is only available in multi-tenant mode.');
+        }
+
+        if (empty($subdomain)) {
+            $subdomain = 'all';
+        }
+
+        $commit = $mode === 'commit';
+        $catalog = $this->demo_seed_data();
+
+        // Allowlist security: fail-closed. salonflora is explicitly NOT in catalog.
+        $targets = $subdomain === 'all' ? array_keys($catalog) : [$subdomain];
+
+        foreach ($targets as $target) {
+            if (!isset($catalog[$target])) {
+                echo '⚠ Tenant "' . $target . '" not in demo catalog, skipping.' . PHP_EOL;
+                continue;
+            }
+
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $target])->row_array();
+            if (!$tenant) {
+                echo '⚠ Tenant "' . $target . '" does not exist. Run: php index.php console tenant_create ' . $target . PHP_EOL;
+                continue;
+            }
+
+            $this->connect_tenant($tenant);
+
+            $this->load->model('service_categories_model');
+            $this->load->model('services_model');
+            $this->load->model('stations_model');
+            $this->load->model('providers_model');
+            $this->load->model('customers_model');
+            $this->load->model('appointments_model');
+            $this->load->model('roles_model');
+
+            $data = $catalog[$target];
+
+            if (!$commit) {
+                echo '📋 DRY-RUN: ' . $target . PHP_EOL;
+                echo '   - Company: ' . $data['company_name'] . PHP_EOL;
+                echo '   - Categories: ' . count($data['categories']) . PHP_EOL;
+                echo '   - Services: ' . count($data['services']) . PHP_EOL;
+                echo '   - Stations: ' . count($data['stations']) . PHP_EOL;
+                echo '   - Providers: ' . count($data['providers']) . PHP_EOL;
+                echo '   - Customers: ' . count($data['customers']) . PHP_EOL;
+                echo '   - Appointments: ' . count($data['appointments']) . PHP_EOL;
+                continue;
+            }
+
+            echo '💾 COMMIT: ' . $target . PHP_EOL;
+
+            // Settings
+            setting([
+                'company_name' => $data['company_name'],
+                'business_type' => $data['business_type'],
+                'company_email' => 'demo-' . $target . '@kibusiness.co',
+                'company_phone' => '+90 555 000 00 10',
+                'company_address' => 'Demo Address, Türkiye',
+                'onboarding_completed' => '1',
+            ]);
+
+            // Categories
+            $category_ids = [];
+            foreach ($data['categories'] as $cat_name) {
+                $exists = $this->db->get_where('service_categories', ['name' => $cat_name])->row_array();
+                if ($exists) {
+                    $category_ids[$cat_name] = $exists['id'];
+                } else {
+                    $this->service_categories_model->save(['name' => $cat_name]);
+                    $id = $this->db->insert_id();
+                    $category_ids[$cat_name] = $id;
+                }
+            }
+
+            // Services
+            $service_ids = [];
+            foreach ($data['services'] as $svc) {
+                $existing = $this->db->get_where('services', ['name' => $svc['name']])->row_array();
+                if ($existing) {
+                    $service_ids[$svc['name']] = $existing['id'];
+                    continue;
+                }
+
+                $save_data = [
+                    'name' => $svc['name'],
+                    'duration' => $svc['duration'],
+                    'price' => $svc['price'],
+                    'currency' => 'TRY',
+                    'slot_interval' => 15,
+                    'attendants_number' => $svc['attendants_number'] ?? 1,
+                    'id_service_categories' => $category_ids[$svc['category']] ?? 1,
+                    'description' => '',
+                ];
+                $this->services_model->save($save_data);
+                $id = $this->db->insert_id();
+                $service_ids[$svc['name']] = $id;
+            }
+
+            // Stations
+            $station_ids = [];
+            foreach ($data['stations'] as $station) {
+                $exists = $this->db->get_where('stations', ['name' => $station])->row_array();
+                if ($exists) {
+                    $station_ids[$station] = $exists['id'];
+                    continue;
+                }
+
+                $this->stations_model->save(['name' => $station, 'notes' => '', 'is_active' => 1, 'services' => []]);
+                $id = $this->db->insert_id();
+                $station_ids[$station] = $id;
+            }
+
+            // Providers
+            $provider_ids = [];
+            foreach ($data['providers'] as $prov_data) {
+                $existing = $this->db->get_where('users', ['email' => $prov_data['email']])->row_array();
+                if ($existing) {
+                    $provider_ids[$prov_data['first_name']] = $existing['id'];
+                    continue;
+                }
+
+                $prov_services = [];
+                foreach ($prov_data['services'] as $svc_name) {
+                    if (isset($service_ids[$svc_name])) {
+                        $prov_services[] = $service_ids[$svc_name];
+                    }
+                }
+
+                $prov_stations = [];
+                foreach ($prov_data['stations'] as $sta_name) {
+                    if (isset($station_ids[$sta_name])) {
+                        $prov_stations[] = $station_ids[$sta_name];
+                    }
+                }
+
+                $pwd = bin2hex(random_bytes(12));
+                $save_data = [
+                    'first_name' => $prov_data['first_name'],
+                    'last_name' => $prov_data['last_name'],
+                    'email' => $prov_data['email'],
+                    'phone_number' => $prov_data['phone_number'],
+                    'services' => $prov_services,
+                    'stations' => $prov_stations,
+                    'settings' => [
+                        'username' => strtolower(str_replace(' ', '', $prov_data['first_name'])),
+                        'password' => $pwd,
+                        'working_plan' => setting('company_working_plan'),
+                        'working_plan_exceptions' => '{}',
+                        'notifications' => false,
+                        'google_sync' => false,
+                        'sync_past_days' => 30,
+                        'sync_future_days' => 90,
+                        'calendar_view' => 0,
+                    ],
+                ];
+                $this->providers_model->save($save_data);
+                $id = $this->db->insert_id();
+                $provider_ids[$prov_data['first_name']] = $id;
+            }
+
+            // Customers
+            $customer_ids = [];
+            foreach ($data['customers'] as $cust) {
+                $existing = $this->db->get_where('customers', ['email' => $cust['email']])->row_array();
+                if ($existing) {
+                    $customer_ids[$cust['first_name']] = $existing['id'];
+                    continue;
+                }
+
+                $this->customers_model->save($cust);
+                $id = $this->db->insert_id();
+                $customer_ids[$cust['first_name']] = $id;
+            }
+
+            // Appointments (relative dates: +1 day forward)
+            foreach ($data['appointments'] as $apt) {
+                $prov_id = $provider_ids[$apt['provider']] ?? null;
+                $cust_id = $customer_ids[$apt['customer']] ?? null;
+                $svc_id = $service_ids[$apt['service']] ?? null;
+                $sta_id = $station_ids[$apt['station']] ?? null;
+
+                if (!$prov_id || !$cust_id || !$svc_id || !$sta_id) {
+                    continue; // Skip if any reference is missing
+                }
+
+                $base_date = date('Y-m-d', strtotime('+1 day'));
+                $apt_data = [
+                    'start_datetime' => $base_date . ' ' . $apt['start_time'],
+                    'end_datetime' => $base_date . ' ' . $apt['end_time'],
+                    'is_unavailability' => 0,
+                    'notes' => 'Demo appointment',
+                    'id_users_provider' => $prov_id,
+                    'id_users_customer' => $cust_id,
+                    'id_services' => $svc_id,
+                    'id_stations' => $sta_id,
+                ];
+                $this->appointments_model->save($apt_data);
+            }
+
+            echo '✓ Seeded: ' . $target . PHP_EOL;
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+    }
+
+    /**
+     * Return demo catalog data for all vertical-specific demo tenants.
+     *
+     * This is a static, allowlist-only definition. Any subdomain not in this
+     * array is rejected at seed-time.
+     *
+     * @return array Keyed by subdomain (demo-guzellik, demo-masaj, ...), value is seed data
+     */
+    private function demo_seed_data(): array
+    {
+        $working_plan = setting('company_working_plan') ?? json_encode([
+            'monday' => ['start' => '09:00', 'end' => '18:00', 'breaks' => []],
+            'tuesday' => ['start' => '09:00', 'end' => '18:00', 'breaks' => []],
+            'wednesday' => ['start' => '09:00', 'end' => '18:00', 'breaks' => []],
+            'thursday' => ['start' => '09:00', 'end' => '18:00', 'breaks' => []],
+            'friday' => ['start' => '09:00', 'end' => '18:00', 'breaks' => []],
+            'saturday' => ['start' => '09:00', 'end' => '15:00', 'breaks' => []],
+            'sunday' => [],
+        ]);
+
+        return [
+            'demo-guzellik' => [
+                'company_name' => 'Lumiere Güzellik Merkezi',
+                'business_type' => 'Güzellik Salonu',
+                'categories' => ['Saç', 'Cilt Bakımı', 'Tırnak'],
+                'services' => [
+                    ['name' => 'Saç Kesimi & Fön', 'duration' => 60, 'price' => 750, 'category' => 'Saç', 'attendants_number' => 1],
+                    ['name' => 'Saç Boyası (Tek Renk)', 'duration' => 120, 'price' => 2400, 'category' => 'Saç', 'attendants_number' => 1],
+                    ['name' => 'Keratin Bakım', 'duration' => 150, 'price' => 3800, 'category' => 'Saç', 'attendants_number' => 1],
+                    ['name' => 'Klasik Cilt Bakımı', 'duration' => 60, 'price' => 1200, 'category' => 'Cilt Bakımı', 'attendants_number' => 1],
+                    ['name' => 'Kalıcı Oje (Manikür)', 'duration' => 45, 'price' => 600, 'category' => 'Tırnak', 'attendants_number' => 1],
+                ],
+                'stations' => ['Koltuk 1', 'Koltuk 2', 'Bakım Odası'],
+                'providers' => [
+                    ['first_name' => 'Elif', 'last_name' => 'Yıldırım', 'email' => 'elif@demo-guzellik.kibusiness.co', 'phone_number' => '+90 555 000 00 21', 'services' => ['Saç Kesimi & Fön', 'Saç Boyası (Tek Renk)'], 'stations' => ['Koltuk 1', 'Koltuk 2']],
+                    ['first_name' => 'Merve', 'last_name' => 'Aksoy', 'email' => 'merve@demo-guzellik.kibusiness.co', 'phone_number' => '+90 555 000 00 22', 'services' => ['Keratin Bakım', 'Klasik Cilt Bakımı'], 'stations' => ['Bakım Odası']],
+                    ['first_name' => 'Zeynep', 'last_name' => 'Korkmaz', 'email' => 'zeynep@demo-guzellik.kibusiness.co', 'phone_number' => '+90 555 000 00 23', 'services' => ['Kalıcı Oje (Manikür)'], 'stations' => ['Koltuk 1']],
+                ],
+                'customers' => [
+                    ['first_name' => 'Ayşe', 'last_name' => 'Demo', 'email' => 'demo-musteri1@demo-guzellik.kibusiness.co', 'phone_number' => '+90 555 000 00 30'],
+                    ['first_name' => 'Mehmet', 'last_name' => 'Demo', 'email' => 'demo-musteri2@demo-guzellik.kibusiness.co', 'phone_number' => '+90 555 000 00 31'],
+                ],
+                'appointments' => [
+                    ['provider' => 'Elif', 'customer' => 'Ayşe', 'service' => 'Saç Kesimi & Fön', 'station' => 'Koltuk 1', 'start_time' => '09:00', 'end_time' => '10:00'],
+                    ['provider' => 'Merve', 'customer' => 'Mehmet', 'service' => 'Klasik Cilt Bakımı', 'station' => 'Bakım Odası', 'start_time' => '14:00', 'end_time' => '15:00'],
+                ],
+            ],
+            'demo-masaj' => [
+                'company_name' => 'Serene Masaj & Spa',
+                'business_type' => 'Masaj Salonu/Spa',
+                'categories' => ['Masaj', 'Spa Ritüelleri'],
+                'services' => [
+                    ['name' => 'İsveç Masajı', 'duration' => 60, 'price' => 1500, 'category' => 'Masaj', 'attendants_number' => 1],
+                    ['name' => 'Derin Doku Masajı', 'duration' => 90, 'price' => 2200, 'category' => 'Masaj', 'attendants_number' => 1],
+                    ['name' => 'Aromaterapi Masajı', 'duration' => 75, 'price' => 1900, 'category' => 'Masaj', 'attendants_number' => 1],
+                    ['name' => 'Sıcak Taş Terapisi', 'duration' => 90, 'price' => 2500, 'category' => 'Spa Ritüelleri', 'attendants_number' => 1],
+                    ['name' => 'Çift Masajı', 'duration' => 60, 'price' => 2800, 'category' => 'Spa Ritüelleri', 'attendants_number' => 2],
+                ],
+                'stations' => ['Masaj Odası 1', 'Masaj Odası 2', 'Çift Odası'],
+                'providers' => [
+                    ['first_name' => 'Deniz', 'last_name' => 'Arslan', 'email' => 'deniz@demo-masaj.kibusiness.co', 'phone_number' => '+90 555 000 00 24', 'services' => ['İsveç Masajı', 'Derin Doku Masajı'], 'stations' => ['Masaj Odası 1']],
+                    ['first_name' => 'Burak', 'last_name' => 'Şentürk', 'email' => 'burak@demo-masaj.kibusiness.co', 'phone_number' => '+90 555 000 00 25', 'services' => ['Aromaterapi Masajı', 'Sıcak Taş Terapisi', 'Çift Masajı'], 'stations' => ['Masaj Odası 2', 'Çift Odası']],
+                ],
+                'customers' => [
+                    ['first_name' => 'Ayşe', 'last_name' => 'Demo', 'email' => 'demo-musteri1@demo-masaj.kibusiness.co', 'phone_number' => '+90 555 000 00 30'],
+                    ['first_name' => 'Mehmet', 'last_name' => 'Demo', 'email' => 'demo-musteri2@demo-masaj.kibusiness.co', 'phone_number' => '+90 555 000 00 31'],
+                ],
+                'appointments' => [
+                    ['provider' => 'Deniz', 'customer' => 'Ayşe', 'service' => 'İsveç Masajı', 'station' => 'Masaj Odası 1', 'start_time' => '10:00', 'end_time' => '11:00'],
+                    ['provider' => 'Burak', 'customer' => 'Mehmet', 'service' => 'Sıcak Taş Terapisi', 'station' => 'Masaj Odası 2', 'start_time' => '15:00', 'end_time' => '16:30'],
+                ],
+            ],
+            'demo-restoran' => [
+                'company_name' => 'Mavi Liman Restoran',
+                'business_type' => 'Restoran',
+                'categories' => ['Masa Rezervasyonu', 'Özel Etkinlik'],
+                'services' => [
+                    ['name' => 'Akşam Yemeği—2 Kişilik Masa', 'duration' => 120, 'price' => 0, 'category' => 'Masa Rezervasyonu', 'attendants_number' => 1],
+                    ['name' => 'Akşam Yemeği—4 Kişilik Masa', 'duration' => 120, 'price' => 0, 'category' => 'Masa Rezervasyonu', 'attendants_number' => 1],
+                    ['name' => 'Öğle Menüsü—2 Kişilik', 'duration' => 90, 'price' => 0, 'category' => 'Masa Rezervasyonu', 'attendants_number' => 1],
+                    ['name' => 'Şef Masası Degüstasyon', 'duration' => 180, 'price' => 3500, 'category' => 'Özel Etkinlik', 'attendants_number' => 6],
+                    ['name' => 'Özel Etkinlik/Grup Rezervasyonu', 'duration' => 240, 'price' => 0, 'category' => 'Özel Etkinlik', 'attendants_number' => 1],
+                ],
+                'stations' => ['Masa 4 (Pencere Kenarı)', 'Masa 9 (Bahçe)', 'Masa 12 (Şef Masası)'],
+                'providers' => [
+                    ['first_name' => 'Ahmet', 'last_name' => 'Duran', 'email' => 'ahmet@demo-restoran.kibusiness.co', 'phone_number' => '+90 555 000 00 26', 'services' => ['Akşam Yemeği—2 Kişilik Masa', 'Akşam Yemeği—4 Kişilik Masa'], 'stations' => ['Masa 4 (Pencere Kenarı)', 'Masa 9 (Bahçe)']],
+                    ['first_name' => 'Selin', 'last_name' => 'Bozkurt', 'email' => 'selin@demo-restoran.kibusiness.co', 'phone_number' => '+90 555 000 00 27', 'services' => ['Şef Masası Degüstasyon', 'Özel Etkinlik/Grup Rezervasyonu'], 'stations' => ['Masa 12 (Şef Masası)']],
+                ],
+                'customers' => [
+                    ['first_name' => 'Ayşe', 'last_name' => 'Demo', 'email' => 'demo-musteri1@demo-restoran.kibusiness.co', 'phone_number' => '+90 555 000 00 30'],
+                    ['first_name' => 'Mehmet', 'last_name' => 'Demo', 'email' => 'demo-musteri2@demo-restoran.kibusiness.co', 'phone_number' => '+90 555 000 00 31'],
+                ],
+                'appointments' => [
+                    ['provider' => 'Ahmet', 'customer' => 'Ayşe', 'service' => 'Akşam Yemeği—2 Kişilik Masa', 'station' => 'Masa 4 (Pencere Kenarı)', 'start_time' => '19:00', 'end_time' => '21:00'],
+                    ['provider' => 'Selin', 'customer' => 'Mehmet', 'service' => 'Şef Masası Degüstasyon', 'station' => 'Masa 12 (Şef Masası)', 'start_time' => '20:00', 'end_time' => '23:00'],
+                ],
+            ],
+            'demo-otel' => [
+                'company_name' => 'Grand Marmara Otel',
+                'business_type' => 'Otel',
+                'categories' => ['Spa & Wellness', 'Toplantı & Etkinlik', 'Transfer'],
+                'services' => [
+                    ['name' => 'Spa Günü Paketi', 'duration' => 180, 'price' => 3200, 'category' => 'Spa & Wellness', 'attendants_number' => 1],
+                    ['name' => 'Hamam & Kese Ritüeli', 'duration' => 60, 'price' => 1400, 'category' => 'Spa & Wellness', 'attendants_number' => 1],
+                    ['name' => 'Toplantı Salonu—Yarım Gün', 'duration' => 240, 'price' => 6500, 'category' => 'Toplantı & Etkinlik', 'attendants_number' => 1],
+                    ['name' => 'Toplantı Salonu—Saatlik', 'duration' => 60, 'price' => 2000, 'category' => 'Toplantı & Etkinlik', 'attendants_number' => 1],
+                    ['name' => 'Havalimanı Transferi', 'duration' => 90, 'price' => 1800, 'category' => 'Transfer', 'attendants_number' => 1],
+                ],
+                'stations' => ['Spa Suiti A', 'Toplantı Salonu "Boğaz"', 'Hamam'],
+                'providers' => [
+                    ['first_name' => 'Canan', 'last_name' => 'Erdoğan', 'email' => 'canan@demo-otel.kibusiness.co', 'phone_number' => '+90 555 000 00 28', 'services' => ['Spa Günü Paketi', 'Hamam & Kese Ritüeli'], 'stations' => ['Spa Suiti A', 'Hamam']],
+                    ['first_name' => 'Kerem', 'last_name' => 'Yalçın', 'email' => 'kerem@demo-otel.kibusiness.co', 'phone_number' => '+90 555 000 00 29', 'services' => ['Toplantı Salonu—Yarım Gün', 'Toplantı Salonu—Saatlik', 'Havalimanı Transferi'], 'stations' => ['Toplantı Salonu "Boğaz"']],
+                ],
+                'customers' => [
+                    ['first_name' => 'Ayşe', 'last_name' => 'Demo', 'email' => 'demo-musteri1@demo-otel.kibusiness.co', 'phone_number' => '+90 555 000 00 30'],
+                    ['first_name' => 'Mehmet', 'last_name' => 'Demo', 'email' => 'demo-musteri2@demo-otel.kibusiness.co', 'phone_number' => '+90 555 000 00 31'],
+                ],
+                'appointments' => [
+                    ['provider' => 'Canan', 'customer' => 'Ayşe', 'service' => 'Spa Günü Paketi', 'station' => 'Spa Suiti A', 'start_time' => '10:00', 'end_time' => '13:00'],
+                    ['provider' => 'Kerem', 'customer' => 'Mehmet', 'service' => 'Toplantı Salonu—Yarım Gün', 'station' => 'Toplantı Salonu "Boğaz"', 'start_time' => '14:00', 'end_time' => '18:00'],
+                ],
+            ],
+            'demo-klinik' => [
+                'company_name' => 'Vita Sağlık Kliniği',
+                'business_type' => 'Klinik/Sağlık',
+                'categories' => ['Poliklinik', 'Diş', 'Fizik Tedavi'],
+                'services' => [
+                    ['name' => 'Dahiliye Muayenesi', 'duration' => 30, 'price' => 1500, 'category' => 'Poliklinik', 'attendants_number' => 1],
+                    ['name' => 'Diş Kontrolü & Temizliği', 'duration' => 45, 'price' => 2000, 'category' => 'Diş', 'attendants_number' => 1],
+                    ['name' => 'Fizik Tedavi Seansı', 'duration' => 45, 'price' => 1200, 'category' => 'Fizik Tedavi', 'attendants_number' => 1],
+                    ['name' => 'Beslenme & Diyet Danışmanlığı', 'duration' => 60, 'price' => 1000, 'category' => 'Poliklinik', 'attendants_number' => 1],
+                    ['name' => 'Kontrol Muayenesi', 'duration' => 20, 'price' => 750, 'category' => 'Poliklinik', 'attendants_number' => 1],
+                ],
+                'stations' => ['Muayene Odası 1', 'Diş Ünitesi', 'Tedavi Odası'],
+                'providers' => [
+                    ['first_name' => 'Ayşe', 'last_name' => 'Demir', 'email' => 'ayse@demo-klinik.kibusiness.co', 'phone_number' => '+90 555 000 00 32', 'services' => ['Dahiliye Muayenesi', 'Beslenme & Diyet Danışmanlığı'], 'stations' => ['Muayene Odası 1']],
+                    ['first_name' => 'Mert', 'last_name' => 'Kaya', 'email' => 'mert@demo-klinik.kibusiness.co', 'phone_number' => '+90 555 000 00 33', 'services' => ['Diş Kontrolü & Temizliği'], 'stations' => ['Diş Ünitesi']],
+                    ['first_name' => 'Gizem', 'last_name' => 'Uçar', 'email' => 'gizem@demo-klinik.kibusiness.co', 'phone_number' => '+90 555 000 00 34', 'services' => ['Fizik Tedavi Seansı'], 'stations' => ['Tedavi Odası']],
+                ],
+                'customers' => [
+                    ['first_name' => 'Ayşe', 'last_name' => 'Demo', 'email' => 'demo-musteri1@demo-klinik.kibusiness.co', 'phone_number' => '+90 555 000 00 30'],
+                    ['first_name' => 'Mehmet', 'last_name' => 'Demo', 'email' => 'demo-musteri2@demo-klinik.kibusiness.co', 'phone_number' => '+90 555 000 00 31'],
+                ],
+                'appointments' => [
+                    ['provider' => 'Ayşe', 'customer' => 'Ayşe', 'service' => 'Dahiliye Muayenesi', 'station' => 'Muayene Odası 1', 'start_time' => '09:30', 'end_time' => '10:00'],
+                    ['provider' => 'Mert', 'customer' => 'Mehmet', 'service' => 'Diş Kontrolü & Temizliği', 'station' => 'Diş Ünitesi', 'start_time' => '11:00', 'end_time' => '11:45'],
+                ],
+            ],
+            'demo-studyo' => [
+                'company_name' => 'Pulse Stüdyo & Fitness',
+                'business_type' => 'Stüdyo/Fitness',
+                'categories' => ['Grup Dersleri', 'Kişisel Antrenman'],
+                'services' => [
+                    ['name' => 'Reformer Pilates', 'duration' => 50, 'price' => 900, 'category' => 'Grup Dersleri', 'attendants_number' => 6],
+                    ['name' => 'Yoga Akışı', 'duration' => 60, 'price' => 600, 'category' => 'Grup Dersleri', 'attendants_number' => 10],
+                    ['name' => 'Kişisel Antrenman', 'duration' => 60, 'price' => 1800, 'category' => 'Kişisel Antrenman', 'attendants_number' => 1],
+                    ['name' => 'Fonksiyonel HIIT', 'duration' => 45, 'price' => 700, 'category' => 'Grup Dersleri', 'attendants_number' => 8],
+                    ['name' => 'Vücut Analizi & Program Çıkarma', 'duration' => 30, 'price' => 500, 'category' => 'Kişisel Antrenman', 'attendants_number' => 1],
+                ],
+                'stations' => ['Stüdyo A (Reformer)', 'Stüdyo B (Grup)', 'Serbest Ağırlık Alanı'],
+                'providers' => [
+                    ['first_name' => 'Cem', 'last_name' => 'Özkan', 'email' => 'cem@demo-studyo.kibusiness.co', 'phone_number' => '+90 555 000 00 35', 'services' => ['Reformer Pilates', 'Kişisel Antrenman'], 'stations' => ['Stüdyo A (Reformer)']],
+                    ['first_name' => 'Nazlı', 'last_name' => 'Türkmen', 'email' => 'nazli@demo-studyo.kibusiness.co', 'phone_number' => '+90 555 000 00 36', 'services' => ['Yoga Akışı', 'Fonksiyonel HIIT'], 'stations' => ['Stüdyo B (Grup)']],
+                ],
+                'customers' => [
+                    ['first_name' => 'Ayşe', 'last_name' => 'Demo', 'email' => 'demo-musteri1@demo-studyo.kibusiness.co', 'phone_number' => '+90 555 000 00 30'],
+                    ['first_name' => 'Mehmet', 'last_name' => 'Demo', 'email' => 'demo-musteri2@demo-studyo.kibusiness.co', 'phone_number' => '+90 555 000 00 31'],
+                ],
+                'appointments' => [
+                    ['provider' => 'Cem', 'customer' => 'Ayşe', 'service' => 'Kişisel Antrenman', 'station' => 'Stüdyo A (Reformer)', 'start_time' => '07:00', 'end_time' => '08:00'],
+                    ['provider' => 'Nazlı', 'customer' => 'Mehmet', 'service' => 'Yoga Akışı', 'station' => 'Stüdyo B (Grup)', 'start_time' => '18:00', 'end_time' => '19:00'],
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Show help information about the console capabilities.
      *
      * Use this method to see the available commands.
@@ -2577,6 +2984,7 @@ class Console extends EA_Controller
             '⇾ php index.php console review_issue <appointment_id> [subdomain]',
             '⇾ php index.php console reviews list [status] [subdomain]',
             '⇾ php index.php console review_status <review_id> <published|rejected> [subdomain]',
+            '⇾ php index.php console demo_seed [subdomain|all] [dry|commit]',
             '',
             '',
         ];
