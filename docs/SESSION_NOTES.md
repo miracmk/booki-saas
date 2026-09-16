@@ -2,7 +2,45 @@
 
 Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
-Son güncelleme: 2026-09-16
+Son güncelleme: 2026-09-17
+
+## 2026-09-16/17 OTURUMU — wa-bridge: 3039 yayını + "WhatsApp QR, bridge bağlanmıyor" kök nedeni (ölü socket kilitlenmesi) — ÇÖZÜLDÜ
+
+Kullanıcı bildirimi: "WhatsApp QR, bridge bağlanmıyor." 2026-09-11/12'deki CSRF/Content-Type bug'ının
+tekrarı DEĞİL (o fix hâlâ hem kaynakta hem canlıda — iki dosyada da `application/x-www-form-urlencoded`
+mevcut, doğrulandı). Bu turun B maddesi: sıfırdan, varsayımsız tanı.
+
+**Tanı zinciri (canlı):**
+- Canlı köprü container'ındaki kod repo ile birebir aynı (sha256 karşılaştırma: server.js + bridge.js) — kod uyuşmazlığı yoktu.
+- App container içinden gerçek app yoluyla test: `wa-bridge:3000` + platform secret ile start→connecting→QR **üretiliyor**; secret DB'de `SFENC1:` şifreli (111 char), tenant `pii_enc_key` ile decrypt edildi → **platform secret ile birebir MATCH**; `whatsapp_bridge_url` override'ı doğru (`http://wa-bridge:3000`); `whatsapp_mode=unofficial`. Yani yapılandırma temizdi.
+- Apache access logu: kullanıcı bugün panel üzerinden 2 gerçek deneme yapmış (21:25 ve 21:31 UTC) — **QR 13 kB ile panele ulaşıyor**, tarama sonrası Baileys kapanıyor, kullanıcı ~5 sn sonra qr_logout basıyor.
+- `qr_status` meta'sından gerçek hata: **`Stream Errored (restart required)`** — Baileys DisconnectReason code **515**. Fresh pairing/ilk bağlantı sonrası WhatsApp sunucusunun normal davranışı: stream'i keser, restart ister.
+
+**Kök neden (bridge.js):** `connection.close` + loggedOut-olmayan durumda (515 dahil) handler `entry.sock`'u
+null'a çekmiyordu; `ensureSocket()` `entry.sock` set olduğu sürece yeni socket kurmayı reddediyor
+(`{reused:true}`) → tenant sonsuza kadar `error` kilitlenmesinde, `start()` ölü socket'i sessizce
+"yeniden kullanıyor", ne QR üretiliyor ne bağlanılıyor. Eski kod yakınken close nedeni hiç loglanmıyordu
+(Baileys logger `silent`) — bug bu yüzden gizli kaldı.
+
+**Düzeltme (deploy: `d68b702`):**
+1. Transient close'da `entry.sock = null` (ölü referans bırakılmaz).
+2. Backoff'lu **auto-reconnect**: 2sn → 5sn → 10sn (3 deneme; `reconnectTimer`/`reconnectAttempts` entry'ye eklendi, open'da sıfırlanır, logout/closeEntry temizler).
+3. `start()` explicit insan denemesinde attempts sıfırlar (taze deneme garantisi).
+4. Close nedeni artık `log.warn` ile loglanıyor (`{tenant, code, error}`).
+
+**Doğrulama (canlı):** tarama → 515 close → auto-reconnect → **connected**; DB'de
+`whatsapp_unofficial_status = connected` (panel polling'i yazdı). Köprü: `sessions:{salonflora:"connected"}`.
+Kalan kozmetik: `whatsapp_unofficial_name` NULL (Baileys user.name bu hesapta boş geliyor) — panelde cihaz
+adı boş görünür, işlevsel etkisi yok (ayrı iş).
+
+**Altyapı notu (yan bulgu):** host `127.0.0.1:3000` = Ki-Aetheris/Hermes agent'in kendi WhatsApp köprüsü
+(ayrı Baileys oturumu: `Ki-Aetheris/.hermes/whatsapp/session/creds.json`) — tanı sırasında karışıklık yarattı.
+ki-wa-bridge host'a yayınlı DEĞİLDİ; `127.0.0.1:3039:3000` loopback yayını eklendi (`10bf1ff` — sadece
+host-tanı erişimi; app hâlâ docker ağı üzerinden `http://wa-bridge:3000`). Not: tüm bridge route'ları
+(secret dahil `/health`) X-Bridge-Secret istiyor; loopback'e bağlı olduğu için dışa açık değil.
+Tanı artifaktı: köprü canlı log watcher `/tmp/wa-watch.log` (nohup, docker logs -f).
+
+---
 
 ## 0.5 2026-09-11/12 OTURUMU — WhatsApp CSRF bug, Tipografi, AI Asistan, UI Modernizasyon Dalga 4
 
