@@ -65,7 +65,9 @@ if (!function_exists('is_multi_tenant_mode')) {
     {
         $CI = &get_instance();
 
-        return $CI->db->table_exists('tenants');
+        // BooKi (2026-09-16) - Check both prefixed (ea_tenants) and non-prefixed (tenants) table names
+        // to handle different environments (multi-tenant SaaS vs single-tenant).
+        return $CI->db->table_exists($CI->db->dbprefix('tenants')) || $CI->db->table_exists('tenants');
     }
 }
 
