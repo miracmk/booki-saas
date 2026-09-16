@@ -37,10 +37,15 @@ const SESSIONS_DIR = process.env.SESSIONS_DIR || '/app/sessions';
  * @property {string|null} webhookUrl
  * @property {string|null} webhookSecret
  * @property {Promise|null} creating
+ * @property {NodeJS.Timeout|null} reconnectTimer
+ * @property {number} reconnectAttempts
  */
 
 /** @type {Map<string, SessionEntry>} */
 const sessions = new Map();
+
+/** Backoff schedule for auto-reconnect after a transient connection close. */
+const RECONNECT_DELAYS_MS = [2000, 5000, 10000];
 
 /** @type {import('pino').Logger} */
 const log = pino({ level: process.env.LOG_LEVEL || 'info' });
@@ -62,6 +67,8 @@ function getEntry(tenant) {
             webhookUrl: null,
             webhookSecret: null,
             creating: null,
+            reconnectTimer: null,
+            reconnectAttempts: 0,
         });
     }
 
@@ -195,6 +202,13 @@ async function createSocket(entry) {
             entry.qr = null;
             entry.error = null;
             entry.name = sock.user?.name || sock.user?.verifiedName || entry.name || null;
+            entry.reconnectAttempts = 0;
+
+            if (entry.reconnectTimer) {
+                clearTimeout(entry.reconnectTimer);
+                entry.reconnectTimer = null;
+            }
+
             return;
         }
 
@@ -211,21 +225,67 @@ async function createSocket(entry) {
                 return;
             }
 
-            // Transient close: Baileys reconnects on its own. Surface the reason
-            // while we wait; a fresh QR (if pairing is needed again) or an 'open'
-            // event moves us back to connecting/connected.
+            // Transient close (e.g. "Stream Errored (restart required)"): the dead
+            // socket reference MUST be dropped here - ensureSocket() refuses to
+            // create a new socket while entry.sock is set, so keeping it around
+            // would wedge the tenant in "error" forever (start() would silently
+            // reuse a dead socket and no QR would ever be produced again).
+            // Log the reason, drop the reference and let a bounded backoff retry
+            // the connection by itself.
+            entry.sock = null;
             entry.status = 'error';
             entry.error = lastDisconnect?.error?.message || 'connection_closed';
-            try {
-                entry.qr = null;
-            } catch (_) { /* noop */ }
+            entry.qr = null;
+            log.warn({ tenant: entry.tenant, code, error: entry.error }, 'connection closed');
+
+            scheduleReconnect(entry);
         }
     });
 
     sock.ev.on('messages.upsert', (upsert) => onMessagesUpsert(entry, upsert));
 }
 
+/**
+ * Bounded auto-reconnect after a transient close. After the schedule is
+ * exhausted the session stays in "error" until an explicit start() call - which
+ * resets the attempts so a human-initiated retry always gets a fresh socket.
+ */
+function scheduleReconnect(entry) {
+    if (entry.reconnectTimer) {
+        clearTimeout(entry.reconnectTimer);
+        entry.reconnectTimer = null;
+    }
+
+    if (entry.reconnectAttempts >= RECONNECT_DELAYS_MS.length) {
+        log.warn({ tenant: entry.tenant }, 'auto-reconnect attempts exhausted; waiting for explicit start');
+
+        return;
+    }
+
+    const delay = RECONNECT_DELAYS_MS[entry.reconnectAttempts];
+    entry.reconnectAttempts += 1;
+
+    entry.reconnectTimer = setTimeout(() => {
+        entry.reconnectTimer = null;
+
+        if (entry.sock || entry.status === 'connected' || entry.status === 'disconnected') {
+            return;
+        }
+
+        ensureSocket(entry).catch((err) => {
+            log.warn({ tenant: entry.tenant, err: err.message }, 'auto-reconnect failed');
+        });
+    }, delay);
+}
+
 function closeEntry(entry) {
+    if (entry.reconnectTimer) {
+        clearTimeout(entry.reconnectTimer);
+        entry.reconnectTimer = null;
+    }
+
+    entry.reconnectAttempts = 0;
+
     try {
         if (entry.sock) {
             entry.sock.end(new Error('session closed'));
@@ -295,6 +355,18 @@ export async function startSession(tenant, webhookUrl, webhookSecret) {
         return { status: 'connecting' };
     }
 
+    // Explicit human retry always gets a fresh attempt budget (and cancels any
+    // pending auto-reconnect timer; the entry.creating guard still serializes
+    // concurrent socket creation).
+    if (entry.status === 'error') {
+        entry.reconnectAttempts = 0;
+
+        if (entry.reconnectTimer) {
+            clearTimeout(entry.reconnectTimer);
+            entry.reconnectTimer = null;
+        }
+    }
+
     await ensureSocket(entry);
 
     return { status: entry.status === 'connected' ? 'connected' : 'connecting', name: entry.name };
@@ -343,6 +415,13 @@ export async function logoutSession(tenant) {
     if (!entry) {
         return { status: 'disconnected' };
     }
+
+    if (entry.reconnectTimer) {
+        clearTimeout(entry.reconnectTimer);
+        entry.reconnectTimer = null;
+    }
+
+    entry.reconnectAttempts = 0;
 
     try {
         if (entry.sock) {
