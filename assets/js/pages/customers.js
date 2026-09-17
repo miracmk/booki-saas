@@ -42,6 +42,16 @@ App.Pages.Customers = (function () {
     const $socialTelegram = $('#social-telegram');
     const $socialInstagram = $('#social-instagram');
     const $lastContactChannel = $('#last-contact-channel');
+    const $notificationPreferenceMode = $('#notification-preference-mode');
+    const $customNotificationChannels = $('#custom-notification-channels');
+    const notificationChannelInputs = {
+        email: $('#notify-email'),
+        sms: $('#notify-sms'),
+        call: $('#notify-call'),
+        whatsapp: $('#notify-whatsapp'),
+        telegram: $('#notify-telegram'),
+        instagram: $('#notify-instagram'),
+    };
     const $customerInsights = $('#customer-insights');
 
     const moment = window.moment;
@@ -126,6 +136,10 @@ App.Pages.Customers = (function () {
             $filterCustomers.find('.results').css('color', '#AAA');
         });
 
+        $customers.on('change', '#notification-preference-mode', () => {
+            $customNotificationChannels.toggle($notificationPreferenceMode.val() === 'custom');
+        });
+
         /**
          * Event: Cancel Customer Add/Edit Operation Button "Click"
          */
@@ -161,6 +175,15 @@ App.Pages.Customers = (function () {
                     instagram: $socialInstagram.val() || null,
                 }),
                 last_contact_channel: $lastContactChannel.val() || null,
+                notification_preferences: {
+                    mode: $notificationPreferenceMode.val() || 'default',
+                    email_enabled: notificationChannelInputs.email.prop('checked'),
+                    sms_enabled: notificationChannelInputs.sms.prop('checked'),
+                    call_enabled: notificationChannelInputs.call.prop('checked'),
+                    whatsapp_enabled: notificationChannelInputs.whatsapp.prop('checked'),
+                    telegram_enabled: notificationChannelInputs.telegram.prop('checked'),
+                    instagram_enabled: notificationChannelInputs.instagram.prop('checked'),
+                },
                 timezone: $timezone.val(),
                 language: $language.val() || 'english',
                 custom_field_1: $customField1.val(),
@@ -333,6 +356,9 @@ App.Pages.Customers = (function () {
      */
     function resetForm() {
         $customers.find('.record-details').find('input, select, textarea').val('').prop('disabled', true);
+        Object.values(notificationChannelInputs).forEach(($input) => $input.prop('checked', false));
+        $notificationPreferenceMode.val('default');
+        $customNotificationChannels.hide();
         $customers.find('.record-details .form-label span').prop('hidden', true);
         $customers.find('.record-details #timezone').val(vars('default_timezone'));
         $customers.find('.record-details #language').val(vars('default_language'));
@@ -524,6 +550,13 @@ App.Pages.Customers = (function () {
         $socialTelegram.val(socialLinks.telegram || '');
         $socialInstagram.val(socialLinks.instagram || '');
         $lastContactChannel.val(customer.last_contact_channel || '');
+
+        const notificationPreferences = customer.notification_preferences || {};
+        $notificationPreferenceMode.val(notificationPreferences.mode || 'default');
+        Object.entries(notificationChannelInputs).forEach(([channel, $input]) => {
+            $input.prop('checked', Boolean(notificationPreferences[`${channel}_enabled`]));
+        });
+        $customNotificationChannels.toggle($notificationPreferenceMode.val() === 'custom');
 
         renderInsights(customer);
 

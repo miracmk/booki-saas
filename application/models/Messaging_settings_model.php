@@ -34,6 +34,16 @@ class Messaging_settings_model extends EA_Model
                 'whatsapp_webhook_verify_token' => null,
                 'whatsapp_business_phone_display' => null,
                 'whatsapp_notifications_enabled' => 0,
+                'email_notifications_enabled' => 1,
+                'call_notifications_enabled' => 0,
+                'call_provider' => null,
+                'call_api_key' => null,
+                'call_from_number' => null,
+                'telegram_notifications_enabled' => 0,
+                'telegram_bot_token' => null,
+                'instagram_notifications_enabled' => 0,
+                'instagram_access_token' => null,
+                'instagram_account_id' => null,
                 'whatsapp_mode' => 'official',
                 'whatsapp_unofficial_status' => 'disconnected',
                 'whatsapp_unofficial_name' => null,
@@ -48,6 +58,7 @@ class Messaging_settings_model extends EA_Model
                 'smtp_from_name' => null,
                 'smtp_from_address' => null,
                 'default_notification_channel' => 'telegram',
+                'default_notification_channels' => 'telegram',
             ];
         } else {
             // Decrypt sensitive fields
@@ -58,6 +69,9 @@ class Messaging_settings_model extends EA_Model
             $row['whatsapp_waba_id'] = sf_pii_decrypt($row['whatsapp_waba_id']);
             $row['whatsapp_webhook_verify_token'] = sf_pii_decrypt($row['whatsapp_webhook_verify_token']);
             $row['whatsapp_bridge_secret'] = sf_pii_decrypt($row['whatsapp_bridge_secret']);
+            $row['call_api_key'] = sf_pii_decrypt($row['call_api_key']);
+            $row['telegram_bot_token'] = sf_pii_decrypt($row['telegram_bot_token']);
+            $row['instagram_access_token'] = sf_pii_decrypt($row['instagram_access_token']);
             $row['smtp_user'] = sf_pii_decrypt($row['smtp_user']);
             $row['smtp_pass'] = sf_pii_decrypt($row['smtp_pass']);
         }
@@ -93,13 +107,18 @@ class Messaging_settings_model extends EA_Model
         $to_update = [];
 
         $plaintext_fields = ['sms_gateway', 'netgsm_header', 'whatsapp_business_phone_display',
-            'sms_notifications_enabled', 'whatsapp_notifications_enabled', 'whatsapp_mode',
+            'sms_notifications_enabled', 'whatsapp_notifications_enabled', 'email_notifications_enabled',
+            'call_notifications_enabled', 'call_provider', 'call_from_number',
+            'telegram_notifications_enabled', 'instagram_notifications_enabled', 'instagram_account_id',
+            'whatsapp_mode',
             'whatsapp_unofficial_status', 'whatsapp_unofficial_name',
             'whatsapp_unofficial_consent_at', 'whatsapp_bridge_url', 'smtp_host', 'smtp_port',
-            'smtp_crypto', 'smtp_from_name', 'smtp_from_address', 'default_notification_channel'];
+            'smtp_crypto', 'smtp_from_name', 'smtp_from_address', 'default_notification_channel',
+            'default_notification_channels'];
         $encrypted_fields = ['netgsm_username', 'netgsm_password', 'whatsapp_phone_number_id',
             'whatsapp_access_token', 'whatsapp_waba_id', 'whatsapp_webhook_verify_token',
-            'whatsapp_bridge_secret', 'smtp_user', 'smtp_pass'];
+            'whatsapp_bridge_secret', 'call_api_key', 'telegram_bot_token', 'instagram_access_token',
+            'smtp_user', 'smtp_pass'];
 
         foreach ($plaintext_fields as $field) {
             if (isset($data[$field]) && $data[$field] !== '') {

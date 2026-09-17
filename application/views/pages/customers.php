@@ -164,6 +164,41 @@
                         </div>
                     </div>
 
+                    <div class="mb-4" id="customer-notification-preferences">
+                        <label class="form-label d-block">Bildirim Tercihleri</label>
+                        <select id="notification-preference-mode" class="form-select mb-2" disabled>
+                            <option value="default">Varsayılan bildirim ayarlarını kullan</option>
+                            <option value="custom">Bu müşteriye özel kanalları kullan</option>
+                        </select>
+                        <div id="custom-notification-channels" class="border rounded p-3">
+                            <div class="form-check mb-2">
+                                <input type="checkbox" id="notify-email" class="form-check-input" disabled>
+                                <label class="form-check-label" for="notify-email">E-posta</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" id="notify-sms" class="form-check-input" disabled>
+                                <label class="form-check-label" for="notify-sms">SMS</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" id="notify-call" class="form-check-input" disabled>
+                                <label class="form-check-label" for="notify-call">Arama</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" id="notify-whatsapp" class="form-check-input" disabled>
+                                <label class="form-check-label" for="notify-whatsapp">WhatsApp</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" id="notify-telegram" class="form-check-input" disabled>
+                                <label class="form-check-label" for="notify-telegram">Telegram</label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" id="notify-instagram" class="form-check-input" disabled>
+                                <label class="form-check-label" for="notify-instagram">Instagram</label>
+                            </div>
+                        </div>
+                        <div class="form-text">Özel seçim, Ayarlar &gt; Bildirim Ayarları içindeki pasif kanalları kullanmaz.</div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="address" class="form-label">
                             <?= lang('address') ?>

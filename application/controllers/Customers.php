@@ -69,6 +69,7 @@ class Customers extends EA_Controller
         $this->load->model('roles_model');
         $this->load->model('providers_model'); // BooKi (2026-08-26)
         $this->load->model('skills_model'); // BooKi (2026-08-26)
+        $this->load->model('user_notification_preferences_model');
 
         $this->load->library('accounts');
         $this->load->library('permissions');
@@ -208,6 +209,7 @@ class Customers extends EA_Controller
             }
 
             $customer = $this->customers_model->find($customer_id);
+            $customer['notification_preferences'] = $this->user_notification_preferences_model->get((int) $customer_id);
 
             // Salon Flora customization - see the class docblock.
             $customer = $this->appointments_model->filter_customer_for_role($customer, session('role_slug'));
@@ -290,6 +292,7 @@ class Customers extends EA_Controller
                 // afterwards rather than lost.
                 $customer = $this->appointments_model->filter_customer_for_role($customer, $role_slug);
                 $customer['appointments'] = $appointments;
+                $customer['notification_preferences'] = $this->user_notification_preferences_model->get((int) $customer['id']);
             }
 
             json_response(array_values($customers));
@@ -318,12 +321,18 @@ class Customers extends EA_Controller
             check('customer', 'array');
 
             $customer = request('customer');
+            $notification_preferences = $customer['notification_preferences'] ?? null;
+            unset($customer['notification_preferences']);
 
             $this->customers_model->only($customer, $this->allowed_customer_fields);
 
             $this->customers_model->optional($customer, $this->optional_customer_fields);
 
             $customer_id = $this->customers_model->save($customer);
+
+            if (is_array($notification_preferences)) {
+                $this->user_notification_preferences_model->save($customer_id, $notification_preferences);
+            }
 
             $customer = $this->customers_model->find($customer_id);
 
@@ -359,6 +368,8 @@ class Customers extends EA_Controller
             check('customer', 'array');
 
             $customer = request('customer');
+            $notification_preferences = $customer['notification_preferences'] ?? null;
+            unset($customer['notification_preferences']);
 
             if (!$this->permissions->has_customer_access($user_id, $customer['id'])) {
                 abort(403, 'Forbidden');
@@ -369,6 +380,10 @@ class Customers extends EA_Controller
             $this->customers_model->optional($customer, $this->optional_customer_fields);
 
             $customer_id = $this->customers_model->save($customer);
+
+            if (is_array($notification_preferences)) {
+                $this->user_notification_preferences_model->save((int) $customer_id, $notification_preferences);
+            }
 
             $customer = $this->customers_model->find($customer_id);
 
@@ -417,6 +432,7 @@ class Customers extends EA_Controller
             $customer = $this->customers_model->find($customer_id);
 
             $this->customers_model->delete($customer_id);
+            $this->user_notification_preferences_model->delete((int) $customer_id);
 
             audit_log('customer.delete', 'customer', (int) $customer_id);
 

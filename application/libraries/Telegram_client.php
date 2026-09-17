@@ -31,6 +31,7 @@ class Telegram_client
         $this->CI = &get_instance();
 
         $this->CI->load->model('settings_model');
+        $this->CI->load->model('messaging_settings_model');
     }
 
     /**
@@ -38,7 +39,8 @@ class Telegram_client
      */
     private function token(): ?string
     {
-        $token = setting('telegram_bot_token');
+        $settings = $this->CI->messaging_settings_model->get_settings();
+        $token = $settings['telegram_bot_token'] ?? setting('telegram_bot_token');
 
         return !empty($token) ? $token : null;
     }
