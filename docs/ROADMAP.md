@@ -12,40 +12,44 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 
 ## Boşluk Analizi — 22 Kritik Alan
 
-| # | Alan | Durum | Not |
-|---|------|-------|-----|
-| 1 | Organization / Multi-Location | ✅ Karar verildi | Tenant = organization, Branches = location. Ek iş yok. |
-| 2 | Customer Portal | 🟡 Kısmi | Profil/şifre/kalan seans var; randevu değiştirme/iptal, fatura, membership/loyalty görünümü yok |
-| 3 | Waitlist | ❌ Yok | — |
-| 4 | Recurring Appointments | ❌ Yok | — |
-| 5 | Memberships | ❌ Yok | Packages (seans paketi) var, abonelik modeli yok |
-| 6 | Gift Cards | ❌ Yok | — |
-| 7 | Invoicing (iç) | 🟡 Kısmi | Sadece dış ERP (Paraşüt) OAuth bağlantısı var, kendi fatura üretimi yok |
-| 8 | POS | ❌ Yok | order/order_items abstraction yok |
-| 9 | Staff / HR | 🟡 Kısmi | Komisyon motoru güçlü (provider_service_commissions); izin/bordro/devam takibi yok |
-| 10 | Communication Hub | 🟡 Kısmi | SMS/WhatsApp/Email ayrı ayrı var, genel event→kanal sistemi yok |
-| 11 | Automation Engine | ❌ Yok | — |
-| 12 | Marketing / Segments | ❌ Yok | — |
-| 13 | Public REST API | ✅ Var | `/api/v1/` zaten kapsamlı (appointments, customers, providers, services, vb.) |
-| 14 | Outgoing Webhooks | ✅ Var | `Webhooks_client.php` + `Webhooks.php` zaten üretimde |
-| 15 | MFA / TOTP | ❌ Yok | En kritik güvenlik boşluğu |
-| 16 | KVKK / GDPR | 🟡 Kısmi | Migration 091 rıza/politika var; export/erasure akışı yok |
-| 17 | Otomatik Test Paketi | ❌ Yok | PHPUnit hiç kurulu değil |
-| 18 | Background Job / Queue | ❌ Yok | SMS/WhatsApp/email hâlâ senkron |
-| 19 | PWA / Service Worker | ❌ Yok | — |
-| 20 | License Sistemi | 🟡 Kısmi | Sadece bilgi amaçlı plan/tarih alanları, gerçek entitlement kontrolü yok |
-| 21 | SaaS Admin Paneli | 🟡 Kısmi | Tenant CRUD var; abonelik/fatura/kullanım metrikleri yok |
-| 22 | Localization | 🟡 Kısmi | 40+ dil dosyası hazır, sadece aktif değil; currency config yok |
+> Bu tablo roadmap'in BAŞLANGIÇ anlık görüntüsüdür (2026-08 öncesi durum). "Güncel (2026-09-17)"
+> sütunu her alanın Dalgalar tamamlandıkça ulaştığı GERÇEK durumu gösterir - detay için ilgili
+> Dalga bölümüne bakın.
+
+| # | Alan | Başlangıç Durumu | Güncel (2026-09-17) | Not |
+|---|------|-------------------|----------------------|-----|
+| 1 | Organization / Multi-Location | ✅ Karar verildi | ✅ Değişmedi | Tenant = organization, Branches = location. |
+| 2 | Customer Portal | 🟡 Kısmi | 🟡 Kısmi (değişmedi) | Profil/şifre/kalan seans var; randevu değiştirme/iptal, fatura, membership/loyalty görünümü hâlâ yok |
+| 3 | Waitlist | ❌ Yok | ✅ Var, canlıda | Dalga 1 + Dalga 6 (ön-bilgilendirme genişletmesi) |
+| 4 | Recurring Appointments | ❌ Yok | ✅ Var, canlıda | Dalga 1 |
+| 5 | Memberships | ❌ Yok | ✅ Var, canlıda | Dalga 1 (otomatik online yenileme hâlâ yok, staff explicit `renew()`) |
+| 6 | Gift Cards | ❌ Yok | ❌ Hâlâ yok | Roadmap'te yok, talep edilmedi |
+| 7 | Invoicing (iç) | 🟡 Kısmi | ✅ İç fatura var; dış ERP kod hazır/kimlik bekliyor | Dalga 1 (iç) + Dalga 6 (Paraşüt/QuickBooks/Zoho Books gerçek API kodu, Logo/Mikro/İşbaşı bilinçli mock) |
+| 8 | POS | ❌ Yok | ✅ Var; gerçek gateway'ler kısmen | Dalga 1 (abstraction) + Dalga 6 (Iyzico/Stripe/ÖdeAl gerçek kod, Garanti/Enpara banka onayı bekliyor) |
+| 9 | Staff / HR | 🟡 Kısmi | 🟡 Kısmi (değişmedi) | Komisyon motoru güçlü; izin/bordro/devam takibi hâlâ yok |
+| 10 | Communication Hub | 🟡 Kısmi | ✅ Var, canlıda | Dalga 3 Faz 3.1 + Dalga 6 çok-kanallı AI Asistan (WhatsApp/Telegram/Instagram) |
+| 11 | Automation Engine | ❌ Yok | ✅ Var, canlıda | Dalga 3 Faz 3.2 |
+| 12 | Marketing / Segments | ❌ Yok | ✅ Var, canlıda + Google/Meta Ads client'ları | Dalga 3 Faz 3.3 + Dalga 6 (gerçek GA4/Ads/Meta API kodu, veri kimliği bekliyor) |
+| 13 | Public REST API | ✅ Var | ✅ Değişmedi | `/api/v1/` zaten kapsamlı |
+| 14 | Outgoing Webhooks | ✅ Var | ✅ Değişmedi | `Webhooks_client.php` + `Webhooks.php` |
+| 15 | MFA / TOTP | ❌ Yok | ✅ Var, canlıda | Dalga 2 |
+| 16 | KVKK / GDPR | 🟡 Kısmi | ✅ Export/erasure akışı da tamam, canlıda | Dalga 2 |
+| 17 | Otomatik Test Paketi | ❌ Yok | 🟡 PHPUnit bootstrap + Playwright E2E (30+8 senaryo) var; birim test listesi hâlâ yazılmadı | Dalga 2 (bootstrap) - asıl birim testler (booking conflict, encryption, tenant isolation) bilinçli ertelendi |
+| 18 | Background Job / Queue | ❌ Yok | ✅ Var, canlıda | Dalga 2 |
+| 19 | PWA / Service Worker | ❌ Yok | ❌ Hâlâ yok | Dalga 5, başlanmadı |
+| 20 | License Sistemi | 🟡 Kısmi | 🟡 Kısmi (değişmedi) | Gerçek entitlement kontrolü hâlâ yok, Dalga 5 |
+| 21 | SaaS Admin Paneli | 🟡 Kısmi | 🟡 Platform admin girişi + kirsv-mcp eklendi; metrikler hâlâ yok | Dalga 0.6/Dalga 5 açık |
+| 22 | Localization | 🟡 Kısmi | 🟡 Kısmi (değişmedi) | 40+ dil dosyası hazır, aktif değil; currency config yok |
 
 ## Uygulama Planı — Öncelik Dalgaları
 
-### 🔄 Dalga 0 — BooKi Markalaşması, Pazarlama & Büyüme Altyapısı (2026-09-16, kullanıcı talebiyle yeni dalga) — dev ortamda ilerliyor, canlıya dokunulmadı
-- [x] **0.1 Kod tabanı yeniden markalaşması — TAMAMLANDI (2026-09-16, dev'de doğrulandı)** — 562 dosyada "Ki Reservation" / "KI RESERVATION" → "BooKi" bulk sed (415 PHP dahil, php -l sıfır hata): views, email şablonları, error sayfaları, JS, CSS, composer.json (`BooKi - Online Appointment Scheduler`), `config-sample.php`, `index.php`, `installation.php`, backend_header fallback `'BooKi'`, backend_footer "Powered by BooKi (Ki Software License)", kullanıcıya görünen tüm başlıklar. DB tablo adları (`ki_reservation`, `ea_` prefix) BİLİNÇLİ değiştirilmedi (tombstone, Faz 0.11 opsiyonel). Alt marka "Ki Software" (kisoftware.com) firma adı olarak korundu.
-- [x] **0.1b İki-aşamalı dev/prod ortamı — TAMAMLANDI (2026-09-16)** — kanonik repo `miracmk/booki-saas`, dev deploy `/opt/ki-ecosystem/ki-booki-dev/` (containers `ki-booki-dev-app` 8080+8081, `ki-booki-dev-db` 3307; DB `ki_booki_dev_master` + dev superadmin `admin/BookiAdmin#2026` + dev tenant `devsalon`), `scripts/dev-sync.sh` kanonik→dev rsync, `/etc/hosts` `booki-app.dev booki-admin.dev booki.dev devsalon-booki-app.dev`. Dev'de canlı test edildi: /health OK, portal 200, tenant 200, superadmin 200. Prod deploy dizini (`ki-reservation/`) VE canlı ortam HİÇBİR değişiklik almadı.
-- [ ] **0.2 Landing sayfası — booki.kibusiness.co** — clean server-rendered PHP (SPA değil), design reference manus.space kulesi (tokens: `--primary #1b5e64`, `--navy #0a1724`, Manrope + DM Serif Display + DM Sans); SEO meta, canlı arama motoru, lead formu buraya bağlanacak
-- [ ] **0.3 Domain & DNS & SSL** — Cloudflare CNAMEs: `booki.kibusiness.co` (landing), `bookie-app.kibusiness.co` (tenant app), `booki-admin.kibusiness.co` (superadmin); eski domain'ler (`reservationapp/reservationadmin/reservation.kibusiness.co`) 301 ile yeni url'lere yönlendirilecek; NPM Let's Encrypt sertifikaları; prod switchover SONRA
-- [ ] **0.4 Analytics (GA4 + GTM + Google Ads + Meta Pixel + GSC)** — `google_analytics_settings` / `master_settings` üzerinden cloud_id & measurement_id; placement tracking kullanıcıdan gelecek (GA4 ID, GTM ID, Ads ID, Pixel ID, GSC verification bekleniyor)
-- [ ] **0.5 Lead formu & CRM (Zoho)** — landing üzerinde lead form → `ea_leads` (master DB) → e-posta bildirimi → Zoho CRM; Zoho credentials kullanıcıdan bekleniyor
+### 🔄 Dalga 0 — BooKi Markalaşması, Pazarlama & Büyüme Altyapısı (2026-09-16 başladı) — canlıya alındı, birkaç alt madde açık
+- [x] **0.1 Kod tabanı yeniden markalaşması — TAMAMLANDI (2026-09-16)** — 562 dosyada "Ki Reservation" / "KI RESERVATION" → "BooKi" bulk sed (415 PHP dahil, php -l sıfır hata): views, email şablonları, error sayfaları, JS, CSS, composer.json (`BooKi - Online Appointment Scheduler`), `config-sample.php`, `index.php`, `installation.php`, backend_header fallback `'BooKi'`, backend_footer "Powered by BooKi (Ki Software License)", kullanıcıya görünen tüm başlıklar. DB tablo adları (`ki_reservation`, `ea_` prefix) BİLİNÇLİ değiştirilmedi (tombstone, Faz 0.11 opsiyonel). Alt marka "Ki Software" (kisoftware.com) firma adı olarak korundu. **Canlıya alındı (2026-09-16/17), commit `a2fe073` ve sonrası.**
+- [x] **0.1b Repo konsolidasyonu — TAMAMLANDI (2026-09-16/17, commit `4127c2c`)** — geçici dev/prod-ayrı-repo modeli terk edildi, TEK kanonik repo (`/opt/ki-ecosystem/ki-reservation-src`, GitHub `miracmk/booki-saas`) `deploy/` (prod Docker/compose) ve `dev/` (yerel dev) alt dizinleriyle. Prod build context repo kökü (`deploy/docker-compose.yml` → `context: ..`). Gerçek DB/dosya verisi eski konumlarında (mutlak yol volume referanslarıyla). Dev ortamı: `ki-booki-dev-app`/`ki-booki-dev-db` container'ları, dev superadmin `admin/BookiAdmin#2026`, dev tenant `devsalon`.
+- [x] **0.2 Landing sayfası — booki.kibusiness.co — CANLIDA** (commit `24929b5` "Production go-live: Landing") — React/Vite/Express (`ki-reservation-website` reposu, ayrı repo, `/opt/ki-ecosystem/websites/booki/`), Zoho CRM entegrasyonu (demo/deneme formları Lead oluşturuyor, OAuth onayı henüz kullanıcı tarafından yapılmadı).
+- [x] **0.3 Domain & DNS & SSL — CANLIDA** — gerçek şema: `bookiapp.kibusiness.co` (kiracı girişi, `{subdomain}-bookiapp.kibusiness.co`), `admin-bookiapp.kibusiness.co` (superadmin, doğrulandı: `donkimonki` girişi 2026-09-17'de test edildi, çalışıyor), `booki.kibusiness.co` (landing/marketplace). **Not:** roadmap'in önceki taslağındaki `bookie-app.kibusiness.co`/`booki-admin.kibusiness.co` şeması KULLANILMADI, gerçek canlı şema yukarıdaki gibi kesinleşti (`deploy/docker-compose.yml`'deki `TENANT_APP_DOMAIN`/`SUPERADMIN_DOMAIN`/`MARKETPLACE_DOMAIN` ile teyitli). Eski domain'lerden 301 yönlendirmesi ayrıca doğrulanmalı.
+- [x] **0.4a Google OAuth platform client — TAMAMLANDI (2026-09-17)** — `Console::google_config` ile master_settings'e client_id/secret yazıldı (Calendar sync + Marketing GA4/Ads ortak client). **0.4b Analytics veri bağlantısı — 🟡 AÇIK**: GA4 property ID, Google Ads customer ID/developer token, GSC verification, Meta Pixel/CAPI kimlikleri hâlâ kullanıcıdan bekleniyor - `Google_marketing_client`/`Meta_marketing_client` kod tarafı hazır (bkz. Dalga 6) ama gerçek veri akışı yok.
+- [x] **0.5a Zoho CRM (platform/admin seviyesi) — kod TAMAMLANDI, gerçek kimlik BEKLİYOR** — `Crm_sync.php` (OAuth refresh-token + REST v8, outbox+id_map mimarisi, migration 138) uçtan uca dry-run ile doğrulandı; gerçek `zoho_client_id`/`secret`/`refresh_token` girilmeden kuyruk boşalmıyor. **0.5b Zoho CRM (landing/lead formu)** — ayrı, admin/platform CRM'inden bağımsız bir Zoho entegrasyonu landing sitesinde var, OAuth onayı (`/api/zoho/oauth/start`) kullanıcı tarafından henüz yapılmadı.
 - [ ] **0.6 Kiracı metrikleri (SaaS admin)** — başına randevu/gelir/müşteri/aktif aylık metrikler superadmin panelinde
 - [ ] **0.7 Paket & fiyatlandırma katmanı** — `ea_packages` fiyatlandırma şeması + plan-alan feature-flag
 - [ ] **0.8 Ödeme takibi** — gelir/komisyon raporlaması (önceki POS/invoice katmanının üstüne SaaS). **Mevzuat:** mevcut para akışı yok; gerçek para/provizyon gerektiğinde lisanslı ödeme kuruluşu + tüketici koruma incelemesi AYRI konu.
@@ -54,12 +58,14 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 - [ ] **0.11 (opsiyonel) Tombstone** — `ki_reservation` adlı tablo/sütun/değişken/fil adı kalıntıları temizliği (işlevsel etki yok)
 - [ ] **0.12 Test & validasyon** — dev'de uçtan uca senaryolar (tenant oluştur → randevu → lead → analitik), sonra canlıya sunum
 
-### ✅ Dalga 1 — Gelir ve Operasyon Temeli (Faz 7·8·9·12·13) — TAMAMLANDI (2026-08-28, izole Docker'da doğrulandı, canlıya deploy edilmedi)
-- [x] Recurring Appointments — `id_recurrence_group` nullable kolon, seri randevu mantığı (commit `1d8e930`, izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
-- [x] Waitlist — dolu slota katılma, boşalınca SMS/WhatsApp bildirimi (commit `b2542c9`, izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
-- [x] Memberships — abonelik planı, kullanım hakları (commit `40ab0b5`; otomatik ÇEVRİMİÇİ yenileme yok - gateway'de kayıtlı-kart/off-session tahsilat yeteneği olmadığından staff explicit `renew()` ile kaydediyor, lazy past_due/expired geçişi var; izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
-- [x] Invoicing (iç) — invoice/invoice_items, appointment+package+product birleşik fatura (commit `fe6cbc3`, salt-okunur agregasyon, payment_transactions'a dokunmuyor; izole Docker'da doğrulandı, henüz canlıya deploy edilmedi)
-- [x] POS — order/order_items abstraction, mevcut payment gateway'lere bağlı (commit `e1a0588`; tek riskli migration burada uygulandı - `payment_transactions` ENUM genişletmesi, mevcut deposit akışı izole Docker'da regresyonsuz doğrulandı; henüz canlıya deploy edilmedi)
+### ✅ Dalga 1 — Gelir ve Operasyon Temeli (Faz 7·8·9·12·13) — TAMAMLANDI + CANLIYA ALINDI (2026-08-28)
+- [x] Recurring Appointments — `id_recurrence_group` nullable kolon, seri randevu mantığı (commit `1d8e930`, canlıya deploy edildi)
+- [x] Waitlist — dolu slota katılma, boşalınca SMS/WhatsApp bildirimi (commit `b2542c9`, canlıya deploy edildi; 2026-09-17'de ön-bilgilendirme genişletmesi — bkz. Dalga 6)
+- [x] Memberships — abonelik planı, kullanım hakları (commit `40ab0b5`; otomatik ÇEVRİMİÇİ yenileme yok - gateway'de kayıtlı-kart/off-session tahsilat yeteneği olmadığından staff explicit `renew()` ile kaydediyor, lazy past_due/expired geçişi var; canlıya deploy edildi)
+- [x] Invoicing (iç) — invoice/invoice_items, appointment+package+product birleşik fatura (commit `fe6cbc3`, salt-okunur agregasyon, payment_transactions'a dokunmuyor; canlıya deploy edildi; ERP dış senkron 2026-09-17'de genişletildi — bkz. Dalga 6)
+- [x] POS — order/order_items abstraction, mevcut payment gateway'lere bağlı (commit `e1a0588`; `payment_transactions` ENUM genişletmesi, mevcut deposit akışı regresyonsuz; canlıya deploy edildi; gerçek gateway entegrasyonları 2026-09-17'de genişletildi — bkz. Dalga 6)
+
+**Not (2026-09-17):** `docs/SESSION_NOTES.md` §Dalga 1 kaydı bu 6 fazın 2026-08-28'de canlıya (`/opt/ki-ecosystem/ki-reservation`) deploy edildiğini doğruluyor (474 müşteri/58 randevu veri kaybı yok, booking 200) — bu roadmap'in önceki "henüz canlıya deploy edilmedi" notu YANLIŞTI, düzeltildi.
 
 **Risk:** Invoice+POS mevcut `Payment_transactions` ile çakışmamalı — additive, feature-flagged (Faz 1 deposit akışı gibi).
 
@@ -90,22 +96,48 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 ### 🔲 Dalga 5 — Kurumsal / Ölçek (Faz 34·48·49·50·51·52)
 - [x] ~~Organization katmanı~~ — karar verildi, ek iş gerekmiyor (yukarı bkz.)
 - [ ] PWA — manifest.json + service worker, önce sağlayıcı (staff) günlük görünümü
-- [x] **Custom domain — sırasından ÖNE ÇEKİLİP TAMAMLANDI (2026-09-10, kullanıcı talebiyle, henüz commit
-      edilmedi)** — tenant self-service akış (domain talep → DNS TXT/CNAME doğrulama → host cron ile
-      otomatik sertifika+nginx). Mimari detay: `docs/SESSION_NOTES.md` bölüm 7.4. "Powered by Ki" kapatma
-      (branding toggle) kısmı bu kapsamda DEĞİL, hâlâ yapılmadı.
+- [x] **Custom domain — sırasından ÖNE ÇEKİLİP TAMAMLANDI, canlıda (2026-09-10, commit `368201c`,
+      `64255a1`, `4329bd5`)** — tenant self-service akış (domain talep → DNS TXT/CNAME doğrulama → host
+      cron ile otomatik sertifika+nginx). Mimari detay: `docs/SESSION_NOTES.md` bölüm 7.4. "Powered by Ki"
+      kapatma (branding toggle) kısmı bu kapsamda DEĞİL, hâlâ yapılmadı.
 - [ ] White-label — "Powered by Ki" kapatma (branding toggle — custom domain'den ayrı, yukarı bkz.)
 - [ ] SaaS Admin genişletme — abonelik/fatura/kullanım metrikleri
 - [ ] License/Entitlement sistemi — plan alanını gerçek feature-flag kontrolüne bağla
 - [ ] Dokümantasyon — /docs, en son (önceki dalgalar API/özellik ekledikçe güncellenecek)
 
-### 🟢 Roadmap-dışı ek — Command Center Dashboard + Tema Motoru (2026-09-10, kullanıcı talebiyle, henüz commit edilmedi)
+### 🟢 Roadmap-dışı ek — Command Center Dashboard + Tema Motoru (2026-09-10, canlıda — commit `368201c`)
 - [x] Yeni gerçek Dashboard landing sayfası (önceden yoktu — giriş direkt Takvim'e düşüyordu). Gerçek
       KPI'lar (bugünkü randevu/gelir/aktif seans/doluluk), takvimin mevcut canlı-seans altyapısını yeniden
       kullanıyor. Detay: `docs/SESSION_NOTES.md` bölüm 7.3.
 - [x] Görsel tema katmanı: 4 renk ailesi × 3 ton + özel 3'lü palet, mevcut Bootstrap temasının üstüne
       (view/controller/model'e dokunmadan). Detay: bölüm 7.2.
 - [ ] Faz 3.6 Analytics view'i (şu an ham JSON) yeni Dashboard'un görsel diline henüz TAŞINMADI — ayrı iş.
+
+### 🟡 Dalga 6 — 8 Sayfa Denetimi, Çok-Kanallı AI Asistanı, Kurumsal Genişletmeler (2026-09-17)
+
+- [x] **8 sayfa görsel/CRUD denetimi — TAMAMLANDI, canlıda (commit `07d49ba`)** — Bekleme Listesi, Üyelikler, Veri Talepleri, Faturalar, POS, Raporlar, Pazarlama, Yorumlar sayfaları Customers/Services/Providers ile görsel tutarlılığa getirildi; `tests/e2e/eight_pages_crud.spec.js` (8/8 doğrulandı, birden çok turda tekrar edildi).
+- [x] **Çok-kanallı AI Asistan (WhatsApp/Telegram/Instagram) — TAMAMLANDI, canlıda (commit `07d49ba`, migration 149)** — 9 kiracıya uygulandı. Güvenlik ilkesi: müşteri mesajları hiçbir zaman doğrudan yazma yapamaz, tek mutation yolu `propose_customer_update` → `ea_ai_agent_pending_changes` kuyruğu → yönetici onayı. Instagram Direct + Meta Graph API webhook'ları + panel ayarları hazır; **gerçek Meta/Instagram kimlik bilgisi ile canlı test edilmedi** (kullanıcı Meta sandbox'ı kendi kuracak).
+- [x] **Kurumsal Genişletmeler: Marketing Suite, Çoklu POS, ERP, Reviews, Waitlist — TAMAMLANDI (commit `d418929`, migration 150)** — `reviews` tablosuna provider/istasyon puanı, `payment_settings`'e ÖdeAl/Garanti/Enpara alanları, `landing_pages`/`traffic_attributions` tabloları; kampanya duraklat/sürdür + landing page yönetimi + web telemetrisi/attribution; `Payment_gateway_factory` + 5 gateway; `Erp_manager` + ERP payload'ları; sağlayıcı/istasyon ayrı puanlama + moderasyon; bekleme listesi ön-bilgilendirme.
+- [x] **Marketing: gerçek Google/Meta reklam client'ları + MCP — TAMAMLANDI (commit `fa833e0`)** — `Google_marketing_client.php` (GA4 realtime/report, Google Ads GAQL search+mutate), `Meta_marketing_client.php` (Marketing API campaigns+insights), Agent_api.php'de 5 MCP-tüketimli endpoint, `deploy/mcp/reservation-mcp/server.js`'de 5 MCP tool'u.
+- [x] **Google OAuth platform client — TAMAMLANDI (commit `1f44860`)** — `Console::google_config`, kullanıcının verdiği client_id/secret master_settings'e maskeli yazıldı.
+- [x] **POS gateway + ERP API dokümantasyon araştırması ve gerçek entegrasyon düzeltmeleri — TAMAMLANDI (commit `f5f6de9`)**:
+  - **Iyzico:** imza şeması YANLIŞTI (401 ile reddedilirdi) → gerçek IYZWSv2 HMAC şeması + doğru endpoint path'leri.
+  - **Stripe:** tamamen mock'tan gerçek `PaymentIntents`/`Refunds` API'sine geçirildi; webhook imza doğrulaması güvenlik açığı (her zaman `true` dönüyordu) düzeltildi.
+  - **ÖdeAl:** uydurma domain (`paym.com.tr`) → gerçek domain + OAuth2 token akışı.
+  - **Garanti/Enpara:** gerçek şema halka açık değil (banka başvurusu gerekiyor) — bilinçli mock, nedeni kodda belgeli.
+  - **Erp_manager::PROVIDERS düzeltildi** (yanlışlıkla `bizimhesap` içeriyordu, kullanıcının istediği `İşbaşı`/`QuickBooks`/`Zoho Books` yoktu) → `Quickbooks_connector.php`, `Zohobooks_connector.php` (yeni, gerçek OAuth2+fatura API'si) eklendi; Logo/Mikro/İşbaşı merkezi API'leri olmadığı için bilinçli mock kaldı.
+  - `Console::erp_config` eklendi; üç `*_config` komutundaki maskeleme bug'ı (`null !== ''` TRUE sorunu) düzeltildi.
+- [x] **Platform admin + kirsv-mcp + Zoho CRM outbox — TAMAMLANDI (2026-09-16, `docs/SESSION_NOTES.md` §8.1)** — `donkimonki` master admin hesabı (doğrulandı, 2026-09-17), `kirsv-mcp` REST MCP sunucusu canlıda, `Crm_sync.php` (migration 138, outbox+id_map) uçtan uca dry-run ile doğrulandı.
+
+**Bu dalgadan sonra AÇIK kalanlar (kullanıcıdan gerçek kimlik bilgisi/karar bekleyen):**
+1. Stripe/Iyzico/ÖdeAl gerçek sandbox API anahtarları (kod hazır, hiç gerçek çağrı denenmedi).
+2. Garanti/Enpara: banka başvurusu olmadan ilerlenemez.
+3. QuickBooks/Zoho Books: OAuth app oluşturup `console erp_config` ile refresh_token girilmeli.
+4. İşbaşı: kullanıcı önce kendi hesabından API key talep etmeli.
+5. Paraşüt: gerçek endpoint path'i (`apidocs.parasut.com` bot korumalı) gerçek kimlikle test edilmeden production'a güvenilmemeli.
+6. Google Marketing (GA4/Ads): client_id/secret var ama gerçek OAuth consent akışı (analytics.readonly+adwords scope, mevcut Calendar-only akıştan AYRI) henüz yazılmadı — `get_access_token()` hâlâ ham/manuel yapıştırılan bir token bekliyor.
+7. Meta/Instagram gerçek sandbox kimlik bilgisiyle çok-kanallı AI Asistan canlı testi.
+8. Zoho CRM (hem platform hem landing/lead formu) gerçek kimlik bilgisi.
 
 ## Kapsam Dışı / Ayrı Konu
 
@@ -116,4 +148,4 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 | Çoklu-organizasyon (tek çatı altında N tenant) | Kullanıcı kararı: her organizasyon ayrı tenant satın alımı olarak kalacak |
 
 ---
-*Son güncelleme (2026-09-16, oturum 9): Dalga 0 başladı — repo `booki-saas` oldu, iki-aşamalı dev/prod ortamı kuruldu (dev: `ki-booki-dev`, prod dokunulmadı), kod tabanı %100 "BooKi" markasına geçildi (562 dosya, 415 PHP clean lint, dev'de tüm ekranlar doğrulandı). Dev superadmin + ilk dev tenant'ı (`devsalon`) çalışıyor. Sıradaki: Dalga 0.2 landing sayfası — detay `docs/SESSION_NOTES.md` bölüm 9.*
+*Son güncelleme (2026-09-17): Dalga 0 canlıya alındı (BooKi rebrand, landing, domain şeması, Google OAuth client), Dalga 1 canlı deploy notu düzeltildi (yanlışlıkla "deploy edilmedi" yazıyordu), Dalga 6 eklendi (8 sayfa denetimi, çok-kanallı AI Asistan, Marketing/POS/ERP kurumsal genişletmeleri + gerçek API doküman araştırması ve düzeltmeleri). Güncel git HEAD: `f5f6de9`. Detay: `docs/SESSION_NOTES.md`.*
