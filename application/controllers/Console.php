@@ -258,6 +258,10 @@ class Console extends EA_Controller
             'marketplace_opt_in' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'null' => false],
             'category' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
             'city' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'district' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'neighborhood' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'latitude' => ['type' => 'DECIMAL', 'constraint' => '10,8', 'null' => true],
+            'longitude' => ['type' => 'DECIMAL', 'constraint' => '11,8', 'null' => true],
             'cover_image_url' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'short_description' => ['type' => 'TEXT', 'null' => true],
             // BooKi (2026-09-10) - tenant self-service custom domain (Custom_domain.php
@@ -352,6 +356,43 @@ class Console extends EA_Controller
         if (master_setting('health_token') === null) {
             master_setting('health_token', bin2hex(random_bytes(32)));
             echo 'Generated "health_token" master setting.' . PHP_EOL;
+        }
+
+        if (master_setting('marketplace_commission_rate') === null) {
+            master_setting('marketplace_commission_rate', '5.00');
+            echo 'Generated "marketplace_commission_rate" master setting.' . PHP_EOL;
+        }
+
+        if (!$this->db->table_exists('tenant_wallets')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_tenants' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'balance' => ['type' => 'DECIMAL', 'constraint' => '10,2', 'default' => 0.00, 'null' => false],
+                'total_earned' => ['type' => 'DECIMAL', 'constraint' => '10,2', 'default' => 0.00, 'null' => false],
+                'total_commission' => ['type' => 'DECIMAL', 'constraint' => '10,2', 'default' => 0.00, 'null' => false],
+                'updated_at' => ['type' => 'DATETIME', 'null' => true],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('tenant_wallets', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('tenant_wallets') . ' ADD UNIQUE INDEX idx_tenant_wallets_tenant (id_tenants)');
+            echo 'Created "tenant_wallets" table.' . PHP_EOL;
+        }
+
+        if (!$this->db->table_exists('wallet_ledger')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_tenants' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'type' => ['type' => 'ENUM', 'constraint' => ['booking_earning', 'commission_deduction', 'settlement', 'adjustment'], 'null' => false],
+                'amount' => ['type' => 'DECIMAL', 'constraint' => '10,2', 'null' => false],
+                'currency' => ['type' => 'VARCHAR', 'constraint' => 3, 'default' => 'TRY', 'null' => false],
+                'reference_id' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'description' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('wallet_ledger', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('wallet_ledger') . ' ADD INDEX idx_wallet_tenant (id_tenants), ADD INDEX idx_wallet_created (created_at)');
+            echo 'Created "wallet_ledger" table.' . PHP_EOL;
         }
     }
 

@@ -239,28 +239,41 @@ extract(html_vars());
 
     <div class="container">
         <div class="filters">
-            <form method="get" action="">
+            <form method="get" action="" id="filterForm">
+                <input type="hidden" name="lat" id="geoLat" value="<?php echo htmlspecialchars($lat ?? ''); ?>">
+                <input type="hidden" name="lng" id="geoLng" value="<?php echo htmlspecialchars($lng ?? ''); ?>">
+                
+                <button type="button" id="geoBtn" style="padding: 0.5rem; margin-right: 0.5rem;">📍 Konumumu Kullan</button>
+                
                 <select name="category" onchange="this.form.submit()">
                     <option value="">-- Tüm Kategoriler --</option>
                     <?php foreach ($categories as $cat): ?>
-                        <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo $selected_category === $cat ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($cat); ?>
-                        </option>
+                        <option value="<?php echo htmlspecialchars($cat); ?>" <?php echo $selected_category === $cat ? 'selected' : ''; ?>><?php echo htmlspecialchars($cat); ?></option>
                     <?php endforeach; ?>
                 </select>
 
-                <select name="city" onchange="this.form.submit()">
+                <select name="city" id="citySelect" onchange="this.form.submit()">
                     <option value="">-- Tüm Şehirler --</option>
                     <?php foreach ($cities as $c): ?>
-                        <option value="<?php echo htmlspecialchars($c); ?>" <?php echo $selected_city === $c ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($c); ?>
-                        </option>
+                        <option value="<?php echo htmlspecialchars($c); ?>" <?php echo $selected_city === $c ? 'selected' : ''; ?>><?php echo htmlspecialchars($c); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                
+                <select name="district" id="districtSelect" onchange="this.form.submit()">
+                    <option value="">-- Tüm İlçeler --</option>
+                    <?php foreach ($districts as $d): ?>
+                        <option value="<?php echo htmlspecialchars($d); ?>" <?php echo $selected_district === $d ? 'selected' : ''; ?>><?php echo htmlspecialchars($d); ?></option>
                     <?php endforeach; ?>
                 </select>
 
-                <?php if ($selected_category !== '' || $selected_city !== ''): ?>
-                    <a href="" class="clear-filters">Filtreleri Temizle</a>
-                <?php endif; ?>
+                <select name="sort" onchange="this.form.submit()">
+                    <option value="recommended" <?php echo $selected_sort === 'recommended' ? 'selected' : ''; ?>>Önerilen (Akıllı Sıralama)</option>
+                    <option value="rating" <?php echo $selected_sort === 'rating' ? 'selected' : ''; ?>>En Yüksek Puan</option>
+                    <option value="reviews" <?php echo $selected_sort === 'reviews' ? 'selected' : ''; ?>>En Çok Değerlendirilen</option>
+                    <option value="distance" <?php echo $selected_sort === 'distance' ? 'selected' : ''; ?>>En Yakın</option>
+                </select>
+
+                <a href="?" class="clear-filters" style="margin-left:0.5rem;">Filtreleri Temizle</a>
             </form>
         </div>
 
@@ -299,7 +312,10 @@ extract(html_vars());
                                     <?php echo htmlspecialchars($tenant['short_description']); ?>
                                 </div>
                             <?php endif; ?>
-                            <div class="business-card-rating">
+                            <div style="margin-top: 10px;">
+                                <a href="<?php echo base_url('marketplace/business/' . urlencode($tenant['subdomain'])); ?>" class="btn" style="background:#4CAF50; color:#fff; padding:5px 10px; text-decoration:none; border-radius:4px;">Randevu Al</a>
+                            </div>
+                            <div class="business-card-rating" style="margin-top:10px;">
                                 <?php if ((int)$tenant['review_count'] > 0): ?>
                                     <span class="stars">★★★★★</span>
                                     <span><?php echo round((float)$tenant['avg_rating'], 1); ?></span>
@@ -314,10 +330,14 @@ extract(html_vars());
             </div>
 
             <?php if ($total_pages > 1): ?>
-                <div class="pagination">
+                                <div class="pagination">
+                    <?php 
+                    $qs = $_GET; 
+                    $qs_build = function($p) use ($qs) { $qs['page'] = $p; return '?' . http_build_query($qs); };
+                    ?>
                     <?php if ($page > 1): ?>
-                        <a href="<?php echo base_url('marketplace?page=1' . ($selected_category !== '' ? '&category=' . urlencode($selected_category) : '') . ($selected_city !== '' ? '&city=' . urlencode($selected_city) : '')); ?>">« İlk</a>
-                        <a href="<?php echo base_url('marketplace?page=' . ($page - 1) . ($selected_category !== '' ? '&category=' . urlencode($selected_category) : '') . ($selected_city !== '' ? '&city=' . urlencode($selected_city) : '')); ?>">‹ Önceki</a>
+                        <a href="<?php echo $qs_build(1); ?>">« İlk</a>
+                        <a href="<?php echo $qs_build($page - 1); ?>">‹ Önceki</a>
                     <?php else: ?>
                         <span class="disabled">« İlk</span>
                         <span class="disabled">‹ Önceki</span>
@@ -327,13 +347,13 @@ extract(html_vars());
                         <?php if ($i === $page): ?>
                             <span class="active"><?php echo $i; ?></span>
                         <?php elseif ($i >= $page - 2 && $i <= $page + 2): ?>
-                            <a href="<?php echo base_url('marketplace?page=' . $i . ($selected_category !== '' ? '&category=' . urlencode($selected_category) : '') . ($selected_city !== '' ? '&city=' . urlencode($selected_city) : '')); ?>"><?php echo $i; ?></a>
+                            <a href="<?php echo $qs_build($i); ?>"><?php echo $i; ?></a>
                         <?php endif; ?>
                     <?php endfor; ?>
 
                     <?php if ($page < $total_pages): ?>
-                        <a href="<?php echo base_url('marketplace?page=' . ($page + 1) . ($selected_category !== '' ? '&category=' . urlencode($selected_category) : '') . ($selected_city !== '' ? '&city=' . urlencode($selected_city) : '')); ?>">Sonraki ›</a>
-                        <a href="<?php echo base_url('marketplace?page=' . $total_pages . ($selected_category !== '' ? '&category=' . urlencode($selected_category) : '') . ($selected_city !== '' ? '&city=' . urlencode($selected_city) : '')); ?>">Son »</a>
+                        <a href="<?php echo $qs_build($page + 1); ?>">Sonraki ›</a>
+                        <a href="<?php echo $qs_build($total_pages); ?>">Son »</a>
                     <?php else: ?>
                         <span class="disabled">Sonraki ›</span>
                         <span class="disabled">Son »</span>
@@ -346,5 +366,22 @@ extract(html_vars());
             </div>
         <?php endif; ?>
     </div>
+<script>
+document.getElementById('geoBtn').addEventListener('click', function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById('geoLat').value = position.coords.latitude;
+            document.getElementById('geoLng').value = position.coords.longitude;
+            document.getElementById('citySelect').value = '';
+            document.getElementById('districtSelect').value = '';
+            document.getElementById('filterForm').submit();
+        }, function(error) {
+            alert('Konum alınamadı: ' + error.message);
+        });
+    } else {
+        alert('Tarayıcınız konum özelliğini desteklemiyor.');
+    }
+});
+</script>
 </body>
 </html>

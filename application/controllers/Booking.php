@@ -442,6 +442,12 @@ class Booking extends EA_Controller
             if (!array_key_exists('notes', $customer)) {
                 $customer['notes'] = '';
             }
+            
+            // Faz 43/44 Marketplace Attribution
+            $is_marketplace = (request('ref') === 'marketplace' || (isset($_COOKIE['booki_marketplace_ref']) && $_COOKIE['booki_marketplace_ref'] === 'marketplace'));
+            if ($is_marketplace) {
+                $appointment['notes'] = "[Pazar Yeri] " . ($appointment['notes'] ?? '');
+            }
 
             if (!array_key_exists('phone_number', $customer)) {
                 $customer['phone_number'] = '';

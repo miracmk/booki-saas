@@ -148,10 +148,28 @@ class Review_service
             return null;
         }
 
-        $review = $db->get_where('reviews', ['token' => $token])->row_array();
+        $review = $db->select('r.*, a.status AS apt_status, a.is_unavailability, a.start_datetime, a.end_datetime')
+                     ->from('reviews r')
+                     ->join('appointments a', 'a.id = r.appointment_id', 'left')
+                     ->where('r.token', $token)
+                     ->get()
+                     ->row_array();
 
         if (!$review || $review['status'] !== Reviews_model::STATUS_REQUESTED) {
             return null;
+        }
+
+        if ($review['apt_status'] === null) {
+            throw new InvalidArgumentException('Yalnızca gerçekleşmiş randevular için değerlendirme yapılabilir.');
+        }
+
+        if ($review['is_unavailability'] == 1 || $review['apt_status'] === 'cancelled') {
+            throw new InvalidArgumentException('Yalnızca gerçekleşmiş randevular için değerlendirme yapılabilir.');
+        }
+        
+        $now = date('Y-m-d H:i:s');
+        if ($review['start_datetime'] > $now && $review['end_datetime'] > $now) {
+            throw new InvalidArgumentException('Yalnızca gerçekleşmiş randevular için değerlendirme yapılabilir.');
         }
 
         $claimed = $db

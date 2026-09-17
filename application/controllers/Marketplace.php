@@ -43,66 +43,82 @@ class Marketplace extends EA_Controller
 
         check('category', 'string|null');
         check('city', 'string|null');
+        check('district', 'string|null');
+        check('sort', 'string|null');
+        check('lat', 'string|null');
+        check('lng', 'string|null');
         check('page', 'numeric|null');
 
         $category = trim((string) request('category'));
         $city = trim((string) request('city'));
+        $district = trim((string) request('district'));
+        $sort = trim((string) request('sort')) ?: 'recommended';
+        $lat = request('lat') !== null && request('lat') !== '' ? (float) request('lat') : null;
+        $lng = request('lng') !== null && request('lng') !== '' ? (float) request('lng') : null;
         $page = max(1, (int) request('page', 1));
         $per_page = 12;
 
-        // Fetch opted-in tenants with their review stats
-        $this->db->select(
-            'tenants.*,' .
-            '(SELECT COUNT(*) FROM ' . $this->db->dbprefix('reviews') .
-            ' WHERE ' . $this->db->dbprefix('reviews') . '.id_tenants = ' . $this->db->dbprefix('tenants') . '.id' .
-            ' AND status = "published") AS review_count,' .
-            '(SELECT AVG(rating) FROM ' . $this->db->dbprefix('reviews') .
-            ' WHERE ' . $this->db->dbprefix('reviews') . '.id_tenants = ' . $this->db->dbprefix('tenants') . '.id' .
-            ' AND status = "published") AS avg_rating',
-        );
+        $apply_filters = function () use ($category, $city, $district) {
+            $this->db->where('marketplace_opt_in', 1);
+            $this->db->where('status', 'active');
 
-        $this->db->where('marketplace_opt_in', 1);
-        $this->db->where('status', 'active');
+            if ($category !== '') {
+                $this->db->where('category', $category);
+            }
 
-        if ($category !== '') {
-            $this->db->where('category', $category);
-        }
+            if ($city !== '') {
+                $this->db->where('city', $city);
+            }
 
-        if ($city !== '') {
-            $this->db->where('city', $city);
-        }
+            if ($district !== '') {
+                $this->db->where('district', $district);
+            }
+        };
 
+        $apply_filters();
         $total = $this->db->count_all_results('tenants');
 
-        // Reset state after count
-        $this->db->select(
-            'tenants.*,' .
+        $select_fields = 'tenants.*,' .
             '(SELECT COUNT(*) FROM ' . $this->db->dbprefix('reviews') .
             ' WHERE ' . $this->db->dbprefix('reviews') . '.id_tenants = ' . $this->db->dbprefix('tenants') . '.id' .
             ' AND status = "published") AS review_count,' .
             '(SELECT AVG(rating) FROM ' . $this->db->dbprefix('reviews') .
             ' WHERE ' . $this->db->dbprefix('reviews') . '.id_tenants = ' . $this->db->dbprefix('tenants') . '.id' .
-            ' AND status = "published") AS avg_rating',
-        );
+            ' AND status = "published") AS avg_rating';
 
-        $this->db->where('marketplace_opt_in', 1);
-        $this->db->where('status', 'active');
-
-        if ($category !== '') {
-            $this->db->where('category', $category);
+        if ($lat !== null && $lng !== null) {
+            $select_fields .= ', (6371 * 2 * ASIN(SQRT(POWER(SIN((RADIANS(latitude - ' . $this->db->escape($lat) . ') / 2)), 2) + ' .
+                'COS(RADIANS(' . $this->db->escape($lat) . ')) * COS(RADIANS(latitude)) * ' .
+                'POWER(SIN((RADIANS(longitude - ' . $this->db->escape($lng) . ') / 2)), 2)))) AS distance';
         }
 
-        if ($city !== '') {
-            $this->db->where('city', $city);
+        $this->db->select($select_fields, false);
+        $apply_filters();
+
+        if ($sort === 'rating') {
+            $this->db->order_by('avg_rating', 'desc');
+            $this->db->order_by('review_count', 'desc');
+        } elseif ($sort === 'reviews') {
+            $this->db->order_by('review_count', 'desc');
+            $this->db->order_by('avg_rating', 'desc');
+        } elseif ($sort === 'distance' && $lat !== null && $lng !== null) {
+            $this->db->order_by('distance', 'asc');
+        } else {
+            // Recommended: Bayesian score + profile completeness bonus
+            $score_expr = '(((COALESCE((SELECT COUNT(*) FROM ' . $this->db->dbprefix('reviews') . ' WHERE ' . $this->db->dbprefix('reviews') . '.id_tenants = ' . $this->db->dbprefix('tenants') . '.id AND status = "published"), 0) * ' .
+                'COALESCE((SELECT AVG(rating) FROM ' . $this->db->dbprefix('reviews') . ' WHERE ' . $this->db->dbprefix('reviews') . '.id_tenants = ' . $this->db->dbprefix('tenants') . '.id AND status = "published"), 4.0)) + 12.0) / ' .
+                '(COALESCE((SELECT COUNT(*) FROM ' . $this->db->dbprefix('reviews') . ' WHERE ' . $this->db->dbprefix('reviews') . '.id_tenants = ' . $this->db->dbprefix('tenants') . '.id AND status = "published"), 0) + 3)) + ' .
+                '(CASE WHEN cover_image_url IS NOT NULL THEN 0.5 ELSE 0 END) + (CASE WHEN short_description IS NOT NULL THEN 0.3 ELSE 0 END)';
+            $this->db->order_by($score_expr, 'desc', false);
+            $this->db->order_by('created_at', 'desc');
         }
 
         $tenants = $this->db
-            ->order_by('created_at', 'desc')
             ->limit($per_page, ($page - 1) * $per_page)
             ->get('tenants')
             ->result_array();
 
-        // Fetch distinct categories and cities for filters
+        // Fetch distinct categories, cities, districts for filters
         $categories = $this->db
             ->distinct()
             ->select('category')
@@ -123,13 +139,28 @@ class Marketplace extends EA_Controller
             ->get('tenants')
             ->result_array();
 
+        $districts = $this->db
+            ->distinct()
+            ->select('district')
+            ->where('marketplace_opt_in', 1)
+            ->where('status', 'active')
+            ->where('district IS NOT NULL', null, false)
+            ->order_by('district', 'asc')
+            ->get('tenants')
+            ->result_array();
+
         html_vars([
             'page_title' => 'BooKi Marketplace',
             'tenants' => $tenants,
             'categories' => array_column($categories, 'category'),
             'cities' => array_column($cities, 'city'),
+            'districts' => array_column($districts, 'district'),
             'selected_category' => $category,
             'selected_city' => $city,
+            'selected_district' => $district,
+            'selected_sort' => $sort,
+            'lat' => $lat,
+            'lng' => $lng,
             'page' => $page,
             'total_pages' => max(1, (int) ceil($total / $per_page)),
             'total' => $total,
@@ -189,6 +220,12 @@ class Marketplace extends EA_Controller
         if (!empty($tenant['custom_domain'])) {
             $booking_url = 'https://' . $tenant['custom_domain'] . '/booking';
         }
+
+        // Add ref=marketplace to attribution
+        $booking_url .= (parse_url($booking_url, PHP_URL_QUERY) ? '&' : '?') . 'ref=marketplace';
+
+        // Also set a 30-day first-party cookie if we are on the same domain or user clicks it
+        setcookie('booki_marketplace_ref', 'marketplace', time() + (86400 * 30), '/');
 
         html_vars([
             'page_title' => $tenant['company_name'] ?? $tenant['subdomain'],

@@ -310,10 +310,61 @@ class Appointments_model extends EA_Model
      */
     protected function update(array $appointment): int
     {
+        // Get old status to detect transition to 'closed'
+        $old = $this->db->get_where('appointments', ['id' => $appointment['id']])->row_array();
+        
         $appointment['update_datetime'] = date('Y-m-d H:i:s');
 
         if (!$this->db->update('appointments', $appointment, ['id' => $appointment['id']])) {
             throw new RuntimeException('Could not update appointment record.');
+        }
+        
+        // Faz 43/44 Marketplace Commission
+        if ($old && ($old['status'] !== 'closed') && (isset($appointment['status']) && $appointment['status'] === 'closed')) {
+            $notes = $appointment['notes'] ?? $old['notes'] ?? '';
+            if (strpos($notes, '[Pazar Yeri]') !== false) {
+                $service = $this->db->get_where('services', ['id' => $old['id_services']])->row_array();
+                if ($service) {
+                    $amount = (float) $service['price'];
+                    
+                    $master_db = $this->load->database('default', true);
+                    $tenant = tenant_context();
+                    
+                    if ($tenant && $amount > 0 && $master_db->table_exists('master_settings')) {
+                        $rate_row = $master_db->get_where('master_settings', ['name' => 'marketplace_commission_rate'])->row_array();
+                        $rate = $rate_row ? (float) $rate_row['value'] : 5.0;
+                        $commission = $amount * ($rate / 100);
+                        
+                        // Update wallet
+                        $master_db->query('INSERT INTO ' . $master_db->dbprefix('tenant_wallets') . ' (id_tenants, balance, total_earned, total_commission, updated_at) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE balance = balance + ?, total_earned = total_earned + ?, total_commission = total_commission + ?, updated_at = ?', [
+                            $tenant['id'], 
+                            $amount - $commission, $amount, $commission, date('Y-m-d H:i:s'),
+                            $amount - $commission, $amount, $commission, date('Y-m-d H:i:s')
+                        ]);
+                        
+                        // Log ledger
+                        $master_db->insert('wallet_ledger', [
+                            'id_tenants' => $tenant['id'],
+                            'type' => 'booking_earning',
+                            'amount' => $amount,
+                            'currency' => $service['currency'] ?? 'TRY',
+                            'reference_id' => 'APT-' . $appointment['id'],
+                            'description' => 'Randevu Geliri (Hizmet: ' . $service['name'] . ')',
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                        
+                        $master_db->insert('wallet_ledger', [
+                            'id_tenants' => $tenant['id'],
+                            'type' => 'commission_deduction',
+                            'amount' => -$commission,
+                            'currency' => $service['currency'] ?? 'TRY',
+                            'reference_id' => 'APT-' . $appointment['id'],
+                            'description' => 'Marketplace Komisyonu (%' . $rate . ')',
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                    }
+                }
+            }
         }
 
         return $appointment['id'];
