@@ -2676,9 +2676,9 @@ class Console extends EA_Controller
                 if ($exists) {
                     $category_ids[$cat_name] = $exists['id'];
                 } else {
-                    $this->service_categories_model->save(['name' => $cat_name]);
-                    $id = $this->db->insert_id();
-                    $category_ids[$cat_name] = $id;
+                    // BooKi (2026-09-17 bugfix) - see the services-loop comment below; use save()'s own
+                    // return value instead of a separately-queried insert_id() for consistency/safety.
+                    $category_ids[$cat_name] = $this->service_categories_model->save(['name' => $cat_name]);
                 }
             }
 
@@ -2701,9 +2701,14 @@ class Console extends EA_Controller
                     'id_service_categories' => $category_ids[$svc['category']] ?? 1,
                     'description' => '',
                 ];
-                $this->services_model->save($save_data);
-                $id = $this->db->insert_id();
-                $service_ids[$svc['name']] = $id;
+                // BooKi (2026-09-17 bugfix) - save()'s own return value IS the new row's id;
+                // db->insert_id() taken AFTER save() returns is unreliable because the model's insert()
+                // issues further non-INSERT queries afterward (e.g. set_provider_ids()'s cleanup DELETE) -
+                // mysqli resets ->insert_id to 0 after any query that isn't itself an INSERT, so every
+                // captured id here was silently 0, corrupting every downstream FK (services_providers,
+                // stations_providers, appointments) that referenced it. Confirmed live in dev (2026-09-17):
+                // db->insert_id() read 0 for every service while save()'s return value was correct.
+                $service_ids[$svc['name']] = $this->services_model->save($save_data);
             }
 
             // Stations
@@ -2715,15 +2720,17 @@ class Console extends EA_Controller
                     continue;
                 }
 
-                $this->stations_model->save(['name' => $station, 'notes' => '', 'is_active' => 1, 'services' => []]);
-                $id = $this->db->insert_id();
-                $station_ids[$station] = $id;
+                $station_ids[$station] = $this->stations_model->save(['name' => $station, 'notes' => '', 'is_active' => 1, 'services' => []]);
             }
 
             // Providers
             $provider_ids = [];
             foreach ($data['providers'] as $prov_data) {
-                $existing = $this->db->get_where('users', ['email' => $prov_data['email']])->row_array();
+                // BooKi (2026-09-17 bugfix) - `email` is encrypted at rest (KVKK hardening, see
+                // Providers_model::ENCRYPTED_AND_HASHED_FIELDS); a plaintext WHERE can never match
+                // ciphertext, so this always missed already-seeded providers and crashed on the
+                // unique-email constraint on re-run. Match via the exact-match hash index instead.
+                $existing = $this->db->get_where('users', ['email_hash' => sf_pii_hash($prov_data['email'])])->row_array();
                 if ($existing) {
                     $provider_ids[$prov_data['first_name']] = $existing['id'];
                     continue;
@@ -2775,23 +2782,25 @@ class Console extends EA_Controller
                         'calendar_view' => 0,
                     ],
                 ];
-                $this->providers_model->save($save_data);
-                $id = $this->db->insert_id();
-                $provider_ids[$prov_data['first_name']] = $id;
+                // BooKi (2026-09-17 bugfix) - see the services-loop comment above; same insert_id()-after-
+                // subsidiary-query bug (set_settings()/set_service_ids()/set_station_ids() etc. all run
+                // after the users insert and reset it) - use save()'s own return value instead.
+                $provider_ids[$prov_data['first_name']] = $this->providers_model->save($save_data);
             }
 
             // Customers
             $customer_ids = [];
             foreach ($data['customers'] as $cust) {
-                $existing = $this->db->get_where('customers', ['email' => $cust['email']])->row_array();
+                // BooKi (2026-09-17 bugfix) - same encrypted-email issue as the providers loop above
+                // (see Customers_model::ENCRYPTED_AND_HASHED_FIELDS) - match via email_hash, not plaintext.
+                $existing = $this->db->get_where('users', ['email_hash' => sf_pii_hash($cust['email'])])->row_array();
                 if ($existing) {
                     $customer_ids[$cust['first_name']] = $existing['id'];
                     continue;
                 }
 
-                $this->customers_model->save($cust);
-                $id = $this->db->insert_id();
-                $customer_ids[$cust['first_name']] = $id;
+                // BooKi (2026-09-17 bugfix) - see the services-loop comment above; same bug.
+                $customer_ids[$cust['first_name']] = $this->customers_model->save($cust);
             }
 
             // Appointments (relative dates: +1 day forward)
@@ -2805,10 +2814,13 @@ class Console extends EA_Controller
                     continue; // Skip if any reference is missing
                 }
 
+                // BooKi (2026-09-17 bugfix) - validate_datetime() requires the exact 'Y-m-d H:i:s' format
+                // (DateTime::createFromFormat, no partial match) - the catalog's 'HH:MM' start/end times
+                // were missing seconds, so every demo appointment failed Appointments_model::validate().
                 $base_date = date('Y-m-d', strtotime('+1 day'));
                 $apt_data = [
-                    'start_datetime' => $base_date . ' ' . $apt['start_time'],
-                    'end_datetime' => $base_date . ' ' . $apt['end_time'],
+                    'start_datetime' => $base_date . ' ' . $apt['start_time'] . ':00',
+                    'end_datetime' => $base_date . ' ' . $apt['end_time'] . ':00',
                     'is_unavailability' => 0,
                     'notes' => 'Demo appointment',
                     'id_users_provider' => $prov_id,
