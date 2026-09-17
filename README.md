@@ -155,6 +155,96 @@ docker exec -u www-data ki-reservation-app php index.php console crm_config     
 docker exec -u www-data ki-reservation-app php index.php console erp_config      # QuickBooks / Zoho Books
 ```
 
+## 🧭 Geliştirme Metodolojisi & Dikkat Edilmesi Gerekenler
+
+> Bu bölüm, bu projede çalışan her ajanın (Claude, Gemini, insan geliştirici) uyması gereken
+> disiplini özetler. Bunlar teorik tercih değil — hepsi bu projede GERÇEKTEN yaşanmış, tekrarlanmış
+> hataların çıkardığı derslerdir (kaynak: `docs/SESSION_NOTES.md`, kronolojik geliştirme günlüğü).
+
+### 1. Deploy sırası — ATLARSAN yanıltıcı "bug" raporu üretirsin
+
+```
+kod değişikliği → docker compose build app → docker compose up -d app →
+tests/e2e/auth.setup.spec.js (session'ı tazele) → asıl test paketi
+```
+
+- Build context repo köküdür (`context: ..`) — rebuild etmeden hiçbir PHP/JS değişikliği container'a
+  girmez. 2026-09-17'de Gemini CLI tam bu adımı atladığı için gerçekte var olmayan 2 test hatası
+  "buldu" (kota tükenmesiyle oturum kesildi, devamı Claude tarafından teşhis edilip düzeltildi).
+- `docker compose up -d` bir **recreate** yaptığında PHP oturumları (session dosyaları) sıfırlanır —
+  Playwright'ın önceden kaydettiği `tests/e2e/.auth/admin.json` çerezi geçersiz kalır, TÜM sayfalar
+  `/login`'e 307 döner. Bu "her şey kırık" gibi görünür ama aslında sadece oturum tazelenmemiştir.
+- JS/CSS dosyası değiştiyse `deploy/docker-compose.yml`'deki `ASSET_VERSION` bump edilmeli (yoksa
+  tarayıcı eski cache'i kullanabilir).
+- Migration eklediysen `console migrate` TÜM aktif kiracılarda çalışır (tek bir `--tenant` bayrağı
+  yok, hepsi otomatik döner) — sonucun 9/9 "OK" olduğunu doğrula.
+
+### 2. Dış API entegrasyonu — şema uydurmak yasak
+
+- Bir ödeme/ERP/pazarlama API'sine kod yazmadan önce GERÇEK dokümantasyonu bul ve oku (WebFetch/
+  WebSearch). Endpoint path'i, auth şeması, imza formülü TEYİT EDİLMEDEN yazılan kod, gerçek
+  kimlikle denendiğinde ya sessizce yanlış sonuç üretir ya da (Iyzico örneğinde olduğu gibi) her
+  isteği 401 ile reddettirir — ikisi de kod incelemesinde YAKALANAMAZ, sadece gerçek API çağrısında
+  ortaya çıkar.
+- Dokümantasyona ulaşılamıyorsa (bot koruması, giriş gerekiyor, banka başvurusu şart vb.) kodu
+  **bilinçli mock** bırak ve docblock'a NEDEN'i yaz (bkz. `Garanti_gateway.php`, `Enpara_gateway.php`,
+  `Erp_manager.php`'deki Logo/Mikro/İşbaşı metodları). Sahte bir şema uydurup "tamamlandı" deme.
+- Kimlik bilgisi henüz yoksa entegrasyon "dormant" kalır — bu normaldir, kod hazır olabilir ama asla
+  gerçek kimlik olmadan "uçtan uca doğrulandı" denemez. Bu projede `configured=false` veya açık
+  `RuntimeException` dönmek, sessizce sahte bir "success" dönmekten HER ZAMAN daha iyidir.
+
+### 3. Kimlik bilgisi yönetimi
+
+- Platform seviyesi (master, tüm kiracılar için ortak) kimlik bilgileri `master_setting()` ile DB'de
+  tutulur, `Console::google_config` / `crm_config` / `erp_config` gibi whitelist'li, maskeli-gösterimli
+  komutlarla girilir/okunur. Yeni bir entegrasyon eklerken bu deseni tekrar kullan, yeni bir env var
+  ya da düz-metin config dosyası icat etme.
+- Maskeleme kontrolünde `$display !== ''` YAZMA — `master_setting()` ayarlanmamış anahtar için
+  `null` döner ve PHP'de `null !== ''` TRUE'dur, bu da boş alanları yanlışlıkla "dolu/maskeli"
+  gösterir (bu bug üç komutta da vardı, 2026-09-17'de düzeltildi). `!empty($display)` kullan.
+- Gerçek secret/token/şifre hiçbir zaman README/ROADMAP/SESSION_NOTES.md'ye veya commit mesajına
+  yazılmaz. Süper admin gibi giriş bilgileri bu repoda tutulmaz.
+
+### 4. Test disiplini
+
+- `tests/e2e/*.spec.js` (Playwright) canlı `qatest` kiracısına karşı çalışır — gerçek müşteri verisi
+  YOK, serbestçe yazıp silinebilir. `playwright.config.js`: `workers: 1`, `fullyParallel: false`
+  (paylaşılan tenant durumu, sıralı çalışmalı).
+- Bir test tam suit'te başarısız oluyor ama tek başına (`-g "..."` ile izole) geçiyorsa, önce bunun
+  gerçek bir regresyon mu yoksa zamanlama/veri çarpışması kaynaklı bir flake mi olduğunu ayır —
+  hepsini "bug" sayma.
+- Her PHP değişikliğinde `php -l`, her JS değişikliğinde `node --check` çalıştır — bu ucuz ve hızlı,
+  atlama.
+- `docker exec ... storage/logs/log-YYYY-MM-DD.php` (JSON log) değişiklik sonrası kısaca taranmalı —
+  beklenen gürültüyü (örn. WhatsApp bridge bağlı değilken `no_connected_session`) gerçek yeni
+  hatalardan ayırt et.
+
+### 5. Dokümantasyon disiplini
+
+- **`docs/SESSION_NOTES.md`**: her oturumun sonunda tarihli bir bölüm eklenir, EN YENİ EN ÜSTTE
+  (dosyanın başında). Kök neden analizi + bulunan gerçek buglar + deploy adımları + "sıradaki" net
+  yazılır — bu dosya gelecekteki bir ajanın "nerede kaldık" sorusuna cevabı.
+- **`docs/ROADMAP.md`**: bu dosya HER ZAMAN güncel durumun tek doğru kaynağı olmalı. Bir faz/dalga
+  "canlıya deploy edilmedi" diye işaretliyse ve sonradan deploy edildiyse, bunu güncelleme —
+  bayatlamış roadmap notları yanlış varsayımlara yol açar (2026-09-17'de birkaç böyle stale not
+  bulunup düzeltildi).
+- **`README.md`** (bu dosya): proje kimliği + mimari + ÖZELLİK DURUMU özeti — "canlıda" / "kod hazır
+  kimlik bekliyor" / "başlanmadı" ayrımı net tutulmalı, aksi halde bir sonraki ajan yarım bir
+  entegrasyonu "tamamlanmış" sanabilir.
+- Kod tabanında büyük bir değişiklik (rebrand, domain geçişi, provider listesi değişikliği vb.)
+  yaptıysan, hem repo dokümantasyonunu HEM de varsa harici bir bilgi kaynağını (bu projede: Hermes
+  vault `03_Projects/Ki-Reservation/`) aynı oturumda güncelle — ikisi arasında tutarsızlık, "hangisi
+  doğru" sorusuna yol açar.
+
+### 6. Paralel oturum koordinasyonu
+
+Aynı repo üzerinde başka bir ajan/oturum aynı anda çalışıyor olabilir (bu projede birden fazla kez
+oldu). Deploy build context'i TÜM working directory'yi alır — başka bir oturumun commit edilmemiş
+değişiklikleri araya karışabilir. Prod'a deploy etmeden önce `git status` ile beklenmedik değişiklik
+var mı kontrol et; şüpheliyse `git worktree add --detach <tmp> <kendi-commit-sha>` ile SADECE kendi
+commit'ini içeren temiz bir checkout'tan build al. Paylaşılan `git stash` stack'ini asla bare
+`git stash`/`git stash pop` ile kullanma.
+
 ## 📋 Referans Dokümanlar
 
 | Dosya | İçerik |
