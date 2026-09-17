@@ -4,6 +4,18 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU (8) — Dalga 0: SaaS Yönetim, Kiracı Metrikleri & Provisioning UX
+
+**Bağlam:** 1-2-3-4 sırasıyla geliştirme başlatıldı. İlk adım olan Dalga 0 (0.6, 0.7, 0.8, 0.10) başarıyla tamamlandı.
+
+**Yapılanlar:**
+- **Master DB Şeması (`Console::master_install()`):** `ea_tenants` tablosuna `business_type`, `billing_cycle`, `mrr_amount` ve `currency` sütunları eklendi.
+- **Metrik Motoru (`Superadmin_tenants::get_tenant_metrics()`):** Kiracının veritabanına bağlanıp toplam randevu, bu ayki randevular, toplam müşteri ve başarılı ciro (`payment_transactions` + `invoices`) çeken hata toleranslı metrik toplayıcı yazıldı.
+- **Platform KPI Kartları:** Süper admin paneline Toplam Kiracı, Toplam Müşteri Portföyü, Randevular (Bu Ay / Toplam) ve Platform MRR kartları eklendi.
+- **Detay Modalı (`Superadmin_tenants::get_tenant_details()`):** Kiracının hizmet sayısı, personel sayısı, randevu durum kırılımları ve son 5 randevusunu gösteren drawer modalı eklendi.
+- **Genişletilmiş Provisioning UX:** Yeni kiracı oluştururken işletme kategorisi, yönetici adı/e-posta/telefon ve özel başlangıç şifresi belirleme yeteneği getirildi.
+- **Doğrulama:** `php -l` temiz, Docker container rebuild edildi, `master_install` ve `migrate` çalıştırıldı. Commit: `e7097e4`.
+
 ## 2026-09-17 OTURUMU (7) — POS gateway + ERP API dokümantasyon araştırması, gerçek entegrasyon düzeltmeleri + Google OAuth client
 
 **Bağlam:** Kullanıcı platform-level Google OAuth Client ID/Secret verdi (Console::google_config ile master_settings'e yazıldı, maskeli saklanıyor - Calendar sync + Marketing GA4/Ads OAuth'un ortak client'ı). Ayrıca 5 POS gateway (Iyzico, Stripe, ÖdeAl, Garanti, Enpara) ve 6 ERP sistemi (Paraşüt, İşbaşı, Logo, Mikro, QuickBooks, Zoho Books) için gerçek API dokümantasyonu araştırılması istendi - önceki oturumların bu entegrasyonları TAMAMEN MOCK yazdığı (hiç gerçek HTTP isteği yok) daha önce keşfedilmişti.
