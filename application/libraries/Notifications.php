@@ -302,19 +302,32 @@ class Notifications
         }
     }
 
+    /**
+     * BooKi (2026-09-17 bugfix) - the $settings a caller passes in (notify_appointment_saved()/
+     * notify_appointment_deleted()) is whatever THAT caller happened to build for its OWN needs -
+     * in every real call site (Calendar.php x3, Booking.php) that's a company-branding array
+     * (company_name/link/email/color/date_format/time_format), never messaging_settings. Reading
+     * whatsapp_notifications_enabled/default_notification_channels/etc. off of it always found
+     * nothing, silently collapsing $customer_channels to [] on every single appointment
+     * create/update/delete - every tenant's WhatsApp/SMS/Telegram customer notifications were
+     * dead on arrival regardless of configuration (dispatch_customer_channels() already fetches
+     * its own fresh copy and was unaffected; this gate function was the one relying on the
+     * caller's array). Fetch messaging_settings directly instead of trusting the parameter.
+     */
     private function customer_channels(array $user, array $settings): array
     {
-        $channels = $this->CI->user_notification_preferences_model->channels_for($user, $settings);
+        $messaging_settings = $this->CI->messaging_settings_model->get_settings();
+        $channels = $this->CI->user_notification_preferences_model->channels_for($user, $messaging_settings);
         $active = [];
 
         foreach ($channels as $channel) {
             $enabled = match ($channel) {
-                'email' => (bool) ($settings['email_notifications_enabled'] ?? true),
-                'sms' => (bool) ($settings['sms_notifications_enabled'] ?? false),
-                'whatsapp' => (bool) ($settings['whatsapp_notifications_enabled'] ?? false),
-                'telegram' => (bool) ($settings['telegram_notifications_enabled'] ?? false),
-                'call' => (bool) ($settings['call_notifications_enabled'] ?? false),
-                'instagram' => (bool) ($settings['instagram_notifications_enabled'] ?? false),
+                'email' => (bool) ($messaging_settings['email_notifications_enabled'] ?? true),
+                'sms' => (bool) ($messaging_settings['sms_notifications_enabled'] ?? false),
+                'whatsapp' => (bool) ($messaging_settings['whatsapp_notifications_enabled'] ?? false),
+                'telegram' => (bool) ($messaging_settings['telegram_notifications_enabled'] ?? false),
+                'call' => (bool) ($messaging_settings['call_notifications_enabled'] ?? false),
+                'instagram' => (bool) ($messaging_settings['instagram_notifications_enabled'] ?? false),
                 default => false,
             };
 

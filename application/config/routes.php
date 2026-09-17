@@ -266,5 +266,8 @@ $route['agent/v1/appointments/(:num)/reschedule']['post'] = 'agent_api/reschedul
 $route['health'] = 'health/index';
 $route['health/deep'] = 'health/deep';
 
+// BooKi (2026-09-17) - short review links sent over SMS/WhatsApp (see Review::short($code)).
+$route['r/(:any)'] = 'review/short/$1';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

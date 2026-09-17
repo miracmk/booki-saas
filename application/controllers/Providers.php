@@ -34,6 +34,7 @@ class Providers extends EA_Controller
         'timezone',
         'language',
         'is_private',
+        'is_active', // BooKi (2026-09-17) - active/inactive toggle, see migration 148
         'ldap_dn',
         'id_roles',
         'stations', // Salon Flora customization - array, replaces the old single id_stations column
@@ -56,6 +57,7 @@ class Providers extends EA_Controller
         'commission_overtime_bonus' => 0, // Salon Flora customization
         'service_commissions' => [], // Salon Flora customization
         'station_restriction_enabled' => false, // Salon Flora customization
+        'is_active' => true, // BooKi (2026-09-17)
     ];
 
     public array $allowed_provider_setting_fields = [

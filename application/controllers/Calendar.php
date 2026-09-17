@@ -431,6 +431,24 @@ class Calendar extends EA_Controller
 
                 $existing_appointment = $manage_mode ? $this->appointments_model->find((int) $appointment['id']) : null;
 
+                // BooKi (2026-09-17) - server-side guard for the provider active/inactive toggle
+                // (migration 148): reject a NEW assignment to a deactivated provider - either a
+                // brand-new appointment, or reassigning an existing one to a different provider.
+                // Keeping an existing appointment on its current (now-inactive) provider unchanged
+                // is explicitly allowed - this only blocks NEW bookings, never edits that leave
+                // the provider as-is (candidate lists already exclude inactive providers from the
+                // UI, this is the defense-in-depth backend check for direct API calls).
+                $is_new_provider_assignment = !$existing_appointment
+                    || (int) $existing_appointment['id_users_provider'] !== (int) $appointment['id_users_provider'];
+
+                if ($is_new_provider_assignment) {
+                    $target_provider = $this->providers_model->find((int) $appointment['id_users_provider']);
+
+                    if ($target_provider && empty($target_provider['is_active'])) {
+                        throw new InvalidArgumentException('Bu hizmet sağlayıcı pasif durumda, yeni randevu ataması yapılamaz.');
+                    }
+                }
+
                 $candidate_station_ids = $this->stations_model->get_candidate_station_ids(
                     (int) $appointment['id_services'],
                     (int) $appointment['id_users_provider'],
@@ -676,6 +694,24 @@ class Calendar extends EA_Controller
                 $this->load->library('automation_engine');
                 $this->automation_engine->evaluate(
                     'appointment_created',
+                    compact('appointment', 'service', 'provider', 'customer', 'settings'),
+                );
+            } else {
+                // BooKi (2026-09-17 bugfix) - edits (reschedule/service/provider change) never
+                // reached the Communication Hub / Automation Engine at all - only the legacy
+                // notify_appointment_saved() above covered them, with a raw unformatted string
+                // via dispatch_customer_channels(), no per-tenant rule/template control, and no
+                // automation rule support (no VIP/segment conditions, no extra actions). Kept
+                // best-effort/non-fatal, matching the created/cancelled events' contract.
+                $this->load->library('communication_hub');
+                $this->communication_hub->publish(
+                    'appointment_updated',
+                    compact('appointment', 'service', 'provider', 'customer', 'settings'),
+                );
+
+                $this->load->library('automation_engine');
+                $this->automation_engine->evaluate(
+                    'appointment_updated',
                     compact('appointment', 'service', 'provider', 'customer', 'settings'),
                 );
             }
@@ -1266,8 +1302,27 @@ class Calendar extends EA_Controller
                 $secretary_providers = $secretary['providers'];
             }
 
+            // BooKi (2026-09-17) - new-provider-assignment candidates exclude deactivated
+            // providers (is_active, migration 148), EXCEPT the appointment's own current
+            // provider when we're editing it (exclude_appointment_id) - otherwise re-opening an
+            // existing appointment already assigned to a now-inactive provider would drop them
+            // from the select and force a different one just to view/save it unchanged.
+            $candidate_providers = $this->providers_model->get_available_providers(active_only: true);
+
+            if ($exclude_appointment_id !== null) {
+                $current_provider_id = $this->appointments_model->find($exclude_appointment_id)['id_users_provider'] ?? null;
+
+                if ($current_provider_id !== null && !in_array((int) $current_provider_id, array_column($candidate_providers, 'id'), true)) {
+                    $current_provider = $this->providers_model->find((int) $current_provider_id);
+
+                    if ($current_provider) {
+                        $candidate_providers[] = $current_provider;
+                    }
+                }
+            }
+
             $providers = array_values(
-                array_filter($this->providers_model->get_available_providers(), function ($provider) use (
+                array_filter($candidate_providers, function ($provider) use (
                     $service_id,
                     $role_slug,
                     $user_id,
@@ -2166,7 +2221,10 @@ class Calendar extends EA_Controller
                 $provider = $this->providers_model->find($provider_id);
                 $providers = $provider ? [$provider] : [];
             } else {
-                $providers = $this->providers_model->get_available_providers();
+                // BooKi (2026-09-17) - the unfiltered "İlk Müsaitlik" strip is a new-booking
+                // candidate list (see is_active, migration 148); a deactivated provider simply
+                // doesn't appear in it, same as the public booking wizard.
+                $providers = $this->providers_model->get_available_providers(active_only: true);
             }
 
             // A provider with no working plan settings row (incomplete/legacy account - see

@@ -88,6 +88,16 @@
 
                     <input type="hidden" id="id" class="record-id">
 
+                    <!-- BooKi (2026-09-17) - active/inactive toggle (migration 148). Deactivating
+                         a provider stops NEW bookings from being routed to them (public booking
+                         wizard, İlk Müsaitlik, staff "yeni randevu" provider select) without
+                         touching their past appointments/commissions/customer history - use this
+                         instead of deleting a provider who's leaving/on long-term leave. -->
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" role="switch" id="is-active" class="form-check-input" checked disabled>
+                        <label class="form-check-label" for="is-active">Aktif (yeni randevu ataması alabilir)</label>
+                    </div>
+
                     <div class="row">
                         <div class="details col-12 col-lg-6">
                             <div class="mb-3">

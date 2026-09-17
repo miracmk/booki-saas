@@ -127,6 +127,19 @@ class Providers_model extends EA_Model
             ) ? 1 : 0;
         }
 
+        // BooKi (2026-09-17) - active/inactive toggle (see migration 148). A provider is never
+        // deleted to stop new bookings - deactivating keeps every past appointment/commission/
+        // customer relation intact, it only removes them from new-booking candidate lists (see
+        // Providers_model::get_available_providers($active_only) and the save_appointment()
+        // guard in Calendar.php for reassigning an appointment to a different provider).
+        if (array_key_exists('is_active', $provider)) {
+            $provider['is_active'] = filter_var(
+                $provider['is_active'],
+                FILTER_VALIDATE_BOOLEAN,
+                FILTER_NULL_ON_FAILURE,
+            ) ? 1 : 0;
+        }
+
         $this->validate($provider);
 
         if (empty($provider['id'])) {
@@ -846,7 +859,15 @@ class Providers_model extends EA_Model
             throw new RuntimeException('The requested setting value was not found: ' . $provider_id);
         }
 
-        return $settings[$name];
+        // BooKi (2026-09-17 bugfix) - the column can legitimately be NULL (never explicitly
+        // set, e.g. a migrated/legacy provider row) even though it exists. Returning it as-is
+        // against this method's `string` return type threw a fatal TypeError deep inside
+        // Notifications::notify_appointment_saved()/notify_appointment_deleted() - which wraps
+        // its whole body in one try/catch, so the crash silently aborted delivery to every
+        // recipient processed after this call, for that request (customer WhatsApp included in
+        // notify_appointment_deleted()'s ordering). A never-set flag defaults to "off", which is
+        // what an empty string already evaluates to via filter_var(..., FILTER_VALIDATE_BOOLEAN).
+        return (string) ($settings[$name] ?? '');
     }
 
     /**
@@ -964,13 +985,22 @@ class Providers_model extends EA_Model
      * Get all the provider records that are assigned to at least one service.
      *
      * @param bool $without_private Only include the public providers.
+     * @param bool $active_only BooKi (2026-09-17) - exclude deactivated providers (users.is_active
+     * = 0, see migration 148). Only true at actual NEW-booking candidate lists (public booking
+     * wizard, "İlk Müsaitlik") - left false everywhere else (Calendar's own page-load provider
+     * list/filter, editing an existing appointment) so a deactivated provider's past/existing
+     * data stays fully visible and editable, only new assignments to them are blocked.
      *
      * @return array Returns an array of providers.
      */
-    public function get_available_providers(bool $without_private = false, ?int $branch_id = null): array
+    public function get_available_providers(bool $without_private = false, ?int $branch_id = null, bool $active_only = false): array
     {
         if ($without_private) {
             $this->db->where('users.is_private', false);
+        }
+
+        if ($active_only) {
+            $this->db->where('users.is_active', 1);
         }
 
         // Multi-branch support: apply branch filter only if provided and branch count is > 1

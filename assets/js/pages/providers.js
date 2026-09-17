@@ -280,6 +280,9 @@ App.Pages.Providers = (function () {
             // ignored in favor of) the assigned service's own station list.
             provider.station_restriction_enabled = $('#station-restriction-enabled').prop('checked');
 
+            // BooKi (2026-09-17): active/inactive toggle, see migration 148.
+            provider.is_active = $('#is-active').prop('checked');
+
             // BooKi (2026-08-26): include provider skills.
             provider.skills = [];
             $('#provider-skills input:checkbox').each((index, checkboxEl) => {
@@ -680,6 +683,10 @@ App.Pages.Providers = (function () {
         });
         $('#station-restriction-enabled').prop('checked', Number(provider.station_restriction_enabled) === 1);
 
+        // BooKi (2026-09-17): active/inactive toggle, see migration 148. Defaults to checked
+        // (active) when the field is absent (e.g. a provider row loaded before this migration ran).
+        $('#is-active').prop('checked', provider.is_active === undefined || Number(provider.is_active) === 1);
+
         // BooKi (2026-08-26): a provider may have more than one skill.
         $('#provider-skills input:checkbox').prop('checked', false);
         (provider.skills || []).forEach((providerSkillId) => {
@@ -752,7 +759,9 @@ App.Pages.Providers = (function () {
      * @return {String} The html code that represents the record on the filter results list.
      */
     function getFilterHtml(provider) {
-        const name = provider.first_name + ' ' + provider.last_name;
+        // BooKi (2026-09-17): active/inactive toggle, see migration 148.
+        const isInactive = provider.is_active !== undefined && Number(provider.is_active) === 0;
+        const name = provider.first_name + ' ' + provider.last_name + (isInactive ? ' (Pasif)' : '');
 
         let info = provider.email;
 

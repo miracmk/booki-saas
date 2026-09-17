@@ -57,6 +57,23 @@ class Reviews_model extends EA_Model
     }
 
     /**
+     * BooKi (2026-09-17) - resolve the short alias (`/r/{code}`) sent over SMS/WhatsApp back
+     * to its row, so Review::short() can redirect to the real token URL.
+     */
+    public function find_by_short_code(string $short_code): ?array
+    {
+        $review = $this->db->get_where('reviews', ['short_code' => $short_code])->row_array();
+
+        if (!$review) {
+            return null;
+        }
+
+        $this->cast($review);
+
+        return $review;
+    }
+
+    /**
      * All review rows (newest first), optionally filtered by status.
      *
      * @param string|null $status One of self::STATUSES.

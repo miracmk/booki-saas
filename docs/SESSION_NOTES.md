@@ -4,6 +4,108 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU (3) — Bildirim şablon bug'ı + kısa link + create/update/delete WhatsApp sessiz-hatası (kök neden) + sağlayıcı aktif/pasif
+
+Kullanıcı bildirimi: review mesajı `{Test Ajan}` gibi süslü parantezli geliyor, çirkin görünüyor,
+link çok uzun; randevu oluşturma/güncelleme/silme hiç WhatsApp bildirimi göndermiyor (sadece review
+gidiyor); hizmet sağlayıcı aktif/pasif yapılabilmeli (silmeden, veri kaybı olmadan yeni rezervasyonu
+durdurmak için).
+
+**1) Süslü parantez bug'ı - KÖK NEDEN + DÜZELTME:** `Communication_hub::build_placeholders()`
+`['service_name' => ...]` gibi parantezsiz anahtarlar döndürüyordu, ama TÜM şablonlar `{service_name}`
+yazıyor - `strtr()` anahtarı harfiyen arayıp değiştiriyor, `{`/`}` karakterlerine hiç dokunmuyor.
+Anahtarlar `'{service_name}' => ...` olarak sarıldı - tek düzeltme tüm event/kanal kombinasyonlarını
+kapsıyor. qatest'te gerçek review talebiyle doğrulandı (artık süslü parantez yok).
+
+**2) Review linki kısaltıldı:** Migration 146 (`reviews.short_code`, CSPRNG 8 karakter base62,
+UNIQUE), yeni route `r/(:any)` → `Review::short()` → gerçek token'a 302 redirect. `Automation_engine::
+review_link()` artık `https://{tenant}/r/{code}` döndürüyor (eskiden 64-hex token'lı tam URL).
+
+**3) Randevu oluşturma/güncelleme/silme WhatsApp bildirimi - GERÇEK KÖK NEDEN BULUNDU (canlıda,
+gerçek curl/DB testiyle, kod okumayla YAKALANAMAZDI):**
+   - Ek olarak `Providers_model`/`Secretaries_model`/`Admins_model`/`Users_model::get_setting()`
+     metodları `: string` dönüş tipi bildiriyordu ama sütun DB'de NULL olabiliyordu (hiç ayarlanmamış
+     eski/migrasyonlu kayıtlar) - bu bir provider'da tetiklendiğinde (`notifications` ayarı NULL)
+     `notify_appointment_saved()`/`notify_appointment_deleted()` içinde fatal TypeError'a yol açıyordu;
+     bu iki fonksiyon TÜM gövdeyi tek try/catch'e sardığı için, hatanın oluştuğu noktadan SONRAKİ hiçbir
+     alıcıya (WhatsApp dahil) bildirim gitmiyordu. **Salonflora'da GERÇEKTEN oluşmuş, log'da yakalandı**
+     (provider id 482, appointment 226). 4 model dosyasında `return $settings[$name];` →
+     `return (string) ($settings[$name] ?? '');` ile düzeltildi (NULL → boş string, `filter_var(...,
+     FILTER_VALIDATE_BOOLEAN)` için güvenli/muhafazakâr varsayılan - "hiç ayarlanmamış" artık "kapalı"
+     davranıyor, patlamıyor). `Users_model`'in `empty()` kontrolü de `array_key_exists()`'e hizalandı
+     (aksi halde meşru '0'/'' değerleri de "bulunamadı" hatası veriyordu).
+   - **ASIL KÖK NEDEN (yukarıdaki fix'ten SONRA hâlâ 0 whatsapp_messages satırı görülünce geçici bir
+     `log_message` ile bulundu):** `Calendar::save_appointment()` (ve Booking.php/delete_appointment'ın
+     kendi kopyaları) `notify_appointment_saved()`'e geçirdiği `$settings` dizisi SADECE marka bilgisi
+     içeriyordu (company_name/link/email/color/date_format/time_format) - `Notifications::
+     customer_channels()` bu AYNI diziden `whatsapp_notifications_enabled`/`default_notification_channels`
+     gibi mesajlaşma alanlarını okumaya çalışıyordu, hiçbiri orada YOKTU. Sonuç: `$customer_channels`
+     HER ZAMAN boş dizi, `$send_customer` HER ZAMAN false - tenant'ın WhatsApp bağlı/açık olması hiç
+     önemli değildi, müşteriye ek kanal (WhatsApp/SMS/Telegram) bildirimi ASLA gitmiyordu (hiçbir tenant'ta,
+     hiçbir zaman - sadece review-request'in KENDİ ayrı Automation Engine/Communication Hub yolu farklı
+     çalıştığı için o çalışıyordu). Düzeltme: `customer_channels()` artık `messaging_settings_model->
+     get_settings()`'i kendi çekiyor, çağıranın verdiği diziye güvenmiyor - tek noktadan düzeltme hem
+     `notify_appointment_saved()` hem `notify_appointment_deleted()`'i kapsıyor (`dispatch_customer_channels()`
+     zaten kendi taze kopyasını çekiyordu, etkilenmemişti).
+   - **Doğrulama (qatest'te gerçek HTTP çağrılarıyla, login+CSRF+curl):** create → `whatsapp_messages`'a
+     "Your appointment has been successfully booked..." satırı düştü; update (reschedule) → "Appointment
+     details have changed..."; delete → "Appointment Cancelled..." - üçü de artık gerçekten gönderim
+     denemesine ulaşıyor (durum "failed" - qatest'te gerçek eşleşmiş telefon yok, beklenen: review
+     testindeki "no_connected_session" ile aynı, ASIL SORUN olan sessiz atlama değil).
+   - **Ek olarak:** `appointment_updated` event'i Communication Hub + Automation Engine'e eklendi
+     (`Calendar.php`'nin `!$manage_mode` guard'ı düzenlemeleri hiç kapsamıyordu - migration 147 ile
+     customer/provider/admin için sms+whatsapp kanallı, DISABLED-by-default seed - created/cancelled'ın
+     aynı deseni, legacy yol zaten temel bildirimi karşılıyor, bu opsiyonel/tenant-özel şablon).
+
+**4) Sağlayıcı (hizmet sağlayıcı) aktif/pasif - YENİ ÖZELLİK:** Migration 148 (`users.is_active`,
+varsayılan 1). `Providers_model::get_available_providers($active_only)` yeni parametre - SADECE
+gerçek "yeni rezervasyon adayı" noktalarında (`Booking.php` 4 çağrı, `Calendar::get_next_availability()`
+filtresiz şerit) `true` geçiliyor; `Calendar::index()`'in genel sayfa/filtre listesi DOKUNULMADI (pasif
+sağlayıcının geçmiş randevuları/takvim filtresi hâlâ çalışıyor). `Calendar::get_available_providers()`
+(randevu modalının kendi uç noktası) `exclude_appointment_id` varsa mevcut atamayı pasif olsa bile
+listeye geri ekliyor - düzenleme kırılmıyor. Sunucu tarafı savunma: `save_appointment()` artık YENİ bir
+atama (yeni randevu VEYA farklı bir sağlayıcıya taşıma) pasif sağlayıcıya gidiyorsa reddediyor
+(`InvalidArgumentException`), ama AYNI (artık pasif) sağlayıcıyla değişmeden kaydetmeye izin veriyor.
+Providers sayfasına "Aktif (yeni randevu ataması alabilir)" switch'i eklendi. **Doğrulama (qatest, gerçek
+HTTP):** Jane'i pasife al → İlk Müsaitlik `{"available":false}`, yeni randevu adayı listesi boş,
+Jane'e YENİ randevu denemesi 403 mesajıyla reddedildi ("...pasif durumda...") - ama mevcut randevusunu
+(`appointment_id` exclude ile) düzenleme listesi Jane'i hâlâ gösterdi VE değişmeden kaydetmek başarılı
+oldu. Jane tekrar aktife alındı (test sonrası temizlik).
+
+**Deploy:** Migration 148'e kadar tüm kiracılara uygulandı (salonflora dahil), salonflora `/booking`
+ve `/health` regresyon 200. Commit+push edildi (kullanıcı bu turda da açıkça istedi).
+**Bilinmeyen/ertelenen:** `demo_seed_part2.php` (repo kökü, bozuk/eksik PHP parçası, önceki bir
+oturumdan kalma) hâlâ commit edilmedi - kullanıcı kararı bekliyor (sil/tamamla).
+
+## 2026-09-17 OTURUMU (2) — 6 dikey demo kiracısı: demo_seed 3 gerçek bug bulunup düzeltildi, canlıya alındı
+
+Önceki turda (bkz. proje memory, roadmap §"6 dikey demo hesap talebi") `Console::demo_seed_data()`'ya
+6 dikey (demo-guzellik/masaj/restoran/otel/klinik/studyo) eklenmiş ve tenant'lar canlıda `tenant_create`
+ile oluşturulmuştu, ama `demo_seed commit` hiçbir zaman gerçekten tam çalışmamıştı — canlıda sessizce
+yarım kalmış durumdaydı (sadece company_name ayarı + 1 sağlayıcı, gerçek hizmet/randevu verisi yoktu).
+Dev'de sıfırdan `tenant_create` + `demo_seed commit` ile uçtan uca tekrar denenince 3 gerçek bug bulundu:
+
+1. **Providers/customers "zaten var mı" kontrolü encrypted email'e karşı plaintext WHERE kullanıyordu**
+   (KVKK PII şifrelemesi - bkz. Providers_model/Customers_model::ENCRYPTED_AND_HASHED_FIELDS) - hiçbir
+   zaman eşleşmiyordu, her tekrar çalıştırmada unique-email constraint'e çarpıp crash ediyordu. Düzeltme:
+   `email_hash` + `sf_pii_hash()` ile eşleştir (modellerin kendi deseni).
+2. **`$this->db->insert_id()` her yerde 0 dönüyordu** - `save()` çağrısından SONRA ayrıca sorgulanıyordu,
+   ama model'in kendi `insert()`'i save()'den sonra ek INSERT-olmayan sorgular çalıştırıyor
+   (`set_provider_ids()`'in temizlik DELETE'i, `set_settings()` vb.) ve mysqli, INSERT olmayan her
+   sorgudan sonra `->insert_id`'yi sessizce 0'a resetliyor. Bu, aşağı akışta her FK'yı (services_providers,
+   stations_providers, appointments) bozuyordu. Düzeltme: her yerde `save()`'in kendi dönüş değeri kullanıldı.
+3. **Randevu saatleri (`'HH:MM'`) `validate_datetime()`'ın katı `Y-m-d H:i:s` formatını geçemiyordu** -
+   saniye eksikti. Düzeltme: `:00` eklendi.
+
+Dev'de sıfır kiracıdan 6 dikeyin tamamı temiz seed edildi + tekrar çalıştırma (idempotency) test edildi,
+hatasız. Commit `7883f8b`, push edildi. Canlıya alındı: git worktree ile TEMİZ bir checkout'tan (diğer bir
+oturumun aynı repo'da bildirim/randevu-güncelleme turu için commit edilmemiş değişiklikleri prod image'a
+karışmasın diye) `docker build` + `docker compose up -d app`, ardından 6 kiracının hepsinde `demo_seed
+commit` tekrar çalıştırıldı - hepsi `✓ Seeded`. Canlıda doğrulandı: `/booking` sayfası artık her dikey için
+gerçek hizmet/kategori/fiyat listesini dönüyor (örn. demo-guzellik: "Kalıcı Oje (Manikür)", "Keratin
+Bakım", ... TRY fiyatlarıyla). `demo_seed_part2.php` (repo kökünde, başka bir oturuma ait çalışma dosyası)
+kasıtlı olarak dokunulmadı.
+
 ## 2026-09-17 OTURUMU — 30 senaryo QA turu: WhatsApp bildirim sessiz-hatası + çok-kiracılı marka sızıntısı (4 dosya) bulunup düzeltildi, canlıya alındı
 
 Kullanıcı isteği: "WhatsApp bağlı ama mesaj gidip gelmiyor", İlk Müsaitlik/takvim tutarsızlığı, Bildirim

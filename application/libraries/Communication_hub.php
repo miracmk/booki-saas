@@ -28,7 +28,7 @@
  */
 class Communication_hub
 {
-    public const EVENTS = ['appointment_created', 'appointment_completed', 'appointment_cancelled'];
+    public const EVENTS = ['appointment_created', 'appointment_updated', 'appointment_completed', 'appointment_cancelled'];
 
     public const RECIPIENTS = ['customer', 'provider', 'admin', 'secretary'];
 
@@ -303,16 +303,24 @@ class Communication_hub
 
         $start = (string) ($appointment['start_datetime'] ?? '');
 
+        // BooKi (2026-09-17 bugfix) - every template (default_message()/default_subject()
+        // below, the review_request seed in migration 132, and any tenant-custom rule
+        // template saved via Console::communication_rule_template()) writes placeholders
+        // as `{tag}`. strtr() replaces array keys literally: a bare `service_name` key
+        // only ever matches the inner text of `{service_name}`, never the surrounding
+        // braces, so every rendered message kept the literal `{`/`}` around each
+        // substituted value. Wrapping every key here in braces is what actually matches
+        // the templates' real syntax.
         return [
-            'service_name' => (string) ($service['name'] ?? ''),
-            'provider_name' => trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')),
-            'customer_name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')),
-            'start_datetime' => $start !== '' ? date('d.m.Y H:i', strtotime($start)) : '',
-            'appointment_id' => (string) ($appointment['id'] ?? ''),
-            'company_name' => (string) ($settings['company_name'] ?? ''),
-            'reason' => (string) ($ctx['cancellation_reason'] ?? ''),
-            'appointment_count' => (string) ($ctx['appointment_count'] ?? ''),
-            'review_link' => (string) ($ctx['review_link'] ?? ''),
+            '{service_name}' => (string) ($service['name'] ?? ''),
+            '{provider_name}' => trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')),
+            '{customer_name}' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')),
+            '{start_datetime}' => $start !== '' ? date('d.m.Y H:i', strtotime($start)) : '',
+            '{appointment_id}' => (string) ($appointment['id'] ?? ''),
+            '{company_name}' => (string) ($settings['company_name'] ?? ''),
+            '{reason}' => (string) ($ctx['cancellation_reason'] ?? ''),
+            '{appointment_count}' => (string) ($ctx['appointment_count'] ?? ''),
+            '{review_link}' => (string) ($ctx['review_link'] ?? ''),
         ];
     }
 
@@ -323,6 +331,7 @@ class Communication_hub
     {
         return match ($event) {
             'appointment_created' => 'Merhaba, {service_name} için {start_datetime} tarihli randevunuz oluşturuldu. {company_name}',
+            'appointment_updated' => 'Merhaba, {service_name} için randevunuz {start_datetime} tarihine güncellendi. {company_name}',
             'appointment_completed' => 'Merhaba, {service_name} seansınız {provider_name} ile {start_datetime} tarihinde tamamlandı. {company_name}',
             'appointment_cancelled' => 'Merhaba, {service_name} için {start_datetime} tarihli randevunuz iptal edildi. {company_name}',
             default => '',
@@ -336,6 +345,7 @@ class Communication_hub
     {
         return match ($event) {
             'appointment_created' => 'Randevu Onaylandı',
+            'appointment_updated' => 'Randevu Güncellendi',
             'appointment_completed' => 'Seans Tamamlandı',
             'appointment_cancelled' => 'Randevu İptal Edildi',
             default => 'Randevu Bilgilendirmesi',

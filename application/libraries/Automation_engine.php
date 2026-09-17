@@ -29,6 +29,7 @@ class Automation_engine
 
     public const EVENTS = [
         'appointment_created',
+        'appointment_updated',
         'appointment_completed',
         'appointment_cancelled',
     ];
@@ -201,6 +202,7 @@ class Automation_engine
         }
 
         $token = bin2hex(random_bytes(32));
+        $short_code = $this->generate_unique_short_code();
 
         $customer_name = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
 
@@ -208,6 +210,7 @@ class Automation_engine
             'appointment_id' => $appointment_id,
             'id_users_customer' => $customer_id,
             'token' => $token,
+            'short_code' => $short_code,
             'customer_name' => $customer_name !== '' ? $customer_name : null,
             'customer_phone_hash' => $this->hash_phone($customer),
             'status' => 'requested',
@@ -217,7 +220,7 @@ class Automation_engine
         // Message text must carry the link - inject it into the ctx placeholders
         // and deliver over the action's channels (default sms).
         $rendered_ctx = $ctx;
-        $rendered_ctx['review_link'] = $this->review_link($token);
+        $rendered_ctx['review_link'] = $this->review_link($short_code);
 
         $recipient_key = (string) ($action['recipient'] ?? 'customer');
         $channels = (string) ($action['channels'] ?? 'sms');
@@ -265,10 +268,11 @@ class Automation_engine
     }
 
     /**
-     * Build the public review URL for a token. Multi-tenant: tenant's own app subdomain;
-     * standalone: BASE_URL base.
+     * Build the public SHORT review URL (`/r/{code}`, resolved by Review::short()) for a
+     * token. Multi-tenant: tenant's own app subdomain; standalone: BASE_URL base. Kept short
+     * on purpose - the 64-hex token itself is unreadable/too long for SMS/WhatsApp.
      */
-    protected function review_link(string $token): string
+    protected function review_link(string $short_code): string
     {
         $t = tenant_context();
 
@@ -276,10 +280,35 @@ class Automation_engine
             $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
             $subdomain = $t['subdomain'] ?? '';
 
-            return 'https://' . ($subdomain !== '' ? $subdomain . '-' : '') . $app_domain . '/review/index/' . $token;
+            return 'https://' . ($subdomain !== '' ? $subdomain . '-' : '') . $app_domain . '/r/' . $short_code;
         }
 
-        return site_url('review/index/' . $token);
+        return site_url('r/' . $short_code);
+    }
+
+    /**
+     * A short_code must be CSPRNG-generated, not sequential/guessable (it stands in for the
+     * real token in outbound messages) - base62, 8 chars (~47 bits), collision-checked against
+     * the tenant's own reviews table.
+     */
+    protected function generate_unique_short_code(): string
+    {
+        $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            $code = '';
+
+            for ($i = 0; $i < 8; $i++) {
+                $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+            }
+
+            if ($this->CI->db->get_where('reviews', ['short_code' => $code])->num_rows() === 0) {
+                return $code;
+            }
+        }
+
+        // Astronomically unlikely to ever be reached (62^8 space) - fall back to a longer code.
+        return bin2hex(random_bytes(6));
     }
 
     /**

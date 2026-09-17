@@ -537,7 +537,9 @@ class Secretaries_model extends EA_Model
             throw new RuntimeException('The requested setting value was not found: ' . $secretary_id);
         }
 
-        return $settings[$name];
+        // BooKi (2026-09-17 bugfix) - see identical fix in Providers_model::get_setting(): a
+        // NULL (but existing) column value crashed against this method's `string` return type.
+        return (string) ($settings[$name] ?? '');
     }
 
     /**

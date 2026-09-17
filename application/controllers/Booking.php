@@ -161,7 +161,7 @@ class Booking extends EA_Controller
         }
 
         $available_services = $this->services_model->get_available_services(true);
-        $available_providers = $this->providers_model->get_available_providers(true);
+        $available_providers = $this->providers_model->get_available_providers(true, null, true); // BooKi (2026-09-17) - new-booking candidates only, see is_active
 
         foreach ($available_providers as &$available_provider) {
             // Only expose the required provider data.
@@ -818,7 +818,7 @@ class Booking extends EA_Controller
      */
     protected function search_any_provider(int $service_id, string $date, ?string $hour = null): ?int
     {
-        $available_providers = $this->providers_model->get_available_providers(true);
+        $available_providers = $this->providers_model->get_available_providers(true, null, true); // BooKi (2026-09-17) - new-booking candidates only, see is_active
 
         $service = $this->services_model->find($service_id);
 
@@ -893,7 +893,7 @@ class Booking extends EA_Controller
             $service = $this->services_model->find($service_id);
 
             if ($provider_id === ANY_PROVIDER) {
-                $providers = $this->providers_model->get_available_providers(true);
+                $providers = $this->providers_model->get_available_providers(true, null, true); // BooKi (2026-09-17) - new-booking candidates only, see is_active
 
                 $available_hours = [];
 
@@ -1110,7 +1110,7 @@ class Booking extends EA_Controller
 
     protected function search_providers_by_service(int $service_id): array
     {
-        $available_providers = $this->providers_model->get_available_providers(true);
+        $available_providers = $this->providers_model->get_available_providers(true, null, true); // BooKi (2026-09-17) - new-booking candidates only, see is_active
         $provider_list = [];
 
         foreach ($available_providers as $provider) {

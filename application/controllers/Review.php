@@ -71,6 +71,32 @@ class Review extends EA_Controller
     }
 
     /**
+     * BooKi (2026-09-17) - resolve the short link sent over SMS/WhatsApp (`/r/{code}`,
+     * see routes.php `r/(:any)`) to the real token URL and 302 redirect. short_code is
+     * only ever a display alias for the token - it is NOT accepted anywhere as a
+     * substitute credential, this is the only place it is looked up.
+     */
+    public function short(string $code = ''): void
+    {
+        method('get');
+
+        $review = $code !== '' ? $this->reviews_model->find_by_short_code($code) : null;
+
+        if (!$review) {
+            html_vars([
+                'page_title' => 'Değerlendirme',
+                'error_message' => 'Bu değerlendirme bağlantısı geçersiz, daha önce kullanılmış veya süresi dolmuş.',
+                'booking_url' => is_multi_tenant_mode() ? '' : site_url('booking'),
+            ]);
+            $this->load->view('pages/review_form');
+
+            return;
+        }
+
+        redirect('review/index/' . $review['token']);
+    }
+
+    /**
      * Accept a review submission (single-use token).
      */
     public function submit(): void

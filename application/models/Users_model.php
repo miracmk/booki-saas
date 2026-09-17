@@ -361,11 +361,16 @@ class Users_model extends EA_Model
     {
         $settings = $this->db->get_where('user_settings', ['id_users' => $user_id])->row_array();
 
-        if (empty($settings[$name])) {
+        // BooKi (2026-09-17 bugfix) - was `empty($settings[$name])`, which throws for a
+        // legitimately-set falsy value ('0', '') exactly like a genuinely missing key - masking
+        // real "disabled" settings as errors. Match the array_key_exists() check the sibling
+        // *_model::get_setting() methods use, and default a NULL (but existing) column to ''
+        // instead of crashing this method's `string` return type (see Providers_model's fix).
+        if (!array_key_exists($name, $settings)) {
             throw new RuntimeException('The requested setting value was not found: ' . $user_id);
         }
 
-        return $settings[$name];
+        return (string) ($settings[$name] ?? '');
     }
 
     /**
