@@ -1,7 +1,9 @@
 # BooKi
 
 > **BooKi** — Çok-kiracılı (multi-tenant) randevu/salon yönetim SaaS platformu.
-> Güzellik/masaj salonlarına satılır. Self-hosted, Docker tabanlı.
+> Güzellik/masaj/spor/restoran/otel/klinik/stüdyo gibi randevu tabanlı işletmelere satılır.
+> Self-hosted, Docker tabanlı, PHP 8.2 (CodeIgniter 3 çekirdeği, `alextselegidis/easyappointments`
+> fork'undan doğdu ama bugünkü kod tabanı çok geniş özel geliştirme içeriyor).
 
 ## 📍 Kimlik
 
@@ -9,20 +11,31 @@
 |------|-------|
 | **Ürün adı** | BooKi |
 | **Sahibi** | Miraç Murat KILINÇ |
-| **GitHub** | `ki-reservation-saas` (private, main) |
-| **Lokal (kaynak)** | `/opt/ki-ecosystem/ki-reservation-src/` |
-| **Lokal (deploy)** | `/opt/ki-ecosystem/ki-reservation/` |
-| **Disk** | ~150 MB+ |
-| **Durum** | 🟢 CANLI |
-| **URL** | `https://reservationapp.kibusiness.co` |
+| **GitHub** | `miracmk/booki-saas` (private, `main`) |
+| **Kanonik kaynak** | `/opt/ki-ecosystem/ki-reservation-src/` (git deposu, TEK kaynak — `deploy/` prod, `dev/` yerel dev alt dizinleri) |
+| **Prod veri/dosya** | `/opt/ki-ecosystem/ki-reservation/{db,files}` (mutlak yol volume, repo dışında kalıcı) |
+| **Durum** | 🟢 CANLI — 9 aktif kiracı (bkz. altta) |
 
-## 🌐 Domain Şeması
+## 🌐 Domain Şeması (canlı, doğrulanmış)
 
-| Rol | Domain | Durum |
-|-----|--------|-------|
-| Uygulama websitesi (vitrin) | `reservations.kibusiness.co` | ✅ HTTP 200 |
-| Uygulama girişi / app | `reservationapp.kibusiness.co` | ✅ HTTP 200 |
-| Superadmin panel | `reservationsadmin.kibusiness.co` | ✅ Mevcut (DNS güncellenebilir) |
+| Rol | Domain | Not |
+|-----|--------|-----|
+| Kiracı uygulaması | `{subdomain}-bookiapp.kibusiness.co` | Her kiracı kendi subdomain'i, örn. `salonflora-bookiapp.kibusiness.co` |
+| Süper admin paneli | `admin-bookiapp.kibusiness.co` | Platform seviyesi, tüm kiracıları yönetir — giriş bilgisi bu repoda tutulmaz, operatörün kendi güvenli notlarında |
+| Landing / marketplace | `booki.kibusiness.co` | React/Vite/Express, ayrı repo (`ki-reservation-website`) |
+| Kiracı özel domain | tenant self-service | DNS TXT/CNAME doğrulama + otomatik sertifika (bkz. Dalga 5, `docs/ROADMAP.md`) |
+
+Eski domain'ler (`reservationapp/reservationadmin/reservation.kibusiness.co`) BooKi rebrand'i
+sırasında terk edildi.
+
+## 🏢 Aktif Kiracılar (2026-09-17)
+
+| Subdomain | Plan | Amaç |
+|-----------|------|------|
+| `salonflora` | Elite | Gerçek canlı müşteri (Salon Flora) |
+| `waveaudit` | — | — |
+| `qatest` | Elite | E2E/Playwright test ortamı, gerçek müşteri verisi YOK |
+| `demo-guzellik` / `demo-masaj` / `demo-restoran` / `demo-otel` / `demo-klinik` / `demo-studyo` | Premium | 6 dikey demo kiracısı (satış/demo amaçlı, `Console::demo_seed`) |
 
 ## 🏗️ Mimari
 
@@ -30,22 +43,28 @@
 
 ```
 ki-reservation-src/
-├── application/                 ← PHP uygulaması
-│   ├── controllers/             ← Controller'lar
-│   ├── models/                  ← Model'ler
-│   ├── views/                   ← View'lar
-│   ├── config/                  ← Konfigürasyon
-│   └── helpers/                 ← Yardımcı fonksiyonlar
-├── assets/                      ← CSS, JS, görseller
-├── system/                      ← Framework çekirdeği
+├── application/
+│   ├── controllers/          ← Controller'lar (Marketing, Invoices, Reviews, Agent_api, Console, ...)
+│   ├── models/                ← Model'ler
+│   ├── views/pages/            ← Sayfa view'ları
+│   ├── libraries/
+│   │   ├── payment/            ← 6 POS gateway (Iyzico, Stripe, ÖdeAl, Garanti, Enpara, Paytr)
+│   │   ├── accounting/         ← ERP connector'ları (Paraşüt, QuickBooks, Zoho Books, Erp_manager)
+│   │   ├── Google_marketing_client.php / Meta_marketing_client.php
+│   │   ├── Crm_sync.php        ← Zoho CRM outbox senkronizasyonu
+│   │   └── ...
+│   ├── config/
+│   └── helpers/
+├── assets/                     ← CSS, JS (her sayfanın hem `.js` hem `.min.js`'i — bu projede
+│                                  `.min.js` gerçek minify DEĞİL, aynı içeriğin kopyası; bilinçli konvansiyon)
+├── deploy/                     ← Prod Docker Compose, Dockerfile, MCP sunucusu, wa-bridge
+├── dev/                        ← Yerel dev ortamı (ayrı DB/port, aynı repo)
+├── tests/e2e/                  ← Playwright E2E paketleri (qatest kiracısına karşı çalışır)
+├── docs/
+│   ├── ROADMAP.md               ← 52 faz / 6 dalga uygulama planı, GÜNCEL durum
+│   └── SESSION_NOTES.md         ← Oturum bazlı ayrıntılı geliştirme günlüğü (kronolojik, en yeni ÜSTTE)
+├── system/                      ← Framework çekirdeği (CodeIgniter 3)
 ├── vendor/                      ← Composer bağımlılıkları
-├── config-sample.php            ← Örnek config
-├── composer.json                ← PHP bağımlılıkları
-├── SPECS.md                     ← Özellik spesifikasyonu (298 satır)
-├── CHANGELOG.md                 ← Değişiklik günlüğü (32KB)
-├── COMPLIANCE.md                ← Uyumluluk dokümanı (KVKK/GDPR)
-├── KEY_MANAGEMENT.md            ← Anahtar yönetimi
-├── LICENSE                      ← Ki Software License
 └── README.md                    ← Bu dosya
 ```
 
@@ -53,189 +72,102 @@ ki-reservation-src/
 
 | Katman | Teknoloji |
 |--------|----------|
-| Backend | PHP 8.2 |
-| Frontend | HTML5 + CSS3 + JavaScript |
-| Database | MySQL / MariaDB |
-| Cache | Redis (opsiyonel) |
-| Container | Docker |
+| Backend | PHP 8.2, CodeIgniter 3 çekirdeği |
+| Frontend (uygulama) | Server-rendered PHP view + jQuery/Bootstrap + sayfa bazlı JS |
+| Frontend (landing) | React/Vite/Express (ayrı repo) |
+| Database | MySQL/MariaDB — 1 master DB (`ki_reservation_master`, tenant katalog) + kiracı-başına ayrı DB |
+| Container | Docker Compose (`ki-reservation-app`, `ki-reservation-db`, `ki-wa-bridge`, `kirsv-mcp`) |
 | Proxy | Nginx Proxy Manager |
-| DNS | Cloudflare |
-| SSL | Let's Encrypt |
+| DNS/SSL | Cloudflare + Let's Encrypt |
+| Test | Playwright (E2E, `qatest` kiracısına karşı) + PHPUnit (sadece bootstrap, asıl birim test listesi yazılmadı) |
 
-### Veritabanı Şeması (Ana Tablolar)
+## 📦 Özellik Durumu
 
-| Tablo | Açıklama |
-|-------|----------|
-| `appointments` | Randevular |
-| `customers` | Müşteriler |
-| `providers` | Hizmet verenler (terapistler) |
-| `services` | Hizmetler |
-| `stations` | Fiziksel istasyonlar/odalar |
-| `users` | Kullanıcılar (admin, sekreter, provider) |
-| `working_hours` | Çalışma saatleri |
-| `unavailability` | Müsaitlik dışı bloklar |
-| `sessions` | Oturum takibi (check-in/check-out) |
-| `payments` | Ödemeler |
-| `invoices` | Faturalar |
-| `memberships` | Üyelikler |
-| `waitlists` | Bekleme listeleri |
-| `pos_transactions` | POS işlemleri |
+Aşağıdaki liste `docs/ROADMAP.md`'nin özetidir — **tam gerekçe/commit referansları için o dosyaya
+bakın**, burada sadece güncel özet var.
 
-### API Endpoint'ler
+### ✅ Canlıda, tam çalışıyor
 
-| Endpoint | Açıklama |
-|----------|----------|
-| `GET /api/appointments` | Randevu listesi |
-| `POST /api/appointments` | Yeni randevu |
-| `GET /api/availability` | Müsaitlik sorgulama |
-| `POST /api/checkin` | Check-in |
-| `POST /api/checkout` | Check-out |
-| `GET /api/customers` | Müşteri listesi |
-| `POST /api/customers` | Yeni müşteri |
-| `GET /api/providers` | Hizmet veren listesi |
-| `GET /api/services` | Hizmet listesi |
-| `GET /api/stations` | İstasyon listesi |
-| `GET /api/reports/revenue` | Gelir raporu |
-| `GET /api/reports/sessions` | Oturum raporu |
+- Randevu yönetimi: public booking wizard, gerçek zamanlı müsaitlik, istasyon/oda ataması (race-condition-safe, MySQL named lock), çoklu hizmet veren
+- Oturum takibi: check-in/check-out, sapma tespiti, manuel düzeltme
+- Komisyon & iç faturalama (appointment+package+product birleşik fatura)
+- Recurring appointments, Waitlist (+ boşalınca otomatik bildirim), Memberships (abonelik+kullanım hakkı)
+- POS (order/order_items abstraction — gateway'lerin gerçeklik durumu aşağıda ayrı)
+- MFA/TOTP (admin/provider/secretary), KVKK/GDPR (rıza + veri indirme/silme uçtan uca akışı)
+- Background job kuyruğu (SMS/WhatsApp/Telegram/email artık senkron değil)
+- Communication Hub + Automation Engine (WHEN/IF/THEN kuralları, hazır şablonlar)
+- Marketing: müşteri segmentleri + kampanya broadcast (e-posta/SMS/WhatsApp/Telegram)
+- Review Engine: randevu-sonrası otomatik istek + sağlayıcı/istasyon ayrı puanlama + moderasyon
+- Çok-kanallı AI Asistan: WhatsApp/Telegram/Instagram — güvenlik ilkesi: müşteri mesajı hiçbir zaman
+  doğrudan yazma yapamaz, tek yol `propose_customer_update` → yönetici onay kuyruğu
+- Analytics/BI: revenue/utilization/retention raporları
+- Command Center Dashboard + tema motoru (4 renk ailesi × 3 ton)
+- Custom domain self-service (talep → DNS doğrulama → otomatik sertifika)
+- BooKi rebrand (562 dosya), platform admin paneli, `kirsv-mcp` MCP sunucusu, Zoho CRM outbox senkronu (kimlik bekliyor — altta)
+- 8 sayfa (Bekleme Listesi/Üyelikler/Veri Talepleri/Faturalar/POS/Raporlar/Pazarlama/Yorumlar) görsel+CRUD denetimi — `tests/e2e/eight_pages_crud.spec.js` (8/8)
 
-## 📦 Özellikler
+### 🟡 Kod hazır, GERÇEK kimlik bilgisi/kararı bekliyor (dormant)
 
-### ✅ Tamamlanan (Wave 1 + Wave 2)
+Bu bölüm önemli: aşağıdakiler "yapılmadı" değil — kod ve mimari yazıldı, syntax/entegrasyon testi
+geçti, ama **gerçek üçüncü parti kimlik bilgisi olmadan uçtan uca hiç denenmedi**:
 
-#### Wave 1 — Gelir/Ops
-1. **Randevu Yönetimi:**
-   - Public booking wizard (hizmet → personel → tarih/saat → müşteri → onay)
-   - Gerçek zamanlı müsaitlik kontrolü
-   - Çoklu hizmet veren desteği
-   - Çalışma saatleri ve müsaitlik dışı bloklar
+| Entegrasyon | Durum | Bekleyen |
+|---|---|---|
+| Iyzico (POS) | Gerçek IYZWSv2 imza şeması yazıldı (2026-09-17 düzeltmesi) | Gerçek sandbox API key/secret |
+| Stripe (POS) | Gerçek PaymentIntents/Refunds API + webhook imza doğrulaması | Gerçek secret/publishable/webhook key |
+| ÖdeAl (POS) | Gerçek domain + OAuth2 token akışı | Gerçek client id/secret; init/refund tam şeması |
+| Garanti Sanal POS / Enpara (POS) | Bilinçli mock | Banka başvurusu (şema halka açık değil) |
+| QuickBooks Online (ERP) | Gerçek OAuth2 refresh_token + fatura API'si (`Quickbooks_connector.php`) | `console erp_config` ile client/secret/refresh_token/realm_id |
+| Zoho Books (ERP) | Gerçek OAuth2 refresh_token + fatura API'si (`Zohobooks_connector.php`) | `console erp_config` ile client/secret/refresh_token/organization_id |
+| Paraşüt (ERP) | Payload şekli doğru, endpoint path'i teyit edilemedi | Gerçek kimlikle test |
+| Logo / Mikro (ERP) | Bilinçli mock | Merkezi API yok — müşteriye özel kurulum gerekir |
+| İşbaşı (ERP) | Bilinçli mock | Kullanıcının kendi hesabından API key talep etmesi |
+| Google Ads / GA4 (Marketing) | `Google_marketing_client.php` yazıldı, platform OAuth client kayıtlı | GA4 property ID, Ads customer ID/dev token; gerçek OAuth consent akışı (Calendar'dan ayrı scope) henüz yok |
+| Meta Ads / Instagram (Marketing + AI Asistan) | `Meta_marketing_client.php` + webhook'lar yazıldı | Meta sandbox/App Review, gerçek Pixel/CAPI/erişim token'ı |
+| Zoho CRM (platform + landing) | `Crm_sync.php` dry-run ile doğrulandı | Gerçek client_id/secret/refresh_token |
 
-2. **Kaynak & İstasyon Yönetimi:**
-   - Fiziksel istasyonlar/odalar
-   - Gerçek zamanlı istasyon müsaitliği
-   - Race-condition-safe istasyon atama (MySQL named locks)
-   - Manuel istasyon override
+### ❌ Henüz başlanmadı
 
-3. **Oturum Takibi (Check-in/Check-out):**
-   - Canlı oturum durumu (başlamadı, devam ediyor, yaklaşıyor, gecikmiş, bitti)
-   - Tek tıkla check-in/check-out
-   - Sapma tespiti (erken/geç check-out)
-   - Manuel zaman düzeltme
-
-4. **Komisyon & Faturalama:**
-   - Hizmet veren başına komisyon (yüzde/sabit/saatlik)
-   - Süre bazlı faturalama
-   - Saatlik gelir raporu
-   - Fatura oluşturma
-
-5. **Ödeme Takibi:**
-   - Ödeme durumu (bekliyor, tahsil edilmedi, tahsil edildi)
-   - Ödeme yöntemi (IBAN, fiziksel POS, sanal POS, nakit)
-   - Ödeme tutarı ve bakiye
-
-6. **Üyelik & Bekleme Listesi:**
-   - Üyelik yönetimi
-   - Bekleme listesi
-   - POS işlemleri
-
-#### Wave 2 — Güvenlik
-1. **MFA/TOTP:** İki faktörlü kimlik doğrulama
-2. **KVKK/GDPR:** Veri uyumluluk
-3. **Background Jobs:** Arka plan işleri
-4. **Observability:** Gözlemlilik
-
-### ✅ Tamamlanan (Wave 3 — kısmi)
-
-#### Wave 3 — Otomasyon ve Büyüme
-1. **Communication Hub** (Faz 3.1): E-posta, SMS, WhatsApp tek merkezden; otomatik hatırlatmalar
-2. **Automation Engine** (Faz 3.2): WHEN/IF/THEN kuralları, 6 hazır şablon, appointment hooks'ları
-3. **Marketing** (Faz 3.3): müşteri segmentleri (VIP/inaktif/doğum günü/tümü/özel) + kampanya yönetimi + broadcast sender (draft→queued→sending→sent, 50'lik batch, e-posta/SMS/WhatsApp/Telegram) + console komutları
-4. **Review Engine** (Faz 3.4): 🔲 planlanan — randevu-sonrası otomatik review isteği
-5. **WhatsApp dual-mode** (Faz 3.5): 🔲 planlanan — Meta Business API + QR alternatif
-6. **Analytics/BI** (Faz 3.6): 🔲 planlanan — revenue/utilization/retention dashboard'ları
+Gift Cards, PWA/Service Worker, White-label (branding toggle), gerçek License/Entitlement kontrolü,
+Marketplace ranking/revenue/wallet, birim test paketi (PHPUnit bootstrap var, asıl testler yok).
+Detaylar: `docs/ROADMAP.md` → Dalga 4/5.
 
 ## 🔄 Deployment
 
-### Mevcut Durum
+```bash
+# Kod değişikliği sonrası (canonical → prod, TEK repo):
+cd /opt/ki-ecosystem/ki-reservation-src/deploy
+docker compose build app
+docker compose up -d app
+docker exec -u www-data ki-reservation-app php index.php console migrate
+```
 
-- **Container:** `ki-reservation-app` (PHP + Nginx)
-- **Database:** `ki-reservation-db` (MariaDB)
-- **Proxy:** Nginx Proxy Manager → reservationapp.kibusiness.co
-- **SSL:** Let's Encrypt
+⚠️ **Kritik kural:** `deploy/docker-compose.yml`'in build context'i repo köküdür (`context: ..`) —
+image'a girecek her JS/PHP değişikliği bu şekilde rebuild edilmeden container'a YANSIMAZ (container
+recreate PHP oturumlarını da sıfırlar — Playwright ile test ederken önce `tests/e2e/auth.setup.spec.js`
+çalıştırılmalı). JS/CSS değiştiyse `deploy/docker-compose.yml`'deki `ASSET_VERSION` bump edilmeli.
 
-### Canlıya Alma
+### Konfigürasyon komutları (platform seviyesi, `master_settings`)
 
 ```bash
-cd /opt/ki-ecosystem/ki-reservation
-docker compose up -d
+docker exec -u www-data ki-reservation-app php index.php console google_config   # Google OAuth client
+docker exec -u www-data ki-reservation-app php index.php console crm_config      # Zoho CRM
+docker exec -u www-data ki-reservation-app php index.php console erp_config      # QuickBooks / Zoho Books
 ```
 
-### Yeni Sürüm Deploy
+## 📋 Referans Dokümanlar
 
-```bash
-cd /opt/ki-ecosystem/ki-reservation-src
-git pull origin main
-cd /opt/ki-ecosystem/ki-reservation
-docker compose up -d --build
-```
+| Dosya | İçerik |
+|-------|--------|
+| `docs/ROADMAP.md` | 52 faz / 6 dalga uygulama planı + boşluk analizi — **güncel durumun tek doğru kaynağı** |
+| `docs/SESSION_NOTES.md` | Oturum bazlı ayrıntılı geliştirme günlüğü (kök neden analizleri, bulunan buglar, deploy adımları) |
+| `SPECS.md` | Özellik spesifikasyonu |
+| `CHANGELOG.md` | Değişiklik günlüğü |
+| `COMPLIANCE.md` | KVKK/GDPR uyumluluk dokümanı |
+| `KEY_MANAGEMENT.md` | Şifreleme anahtarı yönetimi |
 
-## 📋 Kritik Dosya Yolları
-
-```
-/opt/ki-ecosystem/ki-reservation-src/
-├── application/
-│   ├── controllers/             ← Controller'lar
-│   ├── models/                  ← Model'ler
-│   ├── views/                   ← View'lar
-│   └── config/                  ← Konfigürasyon
-├── assets/                      ← CSS, JS, görseller
-├── system/                      ← Framework
-├── vendor/                      ← Composer
-├── config-sample.php            ← Örnek config
-├── composer.json                ← PHP bağımlılıkları
-├── SPECS.md                     ← Özellik spesifikasyonu
-├── CHANGELOG.md                 ← Değişiklik günlüğü
-├── COMPLIANCE.md                ← Uyumluluk dokümanı
-├── KEY_MANAGEMENT.md            ← Anahtar yönetimi
-└── LICENSE                      ← Ki Software License
-
-/opt/ki-ecosystem/ki-reservation/
-├── docker-compose.yml           ← Docker servisleri
-├── Dockerfile                   ← PHP + Nginx image
-└── nginx.conf                   ← Nginx config
-```
-
-## 🎯 Owner Talimatı
-
-> "Dalga 3 üzerinden devam edilecek. İlk iş: WhatsApp dual-mode (Meta Business API + QR alternatif)."
-
-**Durum:** 🟢 CANLI — Wave 1 + Wave 2 + Wave 3 (Faz 3.1/3.2/3.3) tamamlandı. Kalan: Faz 3.4 Review Engine, Faz 3.5 WhatsApp dual-mode, Faz 3.6 Analytics.
-
-## ✅ Next Actions
-
-1. [x] Analiz tamamlandı — proje dosyaları yazıldı
-2. [ ] `reservationadmin` → `reservationsadmin` DNS güncelle
-3. [ ] Dalga 3 / Faz 3.4 Review Engine başlat (ki-reservation-src)
-4. [ ] GitHub repo güncelle (ki-reservation-saas)
-5. [ ] CHANGELOG.md güncelle (Wave 3 ilerlemesi)
+**Admin/platform giriş bilgileri bu repoda tutulmaz** (güvenlik) — operatörün kendi güvenli
+notlarında saklanır.
 
 ---
-
-## 📝 Oturum Notu (2026-09-09)
-
-**Durum:** 🟢 CANLI — Wave 1 + Wave 2 + Wave 3 (Faz 3.1/3.2/3.3) tamamlandı. Kalan: Faz 3.4 Review Engine, Faz 3.5 WhatsApp dual-mode, Faz 3.6 Analytics.
-
-**Faz 3.3 Marketing (canlıda, 2026-09-09):**
-- Migration 130: `platform` ayarı + `google_ads_gateway_token` (Eski Google Ads ↔ yeni/Google Ads eşleştirmesi).
-- Migration 131: `marketing_segments`, `marketing_campaigns`, `campaign_recipients` tabloları + `ea_roles.marketing` bitmask (admin=15).
-- Segment türleri: VIP / inaktif / doğum günü / tümü / özel; admin panelde "Pazarlama" sayfası (segment + kampanya yönetimi).
-- Kampanya akışı: draft → queued (idsi `prepare_broadcast`, idempotent) → sending → sent; `send_batch()` (50'lik batch, kuyruklu); kanallar e-posta/SMS/WhatsApp/Telegram.
-- Merge alanları: `{{customer_name}}`, `{{customer_first_name}}`, `{{company_name}}`.
-- Console: `marketing_segments`, `marketing_refresh`, `marketing_campaigns`.
-- Doğrulama: 516 müşterili smoke test (segment→campaign→prepare→send_batch→cleanup) + tam sayfa render testi başarılı; `/marketing` auth gate doğru çalışıyor.
-- Bilinen not: e-posta gönderimi best-effort — hostta `sendmail` yok; alıcılar yine de "sent" işaretlenir (mevcut kanal konvansiyonu).
-
-**⚠️ Deploy felaketi + kurtarma:** 2026-09-08'de deploy köküne yanlışlıkla `rsync -a --delete` yapıldı; `db/mysql` (MySQL datadir) ve `files/` (storage volume) silindi. Yaşayan mysqld'den her iki DB dump edilip (`/tmp/opencode/db-recover/*.sql` — HAYATİ, silme) taze DB container'ı + `.env` + `src/` + storage volume kurularak %100 restore edildi. Doğrulandı: tenant subdomain'lerde `/booking`, `/login`, `/health` → 200. Ayrıca base image'de kapalı gelen `mod_rewrite` Dockerfile'a `a2enmod rewrite` eklenerek açıldı (öncesinde tüm clean URL'ler 404 dönüyordu).
-
-**Kritik deploy kuralı (asla çiğneme):** rsync hedefi YALNIZCA `/opt/ki-ecosystem/ki-reservation/src/` olur. Deploy ROOT'una `--delete` ile rsync YAPMA (gitignore'lu `db/`, `files/`, `src/`, `.env`'i siler).
-
-**Sonraki adım:** Dalga 3'ün kalan fazları — Faz 3.4 Review Engine, Faz 3.5 WhatsApp dual-mode, Faz 3.6 Analytics, ardından custom domain özelliği düzeltmesi. Devam detayları: `docs/SESSION_NOTES.md`.
+*Son güncelleme: 2026-09-17. Güncel git HEAD: `911cdd6`.*
