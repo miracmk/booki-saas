@@ -119,6 +119,14 @@ class Providers_model extends EA_Model
      */
     public function save(array $provider): int
     {
+        if (array_key_exists('station_restriction_enabled', $provider)) {
+            $provider['station_restriction_enabled'] = filter_var(
+                $provider['station_restriction_enabled'],
+                FILTER_VALIDATE_BOOLEAN,
+                FILTER_NULL_ON_FAILURE,
+            ) ? 1 : 0;
+        }
+
         $this->validate($provider);
 
         if (empty($provider['id'])) {
@@ -995,6 +1003,73 @@ class Providers_model extends EA_Model
         }
 
         return $providers;
+    }
+
+    /**
+     * BooKi (2026-09-17) - "İlk Müsaitlik" satisfaction ranking (user request: providers should be
+     * ordered by customer satisfaction, best-rated first). Returns [provider_id => weighted_score],
+     * highest first. Only `reviews.status = 'published'` counts - unmoderated/rejected reviews never
+     * influence ranking (same trust boundary the review moderation queue already enforces).
+     *
+     * Uses a Bayesian-average (weighted by a fixed prior) rather than the raw average, so a provider
+     * with one 5-star review doesn't outrank one with fifty reviews averaging 4.7 - the prior pulls
+     * low-volume providers toward the platform-wide average until they accumulate enough reviews to
+     * outweigh it. Providers with zero reviews get exactly the neutral prior score (not zero, not the
+     * max) so they land in the middle of the ranking rather than randomly first or last; callers that
+     * want them to sort after reviewed providers should check `review_count === 0` explicitly (see
+     * Calendar::get_next_availability()).
+     *
+     * @return array<int, array{score: float, review_count: int}> Keyed by provider id.
+     */
+    public function get_satisfaction_scores(): array
+    {
+        $prior_weight = 5.0;
+        $neutral_score = 3.0; // used only when there isn't a single published review platform-wide
+
+        // Note: CI3's protect_identifiers() (auto table-prefixing for bare "table.column" refs) does not
+        // reliably descend into aggregate-function arguments inside a select() string (AVG(reviews.rating)
+        // came out as literal `reviews.rating` -> "Unknown column" error, caught live during this turn's
+        // browser verification - both as a raw-string where() AND inside AVG()/COUNT()). Using short table
+        // aliases sidesteps the parser entirely: `r`/`a` are never subject to prefixing (they don't match
+        // any real table name), so they reach MySQL exactly as written, matching the FROM/JOIN aliases.
+        $rows = $this->db
+            ->select('a.id_users_provider AS provider_id, AVG(r.rating) AS avg_rating, COUNT(r.rating) AS review_count')
+            ->from('reviews r')
+            ->join('appointments a', 'a.id = r.appointment_id', 'inner')
+            ->where('r.status', 'published')
+            ->group_by('a.id_users_provider')
+            ->get()
+            ->result_array();
+
+        $rows = array_values(array_filter($rows, fn($row) => $row['avg_rating'] !== null));
+
+        if (empty($rows)) {
+            return [];
+        }
+
+        $total_rating = 0.0;
+        $total_count = 0;
+
+        foreach ($rows as $row) {
+            $total_rating += (float) $row['avg_rating'] * (int) $row['review_count'];
+            $total_count += (int) $row['review_count'];
+        }
+
+        $global_avg = $total_count > 0 ? $total_rating / $total_count : $neutral_score;
+
+        $scores = [];
+
+        foreach ($rows as $row) {
+            $provider_id = (int) $row['provider_id'];
+            $avg_rating = (float) $row['avg_rating'];
+            $review_count = (int) $row['review_count'];
+
+            $weighted = (($review_count * $avg_rating) + ($prior_weight * $global_avg)) / ($review_count + $prior_weight);
+
+            $scores[$provider_id] = ['score' => $weighted, 'review_count' => $review_count];
+        }
+
+        return $scores;
     }
 
     /**

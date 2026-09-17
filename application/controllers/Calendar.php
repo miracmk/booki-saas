@@ -2181,6 +2181,33 @@ class Calendar extends EA_Controller
                 return;
             }
 
+            // BooKi (2026-09-17) - user request: rank providers by customer satisfaction (published
+            // review rating, Bayesian-weighted so low-volume reviewers don't jump the queue) instead of
+            // the alphabetical order get_available_providers() returns. Providers with zero reviews sort
+            // after every reviewed provider (still by name among themselves), rather than landing at a
+            // neutral-but-arbitrary position - reception shouldn't see an unreviewed newcomer outrank a
+            // well-reviewed veteran just because the prior happened to average out that way.
+            $satisfaction_scores = $this->providers_model->get_satisfaction_scores();
+
+            usort($providers, function ($a, $b) use ($satisfaction_scores) {
+                $a_score = $satisfaction_scores[(int) $a['id']] ?? null;
+                $b_score = $satisfaction_scores[(int) $b['id']] ?? null;
+
+                if ($a_score === null && $b_score === null) {
+                    return strcmp($a['first_name'] . $a['last_name'], $b['first_name'] . $b['last_name']);
+                }
+
+                if ($a_score === null) {
+                    return 1; // no reviews - always after a reviewed provider
+                }
+
+                if ($b_score === null) {
+                    return -1;
+                }
+
+                return $b_score['score'] <=> $a_score['score']; // higher score first
+            });
+
             $services = $this->services_model->get(null, 1);
 
             if (empty($services)) {
@@ -2323,7 +2350,9 @@ class Calendar extends EA_Controller
                 throw new RuntimeException('You do not have the required permissions for this task.');
             }
 
-            $stations = $this->stations_model->get();
+            // BooKi (2026-09-17) - admin-configurable ranking (migration 145): rooms have no organic
+            // satisfaction signal like providers do, so display_order is an explicit manual priority.
+            $stations = $this->stations_model->get(order_by: 'display_order ASC, name ASC');
             $now = new DateTime();
             $now_str = $now->format('Y-m-d H:i:s');
 

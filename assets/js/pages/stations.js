@@ -8,6 +8,7 @@ App.Pages.Stations = (function () {
     const $name = $('#name');
     const $notes = $('#notes');
     const $isActive = $('#is-active');
+    const $displayOrder = $('#display-order'); // BooKi (2026-09-17) - İlk Müsaitlik room ranking
     const $filterStations = $('#filter-stations');
     const $stationServices = $('#station-services');
     const $stationNoRestriction = $('#station-no-restriction');
@@ -172,6 +173,7 @@ App.Pages.Stations = (function () {
                 name: $name.val(),
                 notes: $notes.val(),
                 is_active: Number($isActive.prop('checked')),
+                display_order: $displayOrder.val() === '' ? 0 : Number($displayOrder.val()),
                 services,
             };
 
@@ -311,6 +313,7 @@ App.Pages.Stations = (function () {
         $name.val(station.name);
         $notes.val(station.notes);
         $isActive.prop('checked', !!station.is_active);
+        $displayOrder.val(station.display_order ?? 0);
         App.Http.Stations.find(station.id).done((response) => {
             const count = (response.provider_ids || []).length;
             $stations.find('.record-details h4').find('.provider-count-badge').remove();

@@ -82,7 +82,14 @@ App.Components.NextAvailabilityWidget = (function () {
         const $group = $('<div/>', { class: 'kcc-availability-group' });
         $group.append($('<div/>', { class: 'kcc-availability-group-label', text: label }));
 
-        const $row = $('<div/>', { class: 'd-flex flex-wrap gap-2' });
+        // BooKi (2026-09-17 UI fix) - a dedicated class instead of raw Bootstrap
+        // `flex-wrap` utilities: the narrow `#calendar-filter` toolbar mount squeezed
+        // this row's available width down far enough that `flex-wrap` dropped every
+        // pill onto its own line (looked like a vertical stack instead of a strip).
+        // `.kcc-availability-row` (see ki-command-center.min.css) makes it a
+        // horizontally-scrolling strip instead - it always stays one row regardless
+        // of how narrow the mount point is.
+        const $row = $('<div/>', { class: 'kcc-availability-row d-flex gap-2' });
 
         if (!rows || !rows.length) {
             $row.append($('<span/>', { class: 'text-muted small', text: 'Müsaitlik bilgisi yok.' }));

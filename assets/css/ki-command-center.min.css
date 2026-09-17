@@ -454,6 +454,21 @@ nav#header .btn-link.text-white {
     box-shadow: var(--kcc-shadow);
     font-size: 12.5px;
     white-space: nowrap;
+    flex: 0 0 auto;
+    min-width: 148px;
+}
+/* 2026-09-17 fix - the row used to be a bare `d-flex flex-wrap`, which let a
+ * narrow mount (the calendar toolbar in particular) wrap every pill onto its
+ * own line, reading as a vertical stack instead of the intended horizontal
+ * strip. Force one row, scroll horizontally instead of wrapping; the fixed
+ * pill min-width above also keeps a single remaining pill (e.g. after
+ * filtering to one provider) from stretching to fill the row's width. */
+.kcc-availability-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
 }
 /* Two always-present labeled sections per pill ("Terapist: X", "Oda: Y"),
  * followed by the time/duration or "Müsaitlik yok" - user feedback asked for

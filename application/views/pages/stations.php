@@ -76,6 +76,19 @@
                 <textarea id="notes" rows="3" class="form-control" disabled></textarea>
             </div>
 
+            <div class="mb-3">
+                <label class="form-label" for="display-order">
+                    İlk Müsaitlik Sırası
+                </label>
+                <input id="display-order" type="number" step="1" class="form-control" style="max-width: 140px;" disabled>
+                <div class="form-text text-muted">
+                    <small>
+                        Küçük sayı önce gösterilir (İlk Müsaitlik şeridinde ve takvim oda listesinde).
+                        Aynı sayıya sahip odalar isme göre sıralanır.
+                    </small>
+                </div>
+            </div>
+
             <div class="border rounded mb-3 p-3">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" id="is-active">
