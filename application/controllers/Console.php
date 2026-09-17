@@ -1367,6 +1367,51 @@ class Console extends EA_Controller
     }
 
     /**
+     * BooKi (2026-09-17) - master-level Google OAuth client config (Google_sync.php / Google_
+     * integrations_client.php read these via master_setting()). Shared platform OAuth app used by
+     * both Calendar sync (per-provider) and Marketing (GA4/Ads, per-tenant OAuth once scopes are
+     * requested). Mirrors crm_config's mask-on-display pattern - see Zoho notes above.
+     *
+     * Usage:
+     *
+     * php index.php console google_config                                  (show current, masked)
+     * php index.php console google_config google_client_id "451286...apps.googleusercontent.com"
+     * php index.php console google_config google_client_secret "GOCSPX-..."
+     */
+    public function google_config(?string $name = null, ?string $value = null): void
+    {
+        $allowed = ['google_client_id', 'google_client_secret'];
+
+        if ($name !== null && $value !== null) {
+            $name = trim($name);
+
+            if (!in_array($name, $allowed, true)) {
+                show_error('Unknown Google setting "' . $name . '". Allowed: ' . implode(', ', $allowed) . '.');
+
+                return;
+            }
+
+            master_setting($name, trim($value));
+
+            echo 'google_config: ' . $name . ' set.' . PHP_EOL;
+
+            return;
+        }
+
+        echo 'Current Google OAuth client configuration' . PHP_EOL;
+
+        foreach ($allowed as $key) {
+            $display = master_setting($key);
+
+            if ($key === 'google_client_secret' && $display !== '') {
+                $display = str_repeat('*', 8) . mb_substr($display, -4);
+            }
+
+            echo '  ' . $key . ' = ' . ($display === '' ? '(empty)' : $display) . PHP_EOL;
+        }
+    }
+
+    /**
      * BooKi (2026-09-16) - drain the Zoho CRM outbox of every active tenant (or of a single
      * tenant). Pushes only pending customer/appointment events; idempotent afterwards ('sent' rows are
      * never re-pushed). Safe to run from a cron.
