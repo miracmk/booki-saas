@@ -246,6 +246,10 @@ class Console extends EA_Controller
         // Plan/license tracking columns on `tenants` - added individually (idempotent) so re-running
         // master_install() on an already-installed master DB upgrades it in place.
         $tenant_columns = [
+            'business_type' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'billing_cycle' => ['type' => 'ENUM', 'constraint' => ['monthly', 'yearly'], 'default' => 'monthly', 'null' => false],
+            'mrr_amount' => ['type' => 'DECIMAL', 'constraint' => '10,2', 'default' => 0.00, 'null' => false],
+            'currency' => ['type' => 'VARCHAR', 'constraint' => 3, 'default' => 'TRY', 'null' => false],
             'plan' => ['type' => 'VARCHAR', 'constraint' => 32, 'null' => true],
             'trial_ends_at' => ['type' => 'DATETIME', 'null' => true],
             'license_expires_at' => ['type' => 'DATETIME', 'null' => true],

@@ -53,6 +53,27 @@
     <main>
         <div id="success-box" class="success-box"></div>
 
+        <div style="display:flex;gap:1.5rem;margin-bottom:2rem;">
+            <div style="background:#fff;padding:1.5rem;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex:1;">
+                <div style="font-size:.85rem;color:#666;text-transform:uppercase;margin-bottom:.8rem;font-weight:600;">Toplam Kiracı</div>
+                <div style="font-size:1.8rem;font-weight:bold;"><?= vars('total_tenants') ?></div>
+                <div style="font-size:.85rem;color:#888;margin-top:.4rem;"><span style="color:#1e8a4c;font-weight:600;"><?= vars('active_tenants') ?> Aktif</span> / <span style="color:#c0392b;font-weight:600;"><?= vars('total_tenants') - vars('active_tenants') ?> Askıda</span></div>
+            </div>
+            <div style="background:#fff;padding:1.5rem;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex:1;">
+                <div style="font-size:.85rem;color:#666;text-transform:uppercase;margin-bottom:.8rem;font-weight:600;">Toplam Müşteri Portföyü</div>
+                <div style="font-size:1.8rem;font-weight:bold;"><?= number_format(vars('total_customers')) ?></div>
+            </div>
+            <div style="background:#fff;padding:1.5rem;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex:1;">
+                <div style="font-size:.85rem;color:#666;text-transform:uppercase;margin-bottom:.8rem;font-weight:600;">Randevular</div>
+                <div style="font-size:1.8rem;font-weight:bold;"><?= number_format(vars('total_monthly_appointments')) ?> <span style="font-size:1.1rem;font-weight:normal;color:#888;">/ <?= number_format(vars('total_appointments')) ?></span></div>
+                <div style="font-size:.85rem;color:#888;margin-top:.4rem;">Bu Ay / Toplam</div>
+            </div>
+            <div style="background:#fff;padding:1.5rem;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex:1;">
+                <div style="font-size:.85rem;color:#666;text-transform:uppercase;margin-bottom:.8rem;font-weight:600;">Platform MRR</div>
+                <div style="font-size:1.8rem;font-weight:bold;">₺<?= number_format(vars('total_mrr'), 2) ?></div>
+            </div>
+        </div>
+
         <div class="toolbar">
             <div><?= e(vars('total')) ?> kiracı<?= vars('search') ? ' ("' . e(vars('search')) . '" için)' : '' ?></div>
             <form method="get" style="display:flex;gap:.5rem;">
@@ -66,12 +87,12 @@
             <thead>
                 <tr>
                     <th>Subdomain</th>
-                    <th>Custom Domain</th>
-                    <th>Plan</th>
+                    <th>İşletme Türü</th>
+                    <th>Plan & Döngü</th>
                     <th>Durum</th>
-                    <th>Deneme Bitişi</th>
-                    <th>Lisans Bitişi</th>
-                    <th>Randevu</th>
+                    <th>Müşteriler</th>
+                    <th>Randevular</th>
+                    <th>Ciro / MRR</th>
                     <th>Oluşturma</th>
                     <th>İşlemler</th>
                 </tr>
@@ -86,22 +107,32 @@
                 $badge_label = $expired ? 'süresi doldu' : $tenant['status'];
                 ?>
                 <tr data-tenant-id="<?= e($tenant['id']) ?>" data-subdomain="<?= e($tenant['subdomain']) ?>">
-                    <td><?= e($tenant['subdomain']) ?>-<?= e(getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co') ?></td>
-                    <td><?= e($tenant['custom_domain'] ?? '—') ?></td>
-                    <td><?= e($tenant['plan'] ?? '—') ?></td>
+                    <td>
+                        <strong><?= e($tenant['subdomain']) ?></strong><br>
+                        <span style="font-size:.75rem;color:#666;"><?= e($tenant['custom_domain'] ?? '—') ?></span>
+                    </td>
+                    <td><?= e($tenant['business_type'] ?? '—') ?></td>
+                    <td>
+                        <?= e($tenant['plan'] ?? 'Free') ?> <br>
+                        <span style="font-size:.75rem;color:#666;"><?= e($tenant['billing_cycle'] == 'yearly' ? 'Yıllık' : 'Aylık') ?></span>
+                    </td>
                     <td><span class="badge <?= e($badge_class) ?>"><?= e($badge_label) ?></span></td>
-                    <td><?= e($tenant['trial_ends_at'] ?? '—') ?></td>
-                    <td><?= e($tenant['license_expires_at'] ?? '—') ?></td>
-                    <td><?= $tenant['appointment_count'] === null ? '?' : e($tenant['appointment_count']) ?></td>
-                    <td><?= e($tenant['created_at']) ?></td>
+                    <td><?= number_format($tenant['customer_count'] ?? 0) ?></td>
+                    <td><?= number_format($tenant['monthly_appointments'] ?? 0) ?> <span style="color:#888;font-size:.75rem;">/ <?= number_format($tenant['appointment_count'] ?? 0) ?></span></td>
+                    <td>
+                        ₺<?= number_format($tenant['total_revenue'] ?? 0, 2) ?> <br>
+                        <span style="font-size:.75rem;color:#666;">MRR: ₺<?= number_format($tenant['mrr_amount'] ?? 0, 2) ?></span>
+                    </td>
+                    <td><?= date('d.m.Y', strtotime($tenant['created_at'])) ?></td>
                     <td class="actions">
+                        <button onclick="openDetailsModal(<?= e($tenant['id']) ?>)">Detay</button>
                         <?php if ($tenant['status'] === 'active'): ?>
                             <button onclick="setStatus(<?= e($tenant['id']) ?>, 'suspended')">Askıya Al</button>
                         <?php else: ?>
                             <button onclick="setStatus(<?= e($tenant['id']) ?>, 'active')">Aktifleştir</button>
                         <?php endif; ?>
-                        <button onclick="openPlanModal(<?= e($tenant['id']) ?>, '<?= e($tenant['plan'] ?? '') ?>', '<?= e($tenant['trial_ends_at'] ?? '') ?>', '<?= e($tenant['license_expires_at'] ?? '') ?>')">Plan/Lisans</button>
-                        <button onclick="openAdminModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Admin Hesabı</button>
+                        <button onclick="openPlanModal(<?= e($tenant['id']) ?>, '<?= e($tenant['plan'] ?? '') ?>', '<?= e($tenant['billing_cycle'] ?? 'monthly') ?>', '<?= e($tenant['mrr_amount'] ?? 0) ?>', '<?= e($tenant['trial_ends_at'] ?? '') ?>', '<?= e($tenant['license_expires_at'] ?? '') ?>')">Plan</button>
+                        <button onclick="openAdminModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Admin</button>
                         <button class="danger" onclick="openDeleteModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Sil</button>
                     </td>
                 </tr>
@@ -120,14 +151,23 @@
 
     <!-- Create modal -->
     <div class="modal-backdrop" id="create-modal">
-        <div class="modal">
+        <div class="modal" style="max-width:480px; max-height:90vh; overflow-y:auto;">
             <h2>Yeni Kiracı Oluştur</h2>
             <form id="create-form">
-                <label>Subdomain</label>
+                <label>Subdomain *</label>
                 <input type="text" id="c-subdomain" placeholder="orn: acme" required>
-                <label>Custom Domain (opsiyonel)</label>
-                <input type="text" id="c-custom-domain" placeholder="rezervasyon.acme.com">
-                <label>Plan (opsiyonel)</label>
+                <label>İşletme Türü</label>
+                <select id="c-business-type">
+                    <option value="">— Seçiniz —</option>
+                    <option value="Güzellik Salonu">Güzellik Salonu</option>
+                    <option value="Masaj & Spa">Masaj & Spa</option>
+                    <option value="Klinik & Sağlık">Klinik & Sağlık</option>
+                    <option value="Restoran">Restoran</option>
+                    <option value="Spor & Fitness">Spor & Fitness</option>
+                    <option value="Eğitim & Danışmanlık">Eğitim & Danışmanlık</option>
+                    <option value="Diğer">Diğer</option>
+                </select>
+                <label>Plan</label>
                 <select id="c-plan">
                     <option value="">— (Free varsayılan)</option>
                     <option value="Free">Free</option>
@@ -137,6 +177,17 @@
                 </select>
                 <label>Deneme Süresi (gün, opsiyonel)</label>
                 <input type="number" id="c-trial-days" placeholder="14">
+                
+                <h3 style="margin-top:1.5rem; font-size:.95rem;">Yönetici Bilgileri (Opsiyonel)</h3>
+                <label>Ad Soyad</label>
+                <input type="text" id="c-admin-name" placeholder="Yönetici Adı Soyadı">
+                <label>E-posta</label>
+                <input type="email" id="c-admin-email" placeholder="yonetici@acme.com">
+                <label>Telefon</label>
+                <input type="text" id="c-admin-phone" placeholder="05XX XXX XX XX">
+                <label>Özel Şifre (boşsa rastgele)</label>
+                <input type="text" id="c-admin-password" placeholder="En az 8 karakter">
+
                 <div class="msg" id="create-msg"></div>
                 <div class="row">
                     <button type="button" class="cancel" onclick="document.getElementById('create-modal').classList.remove('open')">Vazgeç</button>
@@ -160,9 +211,16 @@
                     <option value="Premium">Premium</option>
                     <option value="Elite">Elite</option>
                 </select>
-                <label>Deneme Bitişi (YYYY-MM-DD HH:MM:SS, boş = yok)</label>
+                <label>Döngü</label>
+                <select id="p-billing-cycle">
+                    <option value="monthly">Aylık</option>
+                    <option value="yearly">Yıllık</option>
+                </select>
+                <label>MRR (Aylık Tekrarlayan Gelir)</label>
+                <input type="number" step="0.01" id="p-mrr-amount" placeholder="0.00">
+                <label>Deneme Bitişi (YYYY-MM-DD HH:MM:SS)</label>
                 <input type="text" id="p-trial-ends-at">
-                <label>Lisans Bitişi (YYYY-MM-DD HH:MM:SS, boş = süresiz)</label>
+                <label>Lisans Bitişi (YYYY-MM-DD HH:MM:SS)</label>
                 <input type="text" id="p-license-expires-at">
                 <div class="msg" id="plan-msg"></div>
                 <div class="row">
@@ -170,6 +228,47 @@
                     <button type="submit" class="confirm">Kaydet</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal-backdrop" id="details-modal">
+        <div class="modal" style="max-width:500px;">
+            <h2>Kiracı Detayları</h2>
+            <div id="details-loading" style="padding:1rem;text-align:center;color:#666;">Yükleniyor...</div>
+            <div id="details-content" style="display:none;">
+                <div style="display:flex;gap:1rem;margin-bottom:1rem;">
+                    <div style="flex:1;background:#f9f9f9;padding:.8rem;border-radius:6px;">
+                        <div style="font-size:.75rem;color:#666;">Hizmetler</div>
+                        <div style="font-size:1.2rem;font-weight:bold;" id="det-services"></div>
+                    </div>
+                    <div style="flex:1;background:#f9f9f9;padding:.8rem;border-radius:6px;">
+                        <div style="font-size:.75rem;color:#666;">Personeller</div>
+                        <div style="font-size:1.2rem;font-weight:bold;" id="det-providers"></div>
+                    </div>
+                </div>
+                
+                <h3 style="font-size:.9rem;margin-bottom:.5rem;">Randevu Durumları</h3>
+                <div style="display:flex;gap:.5rem;margin-bottom:1rem;font-size:.85rem;">
+                    <span style="color:#b3720a;">Beklemede: <strong id="det-st-pending"></strong></span> |
+                    <span style="color:#1e8a4c;">Onaylı: <strong id="det-st-approved"></strong></span> |
+                    <span style="color:#1e8a4c;">Tamamlanan: <strong id="det-st-completed"></strong></span> |
+                    <span style="color:#c0392b;">İptal: <strong id="det-st-canceled"></strong></span>
+                </div>
+                
+                <h3 style="font-size:.9rem;margin-bottom:.5rem;">İletişim</h3>
+                <div style="font-size:.85rem;margin-bottom:1rem;line-height:1.4;">
+                    <strong>Yönetici:</strong> <span id="det-contact-name"></span><br>
+                    <strong>E-posta:</strong> <span id="det-contact-email"></span><br>
+                    <strong>Telefon:</strong> <span id="det-contact-phone"></span>
+                </div>
+                
+                <h3 style="font-size:.9rem;margin-bottom:.5rem;">Son 5 Randevu</h3>
+                <ul id="det-last-appointments" style="font-size:.8rem;padding-left:1rem;color:#555;margin:0;"></ul>
+            </div>
+            <div class="row">
+                <button type="button" class="cancel" onclick="document.getElementById('details-modal').classList.remove('open')">Kapat</button>
+            </div>
         </div>
     </div>
 
@@ -244,9 +343,13 @@
 
             post('<?= site_url('superadmin_tenants/store') ?>', {
                 subdomain: document.getElementById('c-subdomain').value,
-                custom_domain: document.getElementById('c-custom-domain').value,
+                business_type: document.getElementById('c-business-type').value,
                 plan: document.getElementById('c-plan').value,
                 trial_days: document.getElementById('c-trial-days').value,
+                admin_name: document.getElementById('c-admin-name').value,
+                admin_email: document.getElementById('c-admin-email').value,
+                admin_phone: document.getElementById('c-admin-phone').value,
+                admin_password: document.getElementById('c-admin-password').value,
             }).then((data) => {
                 if (!data.success) {
                     msg.textContent = data.message || 'Hata oluştu.';
@@ -297,6 +400,49 @@
                     }
                 });
         }
+        
+        function openDetailsModal(tenantId) {
+            document.getElementById('details-loading').style.display = 'block';
+            document.getElementById('details-content').style.display = 'none';
+            document.getElementById('details-modal').classList.add('open');
+            
+            fetch('<?= site_url('superadmin_tenants/get_tenant_details') ?>?tenant_id=' + tenantId)
+                .then((r) => r.json())
+                .then((data) => {
+                    if (data.success) {
+                        const m = data.metrics;
+                        document.getElementById('det-services').textContent = m.services_count;
+                        document.getElementById('det-providers').textContent = m.providers_count;
+                        
+                        document.getElementById('det-st-pending').textContent = m.appointments_status.pending || 0;
+                        document.getElementById('det-st-approved').textContent = m.appointments_status.approved || 0;
+                        document.getElementById('det-st-completed').textContent = m.appointments_status.completed || 0;
+                        document.getElementById('det-st-canceled').textContent = m.appointments_status.canceled || 0;
+                        
+                        document.getElementById('det-contact-name').textContent = m.contact.admin_name || '—';
+                        document.getElementById('det-contact-email').textContent = m.contact.admin_email || '—';
+                        document.getElementById('det-contact-phone').textContent = m.contact.admin_phone || '—';
+                        
+                        const list = document.getElementById('det-last-appointments');
+                        list.innerHTML = '';
+                        if (m.last_appointments.length === 0) {
+                            list.innerHTML = '<li>Randevu yok</li>';
+                        } else {
+                            m.last_appointments.forEach(a => {
+                                const li = document.createElement('li');
+                                li.style.marginBottom = '0.3rem';
+                                li.innerHTML = `<strong>${a.book_datetime}</strong>: ${a.service_name || 'Hizmet silinmiş'} <span class="badge ${a.status}">${a.status}</span>`;
+                                list.appendChild(li);
+                            });
+                        }
+                        
+                        document.getElementById('details-loading').style.display = 'none';
+                        document.getElementById('details-content').style.display = 'block';
+                    } else {
+                        document.getElementById('details-loading').textContent = data.message || 'Hata';
+                    }
+                });
+        }
 
         function showFieldMsg(id, text, ok) {
             const el = document.getElementById(id);
@@ -339,9 +485,11 @@
             });
         }
 
-        function openPlanModal(tenantId, plan, trialEndsAt, licenseExpiresAt) {
+        function openPlanModal(tenantId, plan, billingCycle, mrrAmount, trialEndsAt, licenseExpiresAt) {
             document.getElementById('p-tenant-id').value = tenantId;
             document.getElementById('p-plan').value = plan;
+            document.getElementById('p-billing-cycle').value = billingCycle;
+            document.getElementById('p-mrr-amount').value = mrrAmount;
             document.getElementById('p-trial-ends-at').value = trialEndsAt;
             document.getElementById('p-license-expires-at').value = licenseExpiresAt;
             document.getElementById('plan-modal').classList.add('open');
@@ -352,6 +500,8 @@
             post('<?= site_url('superadmin_tenants/update_plan') ?>', {
                 tenant_id: document.getElementById('p-tenant-id').value,
                 plan: document.getElementById('p-plan').value,
+                billing_cycle: document.getElementById('p-billing-cycle').value,
+                mrr_amount: document.getElementById('p-mrr-amount').value,
                 trial_ends_at: document.getElementById('p-trial-ends-at').value,
                 license_expires_at: document.getElementById('p-license-expires-at').value,
             }).then((data) => {

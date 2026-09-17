@@ -61,7 +61,7 @@ class Superadmin_tenants extends EA_Controller
     private function find_tenant_admin(object $tenant_db): ?array
     {
         return $tenant_db
-            ->select('user_settings.id_users, user_settings.username, users.email')
+            ->select('user_settings.id_users, user_settings.username, users.email, users.first_name, users.last_name, users.phone_number')
             ->from('users')
             ->join('user_settings', 'user_settings.id_users = users.id', 'inner')
             ->join('roles', 'roles.id = users.id_roles', 'inner')
@@ -131,8 +131,29 @@ class Superadmin_tenants extends EA_Controller
             ->get('tenants')
             ->result_array();
 
+        $total_tenants = $this->db->count_all('tenants');
+        $active_tenants = $this->db->where('status', 'active')->count_all_results('tenants');
+        
+        $total_customers = 0;
+        $total_monthly_appointments = 0;
+        $total_appointments = 0;
+        $total_mrr = 0.00;
+
+        $all_tenants = $this->db->get('tenants')->result_array();
+        foreach ($all_tenants as $t) {
+            $total_mrr += (float) ($t['mrr_amount'] ?? 0);
+            $m = $this->get_tenant_metrics($t);
+            $total_customers += (int) $m['customer_count'];
+            $total_monthly_appointments += (int) $m['monthly_appointments'];
+            $total_appointments += (int) $m['appointment_count'];
+        }
+
         foreach ($tenants as &$tenant) {
-            $tenant['appointment_count'] = $this->count_tenant_appointments($tenant);
+            $metrics = $this->get_tenant_metrics($tenant);
+            $tenant['appointment_count'] = $metrics['appointment_count'];
+            $tenant['monthly_appointments'] = $metrics['monthly_appointments'];
+            $tenant['customer_count'] = $metrics['customer_count'];
+            $tenant['total_revenue'] = $metrics['total_revenue'];
         }
 
         unset($tenant);
@@ -146,6 +167,12 @@ class Superadmin_tenants extends EA_Controller
             'page' => $page,
             'total_pages' => max(1, (int) ceil($total / $per_page)),
             'total' => $total,
+            'total_tenants' => $total_tenants,
+            'active_tenants' => $active_tenants,
+            'total_customers' => $total_customers,
+            'total_monthly_appointments' => $total_monthly_appointments,
+            'total_appointments' => $total_appointments,
+            'total_mrr' => $total_mrr,
         ]);
 
         $this->load->view('pages/superadmin_tenants');
@@ -160,11 +187,26 @@ class Superadmin_tenants extends EA_Controller
             check('custom_domain', 'string|null');
             check('plan', 'string|null');
             check('trial_days', 'numeric|null');
+            check('business_type', 'string|null');
+            check('admin_name', 'string|null');
+            check('admin_email', 'string|null');
+            check('admin_phone', 'string|null');
+            check('admin_password', 'string|null');
 
             $subdomain = strtolower(trim((string) request('subdomain')));
             $custom_domain = trim((string) request('custom_domain'));
             $plan = trim((string) request('plan')) ?: null;
             $trial_days = request('trial_days') ? (int) request('trial_days') : null;
+            
+            $business_type = trim((string) request('business_type')) ?: null;
+            $admin_name = trim((string) request('admin_name')) ?: null;
+            $admin_email = trim((string) request('admin_email')) ?: null;
+            $admin_phone = trim((string) request('admin_phone')) ?: null;
+            $admin_password = (string) request('admin_password') ?: null;
+            
+            $billing_cycle = request('billing_cycle') === 'yearly' ? 'yearly' : 'monthly';
+            $mrr_amount = request('mrr_amount') ? (float) request('mrr_amount') : 0.00;
+            $currency = trim((string) request('currency')) ?: 'TRY';
 
             if ($subdomain === '' || !preg_match('/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/', $subdomain)) {
                 throw new InvalidArgumentException('Geçerli bir subdomain girin (harf/rakam/tire, tek DNS etiketi).');
@@ -198,6 +240,10 @@ class Superadmin_tenants extends EA_Controller
                 'pii_hash_key' => tenant_master_encrypt($pii_hash_key),
                 'status' => 'active',
                 'plan' => $plan,
+                'business_type' => $business_type,
+                'billing_cycle' => $billing_cycle,
+                'mrr_amount' => $mrr_amount,
+                'currency' => $currency,
                 'trial_ends_at' => $trial_days ? date('Y-m-d H:i:s', strtotime("+{$trial_days} days")) : null,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -217,7 +263,53 @@ class Superadmin_tenants extends EA_Controller
             ]);
 
             $this->instance->migrate('fresh');
-            $admin_password = $this->instance->seed();
+            $generated_admin_password = $this->instance->seed();
+            $admin_password_final = $admin_password ?: $generated_admin_password;
+
+            if ($admin_name || $admin_email || $admin_phone || $admin_password) {
+                $tenant_db = $this->load->database($this->tenant_db_config([
+                    'db_host' => $db_host,
+                    'db_username' => $db_username,
+                    'db_password' => tenant_master_encrypt($db_password_plain),
+                    'db_name' => $db_name,
+                ]), true);
+                
+                $admin = $this->find_tenant_admin($tenant_db);
+                if ($admin) {
+                    $this->activate_tenant_pii_context([
+                        'id' => $tenant_id,
+                        'subdomain' => $subdomain,
+                        'pii_enc_key' => tenant_master_encrypt($pii_enc_key),
+                        'pii_hash_key' => tenant_master_encrypt($pii_hash_key),
+                    ]);
+                    
+                    $users_update = [];
+                    if ($admin_name) {
+                        $parts = explode(' ', $admin_name, 2);
+                        $users_update['first_name'] = $parts[0];
+                        $users_update['last_name'] = $parts[1] ?? '';
+                    }
+                    if ($admin_email) {
+                        $users_update['email'] = sf_pii_encrypt($admin_email);
+                    }
+                    if ($admin_phone) {
+                        $users_update['phone_number'] = sf_pii_encrypt($admin_phone);
+                    }
+                    if (!empty($users_update)) {
+                        $tenant_db->update('users', $users_update, ['id' => $admin['id_users']]);
+                    }
+                    
+                    if ($admin_password) {
+                        $salt = generate_salt();
+                        $tenant_db->update(
+                            'user_settings',
+                            ['password' => hash_password($salt, $admin_password), 'salt' => $salt],
+                            ['id_users' => $admin['id_users']]
+                        );
+                    }
+                }
+                $tenant_db->close();
+            }
 
             $this->connect_master_db();
 
@@ -227,7 +319,7 @@ class Superadmin_tenants extends EA_Controller
                 'success' => true,
                 'subdomain' => $subdomain,
                 'login_url' => 'https://' . $subdomain . '-' . $app_domain . '/',
-                'admin_password' => $admin_password,
+                'admin_password' => $admin_password_final,
             ]);
         } catch (Throwable $e) {
             json_exception($e);
@@ -273,11 +365,15 @@ class Superadmin_tenants extends EA_Controller
             check('plan', 'string|null');
             check('license_expires_at', 'string|null');
             check('trial_ends_at', 'string|null');
+            check('billing_cycle', 'string|null');
+            check('mrr_amount', 'numeric|null');
 
             $this->db->update(
                 'tenants',
                 [
                     'plan' => request('plan') ?: null,
+                    'billing_cycle' => request('billing_cycle') === 'yearly' ? 'yearly' : 'monthly',
+                    'mrr_amount' => request('mrr_amount') ? (float) request('mrr_amount') : 0.00,
                     'license_expires_at' => request('license_expires_at') ?: null,
                     'trial_ends_at' => request('trial_ends_at') ?: null,
                     'updated_at' => date('Y-m-d H:i:s'),
@@ -567,6 +663,82 @@ class Superadmin_tenants extends EA_Controller
         }
     }
 
+    public function get_tenant_details(): void
+    {
+        try {
+            method('get');
+            check('tenant_id', 'numeric');
+            
+            $tenant = $this->get_tenant_or_fail((int) request('tenant_id'));
+            $tenant_db = $this->load->database($this->tenant_db_config($tenant), true);
+            
+            $metrics = [
+                'services_count' => (int) $tenant_db->count_all('services'),
+                'providers_count' => 0,
+                'appointments_status' => [
+                    'pending' => 0,
+                    'approved' => 0,
+                    'completed' => 0,
+                    'canceled' => 0,
+                ],
+                'last_appointments' => [],
+                'contact' => [
+                    'admin_name' => '',
+                    'admin_email' => '',
+                    'admin_phone' => '',
+                ]
+            ];
+            
+            $provider_role = $tenant_db->get_where('roles', ['slug' => DB_SLUG_PROVIDER])->row_array();
+            if ($provider_role) {
+                $metrics['providers_count'] = (int) $tenant_db->where('id_roles', $provider_role['id'])->count_all_results('users');
+            }
+            
+            if ($tenant_db->field_exists('status', 'appointments')) {
+                $status_counts = $tenant_db->select('status, count(*) as cnt')
+                    ->where('is_unavailability', false)
+                    ->group_by('status')
+                    ->get('appointments')
+                    ->result_array();
+                    
+                foreach ($status_counts as $row) {
+                    $st = strtolower($row['status']);
+                    if ($st === 'cancelled') {
+                        $metrics['appointments_status']['canceled'] = (int) $row['cnt'];
+                    } else if (isset($metrics['appointments_status'][$st])) {
+                        $metrics['appointments_status'][$st] = (int) $row['cnt'];
+                    } else {
+                        $metrics['appointments_status'][$st] = (int) $row['cnt'];
+                    }
+                }
+            }
+            
+            $admin = $this->find_tenant_admin($tenant_db);
+            if ($admin) {
+                $this->activate_tenant_pii_context($tenant);
+                $metrics['contact']['admin_name'] = trim(($admin['first_name'] ?? '') . ' ' . ($admin['last_name'] ?? '')) ?: $admin['username'];
+                $metrics['contact']['admin_email'] = sf_pii_is_encrypted($admin['email']) ? sf_pii_decrypt($admin['email']) : $admin['email'];
+                $phone = $admin['phone_number'] ?? '';
+                $metrics['contact']['admin_phone'] = sf_pii_is_encrypted($phone) ? sf_pii_decrypt($phone) : $phone;
+            }
+            
+            $metrics['last_appointments'] = $tenant_db->select('appointments.book_datetime, appointments.start_datetime, appointments.status, services.name as service_name')
+                ->from('appointments')
+                ->join('services', 'services.id = appointments.id_services', 'left')
+                ->where('appointments.is_unavailability', false)
+                ->order_by('appointments.book_datetime', 'desc')
+                ->limit(5)
+                ->get()
+                ->result_array();
+                
+            $tenant_db->close();
+            
+            json_response(['success' => true, 'metrics' => $metrics]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
     /**
      * Permanently deletes a tenant's database AND its master row - irreversible. Requires the
      * subdomain to be typed back exactly, matching the confirmation pattern the frontend enforces.
@@ -651,34 +823,65 @@ class Superadmin_tenants extends EA_Controller
      * Best-effort appointment count for the tenant list - swallows connection errors (e.g. a tenant
      * whose DB got manually removed) so one broken row doesn't take down the whole dashboard.
      */
-    private function count_tenant_appointments(array $tenant): ?int
+    private function get_tenant_metrics(array $tenant): array
     {
+        $metrics = [
+            'appointment_count' => null,
+            'monthly_appointments' => null,
+            'customer_count' => null,
+            'total_revenue' => null,
+        ];
+        
         try {
-            $tenant_db = $this->load->database(
-                [
-                    'hostname' => $tenant['db_host'],
-                    'username' => $tenant['db_username'],
-                    'password' => tenant_master_decrypt($tenant['db_password']),
-                    'database' => $tenant['db_name'],
-                    'dbdriver' => 'mysqli',
-                    'dbprefix' => 'ea_',
-                    'pconnect' => false,
-                    'db_debug' => false,
-                    'cache_on' => false,
-                    'cachedir' => '',
-                    'char_set' => 'utf8mb4',
-                    'dbcollat' => 'utf8mb4_unicode_ci',
-                    'swap_pre' => '',
-                ],
-                true,
-            );
+            $tenant_db = $this->load->database($this->tenant_db_config($tenant), true);
 
-            $count = (int) $tenant_db->count_all('appointments');
+            $metrics['appointment_count'] = (int) $tenant_db->count_all('appointments');
+            
+            $start_of_month = date('Y-m-01 00:00:00');
+            $metrics['monthly_appointments'] = (int) $tenant_db
+                ->where('start_datetime >=', $start_of_month)
+                ->count_all_results('appointments');
+                
+            $customer_role = $tenant_db->get_where('roles', ['slug' => DB_SLUG_CUSTOMER])->row_array();
+            if ($customer_role) {
+                $metrics['customer_count'] = (int) $tenant_db
+                    ->where('id_roles', $customer_role['id'])
+                    ->count_all_results('users');
+            }
+
+            // total_revenue
+            $total_revenue = 0.00;
+            if ($tenant_db->table_exists('payment_transactions')) {
+                $pt = $tenant_db
+                    ->select_sum('amount')
+                    ->where('status', 'succeeded')
+                    ->get('payment_transactions')
+                    ->row_array();
+                if ($pt && isset($pt['amount'])) {
+                    $total_revenue += (float) $pt['amount'];
+                }
+            }
+            if ($tenant_db->table_exists('invoices')) {
+                $inv = $tenant_db
+                    ->select_sum('amount')
+                    ->where('status', 'paid')
+                    ->get('invoices')
+                    ->row_array();
+                if ($inv && isset($inv['amount'])) {
+                    $total_revenue += (float) $inv['amount'];
+                }
+            }
+            $metrics['total_revenue'] = $total_revenue;
+
             $tenant_db->close();
-
-            return $count;
+            return $metrics;
         } catch (Throwable $e) {
-            return null;
+            return [
+                'appointment_count' => 0,
+                'monthly_appointments' => 0,
+                'customer_count' => 0,
+                'total_revenue' => 0.00,
+            ];
         }
     }
 }
