@@ -19,3 +19,8 @@ storage/backups/*
 /deploy/.env
 /dev/.env
 node_modules/
+
+# Playwright E2E (tests/e2e/) - auth session state + local run artifacts.
+/tests/e2e/.auth/
+/test-results/
+/playwright-report/

@@ -1,0 +1,12 @@
+{
+  "name": "booki-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "BooKi end-to-end (Playwright) tests - runs against a live tenant, not a local dev server.",
+  "scripts": {
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

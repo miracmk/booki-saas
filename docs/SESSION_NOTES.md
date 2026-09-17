@@ -4,6 +4,89 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU — 30 senaryo QA turu: WhatsApp bildirim sessiz-hatası + çok-kiracılı marka sızıntısı (4 dosya) bulunup düzeltildi, canlıya alındı
+
+Kullanıcı isteği: "WhatsApp bağlı ama mesaj gidip gelmiyor", İlk Müsaitlik/takvim tutarsızlığı, Bildirim
+Ayarları'nı aktifleştirme + 30 günlük kullanım senaryosu + kod/güvenlik denetimi. Taze `qatest` kiracısı
+(`console tenant_create qatest`, plan Elite) açılıp salonflora'ya YAZMA yapılmadan test edildi.
+
+**1) WhatsApp "bağlı ama mesaj gitmiyor" — KÖK NEDEN BULUNDU, DÜZELTİLDİ (`application/libraries/Notifications.php`,
+`do_send_whatsapp()`):** Dünkü 515/dead-socket bağlantı fix'i (bkz. altta) doğruydu ve hâlâ çalışıyor
+(bugün de 2 kez daha transient close oldu, auto-reconnect ikisini de kurtardı — `docker logs ki-wa-bridge`
+ile doğrulandı). Ama OTOMATİK randevu bildirimleri (`Notifications::send_whatsapp()` → `do_send_whatsapp()`)
+`Whatsapp_bridge::send()`'in dönüş değerini (`success`/`error`) TAMAMEN YOK SAYIYORDU — başarısız bir
+gönderim (`no_connected_session`, `invalid_number`, bridge unreachable, vb.) sessizce yutuluyordu: ne
+`log_message` ne de `whatsapp_messages` tablosuna kayıt vardı. Kanıt: canlı salonflora'da `ea_whatsapp_messages`
+**0 satır** — bağlantı "connected" olduğu halde, aylardır işleyen randevu trafiğine rağmen tek bir otomatik
+bildirim izi yok. Manuel panel yanıtı (`Whatsapp::reply()`) doğru loglanıyordu, otomatik bildirim yolu
+loglamıyordu. **Düzeltme:** hem `unofficial` (bridge) hem `official` (Meta Cloud API) yollarında sonuç
+`$result`'a alınıp (a) başarısızsa `log_message('error', ...)`, (b) her iki durumda da (`sent`/`failed`)
+`whatsapp_messages_model->save()` ile kalıcı kayıt eklendi — artık panelin mesaj geçmişinde otomatik
+bildirimler de görünecek ve gerçek hata varsa loglarda iz bırakacak. `php -l` temiz.
+**Not:** salonflora'nın gerçek telefon numarası formatı (PII şifreli, decrypt edilmedi) doğrulanamadı —
+eğer format `05XX...` (ülke kodsuz) ise bridge'in `digits@s.whatsapp.net` normalize mantığı yanlış JID
+üretebilir, bu fix sayesinde artık bu tür hatalar log'da GÖRÜNÜR olacak, bir sonraki turda salonflora
+loglarını izleyip gerçek hata varsa netleştirilmeli.
+
+**2) Çok-kiracılı marka sızıntısı — KÖK NEDEN BULUNDU, 4 DOSYADA DÜZELTİLDİ (CONFIRMED, güvenlik/marka riski):**
+qatest kiracısının login sayfası (hem tarayıcıda hem `curl -H "Host: qatest-bookiapp..."` ile, cache
+bypass edilerek) "Salon Flora" metnini gösteriyordu — DB'de qatest'in kendi `company_name`'i "Company Name"
+olmasına rağmen. Kök neden: Salon Flora'dan BooKi'ye rebrand geçişinde 4 UI dosyasında literal `"Salon Flora"`
+string'i unutulmuş (rebrand sed komutu sadece "Ki Reservation"→"BooKi" değiştirmişti, "Salon Flora" hiç
+kapsanmamıştı): `application/views/layouts/account_layout.php:35` (login/logout/şifre sıfırlama/onboarding
+kart altlığı — HER kiracının login sayfası), `application/views/components/booking_footer.php:14` (herkese
+açık randevu widget'ı altlığı), `application/views/components/backend_footer.php:10` (admin panel altlığı,
+HER sayfada görünür), `application/views/layouts/message_layout.php:34` (mesaj/onay sayfaları altlığı).
+`login.php`'nin zaten doğru yaptığı `vars('company_name') ?: 'BooKi'` deseni layout'lara `setting('company_name',
+'BooKi') ?: 'BooKi'` olarak taşındı. Canlıya alınıp (`docker compose build app && up -d app`) qatest'te
+doğrulandı: footer artık "Company Name" (kiracının kendi ayarı) gösteriyor. `php -l` 4 dosyada temiz.
+**Bulunup DÜZELTİLMEYEN ek bulgu (asset, kod değil):** `assets/img/logo.png` — platformun logo yüklemeyen
+HER YENİ kiracı için varsayılan düştüğü resim — görsel olarak gerçek "Salon Flora" dairesel logosu. Yeni
+bir BooKi kiracısı kendi logosunu yüklemeden önce login sayfasında Salon Flora'nın logosunu görüyor. Bunun
+düzeltilmesi bir tasarım varlığı (nötr BooKi placeholder logosu) gerektiriyor, kod değişikliği değil —
+kullanıcıya ayrıca bildirilmeli.
+
+**3) Bildirim Ayarları — TEKNİK OLARAK ÇALIŞIYOR, YANLIŞ ALARM DÜZELTİLDİ (kayıt altına alınıyor):**
+İlk mouse-coordinate tabanlı tarayıcı testinde "Kaydet" butonu tepki vermiyor göründü (network isteği hiç
+atılmadı) — ama JS ile doğrudan `.click()` tetiklenince `POST messaging_settings/save_settings` 200 döndü
+VE DB'de gerçekten kalıcı oldu (`whatsapp_notifications_enabled`, `smtp_from_name` ile doğrulandı). Yani
+buton/save mekanizması SAĞLAM — ilk testin başarısız görünmesi tarayıcı-otomasyon koordinat sorunuydu,
+gerçek bir ürün bug'ı değildi (rapor edilmiyor, kayıt için not düşülüyor). `messaging_settings.php`'nin
+kendi inline `<script>`'i `data-field` ortak deseninin dışında ama doğru çalışıyor; `.min.js` tuzağı da
+buraya uygulanmıyor (inline script, ayrı dosya değil). **Muhtemel gerçek anlam:** kullanıcının "aktif hale
+getir" isteği muhtemelen bir kod hatası değil, salonflora'da bazı kanalların (Arama/Instagram - hiç backend
+gönderici kodu yok, sayfa bunu zaten "Entegrasyonu hazır olmayan kanal... gönderim sırasında atlanır" diye
+açıkça belirtiyor) veya SMTP/WhatsApp credential'larının gerçekten doldurulup kaydedilmesi isteği - bu
+kullanıcı ile netleştirilmeli.
+
+**4) İlk Müsaitlik/takvim tutarsızlığı — KISMEN ARAŞTIRILDI, KOD DEĞİŞİKLİĞİ YAPILMADI (PLAUSIBLE, doğrulanamadı):**
+`Availability::find_first_available_slots()`/`consider_book_advance_timeout()`/`Calendar::get_next_availability()`
+kodu üç önceki regresyonun (limit bütçesi paylaşımı, book_advance_timeout, geçmiş saat filtresi) hepsini
+doğru uyguluyor gibi görünüyor (satır satır okundu, docblock'larla eşleşiyor). qatest'te "İlk Müsaitlik"
+şeridi 2 art arda reload'da STABİL kaldı (flaky/non-deterministic davranış REPRODUCE EDİLEMEDİ). Ayrı bir
+olası neden bulundu ama salonflora'da DOĞRULANAMADI: qatest'in demo sağlayıcısı (`timezone=UTC`) ile şeridin
+"09:00" saat etiketi, tarayıcının kendi yerel saatine göre çizilen takvim "şimdi" çizgisiyle (Europe/Istanbul,
+~09:15) tutarsız görünüyordu (backend UTC'de doğru hesaplıyor, ama pill saatini tarayıcıya HİÇ dönüştürmeden
+ham yazıyor) - salonflora'nın GERÇEK sağlayıcıları (`Europe/Istanbul`, 5/5 doğrulandı) bu spesifik sorunu
+YAŞAMIYOR, yani bu qatest'e özgü bir demo-veri artefaktıydı, kullanıcının gerçek şikayetinin açıklaması
+değil. Kullanıcının "işler değişiyor" şikayeti salonflora'da gerçek admin oturumuyla tekrar gözlemlenip
+hangi eylemin (sayfa yenileme? randevu oluşturma? farklı sağlayıcı seçimi?) tetiklediği netleştirilmeli -
+bu turda reprodüksiyon yapılamadı.
+
+**Kapsam dışı kalan (zaman/güvenlik sınırı nedeniyle):** 30 senaryonun tamamı gerçek tıklama-seviyesinde
+tek tek yürütülmedi - Dashboard/Calendar/Messaging Settings/Login/Onboarding gerçek tarayıcı testinden
+geçti, kalan akışlar (randevu CRUD, POS/fatura, pazarlama, review, MFA, veri aktarımı) kod-seviyesinde daha
+önceki turlarda zaten doğrulanmıştı (bkz. yukarı, Faz 8), bu turda tekrar edilmedi. Genel OWASP/tenant-
+izolasyon taraması bu turda YAPILMADI (kapsam WhatsApp/marka/bildirim/takvim bulgularıyla doldu) - ayrı bir
+tur gerektiriyor.
+
+**Deploy:** `docker compose build app && up -d app` ile canlıya alındı (yeni image, health 200). Migration
+gerektirmiyor (sadece PHP/view değişikliği). **Commit YAPILMADI** (kural: kullanıcı onayı bekleniyor).
+Değişen dosyalar: `application/libraries/Notifications.php`, `application/views/layouts/account_layout.php`,
+`application/views/components/booking_footer.php`, `application/views/components/backend_footer.php`,
+`application/views/layouts/message_layout.php`, `docs/SESSION_NOTES.md`. Test kiracısı `qatest` (plan Elite,
+admin/administrator) canlıda bırakıldı, ileri testler için kullanılabilir.
+
 ## 2026-09-16/17 OTURUMU — wa-bridge: 3039 yayını + "WhatsApp QR, bridge bağlanmıyor" kök nedeni (ölü socket kilitlenmesi) — ÇÖZÜLDÜ
 
 Kullanıcı bildirimi: "WhatsApp QR, bridge bağlanmıyor." 2026-09-11/12'deki CSRF/Content-Type bug'ının
