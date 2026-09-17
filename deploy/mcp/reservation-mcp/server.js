@@ -228,6 +228,82 @@ server.registerTool(
   },
 );
 
+server.registerTool(
+  'marketing_campaigns',
+  {
+    title: 'List Marketing Campaigns',
+    description:
+      'Lists active and paused marketing campaigns across Google Ads, Meta Ads (Facebook/Instagram), and internal broadcast campaigns with budget, impressions, clicks, spend, conversions, and ROAS metrics.',
+  },
+  async () => {
+    const data = await callApi('/marketing_campaigns');
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
+server.registerTool(
+  'marketing_toggle_campaign',
+  {
+    title: 'Pause or Resume Marketing Campaign',
+    description:
+      'Pauses or resumes a specific campaign on Google Ads, Meta Ads or internal broadcasts. Enables immediate ad spend control by an AI agent.',
+    inputSchema: {
+      platform: z.enum(['google', 'meta', 'internal']).describe('Platform: google, meta, or internal.'),
+      campaign_id: z.string().min(1).describe('Campaign ID to toggle.'),
+      status: z.enum(['ACTIVE', 'PAUSED']).describe('Desired status: ACTIVE or PAUSED.'),
+    },
+  },
+  async ({ platform, campaign_id, status }) => {
+    const data = await callApi('/marketing_toggle_campaign', {
+      method: 'POST',
+      body: { platform, campaign_id, status },
+    });
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
+server.registerTool(
+  'marketing_realtime',
+  {
+    title: 'Google Analytics Real-time Visitors',
+    description:
+      'Fetches live active visitors and active pages currently browsing the reservation and landing pages via Google Analytics Data API v1.',
+  },
+  async () => {
+    const data = await callApi('/marketing_realtime');
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
+server.registerTool(
+  'marketing_analytics',
+  {
+    title: 'Unified Marketing Analytics & ROAS',
+    description:
+      'Provides a 30-day cross-channel performance report combining Google Analytics 4, Google Ads, and Meta Marketing API metrics including spend, sessions, conversion rates, and ROAS.',
+  },
+  async () => {
+    const data = await callApi('/marketing_analytics');
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
+server.registerTool(
+  'marketing_attributions',
+  {
+    title: 'Inspect Ad Click Attribution & Telemetry',
+    description:
+      'Inspects customer ad click details, UTM parameters (utm_source, utm_campaign, gclid, fbclid), and session telemetry associated with customer bookings.',
+    inputSchema: {
+      limit: z.number().int().min(1).max(100).optional().describe('Max records to return (default 50).'),
+    },
+  },
+  async ({ limit }) => {
+    const data = await callApi('/marketing_attributions', { query: { limit: limit ?? 50 } });
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
 // Transport selection: stdio (default for local/agent use) or HTTP streamable (/mcp via NPM proxy).
 if (process.env.TRANSPORT === 'http') {
   await startHttp();

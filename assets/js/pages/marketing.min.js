@@ -109,6 +109,13 @@ App.Pages.Marketing = (function () {
     $('#save-integrations').on('click', onSaveIntegrationsClick);
     $('#sync-meta-status-btn').on('click', onSyncMetaStatusClick);
     $('#refresh-trends-btn').on('click', loadTrends);
+    $('#btn-fetch-remote-campaigns').on('click', loadRemoteCampaigns);
+    $('#btn-test-connections').on('click', onTestConnectionsClick);
+    $('#remote-campaigns-table').on('click', '.toggle-remote-campaign-btn', onToggleRemoteCampaignClick);
+    $('#integrations-tab').on('shown.bs.tab', function () {
+      loadGa4Realtime();
+      loadRemoteCampaigns();
+    });
 
     // Attributions
     $('#refresh-attributions-btn').on('click', loadAttributions);
@@ -827,6 +834,142 @@ App.Pages.Marketing = (function () {
       .fail(function (jqxhr) {
         App.Utils.ajaxErrorMsg(jqxhr);
       });
+  }
+
+  function loadGa4Realtime() {
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/get_ga4_realtime'),
+      type: 'GET',
+      dataType: 'json',
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    })
+      .done(function (response) {
+        $('#ga4-active-users').text(response.total_active_users || 0);
+        const $pages = $('#ga4-active-pages');
+        $pages.empty();
+
+        if (response.rows && response.rows.length) {
+          response.rows.forEach(function (r) {
+            $pages.append(
+              '<li class="list-group-item bg-transparent px-0 py-1 d-flex justify-content-between align-items-center">' +
+                '<span class="text-truncate" style="max-width: 200px;">' + $('<div>').text(r.screen).html() + '</span>' +
+                '<span class="badge bg-primary rounded-pill">' + r.active_users + '</span>' +
+              '</li>'
+            );
+          });
+        } else {
+          $pages.append('<li class="list-group-item bg-transparent px-0 py-1 text-muted">Şu an aktif oturum yok.</li>');
+        }
+      });
+  }
+
+  function loadRemoteCampaigns() {
+    const $tbody = $('#remote-campaigns-table tbody');
+    $tbody.html('<tr><td colspan="7" class="text-center text-muted py-3"><i class="fas fa-spinner fa-spin me-2"></i>Google Ads ve Meta Marketing API sorgulanıyor...</td></tr>');
+
+    $.when(
+      $.ajax({ url: App.Utils.ajaxUrl('marketing/get_google_ads_campaigns'), type: 'GET', dataType: 'json' }),
+      $.ajax({ url: App.Utils.ajaxUrl('marketing/get_meta_ads_campaigns'), type: 'GET', dataType: 'json' })
+    ).done(function (googleRes, metaRes) {
+      const gCamps = (googleRes[0] && googleRes[0].campaigns) || [];
+      const mCamps = (metaRes[0] && metaRes[0].campaigns) || [];
+
+      $tbody.empty();
+      $('#remote-ads-last-sync').text('Son güncelleme: ' + new Date().toLocaleTimeString('tr-TR'));
+
+      if (!gCamps.length && !mCamps.length) {
+        $tbody.html('<tr><td colspan="7" class="text-center text-muted py-3">Aktif reklam kampanyası bulunamadı.</td></tr>');
+        return;
+      }
+
+      gCamps.forEach(function (c) {
+        const isPaused = c.status === 'PAUSED';
+        $tbody.append(
+          '<tr>' +
+            '<td><span class="badge bg-danger"><i class="fab fa-google me-1"></i> Google Ads</span></td>' +
+            '<td class="fw-bold">' + $('<div>').text(c.name).html() + '</td>' +
+            '<td><span class="badge bg-' + (isPaused ? 'secondary' : 'success') + '">' + c.status + '</span></td>' +
+            '<td>' + c.cost + '</td>' +
+            '<td>' + c.clicks + '</td>' +
+            '<td>' + c.conversions + ' dönüşüm (' + c.roas + ')</td>' +
+            '<td class="text-end">' +
+              '<button class="btn btn-sm btn-outline-' + (isPaused ? 'success' : 'warning') + ' toggle-remote-campaign-btn" ' +
+                'data-platform="google" data-id="' + c.id + '" data-status="' + (isPaused ? 'ENABLED' : 'PAUSED') + '">' +
+                '<i class="fas fa-' + (isPaused ? 'play' : 'pause') + ' me-1"></i>' + (isPaused ? 'Devam Et' : 'Durdur') +
+              '</button>' +
+            '</td>' +
+          '</tr>'
+        );
+      });
+
+      mCamps.forEach(function (c) {
+        const isPaused = c.status === 'PAUSED';
+        $tbody.append(
+          '<tr>' +
+            '<td><span class="badge bg-primary"><i class="fab fa-meta me-1"></i> Meta Ads</span></td>' +
+            '<td class="fw-bold">' + $('<div>').text(c.name).html() + '</td>' +
+            '<td><span class="badge bg-' + (isPaused ? 'secondary' : 'success') + '">' + c.status + '</span></td>' +
+            '<td>' + c.spend + '</td>' +
+            '<td>' + c.clicks + '</td>' +
+            '<td>' + c.conversions + ' dönüşüm (' + c.roas + ')</td>' +
+            '<td class="text-end">' +
+              '<button class="btn btn-sm btn-outline-' + (isPaused ? 'success' : 'warning') + ' toggle-remote-campaign-btn" ' +
+                'data-platform="meta" data-id="' + c.id + '" data-status="' + (isPaused ? 'ACTIVE' : 'PAUSED') + '">' +
+                '<i class="fas fa-' + (isPaused ? 'play' : 'pause') + ' me-1"></i>' + (isPaused ? 'Devam Et' : 'Durdur') +
+              '</button>' +
+            '</td>' +
+          '</tr>'
+        );
+      });
+    }).fail(function () {
+      $tbody.html('<tr><td colspan="7" class="text-center text-danger py-3">Reklam verileri alınırken bir hata oluştu.</td></tr>');
+    });
+  }
+
+  function onToggleRemoteCampaignClick() {
+    const $btn = $(this);
+    const platform = $btn.data('platform');
+    const campaignId = $btn.data('id');
+    const targetStatus = $btn.data('status');
+
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/toggle_remote_campaign'),
+      type: 'POST',
+      dataType: 'json',
+      data: { platform: platform, campaign_id: campaignId, status: targetStatus },
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    }).done(function (res) {
+      App.Utils.message(res.message || 'Kampanya durumu güncellendi.', 'success');
+      loadRemoteCampaigns();
+    }).fail(function (jqxhr) {
+      App.Utils.ajaxErrorMsg(jqxhr);
+      $btn.prop('disabled', false);
+    });
+  }
+
+  function onTestConnectionsClick() {
+    const $box = $('#connection-test-results');
+    $box.removeClass('d-none alert-success alert-danger').addClass('alert-info').html('<i class="fas fa-spinner fa-spin me-2"></i>Google ve Meta API bağlantıları test ediliyor...');
+
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/test_marketing_connections'),
+      type: 'POST',
+      dataType: 'json',
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    }).done(function (res) {
+      const checks = res.checks || {};
+      let html = '<h6 class="fw-bold mb-2"><i class="fas fa-check-circle me-1 text-success"></i> API Bağlantı Test Raporu:</h6><ul class="mb-0 ps-3">';
+      for (const [k, v] of Object.entries(checks)) {
+        const icon = v.configured ? 'text-success fas fa-check' : 'text-warning fas fa-exclamation-triangle';
+        html += '<li><strong>' + k + ':</strong> <span class="' + icon + ' me-1"></span> ' + v.status + '</li>';
+      }
+      html += '</ul>';
+      $box.removeClass('alert-info').addClass('alert-success').html(html);
+    }).fail(function (jqxhr) {
+      $box.removeClass('alert-info').addClass('alert-danger').text('Bağlantı testi başarısız oldu.');
+    });
   }
 
   function loadTrends() {

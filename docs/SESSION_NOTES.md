@@ -4,6 +4,28 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU (6) — Gemini oturumu kota limitine çarptı, Claude devam ettirdi: Marketing Google/Meta client'ları + container rebuild disiplini
+
+**Bağlam:** Kullanıcı Gemini CLI (Antigravity) ile Oturum (5)'in devamında Marketing sayfasına gerçek Google (GA4/Ads) ve Meta Marketing API client'ları ekliyordu (`application/libraries/Google_marketing_client.php`, `Meta_marketing_client.php`, `Agent_api.php`'ye MCP-tüketimli `marketing_campaigns`/`marketing_toggle_campaign`/`marketing_realtime`/`marketing_analytics`/`marketing_attributions` endpoint'leri, `deploy/mcp/reservation-mcp/server.js`'e karşılık gelen 5 MCP tool'u, `rate_limit_helper.php`'ye dahili/docker-ağı IP'leri için rate-limit istisnası). Gemini bunları yazdıktan sonra Playwright'ı **container'ı yeniden derlemeden** tekrar çalıştırdı ("verify against the updated container" dedi ama gerçek bir `docker compose build` komutu yoktu) → 2 test (`Marketing`, `Reviews`) başarısız oldu, tekil izole rerun'u başlatırken (`task-1623`, sadece test 7) Google API kotası 429 (Individual quota reached) ile tükendi ve oturum orada tamamen kesildi (CLI kapandı).
+
+**Kök neden teşhisi (Claude tarafında yapıldı):** İki ayrı, birbirini gizleyen sorun vardı:
+1. **Container gerçekten stale'di** — `ki-reservation-app` imajı son kez 17:09'da derlenmişti, hem Oturum (5)'in commit'i (`d418929`, 17:52) hem de bu Marketing client'ları (17:24-17:57) ondan SONRA yazıldı. Yani başarısız/başarılı hiçbir test aslında yeni kodu test etmiyordu.
+2. **`docker compose up -d app` (recreate) PHP oturumlarını sıfırlıyor** — container recreate sonrası Playwright'ın `tests/e2e/.auth/admin.json` içindeki eski `ea_session` çerezi artık sunucuda karşılıksız kalıyor, her sayfa `/login`'e 307 dönüyor. Bu, sayfa içeriğiyle hiç ilgisi olmayan bir "her şey kırıldı" görüntüsü veriyor (test 1 bazen tesadüfen cache'den geçebiliyor, 2-8 hep başarısız).
+
+**Ders — tekrarlanabilir, önemli:** Bu projede (BooKi/ki-reservation) kod değişikliği → test döngüsü şu sıralamayı ZORUNLU kılıyor, atlanırsa yanıltıcı "bug" raporları üretir:
+`docker compose build app` → `docker compose up -d app` → **`npx playwright test tests/e2e/auth.setup.spec.js`** (session'ı tazele) → asıl test paketi. Ayrıca JS/CSS dosyası değiştiyse `deploy/docker-compose.yml`'deki `ASSET_VERSION` bump edilmeden tarayıcı eski cache'i kullanabilir (bkz. `application/config/app.php` yorumu).
+
+**Yapılan:** Yukarıdaki sıralama uygulandı (`ASSET_VERSION: prod-20260916-001` → `prod-20260917-001`), migration'lar 9 kiracıda tekrar çalıştırıldı (hepsi zaten idempotent, "OK"), `tests/e2e/eight_pages_crud.spec.js` 8/8 (%100) doğrulandı. Ayrıca `notification_flow.spec.js` (NF-01/02/03, calendar first-availability + popover) ve `use_cases.spec.js` (UC-08, Providers `getByText('Jane Doe')` strict-mode ihlali) suite'lerinde **bu turun kapsamı dışında, önceden var olan** 4 flaky/veri-bağımlı hata bulundu — Marketing/POS/ERP/Reviews koduyla ilgisi yok (calendar/randevu akışı ve bir test'in kendi locator hatası), ayrı bir turda ele alınmalı, kullanıcıya bildirildi. Container log'ları (`storage/logs/log-*.php`) temiz taranmadı — WhatsApp `no_connected_session` (beklenen, bridge bağlı değil) ve alakasız bir `Caldav_settings` 404 dışında hata yok.
+
+**Commit durumu:** 10 dosya (`Agent_api.php`, `Marketing.php`, `rate_limit_helper.php`, `Google_marketing_client.php` [yeni], `Meta_marketing_client.php` [yeni], `marketing.php` view, `marketing.js`/`marketing.min.js`, `deploy/mcp/reservation-mcp/server.js`, `deploy/docker-compose.yml`) bu oturumda commit edildi.
+
+**Sıradaki:**
+1. Google/Meta API kimlik bilgileri (Ads/GA4 service account, Meta access token) gerçek değerlerle `Marketing.php`'nin ayarlar formundan girilmeli — şu an client'lar kimlik yokken "yapılandırılmamış" mesajı dönüyor (dormant, tasarım gereği).
+2. `notification_flow.spec.js`/`use_cases.spec.js`'teki 4 önceden-var-olan hata ayrı bir turda araştırılmalı.
+3. Kullanıcının Oturum (5) mesajındaki 2. isteği (POS/Iyzico/Stripe/ÖdeAl/Garanti/Enpara gerçek gateway kimlik doğrulaması, ERP gerçek muhasebe sistemi bağlantısı) hâlâ dormant/mock — gerçek kimlikler gelmeden uçtan uca denenemez.
+
+---
+
 ## 2026-09-17 OTURUMU (5) — Kurumsal Genişletmeler (Marketing Suite, Çoklu Sanal POS, ERP Faturalandırma, İstasyon/Sağlayıcı Yorumları, Bekleme Listesi Bildirimleri)
 
 Kullanıcı istekleri:

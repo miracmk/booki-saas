@@ -220,6 +220,78 @@
         </div>
       </div>
 
+      <!-- Live Google & Meta API Console (GA4 Realtime + Ads Management) -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <div>
+            <h6 class="mb-0 fw-bold">
+              <i class="fas fa-satellite-dish text-primary me-2"></i>
+              Canlı Google & Meta API Konsolu
+            </h6>
+            <small class="text-muted">GA4 Gerçek Zamanlı Trafik, Google Ads & Meta Marketing API Kampanya Durumları</small>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline-primary" id="btn-fetch-remote-campaigns">
+              <i class="fas fa-sync-alt me-1"></i> Reklamları Çek
+            </button>
+            <button class="btn btn-sm btn-outline-success" id="btn-test-connections">
+              <i class="fas fa-plug me-1"></i> Bağlantıları Test Et
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <!-- GA4 Realtime Monitor -->
+            <div class="col-lg-4">
+              <div class="p-3 bg-light rounded border h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold small text-uppercase text-muted"><i class="fab fa-google text-danger me-1"></i> GA4 Canlı Ziyaretçi</span>
+                  <span class="badge bg-success" id="ga4-active-badge">Canlı</span>
+                </div>
+                <div class="display-5 fw-bold text-primary mb-2" id="ga4-active-users">--</div>
+                <div class="small text-muted mb-2">Şu an sitede aktif kullanıcı sayısı</div>
+                <ul class="list-group list-group-flush small" id="ga4-active-pages">
+                  <li class="list-group-item bg-transparent px-0 py-1 text-muted">Veriler yükleniyor...</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Unified Google & Meta Ads Performance -->
+            <div class="col-lg-8">
+              <div class="p-3 bg-light rounded border h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-bold small text-uppercase text-muted"><i class="fas fa-ad text-primary me-1"></i> Aktif Reklam Kampanyaları & ROAS</span>
+                  <span class="small text-muted" id="remote-ads-last-sync">Son güncelleme: --</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover mb-0 align-middle" id="remote-campaigns-table">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Platform</th>
+                        <th>Kampanya Adı</th>
+                        <th>Durum</th>
+                        <th>Harcama</th>
+                        <th>Tıklama</th>
+                        <th>Dönüşüm / ROAS</th>
+                        <th class="text-end">İşlem</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td colspan="7" class="text-center text-muted py-3">Kampanyaları listelemek için "Reklamları Çek" butonuna basınız.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connection Test Results Box -->
+          <div id="connection-test-results" class="d-none alert alert-info mb-0"></div>
+        </div>
+      </div>
+
       <!-- Save Integrations Action Bar -->
       <div class="card border-0 shadow-sm">
         <div class="card-body d-flex justify-content-between align-items-center">

@@ -669,6 +669,134 @@ class Agent_api extends EA_Controller
     }
 
     /**
+     * GET → List active campaigns across Google Ads, Meta Ads and internal Broadcasts.
+     * Consumed by MCP server tool 'marketing_campaigns'.
+     */
+    public function marketing_campaigns(): void
+    {
+        method('get');
+        $this->auth();
+
+        $this->load->library('google_marketing_client');
+        $this->load->library('meta_marketing_client');
+        $this->load->model('campaigns_model');
+
+        $google = $this->google_marketing_client->search_google_ads_campaigns();
+        $meta = $this->meta_marketing_client->get_campaigns();
+        $internal = $this->campaigns_model->get();
+
+        json_response([
+            'success' => true,
+            'google_ads' => $google['campaigns'] ?? [],
+            'meta_ads' => $meta['campaigns'] ?? [],
+            'internal_campaigns' => $internal,
+        ]);
+    }
+
+    /**
+     * POST → Pause or resume a campaign on Google Ads, Meta Ads or internal.
+     * Consumed by MCP server tool 'marketing_toggle_campaign'.
+     */
+    public function marketing_toggle_campaign(): void
+    {
+        method('post');
+        $this->auth();
+
+        $platform = request('platform', 'meta');
+        $campaignId = (string) request('campaign_id');
+        $status = strtoupper((string) request('status', 'PAUSED'));
+
+        if (empty($campaignId)) {
+            json_response(['success' => false, 'message' => 'campaign_id is required.'], 400);
+            return;
+        }
+
+        if ($platform === 'google') {
+            $this->load->library('google_marketing_client');
+            $googleStatus = in_array($status, ['ACTIVE', 'ENABLED'], true) ? 'ENABLED' : 'PAUSED';
+            $res = $this->google_marketing_client->mutate_campaign_status($campaignId, $googleStatus);
+            json_response(array_merge(['success' => true], $res));
+            return;
+        }
+
+        if ($platform === 'meta') {
+            $this->load->library('meta_marketing_client');
+            $metaStatus = in_array($status, ['ACTIVE', 'ENABLED'], true) ? 'ACTIVE' : 'PAUSED';
+            $res = $this->meta_marketing_client->update_campaign_status($campaignId, $metaStatus);
+            json_response(array_merge(['success' => true], $res));
+            return;
+        }
+
+        $this->load->model('campaigns_model');
+        $targetStatus = in_array($status, ['ACTIVE', 'ENABLED', 'RUNNING'], true) ? 'running' : 'paused';
+        $this->campaigns_model->update_status((int) $campaignId, $targetStatus);
+
+        json_response(['success' => true, 'platform' => 'internal', 'campaign_id' => $campaignId, 'status' => $targetStatus]);
+    }
+
+    /**
+     * GET → Realtime active users and pages via GA4.
+     * Consumed by MCP server tool 'marketing_realtime'.
+     */
+    public function marketing_realtime(): void
+    {
+        method('get');
+        $this->auth();
+
+        $this->load->library('google_marketing_client');
+        $report = $this->google_marketing_client->run_ga4_realtime_report();
+
+        json_response(array_merge(['success' => true], $report));
+    }
+
+    /**
+     * GET → Unified 30-day marketing analytics, spend, ROAS, conversions.
+     * Consumed by MCP server tool 'marketing_analytics'.
+     */
+    public function marketing_analytics(): void
+    {
+        method('get');
+        $this->auth();
+
+        $this->load->library('google_marketing_client');
+        $this->load->library('meta_marketing_client');
+
+        $ga4 = $this->google_marketing_client->run_ga4_report();
+        $googleAds = $this->google_marketing_client->search_google_ads_campaigns();
+        $metaAds = $this->meta_marketing_client->get_campaigns();
+
+        json_response([
+            'success' => true,
+            'analytics_summary' => $ga4['summary'] ?? [],
+            'traffic_sources' => $ga4['sources'] ?? [],
+            'google_ads_summary' => [
+                'campaigns_count' => count($googleAds['campaigns'] ?? []),
+                'campaigns' => $googleAds['campaigns'] ?? [],
+            ],
+            'meta_ads_summary' => [
+                'campaigns_count' => count($metaAds['campaigns'] ?? []),
+                'campaigns' => $metaAds['campaigns'] ?? [],
+            ],
+        ]);
+    }
+
+    /**
+     * GET → Ad clicks and customer attribution telemetry.
+     * Consumed by MCP server tool 'marketing_attributions'.
+     */
+    public function marketing_attributions(): void
+    {
+        method('get');
+        $this->auth();
+
+        $this->load->model('traffic_attributions_model');
+        $limit = (int) request('limit', 50);
+        $attributions = $this->traffic_attributions_model->get_attributions($limit);
+
+        json_response(['success' => true, 'attributions' => $attributions]);
+    }
+
+    /**
      * Authorize the request against the per-tenant agent key setting.
      *
      * Terminates with a JSON response on failure - `abort()` would emit the HTML

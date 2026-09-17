@@ -32,7 +32,14 @@ if (!function_exists('rate_limit')) {
 
         $rate_limiting = $CI->config->item('rate_limiting');
 
-        if (!$rate_limiting || is_cli()) {
+        if (
+            !$rate_limiting
+            || is_cli()
+            || in_array($ip, ['127.0.0.1', '::1'], true)
+            || str_starts_with($ip, '192.168.')
+            || str_starts_with($ip, '172.')
+            || str_starts_with($ip, '10.')
+        ) {
             return;
         }
 

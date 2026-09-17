@@ -730,4 +730,226 @@ class Marketing extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * GET → GA4 real-time active visitors report.
+     */
+    public function get_ga4_realtime(): void
+    {
+        method('get');
+
+        if (cannot('view', PRIV_MARKETING)) {
+            json_response(['message' => 'Bu işlem için yetkiniz yok.'], 403);
+            return;
+        }
+
+        $this->load->library('google_marketing_client');
+        $report = $this->google_marketing_client->run_ga4_realtime_report();
+
+        json_response($report);
+    }
+
+    /**
+     * GET → GA4 date range report (traffic sources, campaigns, conversion rate).
+     */
+    public function get_ga4_report(): void
+    {
+        method('get');
+
+        if (cannot('view', PRIV_MARKETING)) {
+            json_response(['message' => 'Bu işlem için yetkiniz yok.'], 403);
+            return;
+        }
+
+        $startDate = request('start_date', '30daysAgo');
+        $endDate = request('end_date', 'today');
+
+        $this->load->library('google_marketing_client');
+        $report = $this->google_marketing_client->run_ga4_report($startDate, $endDate);
+
+        json_response($report);
+    }
+
+    /**
+     * GET → Google Ads campaigns performance (via GAQL search).
+     */
+    public function get_google_ads_campaigns(): void
+    {
+        method('get');
+
+        if (cannot('view', PRIV_MARKETING)) {
+            json_response(['message' => 'Bu işlem için yetkiniz yok.'], 403);
+            return;
+        }
+
+        $this->load->library('google_marketing_client');
+        $data = $this->google_marketing_client->search_google_ads_campaigns();
+
+        json_response($data);
+    }
+
+    /**
+     * GET → Meta Marketing API campaigns & insights.
+     */
+    public function get_meta_ads_campaigns(): void
+    {
+        method('get');
+
+        if (cannot('view', PRIV_MARKETING)) {
+            json_response(['message' => 'Bu işlem için yetkiniz yok.'], 403);
+            return;
+        }
+
+        $this->load->library('meta_marketing_client');
+        $data = $this->meta_marketing_client->get_campaigns();
+
+        json_response($data);
+    }
+
+    /**
+     * POST → Toggle (Pause/Resume) Google Ads or Meta Ads campaign.
+     */
+    public function toggle_remote_campaign(): void
+    {
+        method('post');
+
+        if (cannot('edit', PRIV_MARKETING)) {
+            json_response(['message' => 'Bu işlem için yetkiniz yok.'], 403);
+            return;
+        }
+
+        $platform = request('platform', 'meta'); // 'google' or 'meta'
+        $campaignId = (string) request('campaign_id');
+        $status = request('status', 'PAUSED'); // 'PAUSED', 'ACTIVE', 'ENABLED'
+
+        if (empty($campaignId)) {
+            json_response(['message' => 'campaign_id parametresi zorunludur.'], 400);
+            return;
+        }
+
+        if ($platform === 'google') {
+            $this->load->library('google_marketing_client');
+            $googleStatus = in_array(strtoupper($status), ['ACTIVE', 'ENABLED'], true) ? 'ENABLED' : 'PAUSED';
+            $result = $this->google_marketing_client->mutate_campaign_status($campaignId, $googleStatus);
+            json_response($result);
+            return;
+        }
+
+        $this->load->library('meta_marketing_client');
+        $metaStatus = in_array(strtoupper($status), ['ACTIVE', 'ENABLED'], true) ? 'ACTIVE' : 'PAUSED';
+        $result = $this->meta_marketing_client->update_campaign_status($campaignId, $metaStatus);
+        json_response($result);
+    }
+
+    /**
+     * POST → Send offline conversion to Google Ads & Meta CAPI for a completed reservation.
+     */
+    public function upload_offline_conversion(): void
+    {
+        method('post');
+
+        if (cannot('edit', PRIV_MARKETING)) {
+            json_response(['message' => 'Bu işlem için yetkiniz yok.'], 403);
+            return;
+        }
+
+        $appointmentId = (int) request('appointment_id');
+        $this->load->model('appointments_model');
+        $this->load->model('customers_model');
+        $this->load->model('traffic_attributions_model');
+        $this->load->library('google_marketing_client');
+        $this->load->library('meta_marketing_client');
+
+        $appointment = $this->appointments_model->find($appointmentId);
+        if (!$appointment) {
+            json_response(['message' => 'Randevu bulunamadı.'], 404);
+            return;
+        }
+
+        $customer = $this->customers_model->find((int) $appointment['id_users_customer']);
+        $attribution = $this->traffic_attributions_model->find_by_appointment($appointmentId) ?: [];
+
+        $results = [];
+
+        // Meta Conversions API (CAPI)
+        $metaRes = $this->meta_marketing_client->send_event(
+            'Schedule',
+            $customer ?: [],
+            [
+                'value' => (float) ($appointment['price'] ?? 0),
+                'currency' => 'TRY',
+                'content_name' => $appointment['service_name'] ?? 'Randevu Hizmeti',
+                'order_id' => $appointment['hash'] ?? (string) $appointment['id'],
+            ],
+            [
+                'ip_address' => $attribution['ip_address'] ?? '',
+                'user_agent' => $attribution['user_agent'] ?? '',
+                'fbp' => $attribution['fbp'] ?? '',
+                'fbclid' => $attribution['fbclid'] ?? '',
+            ],
+            'sched_' . $appointment['id'] . '_' . time()
+        );
+        $results['meta_capi'] = $metaRes;
+
+        // Google Ads offline conversion upload (if gclid exists)
+        $gclid = $attribution['gclid'] ?? '';
+        if (!empty($gclid)) {
+            $googleRes = $this->google_marketing_client->upload_click_conversion(
+                $gclid,
+                'default_booking_conversion',
+                (float) ($appointment['price'] ?? 0),
+                (string) $appointment['id']
+            );
+            $results['google_ads'] = $googleRes;
+        } else {
+            $results['google_ads'] = ['skipped' => true, 'reason' => 'gclid bulunamadı (organik veya doğrudan trafik)'];
+        }
+
+        json_response([
+            'success' => true,
+            'appointment_id' => $appointmentId,
+            'results' => $results,
+        ]);
+    }
+
+    /**
+     * POST → Test API credentials for Google & Meta.
+     */
+    public function test_marketing_connections(): void
+    {
+        method('post');
+
+        if (cannot('edit', PRIV_MARKETING)) {
+            json_response(['message' => 'Bu işlem için yetkiniz yok.'], 403);
+            return;
+        }
+
+        $this->load->library('google_marketing_client');
+        $this->load->library('meta_marketing_client');
+
+        $checks = [
+            'google_analytics' => [
+                'configured' => $this->google_marketing_client->is_ga4_configured(),
+                'status' => $this->google_marketing_client->is_ga4_configured() ? 'Hazır / Bağlı' : 'Yapılandırılmamış',
+            ],
+            'google_ads' => [
+                'configured' => $this->google_marketing_client->is_google_ads_configured(),
+                'status' => $this->google_marketing_client->is_google_ads_configured() ? 'Hazır / Bağlı' : 'Yapılandırılmamış',
+            ],
+            'meta_capi' => [
+                'configured' => $this->meta_marketing_client->is_meta_capi_configured(),
+                'status' => $this->meta_marketing_client->is_meta_capi_configured() ? 'Hazır / Bağlı' : 'Yapılandırılmamış',
+            ],
+            'meta_ads' => [
+                'configured' => $this->meta_marketing_client->is_meta_ads_configured(),
+                'status' => $this->meta_marketing_client->is_meta_ads_configured() ? 'Hazır / Bağlı' : 'Yapılandırılmamış',
+            ],
+        ];
+
+        json_response([
+            'success' => true,
+            'checks' => $checks,
+            'timestamp' => date('Y-m-d H:i:s'),
+        ]);
+    }
 }
