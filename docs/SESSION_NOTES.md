@@ -4,6 +4,18 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU (9) — Dalga 4: Marketplace Olgunlaştırma (Ranking, Review Güvenliği, Komisyon & Cüzdan)
+
+**Bağlam:** 1-2-3-4 geliştirme planının 2. adımı (Dalga 4: Marketplace Olgunlaştırma) tamamlandı.
+
+**Yapılanlar:**
+- **Master DB Şeması (`Console::master_install()`):** `ea_tenants` tablosuna `district`, `neighborhood`, `latitude`, `longitude` eklendi; `master_settings` tablosuna `marketplace_commission_rate = 5.00` varsayılanı tanımlandı; `ea_tenant_wallets` ve `ea_wallet_ledger` mutabakat tabloları kuruldu.
+- **Akıllı Sıralama & Filtreleme (`Marketplace::index()`):** Bayesian ortalama puan formülü, yorum hacmi, profil doluluğu ve HTML5 Geolocation / Haversine mesafe hesabı entegre edildi. Şehir, İlçe ve "Önerilen / Puan / Yorum / Mesafe" sıralama filtreleri eklendi.
+- **Doğrulanmış Review Güvenliği (`Review_service::claim_in_tenant()`):** İptal edilmiş, blokeli veya henüz gerçekleşmemiş (`start/end_datetime > NOW()`) randevular için değerlendirme yapılması engellendi; yalnızca tamamlanmış randevularda tek kullanımlık token tüketimine izin verildi.
+- **Marketplace Yönlendirme & Cari Defter (`Appointments_model::update()`):** `?ref=marketplace` etiketi ve 30 günlük first-party çerez takibi eklendi. Randevu tamamlandığında (`closed`) kiracı cüzdanına net tutar aktarılıp platform komisyonu (%5) `ea_wallet_ledger` hareketlerine kaydedildi.
+- **Arayüz UX (`marketplace_index.php`):** "📍 Konumumu Kullan" butonu, ilçe açılır menüsü ve sıralama filtreleri ile görünüm zenginleştirildi.
+- **Doğrulama:** `php -l` temiz, Docker container build & up tamamlandı, `master_install` doğrulandı. Commit: `12b68d8`.
+
 ## 2026-09-17 OTURUMU (8) — Dalga 0: SaaS Yönetim, Kiracı Metrikleri & Provisioning UX
 
 **Bağlam:** 1-2-3-4 sırasıyla geliştirme başlatıldı. İlk adım olan Dalga 0 (0.6, 0.7, 0.8, 0.10) başarıyla tamamlandı.
