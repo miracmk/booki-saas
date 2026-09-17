@@ -59,12 +59,13 @@
       <div class="col-12">
         <div class="card border-0 shadow-sm">
           <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover align-middle">
               <thead>
                 <tr>
                   <th>Fatura No</th>
                   <th><?= lang('customer') ?></th>
                   <th><?= lang('status') ?></th>
+                  <th>ERP Durumu</th>
                   <th>Tutar</th>
                   <th>Oluşturulma</th>
                   <th><?= lang('actions') ?></th>
@@ -83,16 +84,43 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Yeni Fatura</h5>
+        <h5 class="modal-title"><i class="fas fa-file-invoice me-2 text-primary"></i>Yeni Fatura Oluştur</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label"><?= lang('customer') ?></label>
+          <label class="form-label fw-bold"><?= lang('customer') ?></label>
           <select class="form-select" id="invoice-customer"></select>
         </div>
-        <div id="billable-items-container">
-          <p class="text-muted">Önce müşteri seçin.</p>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Randevu Kalemleri</label>
+          <div id="billable-items-container" class="border rounded p-2 bg-light">
+            <p class="text-muted mb-0">Önce müşteri seçin.</p>
+          </div>
+        </div>
+
+        <div class="card border-dashed p-3 mb-3 bg-light">
+          <label class="form-label fw-bold text-primary mb-2"><i class="fas fa-plus-circle me-1"></i>Doğrudan / Manuel Kalem Ekle</label>
+          <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label small">Kalem Açıklaması</label>
+              <input type="text" class="form-control form-control-sm" id="custom-item-desc" placeholder="Örn: Özel Bakım veya Ürün">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label small">Adet</label>
+              <input type="number" class="form-control form-control-sm" id="custom-item-qty" value="1" min="1">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small">Birim Fiyat (TL)</label>
+              <input type="number" class="form-control form-control-sm" id="custom-item-price" placeholder="0.00" step="0.01">
+            </div>
+            <div class="col-md-2">
+              <button type="button" class="btn btn-sm btn-outline-primary w-100" id="btn-add-custom-item">
+                <i class="fas fa-plus"></i> Ekle
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

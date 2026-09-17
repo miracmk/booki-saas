@@ -54,18 +54,26 @@ class Invoices_model extends EA_Model
             $subtotal += $quantity * (float) $item['unit_price'];
         }
 
-        $subtotal = round($subtotal, 2);
+        $tax_total = 0;
+        foreach ($items as $item) {
+            $tax_rate = isset($item['tax_rate']) ? (float) $item['tax_rate'] : 20.0;
+            $line_total = round((float) ($item['quantity'] ?? 1) * (float) $item['unit_price'], 2);
+            $tax_total += round($line_total * ($tax_rate / 100), 2);
+        }
+
+        $tax_total = round($tax_total, 2);
+        $total = round($subtotal + $tax_total, 2);
 
         $this->db->trans_start();
 
         try {
             $invoice_id = $this->db->insert('invoices', [
                 'invoice_number' => $this->generate_invoice_number(),
-                'id_users_customer' => (int) $invoice['id_users_customer'],
+                'id_users_customer' => !empty($invoice['id_users_customer']) ? (int) $invoice['id_users_customer'] : null,
                 'status' => 'draft',
                 'subtotal' => $subtotal,
-                'tax_total' => 0,
-                'total' => $subtotal,
+                'tax_total' => $tax_total,
+                'total' => $total,
                 'currency' => $invoice['currency'] ?? 'TRY',
                 'due_at' => $invoice['due_at'] ?? null,
                 'notes' => $invoice['notes'] ?? null,

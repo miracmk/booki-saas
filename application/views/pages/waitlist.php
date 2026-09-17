@@ -79,6 +79,48 @@
   </div>
 </div>
 
+<!-- Proactive Notification Modal -->
+<div class="modal fade" id="notify-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-paper-plane me-2 text-primary"></i>Müşteriyi Önden Bilgilendir</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="notify-entry-id">
+        <p class="text-muted small mb-3">Müşteriye boşalan veya açılan randevu aralığı hakkında önceden SMS/WhatsApp bilgilendirmesi gönderin.</p>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Müşteri</label>
+          <div id="notify-customer-display" class="form-control-plaintext text-primary fw-semibold"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Talep Edilen Hizmet</label>
+          <div id="notify-service-display" class="form-control-plaintext"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Açılan Randevu Tarihi ve Saati</label>
+          <input type="datetime-local" class="form-control" id="notify-slot-datetime">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Gönderim Kanalı</label>
+          <select class="form-select" id="notify-channel">
+            <option value="both">WhatsApp + SMS</option>
+            <option value="whatsapp">Sadece WhatsApp</option>
+            <option value="sms">Sadece SMS</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" id="confirm-notify-btn">
+          <i class="fas fa-paper-plane me-1"></i> Bildirimi Gönder
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <?php end_section('content'); ?>
 
 <?php section('scripts'); ?>

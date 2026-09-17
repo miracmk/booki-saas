@@ -48,26 +48,12 @@ class Reviews extends EA_Controller
 
         $this->load->model('roles_model');
         $this->load->model('reviews_model');
+        $this->load->model('providers_model');
+        $this->load->model('stations_model');
 
         $reviews = $this->reviews_model->get();
-
-        // Resolve review-related appointment/customer context for display
-        foreach ($reviews as &$review) {
-            $review['customer_link'] = null;
-
-            if (!empty($review['id_users_customer'])) {
-                $customer = $this->db
-                    ->select('CONCAT(first_name, " ", last_name) AS name')
-                    ->from('users')
-                    ->where('id', $review['id_users_customer'])
-                    ->get()
-                    ->row_array();
-
-                $review['customer_name_display'] = $customer['name'] ?? null;
-            } else {
-                $review['customer_name_display'] = null;
-            }
-        }
+        $providers = $this->providers_model->get_available_providers();
+        $stations = $this->stations_model->get();
 
         html_vars([
             'page_title' => 'Yorumlar',
@@ -86,6 +72,8 @@ class Reviews extends EA_Controller
             'user_id' => $user_id,
             'role_slug' => $role_slug,
             'reviews' => $reviews,
+            'providers' => $providers,
+            'stations' => $stations,
             'counts' => $this->reviews_model->counts(),
             'routes' => [
                 'publish' => site_url('reviews/publish_review'),
@@ -101,11 +89,13 @@ class Reviews extends EA_Controller
 
         $this->load->view('pages/reviews', [
             'reviews' => $reviews,
+            'providers' => $providers,
+            'stations' => $stations,
         ]);
     }
 
     /**
-     * GET → list reviews (optional status filter).
+     * GET → list reviews (optional status, provider, station filters).
      */
     public function get_reviews(): void
     {
@@ -119,8 +109,12 @@ class Reviews extends EA_Controller
 
         $this->load->model('reviews_model');
 
+        $status = request('status') ?: null;
+        $provider_id = (int) request('provider_id') ?: null;
+        $station_id = (int) request('station_id') ?: null;
+
         json_response([
-            'reviews' => $this->reviews_model->get(request('status')),
+            'reviews' => $this->reviews_model->get($status, $provider_id, $station_id),
             'counts' => $this->reviews_model->counts(),
         ]);
     }

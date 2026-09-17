@@ -4,6 +4,32 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU (5) — Kurumsal Genişletmeler (Marketing Suite, Çoklu Sanal POS, ERP Faturalandırma, İstasyon/Sağlayıcı Yorumları, Bekleme Listesi Bildirimleri)
+
+Kullanıcı istekleri:
+1. Pazarlama/Marketing: Google (Ads, Analytics, Search Console, Trends, Business Profile) ve Meta (Ads, Status Sync, CAPI) entegrasyonları, kampanya yaşam döngüsü (başlatma, durdurma, devam ettirme), dönüşüm ve landing page oluşturucu, reklam tıklaması / website telemetrisi (tıklama saati, UTM, oturum) ile randevu attribution altyapısı.
+2. POS: Iyzico, Stripe, ÖdeAl, Garanti Sanal POS ve Enpara Sanal POS entegrasyonları.
+3. Invoices: Muhasebe/ERP entegrasyonu (ERP Manager) + dahili fatura oluşturma ve yazdırma şablonu.
+4. Reviews: Sağlayıcı (personel) puanı, oda/istasyon (mekan) puanı ve oda memnuniyet yorumlarının toplanması.
+5. Waitlist: Müsaitlik oluştuğunda müşterilerin otomatik ön bilgilendirilmesi.
+
+### Yapılanlar & Teknik Kararlar:
+- **Veritabanı Migrasyonu (Migration 150):** `150_expand_enterprise_domains.php` hazırlanıp tüm 9 kiracıya (salonflora, qatest, demo-guzellik vb.) uygulandı. `reviews` tablosuna `id_users_provider`, `id_stations`, `provider_rating`, `station_rating`, `station_comment`; `payment_settings` tablosuna ÖdeAl, Garanti ve Enpara Sanal POS alanları; `landing_pages` ve `traffic_attributions` tabloları eklendi.
+- **Marketing & Attribution Suite:**
+  - Kampanya duraklatma/sürdürme (`pause_campaign`, `resume_campaign`), landing page yönetimi (`Landing_pages_model.php`, `Landing_page.php`, `landing_page_view.php`).
+  - Web telemetrisi ve ısı haritası/oturum izleme (`booki_tracker.js`, `Track.php`, `Traffic_attributions_model.php`). Reklam tıklamalarından gelen oturumlar rezervasyon oluşturulduğunda müşteri kaydıyla ilişkilendirilir.
+  - Google (Ads, GA4, GTM) ve Meta (Pixel, CAPI, Status Sync) ayar ve script bağlayıcıları.
+- **Çoklu Sanal POS Entegrasyonları:** `Payment_gateway_factory.php`, `Odeal_gateway.php`, `Garanti_gateway.php`, `Enpara_gateway.php`, `Stripe_gateway.php` mimarisi kuruldu.
+- **Invoices & ERP:** `Erp_manager.php` orkestrasyon sınıfı ile harici muhasebe sistemleri senkronize edildi; `/invoices/print_invoice` yazdırma şablonu (`invoice_print.php`) eklendi.
+- **Kapsamlı Yorum & Moderasyon:** Sağlayıcı ve istasyon/oda bazlı ayrı yıldız puanlama ve oda yorumu formu (`review_form.php`), moderasyon ve onay süreçleri (`Reviews.php`, `Reviews_model.php`).
+- **Bekleme Listesi Ön Bilgilendirme:** `Waitlist_service.php` ve `Automation_engine.php` entegrasyonuyla iptal veya açılan slotlarda bekleme listesindeki müşterilere otomatik bildirim tetikleme mekanizması.
+- **Hata Giderme & E2E Doğrulama:**
+  - `Marketing.php:80`'deki tanımsız `Services_model::get_availabilities()` çağrısı `Services_model::get()` olarak düzeltildi.
+  - `Reviews.php:56`'daki tanımsız `Stations_model::get_all()` çağrısı `Stations_model::get()` olarak düzeltildi.
+  - `eight_pages_crud.spec.js` Playwright test paketi 8/8 testle (%100) başarıyla tamamlandı (21.4s).
+
+---
+
 ## 2026-09-17 OTURUMU (4) — 8 Sayfa Görsel/CRUD Denetimi + Çok Kanallı AI Asistanı (WhatsApp/Telegram/Instagram)
 
 Kullanıcı istekleri:

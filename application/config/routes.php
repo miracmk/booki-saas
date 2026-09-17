@@ -269,5 +269,14 @@ $route['health/deep'] = 'health/deep';
 // BooKi (2026-09-17) - short review links sent over SMS/WhatsApp (see Review::short($code)).
 $route['r/(:any)'] = 'review/short/$1';
 
+// BooKi (2026-09-17) - public marketing landing pages and ad attribution routes
+$route['p/(:any)'] = 'landing_page/view/$1';
+$route['landing_page/(:any)'] = 'landing_page/view/$1';
+$route['landing_page/view/(:any)'] = 'landing_page/view/$1';
+$route['marketing/track_visit'] = 'track/visit';
+$route['marketing/track_interaction'] = 'track/interaction';
+$route['track/visit'] = 'track/visit';
+$route['track/interaction'] = 'track/interaction';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

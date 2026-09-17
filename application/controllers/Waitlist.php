@@ -177,4 +177,43 @@ class Waitlist extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Proactively notify a waiting customer.
+     */
+    public function notify(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_WAITLIST)) {
+                abort(403, 'Forbidden');
+            }
+
+            check('entry_id', 'numeric');
+
+            $entry_id = (int) request('entry_id');
+            $slot_datetime = request('slot_datetime') ?: null;
+            $channel = request('channel') ?: 'both';
+
+            if ($entry_id <= 0) {
+                throw new InvalidArgumentException('Geçersiz bekleme listesi IDsi.');
+            }
+
+            $result = $this->waitlist_service->proactively_notify_customer($entry_id, $slot_datetime, $channel);
+
+            audit_log('waitlist.notify', 'waitlist_entry', $entry_id, [
+                'channel' => $channel,
+                'slot_datetime' => $slot_datetime,
+            ]);
+
+            json_response([
+                'success' => true,
+                'message' => 'Müşteriye ön bilgilendirme başarıyla iletildi.',
+                'result' => $result,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }

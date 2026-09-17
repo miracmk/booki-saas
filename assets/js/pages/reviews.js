@@ -24,9 +24,22 @@ App.Pages.Reviews = (function () {
   const STAR = '★';
   const STAR_EMPTY = '☆';
 
+  let selectedProvider = '';
+  let selectedStation = '';
+
   function init() {
     reviews = (window.scriptVars.reviews || []).slice();
     counts = (window.scriptVars.counts || {});
+
+    $('#review-filter-provider').on('change', function () {
+      selectedProvider = $(this).val();
+      TABS.forEach((status) => renderTable(status));
+    });
+
+    $('#review-filter-station').on('change', function () {
+      selectedStation = $(this).val();
+      TABS.forEach((status) => renderTable(status));
+    });
 
     renderCounts();
     TABS.forEach((status) => renderTable(status));
@@ -57,10 +70,17 @@ App.Pages.Reviews = (function () {
       return;
     }
 
-    const rows = reviews.filter((r) => r.status === status);
+    let rows = reviews.filter((r) => r.status === status);
+
+    if (selectedProvider) {
+      rows = rows.filter((r) => String(r.id_users_provider) === selectedProvider);
+    }
+    if (selectedStation) {
+      rows = rows.filter((r) => String(r.id_stations) === selectedStation);
+    }
 
     if (rows.length === 0) {
-      $tbody.html('<tr><td colspan="5" class="text-center text-muted py-4">Bu durumda yorum bulunmuyor.</td></tr>');
+      $tbody.html('<tr><td colspan="8" class="text-center text-muted py-4">Bu filtrelere uygun yorum bulunmuyor.</td></tr>');
       return;
     }
 
@@ -69,14 +89,44 @@ App.Pages.Reviews = (function () {
     rows.forEach((review) => {
       html += '<tr>';
 
-      html += '<td>' + escapeHtml(displayName(review)) + '</td>';
+      // 1. Kim (Müşteri)
+      html += '<td><strong>' + escapeHtml(displayName(review)) + '</strong></td>';
 
-      html += '<td><span class="text-warning">' + STAR.repeat(review.rating || 0) + STAR_EMPTY.repeat(Math.max(0, 5 - (review.rating || 0))) + '</span></td>';
+      // 2. Kime (Uzman)
+      html += '<td>' + (review.provider_name_display ? '<span class="badge bg-light text-dark border">' + escapeHtml(review.provider_name_display) + '</span>' : '—') + '</td>';
 
-      html += '<td class="text-truncate" style="max-width: 300px;" title="' + escapeHtml(review.comment || '') + '">' + escapeHtml(review.comment || '—') + '</td>';
+      // 3. Oda / İstasyon
+      html += '<td>' + (review.station_name ? '<span class="badge bg-secondary-subtle text-dark border"><i class="fas fa-door-open me-1"></i>' + escapeHtml(review.station_name) + '</span>' : '—') + '</td>';
 
-      html += '<td class="text-muted">' + formattedDate(review.submitted_at || review.created_at) + '</td>';
+      // 4. Genel Puan
+      html += '<td><span class="text-warning">' + STAR.repeat(review.rating || 0) + STAR_EMPTY.repeat(Math.max(0, 5 - (review.rating || 0))) + '</span> ' + (review.rating ? '(' + review.rating + '/5)' : '') + '</td>';
 
+      // 5. Oda Değerlendirmesi
+      let roomHtml = '<span class="text-muted">—</span>';
+      if (review.station_rating) {
+        const roomHappy = review.station_rating >= 4
+          ? '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fas fa-smile me-1"></i>Beğendi</span>'
+          : (review.station_rating <= 2
+            ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fas fa-frown me-1"></i>Beğenmedi</span>'
+            : '<span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="fas fa-meh me-1"></i>Orta</span>');
+
+        roomHtml = '<div class="d-flex flex-column gap-1">' +
+          '<div><span class="badge bg-light text-primary border">★ ' + review.station_rating + '/5</span> ' + roomHappy + '</div>';
+
+        if (review.station_comment) {
+          roomHtml += '<div class="small text-muted text-truncate" style="max-width: 200px;" title="' + escapeHtml(review.station_comment) + '"><i class="fas fa-comment-dots me-1 text-secondary"></i>' + escapeHtml(review.station_comment) + '</div>';
+        }
+        roomHtml += '</div>';
+      }
+      html += '<td>' + roomHtml + '</td>';
+
+      // 6. Yorum
+      html += '<td class="text-truncate" style="max-width: 240px;" title="' + escapeHtml(review.comment || '') + '">' + escapeHtml(review.comment || '—') + '</td>';
+
+      // 7. Tarih
+      html += '<td class="text-muted small">' + formattedDate(review.submitted_at || review.created_at) + '</td>';
+
+      // 8. İşlemler
       html += '<td class="text-end">';
       if (status === 'pending' && initials.can_edit) {
         html += '<button type="button" class="btn btn-sm btn-success publish-review-btn me-1" data-id="' + review.id + '">';

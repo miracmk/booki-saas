@@ -23,6 +23,11 @@ class Payment_settings_model extends EA_Model
         'stripe_publishable_key',
         'stripe_secret_key',
         'webhook_secret',
+        'odeal_api_key',
+        'odeal_secret_key',
+        'garanti_prov_password',
+        'garanti_store_key',
+        'enpara_store_key',
     ];
 
     /**

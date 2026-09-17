@@ -26,8 +26,9 @@ App.Pages.Invoices = (function () {
 
   function addEventListeners() {
     $('#add-invoice').on('click', function () {
-      $itemsContainer.html('<p class="text-muted">Önce müşteri seçin.</p>');
+      $itemsContainer.html('<p class="text-muted">Önce müşteri seçin veya aşağıdan doğrudan kalem ekleyin.</p>');
       $customerSelect.val('');
+      billableItems = [];
       $invoiceModal.modal('show');
     });
 
@@ -36,6 +37,67 @@ App.Pages.Invoices = (function () {
     $tbody.on('click', 'button.issue-btn', onIssueClick);
     $tbody.on('click', 'button.paid-btn', onMarkPaidClick);
     $tbody.on('click', 'button.void-btn', onVoidClick);
+
+    $('#btn-add-custom-item').on('click', function () {
+      const desc = $('#custom-item-desc').val().trim();
+      const qty = parseFloat($('#custom-item-qty').val()) || 1;
+      const price = parseFloat($('#custom-item-price').val());
+
+      if (!desc) {
+        App.Utils.message('Lütfen kalem açıklaması girin.', 'error');
+        return;
+      }
+      if (isNaN(price) || price <= 0) {
+        App.Utils.message('Lütfen geçerli bir birim fiyat girin.', 'error');
+        return;
+      }
+
+      billableItems.push({
+        item_type: 'custom',
+        id_appointments: null,
+        description: desc,
+        unit_price: price,
+        quantity: qty,
+        tax_rate: 20,
+      });
+
+      $('#custom-item-desc').val('');
+      $('#custom-item-price').val('');
+      $('#custom-item-qty').val('1');
+
+      renderBillableItems();
+    });
+
+    $tbody.on('click', 'button.print-invoice-btn', function () {
+      const id = $(this).data('id');
+      window.open(App.Utils.Url.siteUrl('invoices/print_view/' + id), '_blank');
+    });
+
+    $tbody.on('click', 'button.sync-erp-btn', function () {
+      const id = $(this).data('id');
+      const $btn = $(this);
+      $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+      $.ajax({
+        url: App.Utils.ajaxUrl('invoices/sync_erp'),
+        type: 'POST',
+        dataType: 'json',
+        data: { invoice_id: id },
+        headers: { 'X-CSRF-Token': App.Security.csrfToken },
+      })
+        .done(function (res) {
+          if (res.success) {
+            App.Utils.message(res.message || 'ERP sistemine başarıyla aktarıldı.', 'success');
+            search();
+          }
+        })
+        .fail(function (jqxhr) {
+          App.Utils.ajaxErrorMsg(jqxhr);
+        })
+        .always(function () {
+          $btn.prop('disabled', false).html('<i class="fas fa-cloud-upload-alt me-1"></i>ERP');
+        });
+    });
   }
 
   /**
@@ -135,11 +197,12 @@ App.Pages.Invoices = (function () {
       const index = $(this).data('index');
       const item = billableItems[index];
       selectedItems.push({
-        item_type: 'appointment',
-        id_reference: item.id_appointments,
+        item_type: item.item_type || 'appointment',
+        id_reference: item.id_appointments || null,
         description: item.description,
-        quantity: 1,
+        quantity: item.quantity || 1,
         unit_price: item.unit_price,
+        tax_rate: item.tax_rate || 20,
       });
     });
 
@@ -218,21 +281,31 @@ App.Pages.Invoices = (function () {
     $tbody.empty();
 
     tableRows.forEach(function (invoice) {
-      const customerName = ((invoice.customer_first_name || '') + ' ' + (invoice.customer_last_name || '')).trim();
+      const customerName = ((invoice.customer_first_name || '') + ' ' + (invoice.customer_last_name || '')).trim() || '—';
       const badgeClass =
         invoice.status === 'paid' ? 'success' : invoice.status === 'void' ? 'secondary' : 'info';
 
+      let erpBadge = '<span class="badge bg-secondary-subtle text-secondary border">Aktarılmadı</span>';
+      if (invoice.erp_status === 'synced') {
+        erpBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle" title="ERP ID: ' + (invoice.erp_invoice_id || '') + '"><i class="fas fa-check-circle me-1"></i>' + (invoice.erp_provider ? invoice.erp_provider.toUpperCase() : 'ERP') + '</span>';
+      } else if (invoice.erp_status === 'failed') {
+        erpBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle" title="' + escapeHtml(invoice.erp_error || '') + '"><i class="fas fa-exclamation-triangle me-1"></i>Hata</span>';
+      }
+
       const $row = $(
         '<tr>' +
-          '<td>' + invoice.invoice_number + '</td>' +
+          '<td><strong>' + invoice.invoice_number + '</strong></td>' +
           '<td>' + customerName + '</td>' +
           '<td><span class="badge bg-' + badgeClass + '">' + invoice.status + '</span></td>' +
+          '<td>' + erpBadge + '</td>' +
           '<td>' + invoice.total + ' ' + invoice.currency + '</td>' +
-          '<td>' + invoice.created_at + '</td>' +
+          '<td><small class="text-muted">' + invoice.created_at + '</small></td>' +
           '<td>' +
-          '<button class="btn btn-sm btn-outline-primary issue-btn" data-id="' + invoice.id + '">Kes</button> ' +
-          '<button class="btn btn-sm btn-outline-success paid-btn" data-id="' + invoice.id + '">Ödendi</button> ' +
-          '<button class="btn btn-sm btn-outline-danger void-btn" data-id="' + invoice.id + '">İptal</button>' +
+          '<button class="btn btn-sm btn-outline-primary issue-btn me-1" data-id="' + invoice.id + '">Kes</button>' +
+          '<button class="btn btn-sm btn-outline-success paid-btn me-1" data-id="' + invoice.id + '">Ödendi</button>' +
+          '<button class="btn btn-sm btn-outline-danger void-btn me-1" data-id="' + invoice.id + '">İptal</button>' +
+          '<button class="btn btn-sm btn-outline-info print-invoice-btn me-1" data-id="' + invoice.id + '" title="Yazdır / e-Arşiv Görünümü"><i class="fas fa-print"></i></button>' +
+          '<button class="btn btn-sm btn-outline-secondary sync-erp-btn" data-id="' + invoice.id + '" title="ERP\'ye Aktar"><i class="fas fa-cloud-upload-alt me-1"></i>ERP</button>' +
           '</td>' +
           '</tr>',
       );

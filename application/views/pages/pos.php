@@ -8,6 +8,12 @@
       <i class="fas fa-cash-register me-2 text-primary"></i>
       <?= vars('page_title') ?>
     </h4>
+    <div>
+      <span class="badge bg-light text-dark border py-2 px-3">
+        <i class="fas fa-credit-card me-1 text-primary"></i>
+        Aktif Sanal POS: <strong class="text-primary"><?= htmlspecialchars(vars('active_gateway_name') ?? 'Tanımsız') ?></strong>
+      </span>
+    </div>
   </div>
 
     <div class="row">

@@ -49,11 +49,27 @@ class Pos extends EA_Controller
 
         $role_slug = session('role_slug');
 
+        $this->load->model('payment_settings_model');
+        $payment_settings = $this->payment_settings_model->get_settings();
+        $active_gateway = $payment_settings['active_gateway'] ?? 'none';
+
+        $gateway_names = [
+            'iyzico' => 'İyzico Sanal POS',
+            'stripe' => 'Stripe Payments',
+            'odeal' => 'ÖdeAl Sanal POS',
+            'garanti' => 'Garanti Sanal POS (VPAS)',
+            'enpara' => 'Enpara Sanal POS (VPAS)',
+            'paytr' => 'PayTR Sanal POS',
+            'none' => 'Tanımsız / Manuel',
+        ];
+
         html_vars([
             'page_title' => 'Satış Noktası (POS)',
             'active_menu' => PRIV_POS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
+            'active_gateway' => $active_gateway,
+            'active_gateway_name' => $gateway_names[$active_gateway] ?? $active_gateway,
         ]);
 
         script_vars([
@@ -61,9 +77,15 @@ class Pos extends EA_Controller
             'role_slug' => $role_slug,
             'customers' => $this->customers_model->get(),
             'products' => $this->products_model->get(),
+            'active_gateway' => $active_gateway,
+            'active_gateway_name' => $gateway_names[$active_gateway] ?? $active_gateway,
+            'supported_gateways' => $gateway_names,
         ]);
 
-        $this->load->view('pages/pos');
+        $this->load->view('pages/pos', [
+            'active_gateway' => $active_gateway,
+            'active_gateway_name' => $gateway_names[$active_gateway] ?? $active_gateway,
+        ]);
     }
 
     /**

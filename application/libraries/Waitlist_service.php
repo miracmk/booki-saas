@@ -101,4 +101,52 @@ class Waitlist_service
             $entry['notify_channel'] ?? 'both',
         );
     }
+
+    /**
+     * Proactively notify a waiting customer about an upcoming or open slot.
+     *
+     * @param int $entry_id Waitlist entry ID.
+     * @param string|null $slot_datetime Datetime of the available slot.
+     * @param string $channel sms, whatsapp, or both.
+     * @return array Result information.
+     */
+    public function proactively_notify_customer(int $entry_id, ?string $slot_datetime = null, string $channel = 'both'): array
+    {
+        $entry = $this->CI->waitlist_model->find($entry_id);
+
+        if (!$entry) {
+            throw new InvalidArgumentException('Bekleme listesi kaydı bulunamadı: ' . $entry_id);
+        }
+
+        $customer = $this->CI->customers_model->find((int) $entry['id_users_customer']);
+        $service = $this->CI->services_model->find((int) $entry['id_services']);
+
+        if (!$customer || !$service) {
+            throw new RuntimeException('Müşteri veya hizmet bilgisi bulunamadı.');
+        }
+
+        if (empty($slot_datetime)) {
+            $slot_datetime = !empty($entry['requested_date'])
+                ? $entry['requested_date'] . ' ' . ($entry['requested_time_window_start'] ?? '10:00:00')
+                : date('Y-m-d H:i:s', strtotime('+1 day 10:00'));
+        }
+
+        $this->CI->waitlist_model->mark_notified($entry_id, $channel, 30);
+
+        $this->CI->notifications->notify_waitlist_slot_available(
+            $customer,
+            $service,
+            $slot_datetime,
+            $channel
+        );
+
+        return [
+            'entry_id' => $entry_id,
+            'customer_name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')),
+            'service_name' => $service['name'] ?? '',
+            'slot_datetime' => $slot_datetime,
+            'channel' => $channel,
+            'status' => 'notified',
+        ];
+    }
 }

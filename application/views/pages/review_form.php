@@ -193,6 +193,20 @@ $csrf_token = $csrf_token ?? '';
             <h1>Deneyiminizi Değerlendirin</h1>
             <p class="subtitle">Randevunuz sonrası deneyiminizi paylaşmanız bize çok yardımcı olur. Puanınız ve yorumunuz yayınlanmadan önce işletme tarafından incelenir.</p>
 
+            <?php if (!empty($service_name) || !empty($provider_name) || !empty($station_name)): ?>
+                <div style="background: #eef2ff; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; border: 1px solid #c7d2fe;">
+                    <?php if (!empty($service_name)): ?>
+                        <div><strong>Hizmet:</strong> <?php echo htmlspecialchars($service_name); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($provider_name)): ?>
+                        <div><strong>Uzman / Sağlayıcı:</strong> <?php echo htmlspecialchars($provider_name); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($station_name)): ?>
+                        <div><strong>Oda / İstasyon:</strong> <?php echo htmlspecialchars($station_name); ?></div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
             <div id="form-message" class="message"></div>
 
             <form id="review-form">
@@ -205,7 +219,7 @@ $csrf_token = $csrf_token ?? '';
                 </div>
 
                 <div class="form-group">
-                    <label>Derecelendirmeniz *</label>
+                    <label>Genel Değerlendirme *</label>
                     <div class="rating-input">
                         <?php for ($i = 1; $i <= 5; $i++): ?>
                             <input type="radio" id="rating-<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>" required>
@@ -215,8 +229,24 @@ $csrf_token = $csrf_token ?? '';
                 </div>
 
                 <div class="form-group">
-                    <label for="comment">Yorumunuz</label>
-                    <textarea id="comment" name="comment" maxlength="2000"></textarea>
+                    <label for="comment">Hizmet ve Uzman Hakkında Yorumunuz</label>
+                    <textarea id="comment" name="comment" maxlength="2000" placeholder="Uzmanımızın ilgisi, hizmet kalitesi vb."></textarea>
+                </div>
+
+                <div class="form-group" style="background: #fafafa; padding: 1rem; border-radius: 6px; border: 1px dashed #ddd;">
+                    <label style="color: #4f46e5; font-weight: 600;">
+                        <?php echo !empty($station_name) ? htmlspecialchars($station_name) . ' (Oda / İstasyon) Değerlendirmesi' : 'Oda & İstasyon Değerlendirmesi'; ?>
+                    </label>
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 0.5rem;">Odayı beğendiniz mi? Temizlik, konfor ve ortam şartları nasıldı?</p>
+                    <div class="rating-input">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <input type="radio" id="station-rating-<?php echo $i; ?>" name="station_rating" value="<?php echo $i; ?>">
+                            <label for="station-rating-<?php echo $i; ?>">★</label>
+                        <?php endfor; ?>
+                    </div>
+                    <div style="margin-top: 0.75rem;">
+                        <textarea id="station_comment" name="station_comment" maxlength="1000" rows="2" style="min-height: 60px;" placeholder="Oda konforu, temizlik ve atmosfer hakkında notunuz (isteğe bağlı)"></textarea>
+                    </div>
                 </div>
 
                 <button type="submit" class="submit-button">Değerlendirmeyi Gönder</button>

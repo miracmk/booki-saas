@@ -606,6 +606,23 @@ class Booking extends EA_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
 
+            // Attribute booking conversion to marketing ad / session attribution
+            try {
+                $this->load->model('traffic_attributions_model');
+                $sessionId = $this->input->cookie('booki_session_id') ?: ($post_data['session_id'] ?? session_id());
+                $servicePrice = (float) ($service['price'] ?? 0);
+                $this->traffic_attributions_model->attribute_conversion(
+                    (string) $sessionId,
+                    (int) $customer_id,
+                    (int) $appointment_id,
+                    $servicePrice,
+                    $customer,
+                    $customer_ip
+                );
+            } catch (Throwable $attrEx) {
+                log_message('error', 'Attribution recording failed: ' . $attrEx->getMessage());
+            }
+
             // BooKi payment infrastructure - create payment intent if deposits are required and a gateway is active
             $payment_intent = null;
 

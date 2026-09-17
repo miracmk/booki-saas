@@ -209,6 +209,8 @@ class Automation_engine
         $this->CI->db->insert('reviews', [
             'appointment_id' => $appointment_id,
             'id_users_customer' => $customer_id,
+            'id_users_provider' => !empty($appointment['id_users_provider']) ? (int) $appointment['id_users_provider'] : null,
+            'id_stations' => !empty($appointment['id_stations']) ? (int) $appointment['id_stations'] : null,
             'token' => $token,
             'short_code' => $short_code,
             'customer_name' => $customer_name !== '' ? $customer_name : null,

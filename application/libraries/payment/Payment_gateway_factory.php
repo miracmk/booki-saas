@@ -40,6 +40,21 @@ class Payment_gateway_factory
 
                 return new Stripe_gateway($payment_settings);
 
+            case 'odeal':
+                self::load_gateway('odeal');
+
+                return new Odeal_gateway($payment_settings);
+
+            case 'garanti':
+                self::load_gateway('garanti');
+
+                return new Garanti_gateway($payment_settings);
+
+            case 'enpara':
+                self::load_gateway('enpara');
+
+                return new Enpara_gateway($payment_settings);
+
             default:
                 throw new RuntimeException("Unknown payment gateway: {$active_gateway}");
         }

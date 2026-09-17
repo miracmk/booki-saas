@@ -25,6 +25,36 @@ class Campaigns_model extends EA_Model
     public const STATUS_SENDING = 'sending';
     public const STATUS_SENT = 'sent';
     public const STATUS_FAILED = 'failed';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_PAUSED = 'paused';
+
+    /**
+     * Pause an active or queued campaign.
+     */
+    public function pause(int $campaign_id): bool
+    {
+        $this->find($campaign_id);
+        $this->db->update('marketing_campaigns', [
+            'status' => self::STATUS_PAUSED,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => $campaign_id]);
+
+        return true;
+    }
+
+    /**
+     * Resume a paused campaign.
+     */
+    public function resume(int $campaign_id): bool
+    {
+        $this->find($campaign_id);
+        $this->db->update('marketing_campaigns', [
+            'status' => self::STATUS_ACTIVE,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => $campaign_id]);
+
+        return true;
+    }
 
     /**
      * Get a specific campaign.
@@ -78,6 +108,7 @@ class Campaigns_model extends EA_Model
             $campaign['failed_count'] = 0;
             $campaign['total_recipients'] = 0;
             $campaign['status'] ??= self::STATUS_DRAFT;
+            $campaign['campaign_type'] ??= 'broadcast';
 
             if (!$this->db->insert('marketing_campaigns', $campaign)) {
                 throw new RuntimeException('Kampanya eklenemedi.');
@@ -115,23 +146,28 @@ class Campaigns_model extends EA_Model
             throw new InvalidArgumentException('Kampanya adı zorunludur.');
         }
 
-        if (empty($campaign['segment_id']) || (int) $campaign['segment_id'] <= 0) {
+        $campaignType = $campaign['campaign_type'] ?? 'broadcast';
+        $isExternalAd = in_array($campaignType, ['google_ads', 'meta_ads'], true);
+
+        if (!$isExternalAd && (empty($campaign['segment_id']) || (int) $campaign['segment_id'] <= 0)) {
             throw new InvalidArgumentException('Hedef segment seçilmek zorundadır.');
         }
 
-        if (!in_array($campaign['channel'] ?? '', ['email', 'sms', 'whatsapp', 'telegram'], true)) {
+        $allowedChannels = ['email', 'sms', 'whatsapp', 'telegram', 'google_ads', 'meta_ads'];
+        if (!in_array($campaign['channel'] ?? '', $allowedChannels, true)) {
             throw new InvalidArgumentException('Geçersiz kanal: ' . ($campaign['channel'] ?? ''));
         }
 
-        if (trim((string) ($campaign['message'] ?? '')) === '') {
+        if (!$isExternalAd && trim((string) ($campaign['message'] ?? '')) === '') {
             throw new InvalidArgumentException('Mesaj içeriği zorunludur.');
         }
 
         if (!empty($campaign['id'])) {
             $existing = $this->find((int) $campaign['id']);
 
-            if ($existing['status'] !== self::STATUS_DRAFT && $existing['status'] !== self::STATUS_FAILED) {
-                throw new InvalidArgumentException('Yalnızca taslak veya başarısız kampanyalar düzenlenebilir.');
+            $editableStatuses = [self::STATUS_DRAFT, self::STATUS_FAILED, self::STATUS_ACTIVE, self::STATUS_PAUSED];
+            if (!in_array($existing['status'], $editableStatuses, true)) {
+                throw new InvalidArgumentException('Bu durumdaki kampanya düzenlenemez.');
             }
         }
     }

@@ -34,7 +34,11 @@ class Reviews_model extends EA_Model
         'id' => 'integer',
         'appointment_id' => 'integer',
         'id_users_customer' => 'integer',
+        'id_users_provider' => 'integer',
+        'id_stations' => 'integer',
         'rating' => 'integer',
+        'provider_rating' => 'integer',
+        'station_rating' => 'integer',
         'moderated_by' => 'integer',
     ];
 
@@ -74,23 +78,51 @@ class Reviews_model extends EA_Model
     }
 
     /**
-     * All review rows (newest first), optionally filtered by status.
+     * All review rows (newest first), optionally filtered by status, provider, station.
      *
      * @param string|null $status One of self::STATUSES.
      */
-    public function get(?string $status = null): array
+    public function get(?string $status = null, ?int $provider_id = null, ?int $station_id = null): array
     {
+        $this->db
+            ->select('r.*, 
+                CONCAT(c.first_name, " ", c.last_name) AS customer_name_display, 
+                CONCAT(p.first_name, " ", p.last_name) AS provider_name_display, 
+                st.name AS station_name, 
+                s.name AS service_name')
+            ->from('reviews r')
+            ->join('users c', 'c.id = r.id_users_customer', 'left')
+            ->join('appointments a', 'a.id = r.appointment_id', 'left')
+            ->join('users p', 'p.id = COALESCE(r.id_users_provider, a.id_users_provider)', 'left')
+            ->join('stations st', 'st.id = COALESCE(r.id_stations, a.id_stations)', 'left')
+            ->join('services s', 's.id = a.id_services', 'left')
+            ->order_by('r.id', 'DESC');
+
         if ($status !== null && in_array($status, self::STATUSES, true)) {
-            $this->db->where('status', $status);
+            $this->db->where('r.status', $status);
         }
 
-        $reviews = $this->db
-            ->order_by('id', 'DESC')
-            ->get('reviews')
-            ->result_array();
+        if ($provider_id) {
+            $this->db->group_start()
+                ->where('r.id_users_provider', $provider_id)
+                ->or_where('a.id_users_provider', $provider_id)
+                ->group_end();
+        }
+
+        if ($station_id) {
+            $this->db->group_start()
+                ->where('r.id_stations', $station_id)
+                ->or_where('a.id_stations', $station_id)
+                ->group_end();
+        }
+
+        $reviews = $this->db->get()->result_array();
 
         foreach ($reviews as &$review) {
             $this->cast($review);
+            if (empty($review['customer_name_display']) && !empty($review['customer_name'])) {
+                $review['customer_name_display'] = $review['customer_name'];
+            }
         }
 
         return $reviews;
@@ -141,12 +173,29 @@ class Reviews_model extends EA_Model
     /**
      * Persist the submitted rating + comment on a pending review.
      */
-    public function save_submission(string $token, int $rating, string $comment): bool
-    {
-        return $this->db->update('reviews', [
+    public function save_submission(
+        string $token,
+        int $rating,
+        string $comment,
+        ?int $provider_rating = null,
+        ?int $station_rating = null,
+        ?string $station_comment = null
+    ): bool {
+        $data = [
             'rating' => $rating,
             'comment' => $comment !== '' ? $comment : null,
-        ], ['token' => $token]);
+        ];
+        if ($provider_rating !== null) {
+            $data['provider_rating'] = $provider_rating;
+        }
+        if ($station_rating !== null) {
+            $data['station_rating'] = $station_rating;
+        }
+        if ($station_comment !== null && $station_comment !== '') {
+            $data['station_comment'] = $station_comment;
+        }
+
+        return $this->db->update('reviews', $data, ['token' => $token]);
     }
 
     /**

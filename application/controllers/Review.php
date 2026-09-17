@@ -60,10 +60,45 @@ class Review extends EA_Controller
             return;
         }
 
+        $provider_name = null;
+        $service_name = null;
+        $station_name = null;
+
+        if (!empty($review['appointment_id'])) {
+            $appointment = $this->db->get_where('appointments', ['id' => $review['appointment_id']])->row_array();
+            if ($appointment) {
+                $provider_id = $review['id_users_provider'] ?: ($appointment['id_users_provider'] ?? null);
+                if ($provider_id) {
+                    $prov = $this->db->get_where('users', ['id' => $provider_id])->row_array();
+                    if ($prov) {
+                        $provider_name = trim(($prov['first_name'] ?? '') . ' ' . ($prov['last_name'] ?? ''));
+                    }
+                }
+
+                $station_id = $review['id_stations'] ?: ($appointment['id_stations'] ?? null);
+                if ($station_id) {
+                    $st = $this->db->get_where('stations', ['id' => $station_id])->row_array();
+                    if ($st) {
+                        $station_name = $st['name'] ?? null;
+                    }
+                }
+
+                if (!empty($appointment['id_services'])) {
+                    $srv = $this->db->get_where('services', ['id' => $appointment['id_services']])->row_array();
+                    if ($srv) {
+                        $service_name = $srv['name'] ?? null;
+                    }
+                }
+            }
+        }
+
         html_vars([
             'page_title' => 'Değerlendirme',
             'token' => $token,
             'customer_name' => $review['customer_name'] ?? '',
+            'provider_name' => $provider_name,
+            'service_name' => $service_name,
+            'station_name' => $station_name,
             'csrf_token' => $this->security->get_csrf_hash(),
         ]);
 
@@ -114,6 +149,10 @@ class Review extends EA_Controller
             $comment = trim((string) request('comment'));
             $customer_name = trim((string) request('customer_name'));
 
+            $provider_rating = request('provider_rating') ? (int) request('provider_rating') : null;
+            $station_rating = request('station_rating') ? (int) request('station_rating') : null;
+            $station_comment = trim((string) request('station_comment'));
+
             if ($token === '') {
                 throw new InvalidArgumentException('Geçersiz değerlendirme bağlantısı.');
             }
@@ -139,17 +178,25 @@ class Review extends EA_Controller
                 $claimed['customer_name'] = mb_substr($customer_name, 0, 128, 'UTF-8');
             }
 
-            if (!$this->db->update('reviews', [
-                'rating' => $rating,
-                'comment' => $comment !== '' ? $comment : null,
-                'status' => Reviews_model::STATUS_PENDING,
-            ], ['token' => $token])) {
+            $saved = $this->reviews_model->save_submission(
+                $token,
+                $rating,
+                $comment,
+                $provider_rating,
+                $station_rating,
+                $station_comment
+            );
+
+            if (!$saved) {
                 throw new RuntimeException('Değerlendirme kaydedilemedi.');
             }
 
             // Mirror the "pending" submission to the master DB moderation queue.
             $claimed['rating'] = $rating;
             $claimed['comment'] = $comment !== '' ? $comment : null;
+            $claimed['provider_rating'] = $provider_rating;
+            $claimed['station_rating'] = $station_rating;
+            $claimed['station_comment'] = $station_comment !== '' ? $station_comment : null;
             $this->review_service->mirror_to_master($claimed, Reviews_model::STATUS_PENDING);
 
             json_response([
