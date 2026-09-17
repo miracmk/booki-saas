@@ -776,6 +776,29 @@ class Console extends EA_Controller
         $provider_id_map = [];
         $provider_role_id_new = $this->db->get_where('roles', ['slug' => DB_SLUG_PROVIDER])->row_array()['id'];
 
+        $build_unique_provider_username = function (string $base_username, string $first_name, ?string $last_name): string {
+            $base = trim((string) $base_username);
+
+            if ($base === '') {
+                $base = preg_replace('/[^a-zA-Z0-9._-]+/', '', strtolower(trim($first_name . ' ' . ($last_name ?? ''))));
+                $base = trim((string) $base, '.-_');
+            }
+
+            if ($base === '') {
+                $base = 'provider';
+            }
+
+            $candidate = $base;
+            $suffix = 2;
+
+            while ($this->db->get_where('user_settings', ['username' => $candidate])->num_rows() > 0) {
+                $candidate = $base . $suffix;
+                $suffix++;
+            }
+
+            return $candidate;
+        };
+
         foreach ($old_providers as $provider) {
             $new_service_ids = array_map(
                 fn($id) => $service_id_map[$id] ?? null,
@@ -814,6 +837,12 @@ class Console extends EA_Controller
                 continue;
             }
 
+            $unique_username = $build_unique_provider_username(
+                (string) ($provider['username'] ?? ''),
+                (string) ($provider['first_name'] ?? ''),
+                $provider['last_name'] ?? null,
+            );
+
             try {
                 $provider_id_map[$provider['id']] = $this->providers_model->save([
                     'first_name' => $provider['first_name'],
@@ -834,9 +863,10 @@ class Console extends EA_Controller
                         // BooKi (2026-08-26) - the old bcrypt hash cannot be carried over as-is:
                         // Providers_model::insert() always re-hashes whatever is in 'password' as if it
                         // were plaintext. A migrated provider gets this fixed temporary password instead
-                        // (reported to the user, must be changed on first login) - their username stays
-                        // the same as on the live system.
-                        'username' => $provider['username'],
+                        // (reported to the user, must be changed on first login). When the original live
+                        // username is already taken in the tenant, we keep the original name as a base and
+                        // append a numeric suffix so repeated imports remain safe.
+                        'username' => $unique_username,
                         'password' => 'DegistirBu2026!',
                         'working_plan' => $provider['working_plan'],
                         'calendar_view' => $provider['calendar_view'] ?: 'default',
@@ -2571,13 +2601,16 @@ class Console extends EA_Controller
         }
 
         $commit = $mode === 'commit';
-        $catalog = $this->demo_seed_data();
 
-        // Allowlist security: fail-closed. salonflora is explicitly NOT in catalog.
-        $targets = $subdomain === 'all' ? array_keys($catalog) : [$subdomain];
+        // BooKi (2026-09-17 fix) - demo_seed_data() reads setting('company_working_plan'),
+        // which lives in the per-tenant ea_settings table. The master DB has NO ea_settings,
+        // so building the catalog before the loop (master connection active) died with a
+        // silent DB error and demo_seed never worked anywhere. Build it inside the loop,
+        // right after connect_tenant(), instead.
+        $targets = $subdomain === 'all' ? $this->demo_tenant_keys() : [$subdomain];
 
         foreach ($targets as $target) {
-            if (!isset($catalog[$target])) {
+            if (!in_array($target, $this->demo_tenant_keys(), true)) {
                 echo '⚠ Tenant "' . $target . '" not in demo catalog, skipping.' . PHP_EOL;
                 continue;
             }
@@ -2596,7 +2629,7 @@ class Console extends EA_Controller
 
             $this->connect_tenant($tenant);
 
-            $this->load->model('service_categories_model');
+        $this->load->model('service_categories_model');
             $this->load->model('services_model');
             $this->load->model('stations_model');
             $this->load->model('providers_model');
@@ -2604,7 +2637,13 @@ class Console extends EA_Controller
             $this->load->model('appointments_model');
             $this->load->model('roles_model');
 
-            $data = $catalog[$target];
+            $catalog = $this->demo_seed_data(); // tenant connection active - ea_settings exists here
+            $data = $catalog[$target] ?? null;
+
+            if ($data === null) {
+                echo '⚠ Tenant "' . $target . '" not in demo catalog, skipping.' . PHP_EOL;
+                continue;
+            }
 
             if (!$commit) {
                 echo '📋 DRY-RUN: ' . $target . PHP_EOL;
@@ -2704,6 +2743,18 @@ class Console extends EA_Controller
                     }
                 }
 
+                $base_username = strtolower(str_replace(' ', '', trim((string) ($prov_data['first_name'] ?? ''))));
+                if ($base_username === '') {
+                    $base_username = 'provider';
+                }
+
+                $username = $base_username;
+                $username_suffix = 2;
+                while ($this->db->get_where('user_settings', ['username' => $username])->num_rows() > 0) {
+                    $username = $base_username . (string) $username_suffix;
+                    $username_suffix++;
+                }
+
                 $pwd = bin2hex(random_bytes(12));
                 $save_data = [
                     'first_name' => $prov_data['first_name'],
@@ -2713,7 +2764,7 @@ class Console extends EA_Controller
                     'services' => $prov_services,
                     'stations' => $prov_stations,
                     'settings' => [
-                        'username' => strtolower(str_replace(' ', '', $prov_data['first_name'])),
+                        'username' => $username,
                         'password' => $pwd,
                         'working_plan' => setting('company_working_plan'),
                         'working_plan_exceptions' => '{}',
@@ -2774,6 +2825,18 @@ class Console extends EA_Controller
         if (is_multi_tenant_mode()) {
             $this->connect_master();
         }
+    }
+
+    /**
+     * Allowlisted demo tenant subdomains. Kept as a separate static list (fail-closed
+     * allowlist, salonflora deliberately NOT included) because the full catalog data
+     * can only be built with an active tenant DB connection - see demo_seed().
+     *
+     * @return array Subdomain keys, identical to the keys of demo_seed_data().
+     */
+    private function demo_tenant_keys(): array
+    {
+        return ['demo-guzellik', 'demo-masaj', 'demo-restoran', 'demo-otel', 'demo-klinik', 'demo-studyo'];
     }
 
     /**
