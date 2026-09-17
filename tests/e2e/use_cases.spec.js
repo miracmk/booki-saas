@@ -60,7 +60,7 @@ test.describe('BooKi - günlük kullanım senaryoları', () => {
       }
     });
     await page.goto('/dashboard');
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle');
     expect(errors).toEqual([]);
     await expect(page.getByText('The operation could not completed')).not.toBeVisible();
   });
@@ -84,7 +84,7 @@ test.describe('BooKi - günlük kullanım senaryoları', () => {
   test('UC-08: Sağlayıcılar (Providers) sayfası açılır, en az 1 kayıt listelenir', async ({ page }) => {
     await page.goto('/providers');
     await expect(page.locator('#providers')).toBeVisible();
-    await expect(page.getByText('Jane Doe')).toBeVisible(); // seeded provider record
+    await expect(page.getByText('Jane Doe', { exact: true })).toBeVisible(); // seeded provider record
   });
 
   test('UC-09: İstasyonlar (Odalar) sayfasında "İlk Müsaitlik Sırası" alanı mevcut (2026-09-17 yeni özellik)', async ({ page }) => {

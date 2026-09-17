@@ -11,7 +11,7 @@
 FROM composer:2 AS vendor
 WORKDIR /app
 COPY composer.json ./
-RUN composer update --no-dev --no-interaction --optimize-autoloader --ignore-platform-reqs
+RUN composer update  --no-interaction --optimize-autoloader --ignore-platform-reqs
 
 FROM alextselegidis/easyappointments:1.6.0
 

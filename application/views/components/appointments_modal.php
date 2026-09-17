@@ -539,6 +539,7 @@
 
 <?php section('scripts'); ?>
 
+<script src="<?= asset_url('assets/js/http/appointments_http_client.js') ?>"></script>
 <script src="<?= asset_url('assets/js/components/appointments_modal.js') ?>"></script>
 
 <?php end_section('scripts'); ?>

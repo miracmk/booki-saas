@@ -771,7 +771,8 @@ class Availability
         array $provider,
         bool $ignore_advance_timeout = false,
     ): array {
-        $provider_timezone = new DateTimeZone($provider['timezone']);
+        $timezone_string = !empty($provider['timezone']) ? $provider['timezone'] : ($provider['settings']['timezone'] ?? setting('default_timezone', 'UTC') ?: 'UTC');
+        $provider_timezone = new DateTimeZone($timezone_string);
 
         $book_advance_timeout = 0;
 
@@ -819,7 +820,8 @@ class Availability
         array $available_hours,
         array $provider,
     ): array {
-        $provider_timezone = new DateTimeZone($provider['timezone']);
+        $timezone_string = !empty($provider['timezone']) ? $provider['timezone'] : ($provider['settings']['timezone'] ?? setting('default_timezone', 'UTC') ?: 'UTC');
+        $provider_timezone = new DateTimeZone($timezone_string);
 
         $future_booking_limit = setting('future_booking_limit', 90); // in days
         $future_booking_limit = is_numeric($future_booking_limit) ? max(0, (int) $future_booking_limit) : 90;

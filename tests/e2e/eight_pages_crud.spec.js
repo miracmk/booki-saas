@@ -198,7 +198,7 @@ test.describe('8-Page Audit & CRUD Verification', () => {
 
     await page.goto('/reports');
     await expect(page.locator('#reports-page')).toBeVisible();
-    await expect(page.locator('h4')).toContainText(/Günlük Ciro Raporu/i);
+    await expect(page.getByRole('heading', { name: /Günlük Ciro Raporu/i })).toBeVisible();
 
     const today = new Date().toISOString().split('T')[0];
     await page.locator('#report-date').fill(today);

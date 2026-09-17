@@ -1,3 +1,9 @@
+<link rel="manifest" href="<?= base_url('manifest.json') ?>">
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
+</script>
 <?php
 /**
  * Local variables.
@@ -85,25 +91,26 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
         <ul class="nav flex-column flex-grow-1 overflow-auto px-2 sidebar-nav">
             <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == 'dashboard' ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
                 <a href="<?= site_url('dashboard') ?>" class="nav-link text-white" data-tippy-content="Genel bakış">
                     <i class="fas fa-gauge-high me-2"></i>
                     Dashboard
                 </a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_AI_AGENT); ?>
             <?php $hidden = can('view', PRIV_AI_AGENT) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_AI_AGENT ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('ai_agent') ?>" class="nav-link text-white" data-tippy-content="AI Asistan">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('ai_agent') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_AI_AGENT; ?>" data-tier="Elite"<?php endif; ?> class="nav-link text-white" data-tippy-content="AI Asistan">
                     <i class="fas fa-robot me-2"></i>
                     AI Asistan
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Elite Plan"></i><?php endif; ?></a>
             </li>
 
             <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_APPOINTMENTS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
                 <a href="<?= site_url(
                     'calendar' . (vars('calendar_view') === CALENDAR_VIEW_TABLE ? '?view=table' : ''),
                 ) ?>"
@@ -116,7 +123,7 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
 
             <?php $hidden = can('view', PRIV_CUSTOMERS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_CUSTOMERS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
                 <a href="<?= site_url('customers') ?>" class="nav-link text-white"
                    data-tippy-content="<?= lang('manage_customers_hint') ?>">
                     <i class="fas fa-user-friends me-2"></i>
@@ -126,7 +133,7 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
 
             <?php $hidden = can('view', PRIV_SERVICES) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_SERVICES ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
                 <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
                    data-bs-toggle="collapse" data-bs-target="#sidebar-services-collapse"
                    data-tippy-content="<?= lang('manage_services_hint') ?>">
@@ -151,7 +158,7 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
 
             <?php $hidden = can('view', PRIV_STATIONS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_STATIONS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
                 <a href="<?= site_url('stations') ?>" class="nav-link text-white"
                    data-tippy-content="İstasyonları yönet">
                     <i class="fas fa-door-open me-2"></i>
@@ -159,29 +166,31 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                 </a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_WAITLIST); ?>
             <?php $hidden = can('view', PRIV_WAITLIST) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_WAITLIST ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('waitlist') ?>" class="nav-link text-white"
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('waitlist') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_WAITLIST; ?>" data-tier="Basic"<?php endif; ?> class="nav-link text-white"
                    data-tippy-content="Bekleme listesini yönet">
                     <i class="fas fa-hourglass-half me-2"></i>
                     Bekleme Listesi
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Basic Plan"></i><?php endif; ?></a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_MEMBERSHIPS); ?>
             <?php $hidden = can('view', PRIV_MEMBERSHIPS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_MEMBERSHIPS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('memberships') ?>" class="nav-link text-white"
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('memberships') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_MEMBERSHIPS; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
                    data-tippy-content="Üyelikleri yönet">
                     <i class="fas fa-id-card me-2"></i>
                     Üyelikler
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
             </li>
 
             <?php $hidden = can('view', PRIV_CUSTOMERS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == 'data_requests' ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
                 <a href="<?= site_url('data_requests') ?>" class="nav-link text-white"
                    data-tippy-content="KVKK veri talepleri">
                     <i class="fas fa-shield-alt me-2"></i>
@@ -189,59 +198,64 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                 </a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_INVOICES); ?>
             <?php $hidden = can('view', PRIV_INVOICES) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_INVOICES ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('invoices') ?>" class="nav-link text-white"
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('invoices') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_INVOICES; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
                    data-tippy-content="Faturaları yönet">
                     <i class="fas fa-file-invoice me-2"></i>
                     Faturalar
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_POS); ?>
             <?php $hidden = can('view', PRIV_POS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_POS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('pos') ?>" class="nav-link text-white"
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('pos') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_POS; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
                    data-tippy-content="Satış noktası">
                     <i class="fas fa-cash-register me-2"></i>
                     POS
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_REPORTS); ?>
             <?php $hidden = can('view', PRIV_REPORTS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_REPORTS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('reports') ?>" class="nav-link text-white"
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('reports') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_REPORTS; ?>" data-tier="Basic"<?php endif; ?> class="nav-link text-white"
                    data-tippy-content="Günlük ciro raporu">
                     <i class="fas fa-chart-line me-2"></i>
                     Raporlar
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Basic Plan"></i><?php endif; ?></a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_MARKETING); ?>
             <?php $hidden = can('view', PRIV_MARKETING) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_MARKETING ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('marketing') ?>" class="nav-link text-white"
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('marketing') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_MARKETING; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
                    data-tippy-content="Pazarlama kampanyaları">
                     <i class="fas fa-bullhorn me-2"></i>
                     Pazarlama
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
             </li>
 
+            <?php $has_plan = plan_allows(PRIV_REVIEWS); ?>
             <?php $hidden = can('view', PRIV_REVIEWS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_REVIEWS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
-                <a href="<?= site_url('reviews') ?>" class="nav-link text-white"
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
+                <a <?php if ($has_plan): ?>href="<?= site_url('reviews') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_REVIEWS; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
                    data-tippy-content="Müşteri yorumları">
                     <i class="fas fa-star me-2"></i>
                     Yorumlar
-                </a>
+                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
             </li>
 
             <?php $hidden = can('view', PRIV_USERS) ? '' : 'd-none'; ?>
             <?php $active = $active_menu == PRIV_USERS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active . $hidden ?>">
+            <li class="nav-item <?= $active ?> <?= $hidden ?>">
                 <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
                    data-bs-toggle="collapse" data-bs-target="#sidebar-users-collapse"
                    data-tippy-content="<?= lang('manage_users_hint') ?>">
@@ -361,3 +375,72 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
         &nbsp;
     </div>
 </div>
+
+<!-- Upgrade Plan Modal -->
+<div class="modal fade" id="upgrade-plan-modal" tabindex="-1" aria-labelledby="upgradePlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="upgradePlanModalLabel">
+                    <i class="fas fa-lock text-warning me-2"></i> <span id="upgrade-feature-name">Özellik Kilitli</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <div class="mb-4">
+                    <i class="fas fa-gem fa-4x text-primary"></i>
+                </div>
+                <h5>Paketinizi Yükseltin</h5>
+                <p class="text-muted mt-3">
+                    Bu özelliği kullanabilmek için planınızı 
+                    <strong class="text-dark" id="upgrade-tier-name">Premium</strong> veya daha üst bir pakete yükseltmeniz gerekmektedir.
+                </p>
+                <p class="text-muted">
+                    Lütfen yöneticiniz veya <?php echo (plan_allows('white_label') && setting('white_label_enabled') == 1) ? 'destek ekibi' : 'BooKi destek ekibi'; ?> ile iletişime geçin.
+                </p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <a href="https://kisoftware.com/contact" target="_blank" class="btn btn-primary">İletişime Geçin</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-locked="true"]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // prevent collapse toggles if any
+            
+            var feature = this.getAttribute('data-feature') || 'Bu Özellik';
+            var tier = this.getAttribute('data-tier') || 'Üst';
+            
+            // Re-map constants if possible, or just capitalize
+            var featureNameMap = {
+                'reports': 'Raporlar',
+                'waitlist': 'Bekleme Listesi',
+                'webhooks': 'Webhooks',
+                'products': 'Ürün & Stok',
+                'marketing': 'Pazarlama',
+                'invoices': 'Faturalama',
+                'pos': 'Kasa & POS',
+                'reviews': 'Değerlendirmeler',
+                'memberships': 'Üyelikler',
+                'packages': 'Paket Seanslar',
+                'branches': 'Şubeler',
+                'ai_agent': 'AI Asistan'
+            };
+            
+            var displayFeature = featureNameMap[feature] || feature.replace('PRIV_', '').replace('_', ' ');
+            
+            document.getElementById('upgrade-feature-name').innerText = displayFeature + ' Kilitli';
+            document.getElementById('upgrade-tier-name').innerText = tier;
+            
+            var upgradeModal = new bootstrap.Modal(document.getElementById('upgrade-plan-modal'));
+            upgradeModal.show();
+        });
+    });
+});
+</script>

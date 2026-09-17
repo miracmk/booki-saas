@@ -136,6 +136,50 @@
                                     </div>
                                 </div>
 
+
+                                <?php if (plan_allows("white_label")): ?>
+
+                                <div class="mb-3 form-check">
+
+                                    <input type="checkbox" id="white-label-enabled" data-field="white_label_enabled" class="form-check-input" value="1">
+
+                                    <label class="form-check-label" for="white-label-enabled">
+
+                                        White-Label Marka Gizleme Aktif
+
+                                    </label>
+
+                                    <div class="form-text text-muted">
+
+                                        <small>Alt kısımdaki "Powered by BooKi" ve lisans yazılarını gizler.</small>
+
+                                    </div>
+
+                                </div>
+
+                                <?php else: ?>
+
+                                <div class="mb-3 form-check">
+
+                                    <input type="checkbox" disabled class="form-check-input">
+
+                                    <label class="form-check-label text-muted">
+
+                                        White-Label Marka Gizleme <span class="badge bg-warning ms-1"><i class="fas fa-lock"></i> Elite Plan</span>
+
+                                    </label>
+
+                                    <div class="form-text text-muted">
+
+                                        <small>Markamızı gizlemek için planınızı yükseltin.</small>
+
+                                    </div>
+
+                                </div>
+
+                                <?php endif; ?>
+
+
                             </div>
                         </div>
 

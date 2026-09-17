@@ -6,12 +6,15 @@
  * @var string $legal_notice_url
  * @var string $imprint_url
  */
+$hide_brand = plan_allows('white_label') && setting('white_label_enabled') == 1;
+$default_name = $hide_brand ? '' : 'BooKi';
+$company_name = setting('company_name', $default_name) ?: $default_name;
 ?>
 
 <div id="frame-footer" class="p-3 text-center border-top">
     <small class="d-block d-md-flex">
         <span class="footer-powered-by small d-block w-100 w-md-50 text-center text-md-start p-1 pe-md-0">
-            &copy; <?= date('Y') ?> <?= e(setting('company_name', 'BooKi') ?: 'BooKi') ?>
+            &copy; <?= date('Y') ?> <?= e($company_name) ?>
 
             <?php if (!empty($legal_notice_url)): ?>
                 <span>|</span>

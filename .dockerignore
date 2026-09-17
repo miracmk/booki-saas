@@ -4,13 +4,11 @@ deploy
 dev
 !dev/docker-entrypoint.sh
 _arsiv
-tests
 tokensave-docs
 docs
 .tokensave
 node_modules
 *.md
-phpunit.xml
 config.php
 storage/logs/*
 storage/sessions/*

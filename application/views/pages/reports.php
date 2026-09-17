@@ -114,54 +114,57 @@
     </div>
 
     <?php // Faz 3.6 - Analytics/BI section with revenue, utilization, retention reports ?>
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="fw-light mb-0">Analitik Raporlar</h5>
+    <div class="card mt-4 shadow-sm border-0">
+        <div class="row mb-4">
+            <div class="col-12 col-sm-4">
+                <h4 class="mb-0 fw-light">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    Command Center Analytics
+                </h4>
+                <p class="form-text text-muted mb-4">
+                    Tarih aralığı üzerinden ciro, personel doluluğu ve müşteri kalıcılığı metriklerini izleyin.
+                </p>
+            </div>
         </div>
-        <div class="card-body">
-            <p class="form-text text-muted mb-3">
-                Tarih aralığı üzerinden ciro, kapasite kullanımı ve müşteri kalıcılığı analitikleri.
-            </p>
-
-            <div class="row g-3 mb-4 align-items-end">
-                <div class="col-12 col-sm-3">
-                    <label class="form-label" for="analytics-date-from">Başlangıç Tarihi</label>
-                    <input type="date" id="analytics-date-from" class="form-control">
+        <div class="p-3 bg-light rounded-3 mb-4 d-flex flex-wrap align-items-center gap-3">
+                <div class="flex-grow-1" style="min-width: 150px;">
+                    <label class="form-label small fw-bold text-muted text-uppercase" for="analytics-date-from">Başlangıç</label>
+                    <input type="date" id="analytics-date-from" class="form-control form-control-sm border-0 shadow-sm">
                 </div>
-                <div class="col-12 col-sm-3">
-                    <label class="form-label" for="analytics-date-to">Bitiş Tarihi</label>
-                    <input type="date" id="analytics-date-to" class="form-control">
+                <div class="flex-grow-1" style="min-width: 150px;">
+                    <label class="form-label small fw-bold text-muted text-uppercase" for="analytics-date-to">Bitiş</label>
+                    <input type="date" id="analytics-date-to" class="form-control form-control-sm border-0 shadow-sm">
                 </div>
-                <div class="col-12 col-sm-3">
-                    <label class="form-label" for="analytics-group-by">Gruplama</label>
-                    <select id="analytics-group-by" class="form-select">
-                        <option value="day">Gün</option>
-                        <option value="week">Hafta</option>
-                        <option value="month">Ay</option>
+                <div class="flex-grow-1" style="min-width: 150px;">
+                    <label class="form-label small fw-bold text-muted text-uppercase" for="analytics-group-by">Gruplama</label>
+                    <select id="analytics-group-by" class="form-select form-select-sm border-0 shadow-sm">
+                        <option value="day">Günlük</option>
+                        <option value="week">Haftalık</option>
+                        <option value="month">Aylık</option>
                     </select>
                 </div>
-                <div class="col-12 col-sm-3">
-                    <button type="button" id="analytics-fetch-btn" class="btn btn-primary w-100">
-                        <i class="fas fa-refresh me-2"></i> Getir
+                <div class="mt-4">
+                    <button type="button" id="analytics-fetch-btn" class="btn btn-primary btn-sm shadow-sm px-4 rounded-pill">
+                        <i class="fas fa-sync-alt me-2"></i> Analiz Et
                     </button>
                 </div>
             </div>
 
-            <div id="analytics-error" class="alert alert-danger d-none"></div>
+            <div id="analytics-error" class="alert alert-danger d-none rounded-3 border-0 shadow-sm"></div>
 
-            <div class="row">
-                <div class="col-12 col-lg-6 mb-3">
-                    <div class="card bg-light">
-                        <div class="card-header">
-                            <h6 class="mb-0">Ciro Raporu</h6>
+            <div class="row g-4">
+                <div class="col-12 col-lg-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom-0">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-wallet text-success me-2"></i> Ciro Analizi</h6>
                         </div>
-                        <div class="card-body">
-                            <div id="analytics-revenue-kpis" class="row g-2 mb-3"></div>
+                        <div class="card-body pt-0">
+                            <div id="analytics-revenue-kpis" class="row g-3 mb-4"></div>
                             <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
-                                <table class="table table-sm table-striped mb-0">
-                                    <thead><tr><th>Tarih</th><th>Seans</th><th>Ciro</th><th>Net</th></tr></thead>
+                                <table class="table table-borderless table-hover mb-0 align-middle">
+                                    <thead class="table-light"><tr><th class="rounded-start">Dönem</th><th>Seans</th><th>Brüt</th><th class="rounded-end">Net</th></tr></thead>
                                     <tbody id="analytics-revenue-trend">
-                                        <tr><td colspan="4" class="text-muted">Yükleniyor...</td></tr>
+                                        <tr><td colspan="4" class="text-muted text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i> Veriler hazırlanıyor...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -169,17 +172,17 @@
                     </div>
                 </div>
 
-                <div class="col-12 col-lg-6 mb-3">
-                    <div class="card bg-light">
-                        <div class="card-header">
-                            <h6 class="mb-0">Kapasite Kullanımı</h6>
+                <div class="col-12 col-lg-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom-0">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-user-clock text-warning me-2"></i> Kapasite Kullanımı</h6>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body pt-0">
                             <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                                <table class="table table-sm table-striped mb-0">
-                                    <thead><tr><th>Terapist</th><th>Dolu (dk)</th><th>Müsait (dk)</th><th>Doluluk</th></tr></thead>
+                                <table class="table table-borderless table-hover mb-0 align-middle">
+                                    <thead class="table-light"><tr><th class="rounded-start">Personel</th><th>Dolu/Müsait</th><th class="rounded-end">Doluluk Oranı</th></tr></thead>
                                     <tbody id="analytics-utilization-table">
-                                        <tr><td colspan="4" class="text-muted">Yükleniyor...</td></tr>
+                                        <tr><td colspan="3" class="text-muted text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i> Veriler hazırlanıyor...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -188,18 +191,18 @@
                 </div>
 
                 <?php if (session('role_slug') !== DB_SLUG_PROVIDER): ?>
-                    <div class="col-12 col-lg-6 mb-3">
-                        <div class="card bg-light">
-                            <div class="card-header">
-                                <h6 class="mb-0">Müşteri Kalıcılığı</h6>
+                    <div class="col-12 col-lg-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white border-bottom-0">
+                                <h6 class="mb-0 fw-bold"><i class="fas fa-users text-info me-2"></i> Müşteri Kalıcılığı (Retention)</h6>
                             </div>
-                            <div class="card-body">
-                                <div id="analytics-retention-kpis" class="row g-2 mb-3"></div>
+                            <div class="card-body pt-0">
+                                <div id="analytics-retention-kpis" class="row g-3 mb-4"></div>
                                 <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
-                                    <table class="table table-sm table-striped mb-0">
-                                        <thead><tr><th>Ay</th><th>Yeni</th><th>Geri Dönen</th><th>Tekrar Oranı</th></tr></thead>
+                                    <table class="table table-borderless table-hover mb-0 align-middle">
+                                        <thead class="table-light"><tr><th class="rounded-start">Dönem</th><th>Yeni Müşteri</th><th>Geri Dönen</th><th class="rounded-end">Kalıcılık Oranı</th></tr></thead>
                                         <tbody id="analytics-retention-table">
-                                            <tr><td colspan="4" class="text-muted">Yükleniyor...</td></tr>
+                                            <tr><td colspan="4" class="text-muted text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i> Veriler hazırlanıyor...</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -229,13 +232,22 @@
         const token = <?= json_encode(vars('csrf_token')) ?>;
 
         function formatMoney(n) {
-            return '₺' + Number(n || 0).toLocaleString('tr-TR', {maximumFractionDigits: 0});
+            return '<span class="badge bg-light text-dark border fs-6 fw-normal py-2 px-3 shadow-sm">₺' + Number(n || 0).toLocaleString('tr-TR', {maximumFractionDigits: 0}) + '</span>';
         }
 
         function kpi(label, value) {
-            return '<div class="col-6 col-md-3"><div class="p-2 border rounded text-center">' +
-                '<div class="small text-muted">' + label + '</div>' +
-                '<div class="fw-bold">' + value + '</div></div></div>';
+            return '<div class="col-6 col-md-3"><div class="p-3 bg-white border-0 shadow-sm rounded-3 text-center h-100 d-flex flex-column justify-content-center">' +
+                '<div class="small text-muted text-uppercase fw-bold mb-2">' + label + '</div>' +
+                '<div class="fs-4 fw-bolder text-dark">' + value + '</div></div></div>';
+        }
+
+        function getProgressBar(pct) {
+            if (pct === null || pct === undefined || isNaN(pct)) return '-';
+            let bgClass = 'bg-success';
+            if (pct < 30) bgClass = 'bg-primary';
+            else if (pct < 60) bgClass = 'bg-warning';
+            
+            return '<div class="d-flex align-items-center"><div class="progress flex-grow-1" style="height: 8px;"><div class="progress-bar ' + bgClass + '" role="progressbar" style="width: ' + pct + '%" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100"></div></div><span class="ms-2 small fw-bold">' + pct + '%</span></div>';
         }
 
         function renderRevenue(data) {
@@ -243,40 +255,42 @@
             $('#analytics-revenue-kpis').html(
                 kpi('Toplam Ciro', formatMoney(t.gross)) +
                 kpi('Net', formatMoney(t.net)) +
-                kpi('Seans', t.session_count || 0) +
+                kpi('Seans', '<span class="badge bg-primary rounded-pill">' + (t.session_count || 0) + '</span>') +
                 kpi('Ort. Fiş', formatMoney(t.avg_ticket))
             );
 
             const rows = (data.trend || []).map((r) =>
-                '<tr><td>' + r.key + '</td><td>' + r.session_count + '</td>' +
+                '<tr><td class="text-nowrap fw-medium">' + r.key + '</td><td><span class="badge bg-light text-secondary border">' + r.session_count + '</span></td>' +
                 '<td>' + formatMoney(r.gross) + '</td><td>' + formatMoney(r.net) + '</td></tr>'
             ).join('');
-            $('#analytics-revenue-trend').html(rows || '<tr><td colspan="4" class="text-muted">Veri yok.</td></tr>');
+            $('#analytics-revenue-trend').html(rows || '<tr><td colspan="4" class="text-muted text-center py-4">Veri yok.</td></tr>');
         }
 
         function renderUtilization(data) {
             const rows = (data.providers || []).map((p) =>
-                '<tr><td>' + p.provider_name + '</td><td>' + p.booked_minutes + '</td>' +
-                '<td>' + p.available_minutes + '</td>' +
-                '<td>' + (p.utilization_pct !== null ? p.utilization_pct + '%' : '-') + '</td></tr>'
+                '<tr><td class="fw-medium">' + $('<div>').text(p.provider_name).html() + '</td>' +
+                '<td><span class="text-success fw-bold">' + p.booked_minutes + '</span> / <span class="text-muted">' + p.available_minutes + '</span> dk</td>' +
+                '<td>' + getProgressBar(p.utilization_pct) + '</td></tr>'
             ).join('');
-            $('#analytics-utilization-table').html(rows || '<tr><td colspan="4" class="text-muted">Veri yok.</td></tr>');
+            $('#analytics-utilization-table').html(rows || '<tr><td colspan="3" class="text-muted text-center py-4">Veri yok.</td></tr>');
         }
 
         function renderRetention(data) {
             const c = data.churn || {};
             $('#analytics-retention-kpis').html(
-                kpi('Kaybedilen Müşteri', c.churned || 0) +
-                kpi('Kayıp Oranı', (c.pct || 0) + '%') +
-                kpi('Toplam Müşteri', c.total || 0) +
-                kpi('Eşik (gün)', c.days || 90)
+                kpi('Kaybedilen Müşteri', '<span class="text-danger fw-bold">' + (c.churned || 0) + '</span>') +
+                kpi('Kayıp Oranı', '<span class="badge bg-danger rounded-pill">' + (c.pct || 0) + '%</span>') +
+                kpi('Toplam Müşteri', '<span class="text-dark fw-bold">' + (c.total || 0) + '</span>') +
+                kpi('Eşik (gün)', '<span class="text-muted">' + (c.days || 90) + '</span>')
             );
 
             const rows = (data.months || []).map((m) =>
-                '<tr><td>' + m.month + '</td><td>' + m.new + '</td><td>' + m.returning + '</td>' +
-                '<td>' + m.repeat_rate + '%</td></tr>'
+                '<tr><td class="fw-medium">' + m.month + '</td>' +
+                '<td><span class="badge bg-info text-white rounded-pill px-3">' + m.new + '</span></td>' +
+                '<td><span class="badge bg-success text-white rounded-pill px-3">' + m.returning + '</span></td>' +
+                '<td><div class="d-flex align-items-center"><div class="progress flex-grow-1" style="height: 6px;"><div class="progress-bar bg-info" style="width: ' + m.repeat_rate + '%"></div></div><span class="ms-2 small fw-bold">' + m.repeat_rate + '%</span></div></td></tr>'
             ).join('');
-            $('#analytics-retention-table').html(rows || '<tr><td colspan="4" class="text-muted">Veri yok.</td></tr>');
+            $('#analytics-retention-table').html(rows || '<tr><td colspan="4" class="text-muted text-center py-4">Veri yok.</td></tr>');
         }
 
         // Set default date range: last 30 days
