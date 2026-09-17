@@ -59,6 +59,10 @@ class Messaging_settings_model extends EA_Model
                 'smtp_from_address' => null,
                 'default_notification_channel' => 'telegram',
                 'default_notification_channels' => 'telegram',
+                'ai_reply_whatsapp_enabled' => 0,
+                'ai_reply_telegram_enabled' => 0,
+                'ai_reply_instagram_enabled' => 0,
+                'instagram_webhook_verify_token' => null,
             ];
         } else {
             // Decrypt sensitive fields
@@ -72,6 +76,9 @@ class Messaging_settings_model extends EA_Model
             $row['call_api_key'] = sf_pii_decrypt($row['call_api_key']);
             $row['telegram_bot_token'] = sf_pii_decrypt($row['telegram_bot_token']);
             $row['instagram_access_token'] = sf_pii_decrypt($row['instagram_access_token']);
+            $row['instagram_webhook_verify_token'] = sf_pii_is_encrypted($row['instagram_webhook_verify_token'] ?? null)
+                ? sf_pii_decrypt($row['instagram_webhook_verify_token'])
+                : ($row['instagram_webhook_verify_token'] ?? null);
             $row['smtp_user'] = sf_pii_decrypt($row['smtp_user']);
             $row['smtp_pass'] = sf_pii_decrypt($row['smtp_pass']);
         }
@@ -114,10 +121,12 @@ class Messaging_settings_model extends EA_Model
             'whatsapp_unofficial_status', 'whatsapp_unofficial_name',
             'whatsapp_unofficial_consent_at', 'whatsapp_bridge_url', 'smtp_host', 'smtp_port',
             'smtp_crypto', 'smtp_from_name', 'smtp_from_address', 'default_notification_channel',
-            'default_notification_channels'];
+            'default_notification_channels',
+            'ai_reply_whatsapp_enabled', 'ai_reply_telegram_enabled', 'ai_reply_instagram_enabled'];
         $encrypted_fields = ['netgsm_username', 'netgsm_password', 'whatsapp_phone_number_id',
             'whatsapp_access_token', 'whatsapp_waba_id', 'whatsapp_webhook_verify_token',
             'whatsapp_bridge_secret', 'call_api_key', 'telegram_bot_token', 'instagram_access_token',
+            'instagram_webhook_verify_token',
             'smtp_user', 'smtp_pass'];
 
         foreach ($plaintext_fields as $field) {

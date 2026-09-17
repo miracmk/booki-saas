@@ -4,6 +4,50 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU (4) — 8 Sayfa Görsel/CRUD Denetimi + Çok Kanallı AI Asistanı (WhatsApp/Telegram/Instagram)
+
+Kullanıcı istekleri:
+1. 8 sayfanın (Bekleme Listesi, Üyelikler, Veri Talepleri, Faturalar, POS, Raporlar, Pazarlama, Yorumlar) modern komuta merkezi tasarım diliyle (Customers/Services/Providers) görsel uyum denetimi, konsol/JavaScript hatalarının giderilmesi ve gerçek Playwright CRUD döngüsüyle uçtan uca doğrulanması.
+2. WhatsApp, Telegram ve Instagram üzerinden gelen müşteri mesajlarına kanal bazında açılıp kapatılabilen çok kanallı otomatik AI yanıtlayıcı entegrasyonu.
+
+### Yapılanlar & Teknik Kararlar:
+
+**1) Altyapı, CSP ve CSRF Kök Neden Düzeltmeleri:**
+- **CSP Font İzni (`security_headers.php`):** Content-Security-Policy başlığı `https://fonts.googleapis.com` (style-src) ve `https://fonts.gstatic.com` (font-src) eklenerek Google Fonts CSP engellemesi çözüldü.
+- **Konsol Çökmesi (`active_sessions_widget.js`):** `poll()` fonksiyonu `App.Http.Calendar.getActiveSessions` varlık kontrolüyle korundu, takvim harici sayfalardaki fatal TypeErrors giderildi.
+- **CSRF Token Kök Neden Fix'i (`EA_Security.php` & `app.js`):** AJAX istekleri `X-CSRF-Token` başlığı gönderdiğinde, Apache bunu PHP'de `$_SERVER['HTTP_X_CSRF_TOKEN']` olarak sunuyordu; ancak `EA_Security.php` yalnızca `$_SERVER['HTTP_X_CSRF']` ve `$_POST['csrf_token']` kontrolü yapıyordu. Bu uyumsuzluk nedeniyle `waitlist/search`, `data_requests/search`, `memberships` ve `pos` AJAX çağrıları 403 CSRF hatası veriyordu. `EA_Security.php` hem `HTTP_X_CSRF_TOKEN` hem JSON body desteğiyle güncellendi; ayrıca `app.js` ve `app.min.js` içine global `$.ajaxSetup` eklenerek tüm non-GET AJAX isteklerine otomatik CSRF başlıkları bağlandı.
+- **Eksik Dil Satırları:** EasyAppointments çekirdeğinde `lang('id')` anahtarı bulunmadığı için view seviyesinde loglanan hatalar giderildi (`#` ile değiştirildi), `english/translations_lang.php`'ye eksik `email_templates` ve `id` tanımları eklendi.
+
+**2) 8 Sayfanın Görsel Harmonizasyonu & Script Senkronizasyonu:**
+- Eski ham `wrapper > container-fluid` ve devasa `h1.page-title` yapıları, komuta merkezi standartlarındaki `<div class="container backend-page py-3">` (veya POS/Marketing için geniş container), `<h4 class="mb-3 fw-light">` başlıkları, renkli ikonlar ve sağa hizalı modern toolbar butonları ile yenilendi.
+- Sayfalar:
+  - `/waitlist`: Komuta merkezi tablosu ve giriş ekleme modalı.
+  - `/memberships`: Plan oluşturma, dinamik dropdown yenileme ve üyelik satış/iptal akışı.
+  - `/data_requests`: Metrik sayaç kartları, KVKK tür/durum filtreleri ve talep tablosu.
+  - `/invoices`: Fatura oluşturma modalı ve muhasebe CSV dışa aktarım akordeonu.
+  - `/pos`: Sol sütunda satış kartı, sağ sütunda siparişler tablosu.
+  - `/reports`: Ciro özeti hapları, dışa aktarım ve analitik grafik/kapasite panelleri.
+  - `/marketing`: Segmentler ve Kampanyalar sekmeleri, modern eylem butonları.
+  - `/reviews`: Durum sekmeleri ve onay/red moderasyon paneli.
+- Değiştirilen tüm JavaScript dosyaları minified karşılıklarıyla (`.min.js`) senkronize edildi.
+
+**3) Çok Kanallı AI Asistanı & Instagram Entegrasyonu:**
+- **Migration 149 (`149_add_multi_channel_ai_and_instagram.php`):** `ea_messaging_settings` tablosuna `ai_reply_whatsapp_enabled`, `ai_reply_telegram_enabled`, `ai_reply_instagram_enabled`, `instagram_webhook_verify_token`; `ea_users` tablosuna `instagram_user_id`; ve yeni `ea_instagram_messages` log tablosu eklendi. Tüm 9 kiracı veri tabanına başarıyla uygulandı.
+- **Güvenlik Değişmezi (Security Invariant):** Gelen müşteri mesajları doğrudan randevu/müşteri yazma veya silme araçlarını ASLA çalıştıramaz. İzin verilen tek yazma aracı `propose_customer_update` olup, öneriler yönetici onayı için `ea_ai_agent_pending_changes` tablosuna kaydedilir.
+- **Entegre AI Motoru (`Ai_channel_responder.php`):** Kiracı işletme bilgileri (ad, telefon, rezervasyon linki, hizmet listesi) ve müşterinin yaklaşan randevularını bağlama ekleyerek düşük gecikmeli, nazik Türkçe AI yanıtları üretir.
+- **Kanal Kontrolcüleri & Webhook'lar:**
+  - WhatsApp: Hem resmi Cloud API (`webhook_receive`) hem Baileys QR bridge (`bridge_inbound`) kanallarına AI otomatik yanıt bağlandı.
+  - Telegram: `webhook()` içine AI otomatik yanıt ve `telegram_client->send_message()` bağlandı.
+  - Instagram: Meta Graph API challenge doğrulaması (`hub.mode=subscribe`), gelen DM işleme, müşteri eşleme, AI otomatik yanıt ve panelden manuel yanıt (`/instagram/reply`) sağlayan tam kontrolcü (`Instagram.php`) yazıldı.
+- **Yönetim Panelleri:** `/messaging_settings` sayfasına çok kanallı AI toggle kartı, `/instagram` sayfasına Meta Graph API ayar paneli ve mesaj geçmişi eklendi.
+
+**4) Tarayıcı & E2E Doğrulaması:**
+- **Playwright 8-Page CRUD Suite (`tests/e2e/eight_pages_crud.spec.js`):** 8 sayfanın tamamında gerçek veri oluşturma, listeleme, filtreleme ve iptal işlemleri 15.5 saniyede sıfır hata ile başarıyla geçti (8/8 PASSED).
+- **İlk Müsaitlik Sıralama Testi (`availability_ranking.spec.js`):** 2 test 13.9 saniyede başarıyla geçti (2/2 PASSED).
+- **Görsel Doğrulama:** Playwright tarayıcısı ile 13 sayfanın (3 referans, 8 denetlenen sayfa, 2 yeni ayar sayfası) ekran görüntüleri alınıp `docs/screenshots/audit_8_pages/` altına kaydedildi ve görsel uyumları teyit edildi.
+
+---
+
 ## 2026-09-17 OTURUMU (3) — Bildirim şablon bug'ı + kısa link + create/update/delete WhatsApp sessiz-hatası (kök neden) + sağlayıcı aktif/pasif
 
 Kullanıcı bildirimi: review mesajı `{Test Ajan}` gibi süslü parantezli geliyor, çirkin görünüyor,

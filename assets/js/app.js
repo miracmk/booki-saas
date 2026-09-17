@@ -46,10 +46,71 @@ window.App = (function () {
 
     $(document).ajaxError(onAjaxError);
 
+    $.ajaxSetup({
+        beforeSend: function (xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !settings.crossDomain) {
+                const token = (typeof window.vars === 'function' ? window.vars('csrf_token') : null)
+                    || (window.App && window.App.Security ? window.App.Security.csrfToken : '');
+                if (token) {
+                    xhr.setRequestHeader('X-CSRF-Token', token);
+                    xhr.setRequestHeader('X-CSRF', token);
+                }
+            }
+        }
+    });
+
     $(function () {
         if (window.moment) {
             window.moment.locale(vars('language_code'));
         }
+    });
+
+    const Utils = {
+        ajaxUrl: function (uri) {
+            if (window.App && window.App.Utils && window.App.Utils.Url && typeof window.App.Utils.Url.siteUrl === 'function') {
+                return window.App.Utils.Url.siteUrl(uri);
+            }
+            const baseUrl = typeof window.vars === 'function' ? window.vars('base_url') : '';
+            const indexPage = typeof window.vars === 'function' ? window.vars('index_page') : '';
+            return `${baseUrl}${indexPage ? '/' + indexPage : ''}/${uri}`;
+        },
+        message: function (message, type = 'info') {
+            if (window.App && window.App.Layouts && window.App.Layouts.Backend && typeof window.App.Layouts.Backend.displayNotification === 'function') {
+                window.App.Layouts.Backend.displayNotification(message);
+            } else if (window.App && window.App.Utils && window.App.Utils.Message && typeof window.App.Utils.Message.show === 'function') {
+                window.App.Utils.Message.show('BooKi', message);
+            } else {
+                console.log(`[${type}] ${message}`);
+            }
+        },
+        ajaxErrorMsg: function (jqXHR) {
+            let msg = 'Bir hata oluştu.';
+            try {
+                const res = typeof jqXHR === 'string' ? JSON.parse(jqXHR) : (jqXHR && jqXHR.responseJSON ? jqXHR.responseJSON : JSON.parse((jqXHR && jqXHR.responseText) || '{}'));
+                if (res.message) msg = res.message;
+                else if (res.error) msg = res.error;
+            } catch (e) {
+                if (jqXHR && jqXHR.statusText) msg = jqXHR.statusText;
+            }
+            if (window.App && window.App.Utils && typeof window.App.Utils.message === 'function') {
+                window.App.Utils.message(msg, 'error');
+            }
+        },
+    };
+
+    const Security = {
+        get csrfToken() {
+            return typeof window.vars === 'function' ? (window.vars('csrf_token') || '') : '';
+        },
+    };
+
+    const Lang = new Proxy({}, {
+        get: function (target, prop) {
+            if (typeof prop === 'string') {
+                return typeof window.lang === 'function' ? window.lang(prop) : prop;
+            }
+            return target[prop];
+        },
     });
 
     return {
@@ -57,6 +118,9 @@ window.App = (function () {
         Http: {},
         Layouts: {},
         Pages: {},
-        Utils: {},
+        Utils,
+        Security,
+        Lang,
     };
 })();
+

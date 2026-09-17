@@ -88,7 +88,12 @@ App.Pages.Memberships = (function () {
       .done(function (response) {
         if (response.success) {
           $planModal.modal('hide');
-          App.Utils.message('Plan oluşturuldu. Sayfayı yenileyin.', 'success');
+          if (response.id && planData.name) {
+            window.scriptVars.plans = window.scriptVars.plans || [];
+            window.scriptVars.plans.push({ id: response.id, name: planData.name });
+            populateSelects();
+          }
+          App.Utils.message('Plan oluşturuldu.', 'success');
         }
       })
       .fail(function (jqxhr) {

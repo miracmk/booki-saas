@@ -2,50 +2,40 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-id-card"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-      <div class="col-auto">
-        <div class="btn-toolbar" role="toolbar">
-          <button class="btn btn-outline-secondary me-2" id="add-plan" title="Plan Ekle">
-            <i class="fas fa-clipboard-list"></i>
-            Plan Ekle
-          </button>
-          <button class="btn btn-primary" id="add-membership" title="<?= lang('add') ?>">
-            <i class="fas fa-plus"></i>
-            Üyelik Sat
-          </button>
-        </div>
-      </div>
+<div class="container backend-page py-3" id="memberships-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0 fw-light">
+      <i class="fas fa-id-card me-2 text-primary"></i>
+      <?= vars('page_title') ?>
+    </h4>
+    <div class="btn-toolbar" role="toolbar">
+      <button class="btn btn-outline-secondary me-2" id="add-plan" title="Plan Ekle">
+        <i class="fas fa-clipboard-list me-1"></i>
+        Plan Ekle
+      </button>
+      <button class="btn btn-primary" id="add-membership" title="<?= lang('add') ?>">
+        <i class="fas fa-plus me-1"></i>
+        Üyelik Sat
+      </button>
     </div>
+  </div>
 
-    <div class="row">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th><?= lang('id') ?></th>
-                  <th><?= lang('customer') ?></th>
-                  <th>Plan</th>
-                  <th><?= lang('status') ?></th>
-                  <th>Dönem Sonu</th>
-                  <th>Kullanılan Seans</th>
-                  <th><?= lang('actions') ?></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th><?= lang('customer') ?></th>
+            <th>Plan</th>
+            <th><?= lang('status') ?></th>
+            <th>Dönem Sonu</th>
+            <th>Kullanılan Seans</th>
+            <th><?= lang('actions') ?></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>

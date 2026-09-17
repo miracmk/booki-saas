@@ -68,6 +68,10 @@ App.Components.ActiveSessionsWidget = (function () {
      * Fetch the current active sessions and re-render the badge + (if open) the panel list.
      */
     function poll() {
+        if (!App.Http || !App.Http.Calendar || typeof App.Http.Calendar.getActiveSessions !== 'function') {
+            return;
+        }
+
         App.Http.Calendar.getActiveSessions().done((response) => {
             if (!response.success) {
                 return;

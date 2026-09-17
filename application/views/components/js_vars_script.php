@@ -10,5 +10,7 @@
             return vars[key] || undefined;
         };
     })();
+
+    window.scriptVars = Object.assign({}, window.scriptVars || {}, window.vars());
 </script>
 

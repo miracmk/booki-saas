@@ -343,6 +343,24 @@ class Telegram extends EA_Controller
                 $this->db->update('users', ['last_contact_channel' => 'telegram'], ['id' => $matched_user['id']]);
             }
 
+            // Auto-reply via AI Assistant if enabled
+            $this->load->model('messaging_settings_model');
+            $msg_settings = $this->messaging_settings_model->get_settings();
+            if (!empty($msg_settings['ai_reply_telegram_enabled'])) {
+                $this->load->library('ai_channel_responder');
+                $ai_reply = $this->ai_channel_responder->respond('telegram', $chat_id, $text, $matched_user);
+                if (!empty($ai_reply)) {
+                    $this->telegram_client->send_message($chat_id, $ai_reply);
+                    $this->db->insert('telegram_messages', [
+                        'id_users' => $matched_user['id'] ?? null,
+                        'chat_id' => $chat_id,
+                        'direction' => 'out',
+                        'message' => $ai_reply,
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+
             response();
         } catch (Throwable $e) {
             log_message('error', 'Telegram::webhook - ' . $e->getMessage());

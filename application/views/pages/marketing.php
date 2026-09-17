@@ -2,34 +2,29 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-bullhorn"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-      <div class="col-auto">
-        <div class="btn-toolbar" role="toolbar">
-          <?php if (vars('initials')['can_add']): ?>
-            <button class="btn btn-outline-secondary me-2" id="refresh-all-segments" title="Tüm segment boyutlarını yeniden hesapla">
-              <i class="fas fa-sync-alt"></i>
-              Segmentleri Güncelle
-            </button>
-            <button class="btn btn-primary me-2" id="add-segment" title="Yeni segment oluştur">
-              <i class="fas fa-plus"></i>
-              Yeni Segment
-            </button>
-            <button class="btn btn-success" id="add-campaign" title="Yeni kampanya oluştur">
-              <i class="fas fa-paper-plane"></i>
-              Yeni Kampanya
-            </button>
-          <?php endif; ?>
-        </div>
-      </div>
+<div class="container-fluid backend-page py-3 px-md-4" style="max-width: 1400px;" id="marketing-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0 fw-light">
+      <i class="fas fa-bullhorn me-2 text-primary"></i>
+      <?= vars('page_title') ?>
+    </h4>
+    <div class="btn-toolbar" role="toolbar">
+      <?php if (vars('initials')['can_add']): ?>
+        <button class="btn btn-outline-secondary me-2" id="refresh-all-segments" title="Tüm segment boyutlarını yeniden hesapla">
+          <i class="fas fa-sync-alt me-1"></i>
+          Segmentleri Güncelle
+        </button>
+        <button class="btn btn-primary me-2" id="add-segment" title="Yeni segment oluştur">
+          <i class="fas fa-plus me-1"></i>
+          Yeni Segment
+        </button>
+        <button class="btn btn-success" id="add-campaign" title="Yeni kampanya oluştur">
+          <i class="fas fa-paper-plane me-1"></i>
+          Yeni Kampanya
+        </button>
+      <?php endif; ?>
     </div>
+  </div>
 
     <ul class="nav nav-tabs mb-3" id="marketing-tabs" role="tablist">
       <li class="nav-item" role="presentation">
@@ -87,7 +82,6 @@
             </table>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </div>
@@ -220,6 +214,11 @@
 <?php section('scripts'); ?>
 
 <script>
+  window.scriptVars = Object.assign({}, window.scriptVars || {}, {
+    segments: <?= json_encode($segments ?? []) ?>,
+    campaigns: <?= json_encode($campaigns ?? []) ?>,
+    initials: <?= json_encode(script_vars('initials')) ?>
+  });
   var EWA = {
     segment_selected_id: <?= json_encode((int) (isset($segments[0]) ? $segments[0]['id'] : 0)) ?>,
     segments_map: <?= json_encode(array_combine(

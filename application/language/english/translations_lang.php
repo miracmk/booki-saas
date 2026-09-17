@@ -623,4 +623,6 @@ $lang['totp_enabled_message'] = 'Two-factor authentication is active.';
 $lang['totp_help_text'] = 'Add an extra layer of security to your account - a code from your phone will be required at login, in addition to your password.';
 $lang['cancel'] = 'Cancel';
 $lang['close'] = 'Close';
+$lang['email_templates'] = 'Email Templates';
+$lang['id'] = '#';
 // End

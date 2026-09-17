@@ -37,7 +37,7 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th><?= lang('id') ?></th>
+                  <th>#</th>
                   <th><?= lang('customer') ?></th>
                   <th><?= lang('service') ?></th>
                   <th><?= lang('total_sessions') ?></th>

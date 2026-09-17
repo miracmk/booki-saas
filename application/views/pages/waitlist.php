@@ -2,45 +2,35 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-hourglass-half"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-      <div class="col-auto">
-        <div class="btn-toolbar" role="toolbar">
-          <button class="btn btn-primary" id="add-entry" title="<?= lang('add') ?>">
-            <i class="fas fa-plus"></i>
-            <?= lang('add') ?>
-          </button>
-        </div>
-      </div>
+<div class="container backend-page py-3" id="waitlist-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0 fw-light">
+      <i class="fas fa-hourglass-half me-2 text-primary"></i>
+      <?= vars('page_title') ?>
+    </h4>
+    <div class="btn-toolbar" role="toolbar">
+      <button class="btn btn-primary" id="add-entry" title="<?= lang('add') ?>">
+        <i class="fas fa-plus me-1"></i>
+        <?= lang('add') ?>
+      </button>
     </div>
+  </div>
 
-    <div class="row">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th><?= lang('id') ?></th>
-                  <th><?= lang('customer') ?></th>
-                  <th><?= lang('service') ?></th>
-                  <th><?= lang('status') ?></th>
-                  <th><?= lang('date') ?></th>
-                  <th><?= lang('actions') ?></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th><?= lang('customer') ?></th>
+            <th><?= lang('service') ?></th>
+            <th><?= lang('status') ?></th>
+            <th><?= lang('date') ?></th>
+            <th><?= lang('actions') ?></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>

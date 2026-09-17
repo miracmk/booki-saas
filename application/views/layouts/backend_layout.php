@@ -70,6 +70,7 @@
 <script src="<?= asset_url('assets/js/utils/validation.js') ?>"></script>
 <script src="<?= asset_url('assets/js/layouts/backend_layout.js') ?>"></script>
 <script src="<?= asset_url('assets/js/http/localization_http_client.js') ?>"></script>
+<script src="<?= asset_url('assets/js/http/calendar_http_client.js') ?>"></script>
 
 <!-- Salon Flora customization - session tracking (check-in/out countdown, deviation dialog). Loaded here rather
      than in the (stock, un-overridden) calendar page view so we don't have to override that file too. -->

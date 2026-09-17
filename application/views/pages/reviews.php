@@ -2,16 +2,13 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-star"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-    </div>
+<div class="container backend-page py-3" id="reviews-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0 fw-light">
+      <i class="fas fa-star me-2 text-primary"></i>
+      <?= vars('page_title') ?>
+    </h4>
+  </div>
 
     <ul class="nav nav-tabs mb-3" id="reviews-tabs" role="tablist">
       <?php foreach (['requested' => 'Talep Edilen', 'pending' => 'Bekleyen', 'published' => 'Yayınlanan', 'rejected' => 'Reddedilen'] as $key => $label): ?>
@@ -52,7 +49,6 @@
       Yorumlar, tamamlanan randevulardan sonra müşteriye SMS/WhatsApp ile gönderilen tek kullanımlık bağlantı üzerinden gelir. Yayınlanan yorumlar marketplace profilinizde görünür.
     </div>
   </div>
-</div>
 
 <?php end_section('content'); ?>
 

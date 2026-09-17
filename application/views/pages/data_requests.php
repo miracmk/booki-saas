@@ -2,16 +2,13 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-shield-alt"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-    </div>
+<div class="container backend-page py-3" id="data-requests-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0 fw-light">
+      <i class="fas fa-shield-alt me-2 text-primary"></i>
+      <?= vars('page_title') ?>
+    </h4>
+  </div>
 
     <!-- Status Summary -->
     <div class="row mb-3">
@@ -112,7 +109,6 @@
           </div>
         </div>
       </div>
-    </div>
   </div>
 </div>
 

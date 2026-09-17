@@ -65,11 +65,74 @@ $settings = vars('settings') ?? [];
                         <span>Telegram Bot</span>
                         <span class="badge <?= !empty($settings['telegram_bot_token']) ? 'bg-success' : 'bg-secondary' ?>"><?= !empty($settings['telegram_bot_token']) ? 'Hazır' : 'Credential gerekli' ?></span>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <span>Instagram Direct (Meta Graph)</span>
+                        <span class="badge <?= !empty($settings['instagram_access_token']) ? 'bg-success' : 'bg-secondary' ?>"><?= !empty($settings['instagram_access_token']) ? 'Hazır' : 'Credential gerekli' ?></span>
+                    </div>
                     <div class="d-flex justify-content-between align-items-center py-2">
                         <span>SMTP / E-posta</span>
                         <span class="badge <?= !empty($settings['smtp_from_address']) ? 'bg-success' : 'bg-secondary' ?>"><?= !empty($settings['smtp_from_address']) ? 'Hazır' : 'Platform varsayılanı' ?></span>
                     </div>
-                    <a class="btn btn-outline-primary btn-sm mt-3" href="<?= e(vars('whatsapp_url')) ?>">WhatsApp entegrasyonunu aç</a>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <a class="btn btn-outline-primary btn-sm" href="<?= e(vars('whatsapp_url')) ?>"><i class="fab fa-whatsapp me-1"></i> WhatsApp</a>
+                        <a class="btn btn-outline-info btn-sm" href="<?= e(vars('telegram_url')) ?>"><i class="fab fa-telegram me-1"></i> Telegram</a>
+                        <a class="btn btn-outline-danger btn-sm" href="<?= e(vars('instagram_url')) ?>"><i class="fab fa-instagram me-1"></i> Instagram</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Çok Kanallı AI Asistanı (Otomatik Yanıtlayıcı) -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="fw-light mb-0"><i class="fas fa-robot text-primary me-2"></i>Çok Kanallı AI Asistanı (Otomatik Yanıtlayıcı)</h5>
+                </div>
+                <div class="card-body">
+                    <p class="form-text text-muted mb-3">
+                        WhatsApp, Telegram veya Instagram üzerinden gelen müşteri mesajlarına kanal bazında otomatik AI yanıtı verilmesini sağlar. Asistan işletme bilgileri, hizmet listesi ve varsa müşterinin yaklaşan randevu bilgilerini kullanarak yanıt verir.
+                    </p>
+                    <div class="alert alert-warning py-2 small mb-3">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        <strong>Güvenlik Prensibi:</strong> AI Asistanı veritabanında asla doğrudan randevu silme veya değişiklik yapmaz. İletişim bilgisi güncelleme talepleri yönetici onay kuyruğuna aktarılır.
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="ai-reply-whatsapp"
+                                        <?= !empty($settings['ai_reply_whatsapp_enabled']) ? 'checked' : '' ?>>
+                                    <label class="form-check-label fw-bold" for="ai-reply-whatsapp">
+                                        <i class="fab fa-whatsapp text-success me-1"></i> WhatsApp
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block">WhatsApp üzerinden gelen mesajlara otomatik AI yanıtı verilir.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="ai-reply-telegram"
+                                        <?= !empty($settings['ai_reply_telegram_enabled']) ? 'checked' : '' ?>>
+                                    <label class="form-check-label fw-bold" for="ai-reply-telegram">
+                                        <i class="fab fa-telegram text-info me-1"></i> Telegram
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block">Telegram botuna gelen mesajlara otomatik AI yanıtı verilir.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="border rounded p-3 h-100">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="ai-reply-instagram"
+                                        <?= !empty($settings['ai_reply_instagram_enabled']) ? 'checked' : '' ?>>
+                                    <label class="form-check-label fw-bold" for="ai-reply-instagram">
+                                        <i class="fab fa-instagram text-danger me-1"></i> Instagram
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block">Instagram Direct üzerinden gelen mesajlara otomatik AI yanıtı verilir.</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -102,7 +165,7 @@ $settings = vars('settings') ?? [];
                         <div class="mb-3">
                             <label class="form-label" for="netgsm-password">Netgsm Şifre</label>
                             <input type="password" id="netgsm-password" class="form-control"
-                                   placeholder="<?= $settings['netgsm_password'] ? 'Kayıtlı' : 'sifre' ?>">
+                                   placeholder="<?= !empty($settings['netgsm_password']) ? 'Kayıtlı' : 'sifre' ?>">
                         </div>
 
                         <div class="mb-3">
@@ -386,6 +449,9 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
         instagram_notifications_enabled: document.getElementById('instagram-notifications-enabled').checked,
         instagram_access_token: document.getElementById('instagram-access-token').value || null,
         instagram_account_id: document.getElementById('instagram-account-id').value || null,
+        ai_reply_whatsapp_enabled: document.getElementById('ai-reply-whatsapp') ? document.getElementById('ai-reply-whatsapp').checked : false,
+        ai_reply_telegram_enabled: document.getElementById('ai-reply-telegram') ? document.getElementById('ai-reply-telegram').checked : false,
+        ai_reply_instagram_enabled: document.getElementById('ai-reply-instagram') ? document.getElementById('ai-reply-instagram').checked : false,
         smtp_host: document.getElementById('smtp-host').value || null,
         smtp_port: document.getElementById('smtp-port').value || null,
         smtp_crypto: document.getElementById('smtp-crypto').value || null,

@@ -2,16 +2,13 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-cash-register"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-    </div>
+<div class="container-fluid backend-page py-3 px-md-4" style="max-width: 1400px;" id="pos-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0 fw-light">
+      <i class="fas fa-cash-register me-2 text-primary"></i>
+      <?= vars('page_title') ?>
+    </h4>
+  </div>
 
     <div class="row">
       <div class="col-md-5">
@@ -52,7 +49,7 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th><?= lang('id') ?></th>
+                  <th>#</th>
                   <th><?= lang('customer') ?></th>
                   <th><?= lang('status') ?></th>
                   <th>Tutar</th>
@@ -65,7 +62,6 @@
         </div>
       </div>
     </div>
-  </div>
 </div>
 
 <?php end_section('content'); ?>

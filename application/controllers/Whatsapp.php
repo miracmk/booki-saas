@@ -237,6 +237,23 @@ class Whatsapp extends EA_Controller
                 $this->db->update('users', ['last_contact_channel' => 'whatsapp'], ['id' => $matched_user['id']]);
             }
 
+            // Auto-reply via AI Assistant if enabled
+            if (!empty($settings['ai_reply_whatsapp_enabled'])) {
+                $this->load->library('ai_channel_responder');
+                $ai_reply = $this->ai_channel_responder->respond('whatsapp', $wa_id, $body, $matched_user);
+                if (!empty($ai_reply)) {
+                    $mode = $settings['whatsapp_mode'] ?? 'official';
+                    $this->send_whatsapp($wa_id, $ai_reply, $mode);
+                    $this->whatsapp_messages_model->save([
+                        'id_users' => $matched_user['id'] ?? null,
+                        'wa_id' => $wa_id,
+                        'direction' => 'out',
+                        'message' => $ai_reply,
+                        'status' => 'sent',
+                    ]);
+                }
+            }
+
             response();
         } catch (Throwable $e) {
             log_message('error', 'Whatsapp::webhook_receive - ' . $e->getMessage());
@@ -640,6 +657,23 @@ class Whatsapp extends EA_Controller
 
             if ($matched_user && $matched_user['role_slug'] === DB_SLUG_CUSTOMER) {
                 $this->db->update('users', ['last_contact_channel' => 'whatsapp'], ['id' => $matched_user['id']]);
+            }
+
+            // Auto-reply via AI Assistant if enabled
+            if (!empty($settings['ai_reply_whatsapp_enabled'])) {
+                $this->load->library('ai_channel_responder');
+                $ai_reply = $this->ai_channel_responder->respond('whatsapp', $from, $body, $matched_user);
+                if (!empty($ai_reply)) {
+                    $mode = $settings['whatsapp_mode'] ?? 'official';
+                    $this->send_whatsapp($from, $ai_reply, $mode);
+                    $this->whatsapp_messages_model->save([
+                        'id_users' => $matched_user['id'] ?? null,
+                        'wa_id' => $from,
+                        'direction' => 'out',
+                        'message' => $ai_reply,
+                        'status' => 'sent',
+                    ]);
+                }
             }
 
             response();

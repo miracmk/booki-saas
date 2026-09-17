@@ -2,24 +2,19 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-file-invoice"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-      <div class="col-auto">
-        <div class="btn-toolbar" role="toolbar">
-          <button class="btn btn-primary" id="add-invoice" title="<?= lang('add') ?>">
-            <i class="fas fa-plus"></i>
-            Yeni Fatura
-          </button>
-        </div>
-      </div>
+<div class="container backend-page py-3" id="invoices-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0 fw-light">
+      <i class="fas fa-file-invoice me-2 text-primary"></i>
+      <?= vars('page_title') ?>
+    </h4>
+    <div class="btn-toolbar" role="toolbar">
+      <button class="btn btn-primary" id="add-invoice" title="<?= lang('add') ?>">
+        <i class="fas fa-plus me-1"></i>
+        Yeni Fatura
+      </button>
     </div>
+  </div>
 
     <?php // 2026-09-12 - Muhasebe yazılımlarına (Logo/Mikro/Netsis/Zirve/İşBaşı/ETA vb.) elle/dosyayla
           // içe aktarılabilecek evrensel bir CSV; canlı REST API'si olan sistemler (Paraşüt/KolayBi)
@@ -82,7 +77,6 @@
       </div>
     </div>
   </div>
-</div>
 
 <!-- Invoice Creation Modal -->
 <div class="modal fade" id="invoice-modal" tabindex="-1">

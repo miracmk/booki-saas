@@ -440,6 +440,10 @@ $config['csrf_exclude_uris'] = [
     // AI Assistant widget - public booking-page endpoint (anonymous visitors, same trust level as
     // booking/.* above), called via fetch() from the widget with no CSRF token attached.
     'ai_assistant/.*',
+    // Telegram webhook - Telegram POSTs updates here with X-Telegram-Bot-Api-Secret-Token
+    'telegram/webhook',
+    // Instagram webhook - Meta POSTs updates here with hub challenge verification
+    'instagram/webhook',
 ];
 
 /*

@@ -35,6 +35,7 @@ class Messaging_settings extends EA_Controller
         $display_settings = [
             'sms_gateway' => $settings['sms_gateway'],
             'netgsm_username' => $settings['netgsm_username'] ? '***' : '',
+            'netgsm_password' => !empty($settings['netgsm_password']) ? '***' : '',
             'netgsm_header' => $settings['netgsm_header'],
             'sms_notifications_enabled' => (bool) $settings['sms_notifications_enabled'],
             'whatsapp_phone_number_id' => $settings['whatsapp_phone_number_id'] ? '***' : '',
@@ -53,6 +54,10 @@ class Messaging_settings extends EA_Controller
             'instagram_notifications_enabled' => (bool) ($settings['instagram_notifications_enabled'] ?? false),
             'instagram_access_token' => !empty($settings['instagram_access_token']) ? '***' : '',
             'instagram_account_id' => $settings['instagram_account_id'] ?? '',
+            'instagram_webhook_verify_token' => $settings['instagram_webhook_verify_token'] ? '***' : '',
+            'ai_reply_whatsapp_enabled' => (bool) ($settings['ai_reply_whatsapp_enabled'] ?? false),
+            'ai_reply_telegram_enabled' => (bool) ($settings['ai_reply_telegram_enabled'] ?? false),
+            'ai_reply_instagram_enabled' => (bool) ($settings['ai_reply_instagram_enabled'] ?? false),
             'smtp_host' => $settings['smtp_host'],
             'smtp_port' => $settings['smtp_port'],
             'smtp_crypto' => $settings['smtp_crypto'],
@@ -60,12 +65,12 @@ class Messaging_settings extends EA_Controller
             'smtp_pass' => $settings['smtp_pass'] ? '***' : '',
             'smtp_from_name' => $settings['smtp_from_name'],
             'smtp_from_address' => $settings['smtp_from_address'],
-                'default_notification_channel' => $settings['default_notification_channel'] ?? 'telegram',
-                'default_notification_channels' => array_values(array_filter(array_map('trim', explode(',', (string) ($settings['default_notification_channels'] ?? $settings['default_notification_channel'] ?? 'telegram'))))),
-                'whatsapp_mode' => $settings['whatsapp_mode'] ?? 'official',
-                'whatsapp_unofficial_status' => $settings['whatsapp_unofficial_status'] ?? 'disconnected',
-                'whatsapp_unofficial_name' => $settings['whatsapp_unofficial_name'] ?? null,
-                'whatsapp_bridge_configured' => !empty($settings['whatsapp_bridge_url']) && !empty($settings['whatsapp_bridge_secret']),
+            'default_notification_channel' => $settings['default_notification_channel'] ?? 'telegram',
+            'default_notification_channels' => array_values(array_filter(array_map('trim', explode(',', (string) ($settings['default_notification_channels'] ?? $settings['default_notification_channel'] ?? 'telegram'))))),
+            'whatsapp_mode' => $settings['whatsapp_mode'] ?? 'official',
+            'whatsapp_unofficial_status' => $settings['whatsapp_unofficial_status'] ?? 'disconnected',
+            'whatsapp_unofficial_name' => $settings['whatsapp_unofficial_name'] ?? null,
+            'whatsapp_bridge_configured' => !empty($settings['whatsapp_bridge_url']) && !empty($settings['whatsapp_bridge_secret']),
         ];
 
         html_vars([
@@ -73,7 +78,9 @@ class Messaging_settings extends EA_Controller
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'settings' => $display_settings,
             'webhook_url' => site_url('whatsapp/webhook'),
-                'whatsapp_url' => site_url('whatsapp'),
+            'whatsapp_url' => site_url('whatsapp'),
+            'telegram_url' => site_url('telegram'),
+            'instagram_url' => site_url('instagram'),
         ]);
 
         $this->load->view('pages/messaging_settings');
@@ -112,6 +119,10 @@ class Messaging_settings extends EA_Controller
             check('instagram_notifications_enabled', 'bool|null');
             check('instagram_access_token', 'string|null');
             check('instagram_account_id', 'string|null');
+            check('instagram_webhook_verify_token', 'string|null');
+            check('ai_reply_whatsapp_enabled', 'bool|null');
+            check('ai_reply_telegram_enabled', 'bool|null');
+            check('ai_reply_instagram_enabled', 'bool|null');
             check('smtp_host', 'string|null');
             check('smtp_port', 'integer|null');
             check('smtp_crypto', 'string|null');
@@ -120,7 +131,7 @@ class Messaging_settings extends EA_Controller
             check('smtp_from_name', 'string|null');
             check('smtp_from_address', 'string|null');
             check('default_notification_channel', 'string|null');
-                check('default_notification_channels', 'array|null');
+            check('default_notification_channels', 'array|null');
 
             $data = [
                 'sms_gateway' => trim((string) request('sms_gateway', 'none')) ?: 'none',
@@ -162,6 +173,19 @@ class Messaging_settings extends EA_Controller
                 ) ? 1 : 0,
                 'instagram_access_token' => trim((string) request('instagram_access_token', '')) ?: null,
                 'instagram_account_id' => trim((string) request('instagram_account_id', '')) ?: null,
+                'instagram_webhook_verify_token' => trim((string) request('instagram_webhook_verify_token', '')) ?: null,
+                'ai_reply_whatsapp_enabled' => filter_var(
+                    request('ai_reply_whatsapp_enabled', false),
+                    FILTER_VALIDATE_BOOLEAN,
+                ) ? 1 : 0,
+                'ai_reply_telegram_enabled' => filter_var(
+                    request('ai_reply_telegram_enabled', false),
+                    FILTER_VALIDATE_BOOLEAN,
+                ) ? 1 : 0,
+                'ai_reply_instagram_enabled' => filter_var(
+                    request('ai_reply_instagram_enabled', false),
+                    FILTER_VALIDATE_BOOLEAN,
+                ) ? 1 : 0,
                 'smtp_host' => trim((string) request('smtp_host', '')) ?: null,
                 'smtp_port' => !empty(request('smtp_port')) ? (int) request('smtp_port') : null,
                 'smtp_crypto' => trim((string) request('smtp_crypto', '')) ?: null,

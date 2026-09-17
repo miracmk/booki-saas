@@ -37,7 +37,7 @@
             <table class="table table-hover">
               <thead>
                 <tr>
-                  <th><?= lang('id') ?></th>
+                  <th>#</th>
                   <th><?= lang('name') ?></th>
                   <th><?= lang('sku') ?></th>
                   <th><?= lang('sale_price') ?></th>

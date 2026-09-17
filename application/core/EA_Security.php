@@ -63,7 +63,17 @@ class EA_Security extends CI_Security
         }
 
         // Check CSRF token validity, but don't error on mismatch just yet - we'll want to regenerate
-        $csrf_token = $_POST[$this->_csrf_token_name] ?? ($_SERVER['HTTP_X_CSRF'] ?? null);
+        $csrf_token = $_POST[$this->_csrf_token_name]
+            ?? ($_SERVER['HTTP_X_CSRF_TOKEN']
+            ?? ($_SERVER['HTTP_X_CSRF'] ?? null));
+
+        if (empty($csrf_token) && isset($_SERVER['CONTENT_TYPE']) && stripos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) {
+            $input = file_get_contents('php://input');
+            $json = json_decode($input, true);
+            if (is_array($json) && !empty($json[$this->_csrf_token_name])) {
+                $csrf_token = $json[$this->_csrf_token_name];
+            }
+        }
 
         $valid =
             isset($csrf_token, $_COOKIE[$this->_csrf_cookie_name]) &&
