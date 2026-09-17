@@ -2,7 +2,42 @@
 
 Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
-Son güncelleme: 2026-09-17
+Son güncelleme: 2026-09-18
+
+## 2026-09-18 OTURUMU (11) — Tech Debt & Full QA Suite %100 Yeşil (PHPUnit 28/28 & Playwright E2E 47/47)
+
+**Bağlam:** Dalga 0-5 kod genişletmelerinin ardından tüm sistem için acımasız QA doğrulaması ve teknik borç temizliği gerçekleştirildi.
+
+**Yapılanlar & Düzeltmeler:**
+- **`first_availability` API & Zaman Dilimi Çökme Düzeltmesi:**
+  - `Appointments.php`: `in_array((int)$service['id'], array_map('intval', $provider['services']), true)` tip uyuşmazlığı düzeltildi (MySQL string ID'leri integer dizilerle eşleşmiyordu).
+  - `Availability.php`: `$provider['timezone']` null/boş olduğunda `new DateTimeZone()` PHP Fatal hatası veriyordu. Güvenli fallback (`$provider['settings']['timezone'] ?? setting('default_timezone', 'UTC')`) eklendi.
+  - `appointments_modal.php`: Eksik olan `appointments_http_client.js` script tag'i eklendi (`App.Http.Appointments` referans hatası giderildi).
+- **Playwright E2E Suite İyileştirmeleri:**
+  - `notification_flow.spec.js`: `#save-appointment` sonrası tetiklenen `#message-modal` bildirim onay butonu otomasyona dahil edildi; takvimde James Doe randevusu doğru selector ile seçildi (`.fc-event:not(.fc-unavailability):not(.fc-working-plan-exception)`).
+  - Recreate sonrası session çerezi geçersizliği için `auth.setup.spec.js` disiplini uygulandı.
+- **Test Sonuçları (%100 Başarı):**
+  - **PHPUnit Birim Testleri:** 28/28 geçti, 41 assertion (`BookingConflictTest`, `CommissionCalculationTest`, `PlanEntitlementTest`, `TenantIsolationTest`, `CryptoHelperTest`).
+  - **Playwright E2E Senaryoları:** 47/47 geçti (6/6 suite):
+    - `auth.setup.spec.js`: 1/1 passed
+    - `enterprise_scale.spec.js`: 3/3 passed
+    - `eight_pages_crud.spec.js`: 8/8 passed
+    - `availability_ranking.spec.js`: 2/2 passed
+    - `use_cases.spec.js`: 30/30 passed
+    - `notification_flow.spec.js`: 3/3 passed
+
+## 2026-09-17 OTURUMU (10) — Dalga 5: Kurumsal & PWA (PWA, White-label, Entitlement UX & Docs) + Dalga 2 Tech Debt
+
+**Bağlam:** 1-2-3-4 geliştirme planının 3. adımı (Dalga 5: Kurumsal Genişletmeler ve Dalga 2 Tech Debt) tamamlandı.
+
+**Yapılanlar:**
+- **PWA Desteği:** `manifest.json` (`start_url: /calendar`, standalone display, tema ve arka plan renkleri, uygulama ikonları) ve `sw.js` (offline fallback, cache-first stratejisi) eklendi; `header.php`'ye PWA meta tag'leri entegre edildi.
+- **White-label & Marka Özelleştirme:** `plan_helper.php` ile Elite plan kontrolü; Genel Ayarlar sayfasına "Powered by Ki Markalamasını Göster/Gizle" toggle switch'i ve footer/booking sayfalarına dinamik görünürlük kuralı eklendi.
+- **Lisans / Entitlement UX:** Free/Basic/Premium/Elite plan matrisi (`plan_helper.php`), kiracının planında olmayan menü öğeleri için 🔒 rozeti ve tıklandığında 402 yerine `#upgrade-plan-modal` açan kullanıcı dostu yükseltme sihirbazı.
+- **Etkileşimli Dokümantasyon (`/docs`):** Swagger/OpenAPI tarzı etkileşimli API dokümantasyonu (`Docs.php`, `docs_view.php`), REST API v1, Webhook'lar, MCP & AI agent entegrasyon protokolleri.
+- **Dalga 2 Tech Debt — Analytics Command Center:** `reports.php` sayfası modern Bootstrap kartları, doluluk barları, ciro analizi ve retention metrikleri ile baştan tasarlandı.
+- **Birim Test İskeleti:** `tests/Unit/` dizinine 4 yeni PHPUnit test sınıfı eklendi (`BookingConflictTest`, `CommissionCalculationTest`, `PlanEntitlementTest`, `TenantIsolationTest`).
+- **Doğrulama:** `php -l` temiz, Docker container build & up tamamlandı. Commit: `f45feea`.
 
 ## 2026-09-17 OTURUMU (9) — Dalga 4: Marketplace Olgunlaştırma (Ranking, Review Güvenliği, Komisyon & Cüzdan)
 
