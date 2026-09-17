@@ -4,7 +4,13 @@
  * BooKi - Enpara / QNB Finansbank Sanal POS Gateway (2026-09-17).
  *
  * Implements Payment_gateway_interface for Enpara VPAS & 3D Pay payment processing.
- * Docs: Enpara.com Şirketim Sanal POS Entegrasyon Rehberi
+ *
+ * DOKÜMANTASYON DURUMU (araştırıldı 2026-09-17): Enpara'nın (QNB'nin dijital bankacılık markası)
+ * halka açık HİÇBİR API dokümantasyonu bulunamadı. API kimlik bilgileri (API Key, Merchant ID,
+ * Secret Key) sadece onaylanmış başvuru sonrası e-posta ile veriliyor. Üçüncü parti entegratörler
+ * (Paynkolay, ParamPOS vb.) üzerinden dolaylı erişim mümkün olabilir ama bu FARKLI bir API/aracı
+ * kurum demektir. Bu dosya bu yüzden tamamen mock kalıyor - gerçek entegrasyon Enpara'dan gelecek
+ * özel dokümantasyon (veya bir üçüncü parti entegratöre geçiş kararı) olmadan TAMAMLANAMAZ.
  * ---------------------------------------------------------------------------- */
 
 require_once __DIR__ . '/Payment_gateway_interface.php';

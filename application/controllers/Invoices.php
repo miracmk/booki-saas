@@ -261,7 +261,8 @@ class Invoices extends EA_Controller
     }
 
     /**
-     * Synchronize an invoice to an external ERP system (Paraşüt, BizimHesap, Logo, Mikro).
+     * Synchronize an invoice to an external ERP system (Paraşüt, QuickBooks, Zoho Books, Logo,
+     * Mikro, İşbaşı - see Erp_manager::PROVIDERS).
      */
     public function sync_erp(): void
     {

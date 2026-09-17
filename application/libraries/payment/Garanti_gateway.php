@@ -5,7 +5,18 @@
  *
  * Implements Payment_gateway_interface for Garanti VPAS (Virtual POS Application System)
  * and 3D Secure checkout.
- * Docs: Garanti BBVA Sanal POS VPAS Entegrasyon Kılavuzu
+ *
+ * DOKÜMANTASYON DURUMU (araştırıldı 2026-09-17): Garanti BBVA'nın GERÇEK Sanal POS şeması halka
+ * açık değil. İki paralel sistem tespit edildi:
+ *   - Legacy GVP (Garanti Virtual POS): XML/POST tabanlı, 3D Secure zorunlu; tam şema sadece banka
+ *     başvurusu onaylandıktan sonra e-posta ile gönderiliyor (bkz. eski `Gvp.zip` paketi).
+ *   - Yeni Developer Portal (dev.garantibbva.com.tr): JWK/JWS imzalama kullanıyor gibi görünüyor
+ *     ama base URL, endpoint path'leri ve tam auth akışı halka açık DEĞİL -
+ *     eticaretdestek@garantibbva.com.tr ile iletişime geçilmesi gerekiyor.
+ * Bu dosya bu yüzden tamamen mock kalıyor - gerçek entegrasyon banka başvurusu + destek ekibinden
+ * gelecek özel dokümantasyon olmadan TAMAMLANAMAZ. Sahte bir şema uydurmak (yanlış endpoint/imza
+ * varsayarak) gerçek parayla denendiğinde daha kötü bir sonuç (sessiz başarısızlık veya yanlış
+ * tahsilat raporu) doğurur; bu yüzden bilinçli olarak yapılmadı.
  * ---------------------------------------------------------------------------- */
 
 require_once __DIR__ . '/Payment_gateway_interface.php';

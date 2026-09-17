@@ -1,13 +1,22 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /* ----------------------------------------------------------------------------
- * BooKi - iyzico payment gateway (2026-08-27).
+ * BooKi - iyzico payment gateway (2026-08-27, imza şeması düzeltmesi 2026-09-17).
  *
  * Implementation of Payment_gateway_interface for iyzico.
- * API docs: https://docs.iyzipay.com/
+ * API docs: https://docs.iyzico.com/en/getting-started/preliminaries/authentication/hmacsha256-auth
+ *           https://docs.iyzico.com/en/payment-methods/checkoutform/cf-implementation/cf-initialize
+ *           https://docs.iyzico.com/en/getting-started/preliminaries/api-reference-beta/refund-and-cancel
  *
- * TODO: Verify HMAC-SHA256 signature generation against official iyzico documentation.
- * TODO: Test with real iyzico sandbox/production API keys.
+ * 2026-09-17 düzeltmesi: önceki imza (`base64(hmac_sha256(json_body, secret))`, tek header
+ * `X-IYZ-SIGNATURE`) gerçek iyzico "HMACSHA256 Auth" (IYZWSv2) şemasıyla eşleşmiyordu - her
+ * istek 401 ile reddedilirdi. Gerçek şema randomKey + uri_path + body'yi imzalar ve ayrı bir
+ * `x-iyzi-rnd` header'ı gerektirir (bkz. build_iyzws_v2_auth_headers()). Endpoint path'leri de
+ * gerçek dokümantasyona göre düzeltildi (`/v2/...` uydurmaydı).
+ *
+ * TODO: Webhook "Response Signature Validation" iyzico'da ayrı, farklı bir akış
+ * (https://docs.iyzico.com/en/advanced/response-signature-validation) - henüz doğrulanamadı,
+ * verify_webhook_signature() hâlâ eski (muhtemelen yanlış) formülü kullanıyor.
  * ---------------------------------------------------------------------------- */
 
 require_once __DIR__ . '/Payment_gateway_interface.php';
@@ -30,9 +39,34 @@ class Iyzico_gateway extends Payment_gateway_abstract
     }
 
     /**
+     * Build the iyzico "HMACSHA256 Auth" (IYZWSv2) headers for a request.
+     *
+     * https://docs.iyzico.com/en/getting-started/preliminaries/authentication/hmacsha256-auth
+     *
+     * randomKey + uri_path + request_body are concatenated and HMAC-SHA256'd (hex) with the
+     * secret key; the resulting authorizationString is base64-encoded and sent as the
+     * `Authorization: IYZWSv2 <...>` header, with the randomKey ALSO sent separately as
+     * `x-iyzi-rnd` (iyzico recomputes the signature server-side using that header's value).
+     *
+     * @param string $uri_path Request path only (e.g. '/payment/iyzipos/checkoutform/initialize/auth/ecom'),
+     *                         NOT the full URL.
+     */
+    private function build_iyzws_v2_auth_headers(string $uri_path, string $json_body, string $api_key, string $secret_key): array
+    {
+        $random_key = (string) round(microtime(true) * 1000) . bin2hex(random_bytes(8));
+        $encrypted_data = hash_hmac('sha256', $random_key . $uri_path . $json_body, $secret_key);
+        $authorization_string = "apiKey:{$api_key}&randomKey:{$random_key}&signature:{$encrypted_data}";
+
+        return [
+            'Authorization: IYZWSv2 ' . base64_encode($authorization_string),
+            'x-iyzi-rnd: ' . $random_key,
+        ];
+    }
+
+    /**
      * Make a request to the iyzico API.
      *
-     * @param string $endpoint API endpoint (e.g., '/v2/checkoutFormInitialize').
+     * @param string $endpoint API endpoint path (e.g., '/payment/iyzipos/checkoutform/initialize/auth/ecom').
      * @param array $payload Request payload.
      *
      * @return array Parsed JSON response.
@@ -51,16 +85,10 @@ class Iyzico_gateway extends Payment_gateway_abstract
         $url = $this->get_api_url() . $endpoint;
         $json_body = json_encode($payload);
 
-        // TODO: Verify HMAC-SHA256 signature format with iyzico docs
-        $signature = base64_encode(
-            hash_hmac('sha256', $json_body, $secret_key, true)
+        $headers = array_merge(
+            ['Content-Type: application/json'],
+            $this->build_iyzws_v2_auth_headers($endpoint, $json_body, $api_key, $secret_key),
         );
-
-        $headers = [
-            'Content-Type: application/json',
-            'Authorization: IyzipayV2 ' . $api_key,
-            'X-IYZ-SIGNATURE: ' . $signature,
-        ];
 
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -163,7 +191,7 @@ class Iyzico_gateway extends Payment_gateway_abstract
                 ],
             ];
 
-            $response = $this->api_request('/v2/checkoutFormInitialize', $payload);
+            $response = $this->api_request('/payment/iyzipos/checkoutform/initialize/auth/ecom', $payload);
 
             if (!isset($response['checkoutFormContent'])) {
                 throw new RuntimeException('No checkout form content in iyzico response.');
@@ -219,11 +247,10 @@ class Iyzico_gateway extends Payment_gateway_abstract
             ];
 
             if ($amount !== null) {
-                $payload['ip'] = $this->CI->input->ip_address();
-                // TODO: Verify iyzico partial refund payload structure
+                $payload['price'] = number_format($amount, 2, '.', '');
             }
 
-            $response = $this->api_request('/v2/payment/refund', $payload);
+            $response = $this->api_request('/payment/refund', $payload);
 
             return [
                 'status' => 'succeeded',

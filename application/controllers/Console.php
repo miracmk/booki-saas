@@ -1358,11 +1358,11 @@ class Console extends EA_Controller
         foreach ($allowed as $key) {
             $display = master_setting($key);
 
-            if (in_array($key, ['zoho_client_id', 'zoho_client_secret', 'zoho_refresh_token'], true) && $display !== '') {
+            if (in_array($key, ['zoho_client_id', 'zoho_client_secret', 'zoho_refresh_token'], true) && !empty($display)) {
                 $display = str_repeat('*', 8) . mb_substr($display, -4);
             }
 
-            echo '  ' . $key . ' = ' . ($display === '' ? '(empty)' : $display) . PHP_EOL;
+            echo '  ' . $key . ' = ' . (empty($display) ? '(empty)' : $display) . PHP_EOL;
         }
     }
 
@@ -1403,11 +1403,78 @@ class Console extends EA_Controller
         foreach ($allowed as $key) {
             $display = master_setting($key);
 
-            if ($key === 'google_client_secret' && $display !== '') {
+            if ($key === 'google_client_secret' && !empty($display)) {
                 $display = str_repeat('*', 8) . mb_substr($display, -4);
             }
 
-            echo '  ' . $key . ' = ' . ($display === '' ? '(empty)' : $display) . PHP_EOL;
+            echo '  ' . $key . ' = ' . (empty($display) ? '(empty)' : $display) . PHP_EOL;
+        }
+    }
+
+    /**
+     * BooKi (2026-09-17) - master-level ERP connector config (QuickBooks Online + Zoho Books -
+     * the only two of the 6 requested ERP systems with a real, centralized REST API; see
+     * Erp_manager.php docblock for why Logo/Mikro/İşbaşı/Paraşüt are handled differently).
+     * Mirrors crm_config/google_config's mask-on-display pattern.
+     *
+     * Usage:
+     *
+     * php index.php console erp_config                                             (show current, masked)
+     * php index.php console erp_config quickbooks_client_id "..."
+     * php index.php console erp_config quickbooks_client_secret "..."
+     * php index.php console erp_config quickbooks_refresh_token "..."
+     * php index.php console erp_config quickbooks_realm_id "..."
+     * php index.php console erp_config quickbooks_is_sandbox "1"
+     * php index.php console erp_config zohobooks_client_id "..."
+     * php index.php console erp_config zohobooks_client_secret "..."
+     * php index.php console erp_config zohobooks_refresh_token "..."
+     * php index.php console erp_config zohobooks_organization_id "..."
+     * php index.php console erp_config zohobooks_region "eu"
+     */
+    public function erp_config(?string $name = null, ?string $value = null): void
+    {
+        $allowed = [
+            'quickbooks_client_id',
+            'quickbooks_client_secret',
+            'quickbooks_refresh_token',
+            'quickbooks_realm_id',
+            'quickbooks_is_sandbox',
+            'quickbooks_default_item_id',
+            'zohobooks_client_id',
+            'zohobooks_client_secret',
+            'zohobooks_refresh_token',
+            'zohobooks_organization_id',
+            'zohobooks_region',
+        ];
+
+        $secret_keys = ['quickbooks_client_secret', 'quickbooks_refresh_token', 'zohobooks_client_secret', 'zohobooks_refresh_token'];
+
+        if ($name !== null && $value !== null) {
+            $name = trim($name);
+
+            if (!in_array($name, $allowed, true)) {
+                show_error('Unknown ERP setting "' . $name . '". Allowed: ' . implode(', ', $allowed) . '.');
+
+                return;
+            }
+
+            master_setting($name, trim($value));
+
+            echo 'erp_config: ' . $name . ' set.' . PHP_EOL;
+
+            return;
+        }
+
+        echo 'Current ERP connector configuration (QuickBooks / Zoho Books)' . PHP_EOL;
+
+        foreach ($allowed as $key) {
+            $display = master_setting($key);
+
+            if (in_array($key, $secret_keys, true) && !empty($display)) {
+                $display = str_repeat('*', 8) . mb_substr($display, -4);
+            }
+
+            echo '  ' . $key . ' = ' . (empty($display) ? '(empty)' : $display) . PHP_EOL;
         }
     }
 

@@ -4,6 +4,36 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-17
 
+## 2026-09-17 OTURUMU (7) — POS gateway + ERP API dokümantasyon araştırması, gerçek entegrasyon düzeltmeleri + Google OAuth client
+
+**Bağlam:** Kullanıcı platform-level Google OAuth Client ID/Secret verdi (Console::google_config ile master_settings'e yazıldı, maskeli saklanıyor - Calendar sync + Marketing GA4/Ads OAuth'un ortak client'ı). Ayrıca 5 POS gateway (Iyzico, Stripe, ÖdeAl, Garanti, Enpara) ve 6 ERP sistemi (Paraşüt, İşbaşı, Logo, Mikro, QuickBooks, Zoho Books) için gerçek API dokümantasyonu araştırılması istendi - önceki oturumların bu entegrasyonları TAMAMEN MOCK yazdığı (hiç gerçek HTTP isteği yok) daha önce keşfedilmişti.
+
+**POS araştırma sonucu ve düzeltmeler:**
+- **Iyzico** (`Iyzico_gateway.php`): imza şeması YANLIŞTI (gerçek API 401 ile reddederdi) - gerçek "HMACSHA256 Auth" (IYZWSv2) şeması uygulandı: `randomKey + uri_path + body` HMAC-SHA256 (hex) → `apiKey:...&randomKey:...&signature:...` → base64 → `Authorization: IYZWSv2 ...` + ayrı `x-iyzi-rnd` header'ı. Endpoint path'leri de düzeltildi (`/v2/checkoutFormInitialize` uydurmaydı → gerçek `/payment/iyzipos/checkoutform/initialize/auth/ecom`; refund `/v2/payment/refund` → `/payment/refund`).
+- **Stripe** (`Stripe_gateway.php`): tamamen mock'tan gerçek `PaymentIntents`/`Refunds` API çağrılarına geçirildi (Bearer auth, form-encoded body). `verify_webhook_signature()` ÖNEMLİ güvenlik bug'ı: header varsa hiç kontrol etmeden `return true` dönüyordu (doğrulama fiilen devre dışıydı) - gerçek `t=...,v1=...` HMAC-SHA256 formülü + 5dk replay-tolerance eklendi.
+- **ÖdeAl** (`Odeal_gateway.php`): domain tamamen UYDURMAYDI (`paym.com.tr` - ÖdeAl ile ilgisi yok, DNS çözümlenmezdi) → gerçek domain'ler (`auth[-sandbox].odeal.com`, `api[-stg].odeal.com`) + gerçek OAuth2 client_credentials token akışı (`get_access_token()`) eklendi. Ödeme başlatma/iade endpoint'lerinin TAM şeması dokümantasyonun kimlik-doğrulama gerektiren alt sayfalarında - hâlâ placeholder, TODO ile işaretli.
+- **Garanti** ve **Enpara**: gerçek şema HALKA AÇIK DEĞİL (Garanti: banka başvurusu + `eticaretdestek@garantibbva.com.tr`; Enpara: hiç public doküman yok, onaylı başvuru sonrası email ile veriliyor). Bilinçli olarak mock bırakıldı, docblock'a neden yazıldı - sahte şema uydurmak gerçek parayla denendiğinde daha kötü (sessiz/yanlış sonuç).
+
+**ERP araştırma sonucu ve düzeltmeler:**
+- **Yapısal bulgu:** 6 sistem 2 kategoriye ayrılıyor - merkezi SaaS REST API'si olanlar (Paraşüt, QuickBooks, Zoho Books - gerçek entegrasyon mümkün) vs. müşteriye-özel-kurulum sistemleri (Logo, Mikro - merkezi API yok, her kurulum farklı; İşbaşı - doküman girişli hesap gerektiriyor, önce kullanıcının kendi API key'ini alması lazım).
+- **`Erp_manager::PROVIDERS` düzeltildi:** eski liste (`parasut, bizimhesap, logo, mikro`) kullanıcının GERÇEK isteğiyle uyuşmuyordu (BizimHesap hiç istenmemiş, İşbaşı/QuickBooks/Zoho Books hiç yoktu) → yeni liste `parasut, quickbooks, zohobooks, logo, mikro, isbasi`.
+- **`Quickbooks_connector.php`, `Zohobooks_connector.php` (yeni dosyalar):** gerçek OAuth2 refresh_token akışı (Zoho Books, `Crm_sync.php`'deki kanıtlanmış Zoho OAuth deseni birebir tekrar kullanıldı) + gerçek `POST /invoice`/`POST /invoices` çağrıları (müşteri/contact "bul-yoksa-oluştur" dahil). `Console::erp_config()` ile master_settings'e kimlik bilgisi yazılabiliyor (henüz BOŞ - kullanıcının gerçek client_id/secret/refresh_token/realm_id|organization_id vermesi gerekiyor).
+- **Paraşüt** (`sync_to_parasut`): payload şekli (JSON:API `sales_invoices`) doğru ama TAM endpoint path'i `apidocs.parasut.com`'un bot koruması yüzünden TEYİT EDİLEMEDİ - gerçek kimlik bilgisiyle test edilmeden production'a güvenilmemeli, docblock'a not düşüldü.
+- **Logo/Mikro/İşbaşı:** bilinçli olarak mock kaldı (merkezi API yok / doküman kilitli), docblock'larda neden açıklandı.
+- **Yan etki - `google_config`/`erp_config`/`crm_config` maskeleme bug'ı:** `master_setting()` ayarlanmamış bir anahtar için `''` değil `null` döner; üç komutun da maskeleme kontrolü `$display !== ''` idi ki `null !== ''` PHP'de TRUE'dur → boş alanlar "(empty)" yerine yanlışlıkla `********` gösteriyordu (crm_config'te de ÖNCEDEN vardı, bu turda üçü de düzeltildi: `!empty($display)`).
+
+**Doğrulama:** 5 dosyada `php -l` temiz, `eight_pages_crud.spec.js` 8/8 (%100) - rebuild+session-refresh sırası her seferinde uygulandı (bkz. Oturum 6 dersi). Gerçek gateway/ERP çağrıları (Stripe/QuickBooks/Zoho Books) canlı kimlik bilgisi olmadan uçtan uca DENENEMEDİ - sadece kod/sözdizimi doğrulandı.
+
+**Sıradaki (kullanıcıdan bekleniyor):**
+1. Stripe: `stripe_secret_key`/`stripe_publishable_key`/`webhook_secret` (payment_settings, tenant-bazlı).
+2. Iyzico: `iyzico_api_key`/`iyzico_secret_key` sandbox ile ilk gerçek çağrı denenmeli (imza formülü teorik olarak doğru ama hiç gerçek API'ye karşı test edilmedi).
+3. ÖdeAl: gerçek `odeal_api_key`/`odeal_secret_key` + init/refund endpoint şeması banka/ÖdeAl destek ile netleştirilmeli.
+4. Garanti/Enpara: banka başvurusu olmadan ilerlenemez.
+5. QuickBooks: `console erp_config quickbooks_client_id/secret/refresh_token/realm_id` (developer.intuit.com'dan app oluşturup OAuth Playground ile refresh_token alınmalı).
+6. Zoho Books: `console erp_config zohobooks_client_id/secret/refresh_token/organization_id` (Zoho API Console'dan AYRI bir "self client" - CRM'den farklı).
+7. İşbaşı: kullanıcı önce kendi İşbaşı hesabından bir API key talep etmeli, sonra developers.isbasi.com içeriği görülüp gerçek entegrasyon yazılabilir.
+8. Google Marketing (GA4/Ads): client_id/secret artık var ama `Google_marketing_client::get_access_token()` hâlâ ham bir access_token'ın manuel yapıştırılmasını bekliyor (refresh yok) - gerçek entegrasyon için ayrı bir OAuth consent akışı (analytics.readonly + adwords scope'larıyla, mevcut `Google_sync`'in Calendar-only akışından AYRI) yazılmalı, bu turda yapılmadı.
+
 ## 2026-09-17 OTURUMU (6) — Gemini oturumu kota limitine çarptı, Claude devam ettirdi: Marketing Google/Meta client'ları + container rebuild disiplini
 
 **Bağlam:** Kullanıcı Gemini CLI (Antigravity) ile Oturum (5)'in devamında Marketing sayfasına gerçek Google (GA4/Ads) ve Meta Marketing API client'ları ekliyordu (`application/libraries/Google_marketing_client.php`, `Meta_marketing_client.php`, `Agent_api.php`'ye MCP-tüketimli `marketing_campaigns`/`marketing_toggle_campaign`/`marketing_realtime`/`marketing_analytics`/`marketing_attributions` endpoint'leri, `deploy/mcp/reservation-mcp/server.js`'e karşılık gelen 5 MCP tool'u, `rate_limit_helper.php`'ye dahili/docker-ağı IP'leri için rate-limit istisnası). Gemini bunları yazdıktan sonra Playwright'ı **container'ı yeniden derlemeden** tekrar çalıştırdı ("verify against the updated container" dedi ama gerçek bir `docker compose build` komutu yoktu) → 2 test (`Marketing`, `Reviews`) başarısız oldu, tekil izole rerun'u başlatırken (`task-1623`, sadece test 7) Google API kotası 429 (Individual quota reached) ile tükendi ve oturum orada tamamen kesildi (CLI kapandı).
