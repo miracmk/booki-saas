@@ -31,7 +31,7 @@
 
             <div class="mt-2">
                 <small>
-                    Salon Flora
+                    <?= e(setting('company_name', 'BooKi') ?: 'BooKi') ?>
 
                     <?php if (vars('legal_notice_url')): ?>
                         <span class="mx-1">|</span>

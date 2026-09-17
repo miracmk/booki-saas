@@ -32,7 +32,7 @@
 
         <div class="card-footer text-center py-3">
             <small>
-                Salon Flora
+                <?= e(setting('company_name', 'BooKi') ?: 'BooKi') ?>
             </small>
         </div>
     </div>

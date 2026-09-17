@@ -7,7 +7,7 @@
 ?>
 <div id="footer" class="d-lg-flex justify-content-lg-start align-items-lg-center p-2 text-center text-lg-left mt-auto bg-body border-top" style="font-size: 11px;">
     <div class="mb-3 me-lg-5 mb-lg-0">
-        &copy; <?= date('Y') ?> Salon Flora
+        &copy; <?= date('Y') ?> <?= e(setting('company_name', 'BooKi') ?: 'BooKi') ?>
     </div>
 
     <div class="mb-3 me-lg-5 mb-lg-0">

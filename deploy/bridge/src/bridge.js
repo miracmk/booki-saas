@@ -6,7 +6,7 @@ import makeWASocket, {
 
 import pino from 'pino';
 import { mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
 
@@ -54,6 +54,10 @@ function sessionDir(tenant) {
     return join(SESSIONS_DIR, tenant);
 }
 
+function sessionConfigPath(tenant) {
+    return join(sessionDir(tenant), 'bridge-config.json');
+}
+
 function getEntry(tenant) {
     if (!sessions.has(tenant)) {
         sessions.set(tenant, {
@@ -73,6 +77,35 @@ function getEntry(tenant) {
     }
 
     return sessions.get(tenant);
+}
+
+async function persistSessionConfig(entry) {
+    if (!entry.webhookUrl || !entry.webhookSecret) {
+        return;
+    }
+
+    await writeFile(sessionConfigPath(entry.tenant), JSON.stringify({
+        webhookUrl: entry.webhookUrl,
+        webhookSecret: entry.webhookSecret,
+    }), { mode: 0o600 });
+}
+
+async function restoreSessionConfig(entry) {
+    try {
+        const config = JSON.parse(await readFile(sessionConfigPath(entry.tenant), 'utf8'));
+
+        if (typeof config.webhookUrl === 'string' && config.webhookUrl !== '') {
+            entry.webhookUrl = config.webhookUrl;
+        }
+
+        if (typeof config.webhookSecret === 'string' && config.webhookSecret !== '') {
+            entry.webhookSecret = config.webhookSecret;
+        }
+    } catch (err) {
+        if (err.code !== 'ENOENT') {
+            log.warn({ tenant: entry.tenant, err: err.message }, 'session config restore failed');
+        }
+    }
 }
 
 /**
@@ -347,6 +380,8 @@ export async function startSession(tenant, webhookUrl, webhookSecret) {
         entry.webhookSecret = webhookSecret;
     }
 
+    await persistSessionConfig(entry);
+
     if (entry.status === 'connected') {
         return { status: 'connected', name: entry.name };
     }
@@ -490,6 +525,7 @@ export async function resumeExistingSessions() {
             }
 
             const entry = getEntry(tenant);
+            await restoreSessionConfig(entry);
             await ensureSocket(entry);
             log.info({ tenant }, 'resumed existing session');
         } catch (err) {

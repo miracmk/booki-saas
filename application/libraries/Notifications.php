@@ -38,6 +38,7 @@ class Notifications
         $this->CI->load->model('settings_model');
         // BooKi (Dalga 1) - SMS/WhatsApp channel settings, see send_sms()/send_whatsapp().
         $this->CI->load->model('messaging_settings_model');
+        $this->CI->load->model('user_notification_preferences_model');
 
         $this->CI->load->library('email_messages');
         $this->CI->load->library('ics_file');
@@ -212,13 +213,22 @@ class Notifications
             return;
         }
 
+        if (!class_exists('Whatsapp_messages_model', false)) {
+            $this->CI->load->model('whatsapp_messages_model');
+        }
+
         try {
             // BooKi (Dalga 3 / Faz 3.5) - dual-mode sender routing. The
             // whatsapp_mode setting decides which transport carries notifications:
             //   official   -> Meta WhatsApp Business Cloud API (Whatsapp_client)
             //   unofficial -> the ki-wa-bridge Node sidecar (Whatsapp_bridge).
-            // Both are best-effort: a failure logs and is silently dropped, never
-            // re-thrown into the appointment flow.
+            // Both are best-effort: a failure never re-throws into the appointment
+            // flow, but (fix, this tour) the outcome is ALWAYS logged and persisted
+            // to whatsapp_messages - previously a failed send() (e.g. the bridge
+            // reporting no_connected_session, invalid_number, or being unreachable)
+            // was silently swallowed with zero trace, so "connected" tenants had no
+            // way to tell that their automatic appointment notifications were never
+            // actually delivered (0 rows in whatsapp_messages despite live traffic).
             if (($settings['whatsapp_mode'] ?? 'official') === 'unofficial') {
                 if (!class_exists('Whatsapp_bridge', false)) {
                     $this->CI->load->library('whatsapp_bridge');
@@ -226,24 +236,38 @@ class Notifications
 
                 $bridge = new Whatsapp_bridge($settings['whatsapp_bridge_url'], $settings['whatsapp_bridge_secret']);
                 if (!$bridge->is_configured()) {
+                    log_message('error', 'Notifications::do_send_whatsapp - unofficial bridge not configured, notification dropped (user ' . ($user['id'] ?? '-') . ')');
+
                     return;
                 }
 
-                $bridge->send($this->tenant_identifier(), $user['phone_number'], $text);
+                $result = $bridge->send($this->tenant_identifier(), $user['phone_number'], $text);
+            } else {
+                $whatsapp_client = new Whatsapp_client(
+                    $settings['whatsapp_phone_number_id'],
+                    $settings['whatsapp_access_token'],
+                );
 
-                return;
+                if (!$whatsapp_client->is_configured()) {
+                    log_message('error', 'Notifications::do_send_whatsapp - official client not configured, notification dropped (user ' . ($user['id'] ?? '-') . ')');
+
+                    return;
+                }
+
+                $result = $whatsapp_client->send_text($user['phone_number'], $text);
             }
 
-            $whatsapp_client = new Whatsapp_client(
-                $settings['whatsapp_phone_number_id'],
-                $settings['whatsapp_access_token'],
-            );
-
-            if (!$whatsapp_client->is_configured()) {
-                return;
+            if (empty($result['success'])) {
+                log_message('error', 'Notifications::do_send_whatsapp - send failed for user ' . ($user['id'] ?? '-') . ': ' . ($result['error'] ?? 'unknown_error'));
             }
 
-            $whatsapp_client->send_text($user['phone_number'], $text);
+            $this->CI->whatsapp_messages_model->save([
+                'id_users' => $user['id'] ?? null,
+                'wa_id' => $user['phone_number'],
+                'direction' => 'out',
+                'message' => $text,
+                'status' => !empty($result['success']) ? 'sent' : 'failed',
+            ]);
         } catch (Throwable $e) {
             $this->log_exception($e, 'whatsapp notification', $user['id'] ?? null);
         }
@@ -258,17 +282,48 @@ class Notifications
      * Each underlying send_*() call is already self-gating (its own enabled flag + configured-ness
      * check) and best-effort, so this never needs its own try/catch.
      */
-    private function dispatch_default_channel(array $user, string $text): void
+    private function dispatch_customer_channels(array $user, string $text): void
     {
         $settings = $this->CI->messaging_settings_model->get_settings();
-        $channel = $settings['default_notification_channel'] ?? 'telegram';
+        $channels = $this->CI->user_notification_preferences_model->channels_for($user, $settings);
 
-        match ($channel) {
-            'sms' => $this->send_sms($user, $text),
-            'whatsapp' => $this->send_whatsapp($user, $text),
-            'telegram' => $this->send_telegram($user, $text),
-            default => null,
-        };
+        foreach ($channels as $channel) {
+            if ($channel === 'email') {
+                continue;
+            }
+
+            if ($channel === 'sms') {
+                $this->send_sms($user, $text);
+            } elseif ($channel === 'whatsapp') {
+                $this->send_whatsapp($user, $text);
+            } elseif ($channel === 'telegram') {
+                $this->send_telegram($user, $text);
+            }
+        }
+    }
+
+    private function customer_channels(array $user, array $settings): array
+    {
+        $channels = $this->CI->user_notification_preferences_model->channels_for($user, $settings);
+        $active = [];
+
+        foreach ($channels as $channel) {
+            $enabled = match ($channel) {
+                'email' => (bool) ($settings['email_notifications_enabled'] ?? true),
+                'sms' => (bool) ($settings['sms_notifications_enabled'] ?? false),
+                'whatsapp' => (bool) ($settings['whatsapp_notifications_enabled'] ?? false),
+                'telegram' => (bool) ($settings['telegram_notifications_enabled'] ?? false),
+                'call' => (bool) ($settings['call_notifications_enabled'] ?? false),
+                'instagram' => (bool) ($settings['instagram_notifications_enabled'] ?? false),
+                default => false,
+            };
+
+            if ($enabled) {
+                $active[] = $channel;
+            }
+        }
+
+        return $active;
     }
 
     /**
@@ -420,62 +475,65 @@ class Notifications
             $provider_customer = $this->restrict_customer_details($customer);
 
             // Notify customer.
+            $customer_channels = $this->customer_channels($customer, $settings);
             $send_customer =
                 $notify_customer &&
-                !empty($customer['email']) &&
-                filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN);
+                filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN) &&
+                $customer_channels !== [];
 
             if ($send_customer === true) {
-                $email_queued = false;
+                $send_customer_email = in_array('email', $customer_channels, true) && !empty($customer['email']);
+                $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
 
-                // Attempt to queue email; if successful, skip synchronous send.
-                if ($this->CI->queue->enabled()) {
-                    if ($this->CI->queue->push(
-                        'email',
-                        'notifications.appointment_saved_email',
-                        [
-                            'appointment_id' => $appointment['id'] ?? null,
-                            'recipient_type' => 'customer',
-                            'recipient_id' => null,
-                            'manage_mode' => $manage_mode,
-                        ],
-                    ) !== null) {
-                        $email_queued = true;
+                if ($send_customer_email) {
+                    $email_queued = false;
+
+                    // Attempt to queue email; if successful, skip synchronous send.
+                    if ($this->CI->queue->enabled()) {
+                        if ($this->CI->queue->push(
+                            'email',
+                            'notifications.appointment_saved_email',
+                            [
+                                'appointment_id' => $appointment['id'] ?? null,
+                                'recipient_type' => 'customer',
+                                'recipient_id' => null,
+                                'manage_mode' => $manage_mode,
+                            ],
+                        ) !== null) {
+                            $email_queued = true;
+                        }
+                    }
+
+                    if (!$email_queued) {
+                        config(['language' => $customer['language']]);
+                        $this->CI->lang->load('translations');
+                        $message = $manage_mode ? '' : lang('thank_you_for_appointment');
+
+                        try {
+                            $this->CI->email_messages->send_appointment_saved(
+                                $appointment,
+                                $provider,
+                                $service,
+                                $customer,
+                                $settings,
+                                $subject,
+                                $message,
+                                $customer_link,
+                                $customer['email'],
+                                $ics_stream,
+                                $customer['timezone'],
+                                'customer',
+                            );
+                        } catch (Throwable $e) {
+                            $this->log_exception($e, 'appointment-saved to customer', $appointment['id'] ?? null);
+                        }
+                    } else {
+                        config(['language' => $customer['language']]);
+                        $this->CI->lang->load('translations');
                     }
                 }
 
-                if (!$email_queued) {
-                    config(['language' => $customer['language']]);
-                    $this->CI->lang->load('translations');
-                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
-                    $message = $manage_mode ? '' : lang('thank_you_for_appointment');
-
-                    try {
-                        $this->CI->email_messages->send_appointment_saved(
-                            $appointment,
-                            $provider,
-                            $service,
-                            $customer,
-                            $settings,
-                            $subject,
-                            $message,
-                            $customer_link,
-                            $customer['email'],
-                            $ics_stream,
-                            $customer['timezone'],
-                            'customer',
-                        );
-                    } catch (Throwable $e) {
-                        $this->log_exception($e, 'appointment-saved to customer', $appointment['id'] ?? null);
-                    }
-                } else {
-                    // Email was queued, but we still need to define subject for telegram
-                    config(['language' => $customer['language']]);
-                    $this->CI->lang->load('translations');
-                    $subject = $manage_mode ? lang('appointment_details_changed') : lang('appointment_booked');
-                }
-
-                $this->dispatch_default_channel(
+                $this->dispatch_customer_channels(
                     $customer,
                     $subject . "\n" . $service['name'] . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'] . "\n" . $appointment['start_datetime'],
                 );
@@ -734,30 +792,34 @@ class Notifications
             }
 
             // Notify customer.
+            $customer_channels = $this->customer_channels($customer, $settings);
             $send_customer =
-                !empty($customer['email']) && filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN);
+                filter_var(setting('customer_notifications'), FILTER_VALIDATE_BOOLEAN) &&
+                $customer_channels !== [];
 
             if ($send_customer === true) {
-                config(['language' => $customer['language']]);
-                $this->CI->lang->load('translations');
+                if (in_array('email', $customer_channels, true) && !empty($customer['email'])) {
+                    config(['language' => $customer['language']]);
+                    $this->CI->lang->load('translations');
 
-                try {
-                    $this->CI->email_messages->send_appointment_deleted(
-                        $appointment,
-                        $provider,
-                        $service,
-                        $customer,
-                        $settings,
-                        $customer['email'],
-                        $cancellation_reason,
-                        $customer['timezone'],
-                        'customer',
-                    );
-                } catch (Throwable $e) {
-                    $this->log_exception($e, 'appointment-deleted to customer', $appointment['id'] ?? null);
+                    try {
+                        $this->CI->email_messages->send_appointment_deleted(
+                            $appointment,
+                            $provider,
+                            $service,
+                            $customer,
+                            $settings,
+                            $customer['email'],
+                            $cancellation_reason,
+                            $customer['timezone'],
+                            'customer',
+                        );
+                    } catch (Throwable $e) {
+                        $this->log_exception($e, 'appointment-deleted to customer', $appointment['id'] ?? null);
+                    }
                 }
 
-                $this->dispatch_default_channel(
+                $this->dispatch_customer_channels(
                     $customer,
                     lang('appointment_cancelled_title') . "\n" . $service['name'] . ' - ' . $provider['first_name'] . ' ' . $provider['last_name'] . "\n" . $appointment['start_datetime'],
                 );
