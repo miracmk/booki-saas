@@ -15,6 +15,8 @@ class Adisyons extends EA_Controller
         $this->load->model('products_model');
         $this->load->model('packages_model');
         $this->load->model('customer_memberships_model');
+        $this->load->model('roles_model');
+        $this->load->library('accounts');
     }
 
     /**
@@ -28,6 +30,8 @@ class Adisyons extends EA_Controller
             redirect('login');
             return;
         }
+
+        $role_slug = session('role_slug');
 
         $status = $this->input->get('status') ?: 'all';
         $payment_status = $this->input->get('payment_status') ?: 'all';
@@ -55,20 +59,51 @@ class Adisyons extends EA_Controller
             ->get()
             ->result_array();
 
-        // Calculate summary metrics
-        $open_count = $this->db->where('status', 'open')->count_all_results('adisyons');
-        $unpaid_total = (float) ($this->db->select_sum('total_amount')->where('payment_status', 'unpaid')->get('adisyons')->row()->total_amount ?? 0);
-        $today_revenue = (float) ($this->db->select_sum('amount')->where('DATE(created_at)', date('Y-m-d'))->get('adisyon_payments')->row()->amount ?? 0);
+        $open_count = (int) $this->db->where('status', 'open')->count_all_results('adisyons');
+        $unpaid_row = $this->db->select('SUM(total_amount - paid_amount) as unpaid', false)
+            ->where('payment_status !=', 'paid')
+            ->where('status !=', 'cancelled')
+            ->get('adisyons')
+            ->row();
+        $unpaid_total = (float) ($unpaid_row && $unpaid_row->unpaid !== null ? $unpaid_row->unpaid : 0.0);
 
-        $this->load->library('accounts');
-        $this->load->model('roles_model');
-        $role_slug = session('role_slug');
+        $today_row = $this->db->select_sum('amount', 'today_rev')
+            ->where('created_at >=', date('Y-m-d 00:00:00'))
+            ->get('adisyon_payments')
+            ->row();
+        $today_revenue = (float) ($today_row && $today_row->today_rev !== null ? $today_row->today_rev : 0.0);
+
+        // Fetch active recent appointments for quick adisyon opening
+        $active_appointments = $this->db
+            ->select('a.id, a.start_datetime, a.end_datetime, a.id_users_customer, a.id_users_provider, a.id_services,
+                      c.first_name as customer_first_name, c.last_name as customer_last_name, c.phone_number as customer_phone,
+                      s.name as service_name, s.price as service_price,
+                      p.first_name as provider_first_name, p.last_name as provider_last_name')
+            ->from('appointments a')
+            ->join('users c', 'c.id = a.id_users_customer', 'left')
+            ->join('users p', 'p.id = a.id_users_provider', 'left')
+            ->join('services s', 's.id = a.id_services', 'left')
+            ->where('a.start_datetime >=', date('Y-m-d 00:00:00', strtotime('-3 days')))
+            ->order_by('a.start_datetime DESC')
+            ->limit(50)
+            ->get()
+            ->result_array();
+
+        $this->load->library('accounting/erp_manager');
+        $erp_providers = Erp_manager::PROVIDERS;
+        $active_erp_provider = setting('active_erp_provider') ?: setting('e_invoice_provider') ?: 'parasut';
+        $open_id = $this->input->get('open_id') ?: $this->input->get('appointment_id') ?: null;
 
         html_vars([
-            'page_title' => 'Adisyonlar (Hesap & Sipariş Fişleri)',
+            'page_title' => 'Adisyon & Hesap Yönetimi',
             'active_menu' => 'adisyons',
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
+        ]);
+
+        script_vars([
+            'user_id' => $user_id,
+            'role_slug' => $role_slug,
         ]);
 
         $view_data = [
@@ -83,6 +118,10 @@ class Adisyons extends EA_Controller
             'available_products' => $this->products_model->get(['is_active' => 1]),
             'customers' => $this->customers_model->get(),
             'staff_members' => $this->db->get_where('users', ['id_roles' => 2])->result_array(),
+            'active_appointments' => $active_appointments,
+            'erp_providers' => $erp_providers,
+            'active_erp_provider' => $active_erp_provider,
+            'open_id' => $open_id,
         ];
 
         $this->load->view('pages/adisyons', $view_data);
@@ -285,16 +324,86 @@ class Adisyons extends EA_Controller
     }
 
     /**
-     * Convert adisyon to Invoice.
+     * Create or open adisyon for an appointment and redirect to adisyons page.
+     */
+    public function create_for_appointment(int $appointment_id): void
+    {
+        $user_id = session('user_id');
+        if (!$user_id) {
+            redirect('login');
+            return;
+        }
+
+        try {
+            $adisyon = $this->adisyons_model->get_or_create_for_appointment($appointment_id);
+            redirect('adisyons?open_id=' . $adisyon['id']);
+        } catch (Throwable $e) {
+            $this->session->set_flashdata('error_message', $e->getMessage());
+            redirect('adisyons');
+        }
+    }
+
+    /**
+     * Convert adisyon to Invoice with optional ERP sync.
      */
     public function create_invoice(int $adisyon_id): void
     {
         $this->ensure_authenticated();
+        $send_to_erp = (bool) ($this->input->post('send_to_erp') ?: $this->input->get('send_to_erp'));
+        $erp_provider = $this->input->post('erp_provider') ?: $this->input->get('erp_provider') ?: null;
+
         try {
-            $invoice_id = $this->adisyons_model->convert_to_invoice($adisyon_id);
+            $result = $this->adisyons_model->convert_to_invoice($adisyon_id, $send_to_erp, $erp_provider);
             $this->output
                 ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => 'success', 'invoice_id' => $invoice_id]));
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'invoice_id' => $result['invoice_id'],
+                    'adisyon_id' => $result['adisyon_id'],
+                    'erp_synced' => $result['erp_synced'],
+                    'erp_message' => $result['erp_message'],
+                    'message' => 'Fatura başarıyla oluşturuldu.' . ($result['erp_synced'] ? ' (' . $result['erp_message'] . ')' : ''),
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Bulk convert adisyons to Invoices with optional ERP sync.
+     */
+    public function bulk_create_invoices(): void
+    {
+        $this->ensure_authenticated();
+        $raw_ids = $this->input->post('adisyon_ids');
+        $adisyon_ids = is_array($raw_ids) ? $raw_ids : (!empty($raw_ids) ? explode(',', (string) $raw_ids) : []);
+        $send_to_erp = (bool) $this->input->post('send_to_erp');
+        $erp_provider = $this->input->post('erp_provider') ?: null;
+
+        if (empty($adisyon_ids)) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Lütfen en az bir adisyon seçin.']));
+            return;
+        }
+
+        try {
+            $result = $this->adisyons_model->bulk_convert_to_invoices($adisyon_ids, $send_to_erp, $erp_provider);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'total_processed' => $result['total_processed'],
+                    'created_count' => $result['created_count'],
+                    'erp_synced_count' => $result['erp_synced_count'],
+                    'results' => $result['results'],
+                    'errors' => $result['errors'],
+                    'message' => $result['created_count'] . ' adet adisyon başarıyla faturalandırıldı.' . ($result['erp_synced_count'] > 0 ? ' (' . $result['erp_synced_count'] . ' adedi ERP ile eşitlendi)' : ''),
+                ]));
         } catch (Throwable $e) {
             $this->output
                 ->set_status_header(400)

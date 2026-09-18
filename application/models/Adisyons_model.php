@@ -421,13 +421,22 @@ class Adisyons_model extends EA_Model
     }
 
     /**
-     * Convert adisyon to Invoice.
+     * Convert adisyon to Invoice with optional ERP synchronization.
      */
-    public function convert_to_invoice(int $adisyon_id): int
+    public function convert_to_invoice(int $adisyon_id, bool $send_to_erp = false, ?string $erp_provider = null): array
     {
         $adisyon = $this->find($adisyon_id);
-        if (empty($adisyon['id_users_customer'])) {
-            throw new InvalidArgumentException('Fatura oluşturmak için adisyonda kayıtlı bir müşteri olmalıdır.');
+        
+        $customer_id = !empty($adisyon['id_users_customer']) ? (int) $adisyon['id_users_customer'] : null;
+        if (!$customer_id) {
+            // Find or fallback to first active customer or create guest customer
+            $first_cust = $this->db->get_where('users', ['id_roles' => 3])->row_array();
+            if ($first_cust) {
+                $customer_id = (int) $first_cust['id'];
+                $this->db->update('adisyons', ['id_users_customer' => $customer_id], ['id' => $adisyon_id]);
+            } else {
+                throw new InvalidArgumentException('Fatura oluşturmak için adisyonda kayıtlı bir müşteri olmalıdır.');
+            }
         }
 
         $this->load->model('invoices_model');
@@ -443,8 +452,18 @@ class Adisyons_model extends EA_Model
             ];
         }
 
+        if (empty($items)) {
+            $items[] = [
+                'item_type' => 'service',
+                'description' => 'Adisyon Hizmet Bedeli',
+                'quantity' => 1.0,
+                'unit_price' => (float) $adisyon['total_amount'],
+                'tax_rate' => 20.0,
+            ];
+        }
+
         $invoice_id = $this->invoices_model->create_with_items([
-            'id_users_customer' => $adisyon['id_users_customer'],
+            'id_users_customer' => $customer_id,
             'notes' => 'Adisyon #' . $adisyon['adisyon_number'] . ' üzerinden oluşturuldu.',
         ], $items);
 
@@ -454,7 +473,70 @@ class Adisyons_model extends EA_Model
             'updated_at' => date('Y-m-d H:i:s'),
         ], ['id' => $adisyon_id]);
 
-        return $invoice_id;
+        $erp_result = null;
+        $erp_synced = false;
+        $erp_message = null;
+
+        if ($send_to_erp) {
+            try {
+                $this->load->library('accounting/erp_manager');
+                $erp_result = $this->erp_manager->sync_invoice($invoice_id, $erp_provider);
+                $erp_synced = true;
+                $erp_message = $erp_result['message'] ?? 'ERP sistemine aktarıldı.';
+            } catch (Throwable $e) {
+                $erp_synced = false;
+                $erp_message = 'ERP aktarımı sırasında hata: ' . $e->getMessage();
+            }
+        }
+
+        return [
+            'success' => true,
+            'invoice_id' => $invoice_id,
+            'adisyon_id' => $adisyon_id,
+            'adisyon_number' => $adisyon['adisyon_number'],
+            'erp_synced' => $erp_synced,
+            'erp_message' => $erp_message,
+            'erp_result' => $erp_result,
+        ];
+    }
+
+    /**
+     * Bulk convert multiple adisyons to invoices.
+     */
+    public function bulk_convert_to_invoices(array $adisyon_ids, bool $send_to_erp = false, ?string $erp_provider = null): array
+    {
+        $results = [];
+        $created_count = 0;
+        $erp_synced_count = 0;
+        $errors = [];
+
+        foreach ($adisyon_ids as $adisyon_id) {
+            $id = (int) $adisyon_id;
+            if (!$id) continue;
+
+            try {
+                $res = $this->convert_to_invoice($id, $send_to_erp, $erp_provider);
+                $results[] = $res;
+                $created_count++;
+                if (!empty($res['erp_synced'])) {
+                    $erp_synced_count++;
+                }
+            } catch (Throwable $e) {
+                $errors[] = [
+                    'adisyon_id' => $id,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return [
+            'success' => $created_count > 0,
+            'total_processed' => count($adisyon_ids),
+            'created_count' => $created_count,
+            'erp_synced_count' => $erp_synced_count,
+            'results' => $results,
+            'errors' => $errors,
+        ];
     }
 
     /**
