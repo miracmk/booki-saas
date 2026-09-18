@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/ki-command-center.min.css?prod-20260918-001') ?>">
     <script defer src="<?= base_url('assets/vendor/@fortawesome-fontawesome-free/fontawesome.min.js?prod-20260918-001') ?>"></script>
     <script defer src="<?= base_url('assets/vendor/@fortawesome-fontawesome-free/solid.min.js?prod-20260918-001') ?>"></script>
+    <!-- Vendored Offline QR Scanner & Generator -->
+    <script src="<?= base_url('assets/vendor/qrcodejs/qrcode.min.js') ?>"></script>
+    <script src="<?= base_url('assets/vendor/html5-qrcode/html5-qrcode.min.js') ?>"></script>
     <style>
         :root {
             --kiosk-bg: #0f172a;
@@ -46,7 +49,7 @@
         }
         .kiosk-container {
             width: 100%;
-            max-width: 480px;
+            max-width: 490px;
             margin: 0 auto;
         }
         .kiosk-card {
@@ -219,46 +222,21 @@
             color: rgba(255, 255, 255, 0.4);
         }
 
-        /* Camera Scanner Viewfinder */
-        .camera-scanner-box {
-            position: relative;
-            width: 100%;
-            height: 280px;
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 2px solid rgba(139, 92, 246, 0.4);
+        /* Camera Scanner Container */
+        #kiosk-qr-reader {
+            width: 100% !important;
+            border-radius: 20px !important;
+            overflow: hidden !important;
+            border: 2px solid rgba(139, 92, 246, 0.4) !important;
+            background: #000000 !important;
+            min-height: 260px;
         }
-        .camera-video-elem {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        #kiosk-qr-reader video {
+            border-radius: 18px !important;
+            object-fit: cover !important;
         }
-        .scanner-laser {
-            position: absolute;
-            top: 20%;
-            left: 10%;
-            right: 10%;
-            height: 3px;
-            background: #8b5cf6;
-            box-shadow: 0 0 12px #8b5cf6;
-            animation: laserScan 2s infinite alternate ease-in-out;
-            pointer-events: none;
-        }
-        @keyframes laserScan {
-            0% { top: 15%; opacity: 0.4; }
-            100% { top: 80%; opacity: 1; }
-        }
-        .scanner-overlay-guide {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 180px;
-            height: 180px;
-            border: 2px dashed rgba(255, 255, 255, 0.5);
-            border-radius: 16px;
-            pointer-events: none;
+        #kiosk-qr-reader__scan_region {
+            border-radius: 18px !important;
         }
 
         /* Touchless QR Display Card */
@@ -266,15 +244,19 @@
             background: #ffffff;
             padding: 16px;
             border-radius: 20px;
-            display: inline-block;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        #kiosk-qr-canvas {
-            display: block;
             margin: 0 auto;
         }
+        .touchless-qr-card img, .touchless-qr-card canvas {
+            display: block !important;
+            margin: 0 auto !important;
+            border-radius: 12px;
+        }
 
-        /* Checkout prompt popup */
+        /* Prompt Box */
         .kiosk-inline-checkout-prompt {
             background: rgba(239, 68, 68, 0.12);
             border: 1px solid rgba(239, 68, 68, 0.3);
@@ -344,7 +326,7 @@
                 <div id="kiosk-success-badge" class="d-none mb-3 p-3 rounded-3 text-center" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3);">
                     <div class="text-success fw-bold mb-1 fs-5" id="success-guest-name"></div>
                     <p class="text-white-50 small mb-2">Çıkışta hızlı işlem yapmak için telefon numaranızı veya QR kodunuzu kullanabilirsiniz.</p>
-                    <canvas id="kiosk-checkout-qr-canvas" class="p-2 bg-white rounded-3 mx-auto d-block" width="120" height="120"></canvas>
+                    <div id="kiosk-checkout-qr-box" class="touchless-qr-card mx-auto"></div>
                 </div>
 
                 <!-- TAB 1 & 2: KEYPAD INPUT VIEW (For Check-in & Check-out) -->
@@ -378,26 +360,32 @@
                     </button>
                 </div>
 
-                <!-- TAB 3: CAMERA QR SCANNER VIEW -->
-                <div id="view-camera-mode" class="d-none">
-                    <div class="camera-scanner-box mb-3">
-                        <video id="kiosk-scanner-video" class="camera-video-elem" playsinline muted></video>
-                        <div class="scanner-laser"></div>
-                        <div class="scanner-overlay-guide"></div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-white-50 small"><i class="fas fa-info-circle me-1"></i> Randevu veya Üyelik QR kodunu gösterin</span>
-                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="toggleCameraFacing()">
-                            <i class="fas fa-camera-rotate me-1"></i> Kamerayı Değiştir
+                <!-- TAB 3: CAMERA QR SCANNER VIEW (Html5Qrcode Powered) -->
+                <div id="view-camera-mode" class="d-none text-center">
+                    <div id="kiosk-qr-reader" class="mb-3"></div>
+
+                    <div class="d-flex flex-column gap-2 mb-2">
+                        <button type="button" id="btn-start-camera" class="btn btn-primary rounded-pill py-2 fw-bold" onclick="requestAndStartCamera()">
+                            <i class="fas fa-video me-2"></i> Kamerayı Başlat (İzin İste)
                         </button>
+                        
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="switchCameraFacing()">
+                                <i class="fas fa-camera-rotate me-1"></i> Ön/Arka Kamera
+                            </button>
+                            <!-- File / Native Camera capture fallback -->
+                            <label class="btn btn-sm btn-outline-info rounded-pill px-3 mb-0 cursor-pointer">
+                                <i class="fas fa-image me-1"></i> Fotoğraftan Tara
+                                <input type="file" id="qr-file-input" accept="image/*" capture="environment" class="d-none" onchange="scanQRFromFile(this)">
+                            </label>
+                        </div>
                     </div>
+                    <span class="text-white-50 small d-block"><i class="fas fa-info-circle me-1"></i> Randevu veya Üyelik QR kodunuzu kameraya gösterin</span>
                 </div>
 
                 <!-- TAB 4: TOUCHLESS DYNAMIC QR VIEW (For Smartphone Scan) -->
                 <div id="view-mobile-mode" class="d-none text-center">
-                    <div class="touchless-qr-card mb-3 mx-auto">
-                        <canvas id="kiosk-qr-canvas" width="200" height="200"></canvas>
-                    </div>
+                    <div class="touchless-qr-card mb-3 mx-auto" id="kiosk-touchless-qr-container"></div>
                     <h5 class="fw-bold text-white mb-1">Telefonunuzla Tarayın</h5>
                     <p class="text-white-50 small mb-0 px-2">
                         Kiosk ekranına dokunmadan kendi telefonunuzun kamerasıyla bu QR kodu okutarak giriş ve çıkış işlemlerinizi hemen yapabilirsiniz.
@@ -413,96 +401,37 @@
         BooKi Self-Service Terminal &bull; Dokunmatik ekran, kamera veya telefonunuzla temassız işlem yapabilirsiniz
     </footer>
 
-    <!-- LIGHTWEIGHT CLIENT-SIDE QR GENERATOR SCRIPT -->
-    <script>
-    /**
-     * Self-contained lightweight Canvas QR Code Generator
-     */
-    function renderQRCode(canvasId, text, size = 180) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, size, size);
-
-        // Simple and robust QR representation via SVG path or matrix
-        // We generate matrix dynamically using lightweight QR algorithm
-        const qrMatrix = generateQRMatrix(text);
-        const moduleCount = qrMatrix.length;
-        const cellSize = size / moduleCount;
-
-        ctx.fillStyle = '#0f172a';
-        for (let row = 0; row < moduleCount; row++) {
-            for (let col = 0; col < moduleCount; col++) {
-                if (qrMatrix[row][col]) {
-                    ctx.fillRect(col * cellSize, row * cellSize, cellSize + 0.3, cellSize + 0.3);
-                }
-            }
-        }
-    }
-
-    function generateQRMatrix(str) {
-        // Deterministic Pseudo-Matrix with authentic Finder Patterns & Data Encoding for standard readers
-        const size = 25;
-        const matrix = Array.from({ length: size }, () => Array(size).fill(false));
-
-        // Add 3 Finder Patterns
-        function addFinder(r, c) {
-            for (let i = 0; i < 7; i++) {
-                for (let j = 0; j < 7; j++) {
-                    if (i === 0 || i === 6 || j === 0 || j === 6 || (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-                        matrix[r + i][c + j] = true;
-                    }
-                }
-            }
-        }
-        addFinder(0, 0);
-        addFinder(0, size - 7);
-        addFinder(size - 7, 0);
-
-        // Timing patterns
-        for (let i = 8; i < size - 8; i++) {
-            matrix[6][i] = (i % 2 === 0);
-            matrix[i][6] = (i % 2 === 0);
-        }
-
-        // Data hash filler
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = ((hash << 5) - hash) + str.charCodeAt(i);
-            hash |= 0;
-        }
-        let bitIndex = 0;
-        for (let r = 0; r < size; r++) {
-            for (let c = 0; c < size; c++) {
-                if ((r < 8 && (c < 8 || c >= size - 8)) || (r >= size - 8 && c < 8) || r === 6 || c === 6) continue;
-                const charCode = str.charCodeAt(bitIndex % str.length) || 42;
-                matrix[r][c] = ((hash ^ (r * 31 + c * 17) ^ charCode) % 3 === 0);
-                bitIndex++;
-            }
-        }
-        return matrix;
-    }
-    </script>
-
     <!-- KIOSK APPLICATION LOGIC -->
     <script>
     let activeTab = 'checkin';
     let phoneBuffer = '';
     let feedbackTimeout = null;
-    let cameraStream = null;
-    let cameraFacing = 'environment';
-    let isScanning = false;
+    let html5QrCode = null;
+    let currentCameraFacing = 'environment';
+    let isScannerRunning = false;
     let promptCustomerId = null;
     const touchlessUrl = '<?= $touchless_url ?? site_url('checkin/mobile') ?>';
 
-    // Initialize Touchless QR on load
     window.addEventListener('DOMContentLoaded', () => {
-        renderQRCode('kiosk-qr-canvas', touchlessUrl, 200);
+        initTouchlessQR();
         updateClock();
     });
+
+    // Initialize Touchless QR Code with standard QRCode.js
+    function initTouchlessQR() {
+        const container = document.getElementById('kiosk-touchless-qr-container');
+        if (container) {
+            container.innerHTML = '';
+            new QRCode(container, {
+                text: touchlessUrl,
+                width: 200,
+                height: 200,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+    }
 
     // Live Clock
     function updateClock() {
@@ -535,7 +464,7 @@
         keypadView.classList.add('d-none');
         cameraView.classList.add('d-none');
         mobileView.classList.add('d-none');
-        stopCamera();
+        stopCameraScanner();
 
         if (tab === 'checkin') {
             keypadView.classList.remove('d-none');
@@ -550,11 +479,12 @@
         } else if (tab === 'camera') {
             cameraView.classList.remove('d-none');
             document.getElementById('kiosk-subtitle').innerText = 'Kameraya QR Kodunuzu Gösterin';
-            startCamera();
+            // Trigger camera request
+            requestAndStartCamera();
         } else if (tab === 'mobile') {
             mobileView.classList.remove('d-none');
             document.getElementById('kiosk-subtitle').innerText = 'Telefonunuzla Tarayın ve Temassız İşlem Yapın';
-            renderQRCode('kiosk-qr-canvas', touchlessUrl, 200);
+            initTouchlessQR();
         }
     }
 
@@ -640,7 +570,7 @@
         const fd = new FormData();
         fd.append('identifier', identifier);
         fd.append('action', action);
-        fd.append('checkin_method', identifier.includes('APPT') || identifier.includes('MEMB') ? 'qr_kiosk' : 'kiosk');
+        fd.append('checkin_method', (identifier.includes('APPT') || identifier.includes('MEMB') || activeTab === 'camera') ? 'qr_kiosk' : 'kiosk');
 
         fetch('<?= site_url('checkin/do_kiosk_action') ?>', { method: 'POST', body: fd })
             .then(res => res.json())
@@ -704,11 +634,19 @@
     function showSuccessBadge(customer, identifier) {
         const badge = document.getElementById('kiosk-success-badge');
         const nameEl = document.getElementById('success-guest-name');
-        if (badge && nameEl) {
+        const qrBox = document.getElementById('kiosk-checkout-qr-box');
+        if (badge && nameEl && qrBox) {
             nameEl.innerText = `✓ Hoş Geldiniz, ${customer.first_name || ''} ${customer.last_name || ''}!`;
+            qrBox.innerHTML = '';
+            new QRCode(qrBox, {
+                text: String(identifier),
+                width: 130,
+                height: 130,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
             badge.classList.remove('d-none');
-            // Render QR with identifier for fast checkout
-            renderQRCode('kiosk-checkout-qr-canvas', identifier, 120);
         }
     }
 
@@ -744,93 +682,116 @@
         } catch(e) {}
     }
 
-    // CAMERA QR SCANNER LOGIC
-    function startCamera() {
-        const video = document.getElementById('kiosk-scanner-video');
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showFeedback('Bu cihazda kamera erişimi desteklenmiyor.', 'alert-warning');
-            return;
+    // CAMERA QR SCANNER (Html5Qrcode Engine)
+    function requestAndStartCamera() {
+        if (isScannerRunning) return;
+
+        const startBtn = document.getElementById('btn-start-camera');
+        if (startBtn) {
+            startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Kamera İzni Bekleniyor...';
         }
 
-        const constraints = {
-            video: {
-                facingMode: cameraFacing,
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+        // Check Secure Context
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            showFeedback('⚠️ <strong>Uyarı:</strong> Tarayıcı güvenlik politikası gereği kamera erişimi için HTTPS bağlantısı gerekmektedir (Şu an HTTP üzerindesiniz). Kamerayı doğrudan açmak için "Fotoğraftan Tara" butonunu da kullanabilirsiniz.', 'alert-warning');
+        }
+
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("kiosk-qr-reader");
+        }
+
+        const qrConfig = { fps: 15, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 };
+
+        html5QrCode.start(
+            { facingMode: currentCameraFacing },
+            qrConfig,
+            (decodedText, decodedResult) => {
+                onQrCodeScanned(decodedText);
             },
-            audio: false
-        };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-            .then(stream => {
-                cameraStream = stream;
-                video.srcObject = stream;
-                video.setAttribute('playsinline', true);
-                video.play();
-                isScanning = true;
-                requestAnimationFrame(scanVideoFrame);
-            })
-            .catch(err => {
-                showFeedback('Kamera başlatılamadı: ' + (err.message || 'İzin verilmedi'), 'alert-danger');
-            });
-    }
-
-    function stopCamera() {
-        isScanning = false;
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-        }
-    }
-
-    function toggleCameraFacing() {
-        cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
-        stopCamera();
-        startCamera();
-    }
-
-    // Video Scan Loop
-    async function scanVideoFrame() {
-        if (!isScanning) return;
-        const video = document.getElementById('kiosk-scanner-video');
-
-        if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
-            // Use native BarcodeDetector if available
-            if ('BarcodeDetector' in window) {
-                try {
-                    const detector = new BarcodeDetector({ formats: ['qr_code', 'data_matrix', 'code_128', 'ean_13'] });
-                    const barcodes = await detector.detect(video);
-                    if (barcodes.length > 0) {
-                        const rawCode = barcodes[0].rawValue;
-                        if (rawCode) {
-                            handleScannedQR(rawCode);
-                            return;
-                        }
-                    }
-                } catch (e) {}
+            (errorMessage) => {
+                // scanning frame error (ignore frame misses)
             }
-        }
-        if (isScanning) {
-            requestAnimationFrame(scanVideoFrame);
+        ).then(() => {
+            isScannerRunning = true;
+            if (startBtn) {
+                startBtn.innerHTML = '<i class="fas fa-check me-2 text-success"></i> Kamera Aktif & Tarıyor';
+                startBtn.classList.remove('btn-primary');
+                startBtn.classList.add('btn-dark');
+            }
+        }).catch(err => {
+            isScannerRunning = false;
+            if (startBtn) {
+                startBtn.innerHTML = '<i class="fas fa-video me-2"></i> Kamerayı Tekrar Başlat';
+                startBtn.classList.remove('btn-dark');
+                startBtn.classList.add('btn-primary');
+            }
+            showFeedback('Kamera başlatılamadı: ' + (err || 'Lütfen tarayıcı izinlerinden kameraya izin veriniz.'), 'alert-danger');
+        });
+    }
+
+    function stopCameraScanner() {
+        if (html5QrCode && isScannerRunning) {
+            html5QrCode.stop().then(() => {
+                isScannerRunning = false;
+                const startBtn = document.getElementById('btn-start-camera');
+                if (startBtn) {
+                    startBtn.innerHTML = '<i class="fas fa-video me-2"></i> Kamerayı Başlat (İzin İste)';
+                    startBtn.classList.remove('btn-dark');
+                    startBtn.classList.add('btn-primary');
+                }
+            }).catch(() => {
+                isScannerRunning = false;
+            });
         }
     }
 
-    function handleScannedQR(qrText) {
+    function switchCameraFacing() {
+        currentCameraFacing = currentCameraFacing === 'environment' ? 'user' : 'environment';
+        if (isScannerRunning) {
+            stopCameraScanner();
+            setTimeout(requestAndStartCamera, 400);
+        }
+    }
+
+    function onQrCodeScanned(qrText) {
         haptic();
         playSuccessBeep();
-        isScanning = false;
-        showFeedback(`📷 QR Kod Algılandı: <strong>${qrText.substring(0, 24)}...</strong>`, 'alert-info');
-        
-        // Process scanned QR automatically (auto or current active tab)
+        showFeedback(`📷 QR Kod Okundu: <strong>${qrText.substring(0, 28)}...</strong>`, 'alert-info');
+
+        // Process Kiosk Action (auto mode or active tab)
         submitKioskAction('auto', qrText);
 
-        // Resume scanner after 3 seconds
-        setTimeout(() => {
-            if (activeTab === 'camera') {
-                isScanning = true;
-                requestAnimationFrame(scanVideoFrame);
-            }
-        }, 3500);
+        // Pause scanner briefly to avoid multiple instant triggers
+        if (html5QrCode && isScannerRunning) {
+            try {
+                html5QrCode.pause();
+                setTimeout(() => {
+                    if (html5QrCode && isScannerRunning) {
+                        try { html5QrCode.resume(); } catch(e){}
+                    }
+                }, 3500);
+            } catch(e) {}
+        }
+    }
+
+    // Native file input / device camera snapshot fallback
+    function scanQRFromFile(input) {
+        if (!input.files || input.files.length === 0) return;
+        const imageFile = input.files[0];
+
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("kiosk-qr-reader");
+        }
+
+        showFeedback('Fotoğraf analiz ediliyor...', 'alert-info');
+
+        html5QrCode.scanFile(imageFile, true)
+            .then(decodedText => {
+                onQrCodeScanned(decodedText);
+            })
+            .catch(err => {
+                showFeedback('Fotoğrafta geçerli bir QR kod bulunamadı. Lütfen daha net çekiniz.', 'alert-warning');
+            });
     }
     </script>
 </body>
