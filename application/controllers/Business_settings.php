@@ -21,10 +21,7 @@ class Business_settings extends EA_Controller
 {
     public array $allowed_setting_fields = ['id', 'name', 'value'];
 
-    public array $optional_setting_fields = [
-        'ai_assistant_enabled',
-        'loyalty_points_per_appointment',
-    ];
+    public array $optional_setting_fields = [];
 
     /**
      * Business_logic constructor.
@@ -104,6 +101,10 @@ class Business_settings extends EA_Controller
             $settings = request('business_settings', []);
 
             foreach ($settings as $setting) {
+                if (empty($setting['name'])) {
+                    continue;
+                }
+
                 $existing_setting = $this->settings_model->query()->where('name', $setting['name'])->get()->row_array();
 
                 if (!empty($existing_setting)) {
@@ -111,8 +112,6 @@ class Business_settings extends EA_Controller
                 }
 
                 $this->settings_model->only($setting, $this->allowed_setting_fields);
-
-                $this->settings_model->optional($setting, $this->optional_setting_fields);
 
                 $this->settings_model->save($setting);
             }
