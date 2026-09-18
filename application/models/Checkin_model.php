@@ -20,6 +20,8 @@ class Checkin_model extends EA_Model
 
         // Locate customer if not directly provided
         if (!$customer_id) {
+            $this->load->model('customers_model');
+
             if ($qr_token) {
                 // Check if QR token matches customer membership or customer
                 $membership = $this->db->get_where('customer_memberships', ['qr_code_token' => $qr_token])->row_array();
@@ -33,13 +35,72 @@ class Checkin_model extends EA_Model
                     }
                 }
             } elseif ($phone) {
-                $clean_phone = preg_replace('/[^\d]/', '', $phone);
-                $customer = $this->db
-                    ->where("REPLACE(REPLACE(REPLACE(phone_number, ' ', ''), '-', ''), '(', '') LIKE '%" . substr($clean_phone, -10) . "%'")
-                    ->get('users')
-                    ->row_array();
-                if ($customer) {
-                    $customer_id = (int) $customer['id'];
+                $clean_digits = preg_replace('/[^\d]/', '', $phone);
+                $last10 = substr($clean_digits, -10);
+
+                // Build possible phone format candidates
+                $candidates = array_unique(array_filter([
+                    $phone,
+                    $clean_digits,
+                    $last10,
+                    '0' . $last10,
+                    '+90' . $last10,
+                    '90' . $last10,
+                    '0090' . $last10,
+                    // Turkish standard spacing: 05XX XXX XX XX / 5XX XXX XX XX
+                    (strlen($last10) === 10) ? sprintf('0%s %s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
+                    (strlen($last10) === 10) ? sprintf('%s %s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
+                    (strlen($last10) === 10) ? sprintf('0%s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 4)) : null,
+                    (strlen($last10) === 10) ? sprintf('(%s) %s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
+                    (strlen($last10) === 10) ? sprintf('(%s) %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 4)) : null,
+                    (strlen($last10) === 10) ? sprintf('0%s-%s-%s-%s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
+                    (strlen($last10) === 10) ? sprintf('%s-%s-%s-%s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
+                ]));
+
+                // 1. First attempt: Quick index match on phone_number_hash or plaintext phone_number
+                $hashes = [];
+                if (function_exists('sf_pii_hash')) {
+                    foreach ($candidates as $cand) {
+                        $h = sf_pii_hash($cand);
+                        if ($h) {
+                            $hashes[] = $h;
+                        }
+                    }
+                    $hashes = array_unique($hashes);
+                }
+
+                $customer_row = null;
+                if (!empty($hashes)) {
+                    $customer_row = $this->db
+                        ->where_in('phone_number_hash', $hashes)
+                        ->get('users')
+                        ->row_array();
+                }
+
+                if (!$customer_row && !empty($candidates)) {
+                    $customer_row = $this->db
+                        ->group_start()
+                        ->where_in('phone_number', $candidates)
+                        ->or_where_in('mobile_number', $candidates)
+                        ->group_end()
+                        ->get('users')
+                        ->row_array();
+                }
+
+                // 2. Second attempt / fail-safe: Scan decrypted customer list matching clean 10 digits
+                if (!$customer_row && !empty($last10)) {
+                    $all_customers = $this->customers_model->get();
+                    foreach ($all_customers as $c) {
+                        $cust_phone = preg_replace('/[^\d]/', '', $c['phone_number'] ?? ($c['mobile_number'] ?? ''));
+                        if (!empty($cust_phone) && substr($cust_phone, -10) === $last10) {
+                            $customer_row = $c;
+                            break;
+                        }
+                    }
+                }
+
+                if ($customer_row) {
+                    $customer_id = (int) $customer_row['id'];
                 }
             } elseif ($appointment_id) {
                 $appt = $this->db->get_where('appointments', ['id' => $appointment_id])->row_array();
@@ -50,13 +111,34 @@ class Checkin_model extends EA_Model
         }
 
         if (!$customer_id) {
-            throw new InvalidArgumentException('Müşteri bulunamadı. Lütfen geçerli bir telefon, QR kod veya müşteri seçin.');
+            throw new InvalidArgumentException('Müşteri bulunamadı. Lütfen geçerli bir telefon veya kayıtlı numaranızı girin.');
         }
 
-        // Fetch customer profile & check active memberships and packages
-        $customer = $this->db->get_where('users', ['id' => $customer_id])->row_array();
+        // Fetch decrypted customer profile
+        $this->load->model('customers_model');
+        try {
+            $customer = $this->customers_model->find($customer_id);
+        } catch (Throwable $e) {
+            $customer = $this->db->get_where('users', ['id' => $customer_id])->row_array();
+        }
         if (!$customer) {
             throw new InvalidArgumentException('Müşteri kaydı bulunamadı.');
+        }
+
+        // Auto-link today's active appointment for this customer if not explicitly passed
+        if (!$appointment_id) {
+            $today_start = date('Y-m-d 00:00:00');
+            $today_end = date('Y-m-d 23:59:59');
+            $today_appt = $this->db
+                ->where('id_users_customer', $customer_id)
+                ->where('start_datetime >=', $today_start)
+                ->where('start_datetime <=', $today_end)
+                ->order_by('start_datetime', 'ASC')
+                ->get('appointments')
+                ->row_array();
+            if ($today_appt) {
+                $appointment_id = (int) $today_appt['id'];
+            }
         }
 
         // Check if already checked in
