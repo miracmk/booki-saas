@@ -106,180 +106,264 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
             </div>
         </div>
 
-        <!-- Grouped Navigation Menu -->
-        <ul class="nav flex-column flex-grow-1 overflow-auto px-2 sidebar-nav mt-1">
+        <!-- Grouped Navigation Menu (Collapsible Accordion & Smooth Scroll) -->
+        <ul class="nav flex-column flex-grow-1 px-2 sidebar-nav mt-1">
             <!-- Dashboard -->
-            <li class="nav-item <?= $active_menu == 'dashboard' ? 'active' : '' ?>">
-                <a href="<?= site_url('dashboard') ?>" class="nav-link text-white">
-                    <i class="fas fa-gauge-high me-2"></i>
-                    Dashboard
+            <li class="nav-item mb-1 <?= $active_menu == 'dashboard' ? 'active' : '' ?>">
+                <a href="<?= site_url('dashboard') ?>" class="nav-link text-white d-flex align-items-center">
+                    <i class="fas fa-gauge-high me-2 text-primary" style="width: 20px;"></i>
+                    <span>Dashboard</span>
                 </a>
             </li>
 
-            <!-- SECTION: OPERATIONS -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Operasyon
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_APPOINTMENTS ? 'active' : '' ?>">
-                <a href="<?= site_url('calendar' . (vars('calendar_view') === CALENDAR_VIEW_TABLE ? '?view=table' : '')) ?>" class="nav-link text-white">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    <?= lang('calendar') ?>
+            <!-- GROUP 1: OPERASYON -->
+            <?php
+            $is_operations_active = in_array($active_menu, [PRIV_APPOINTMENTS, 'checkin', PRIV_WAITLIST, PRIV_STATIONS, PRIV_SERVICES]);
+            ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_operations_active ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-operations" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $is_operations_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-operations">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-calendar-check me-2 text-info" style="width: 20px;"></i>
+                        <span class="fw-semibold">Operasyon</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
+                <div class="collapse <?= $is_operations_active ? 'show' : '' ?>" id="sidebar-menu-operations">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == PRIV_APPOINTMENTS ? 'active' : '' ?>">
+                            <a href="<?= site_url('calendar' . (vars('calendar_view') === CALENDAR_VIEW_TABLE ? '?view=table' : '')) ?>" class="nav-link text-white">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                <?= lang('calendar') ?>
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'checkin' ? 'active' : '' ?>">
+                            <a href="<?= site_url('checkin') ?>" class="nav-link text-white">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Giriş / Kiosk
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_WAITLIST ? 'active' : '' ?>">
+                            <a href="<?= site_url('waitlist') ?>" class="nav-link text-white">
+                                <i class="fas fa-hourglass-half me-2"></i>
+                                Bekleme Listesi
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_STATIONS ? 'active' : '' ?>">
+                            <a href="<?= site_url('stations') ?>" class="nav-link text-white">
+                                <i class="fas fa-door-open me-2"></i>
+                                İstasyonlar & Odalar
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_SERVICES ? 'active' : '' ?>">
+                            <a href="<?= site_url('services') ?>" class="nav-link text-white">
+                                <i class="fas fa-business-time me-2"></i>
+                                Hizmetler & Menü
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
-            <li class="nav-item <?= $active_menu == 'checkin' ? 'active' : '' ?>">
-                <a href="<?= site_url('checkin') ?>" class="nav-link text-white">
-                    <i class="fas fa-sign-in-alt me-2"></i>
-                    Giriş / Çıkış & Kiosk
+
+            <!-- GROUP 2: MÜŞTERİLER & CRM -->
+            <?php
+            $is_customers_active = in_array($active_menu, [PRIV_CUSTOMERS, 'packages', PRIV_MEMBERSHIPS]);
+            ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_customers_active ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-customers" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $is_customers_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-customers">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-user-friends me-2 text-success" style="width: 20px;"></i>
+                        <span class="fw-semibold">Müşteriler & CRM</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
+                <div class="collapse <?= $is_customers_active ? 'show' : '' ?>" id="sidebar-menu-customers">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == PRIV_CUSTOMERS ? 'active' : '' ?>">
+                            <a href="<?= site_url('customers') ?>" class="nav-link text-white">
+                                <i class="fas fa-users me-2"></i>
+                                <?= lang('customers') ?>
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'packages' ? 'active' : '' ?>">
+                            <a href="<?= site_url('packages') ?>" class="nav-link text-white">
+                                <i class="fas fa-box me-2"></i>
+                                Paket Seanslar
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_MEMBERSHIPS ? 'active' : '' ?>">
+                            <a href="<?= site_url('memberships') ?>" class="nav-link text-white">
+                                <i class="fas fa-id-card me-2"></i>
+                                Üyelikler & Planlar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
-            <li class="nav-item <?= $active_menu == PRIV_WAITLIST ? 'active' : '' ?>">
-                <a href="<?= site_url('waitlist') ?>" class="nav-link text-white">
-                    <i class="fas fa-hourglass-half me-2"></i>
-                    Bekleme Listesi
+
+            <!-- GROUP 3: SATIŞ & FİNANS -->
+            <?php
+            $is_finance_active = in_array($active_menu, ['adisyons', 'finance', PRIV_POS, PRIV_INVOICES, 'expenses']);
+            ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_finance_active ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-finance" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $is_finance_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-finance">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-wallet me-2 text-warning" style="width: 20px;"></i>
+                        <span class="fw-semibold">Satış & Finans</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
+                <div class="collapse <?= $is_finance_active ? 'show' : '' ?>" id="sidebar-menu-finance">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'adisyons' ? 'active' : '' ?>">
+                            <a href="<?= site_url('adisyons') ?>" class="nav-link text-white">
+                                <i class="fas fa-receipt me-2"></i>
+                                Adisyonlar
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'finance' ? 'active' : '' ?>">
+                            <a href="<?= site_url('finance') ?>" class="nav-link text-white">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Finans & Kasa
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_POS ? 'active' : '' ?>">
+                            <a href="<?= site_url('pos') ?>" class="nav-link text-white">
+                                <i class="fas fa-cash-register me-2"></i>
+                                Hızlı Satış (POS)
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_INVOICES ? 'active' : '' ?>">
+                            <a href="<?= site_url('invoices') ?>" class="nav-link text-white">
+                                <i class="fas fa-file-invoice-dollar me-2"></i>
+                                Faturalar & e-Fatura
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'expenses' ? 'active' : '' ?>">
+                            <a href="<?= site_url('expenses') ?>" class="nav-link text-white">
+                                <i class="fas fa-money-bill-wave me-2"></i>
+                                Gider Yönetimi
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
-            <li class="nav-item <?= $active_menu == PRIV_STATIONS ? 'active' : '' ?>">
-                <a href="<?= site_url('stations') ?>" class="nav-link text-white">
-                    <i class="fas fa-door-open me-2"></i>
-                    İstasyonlar & Odalar
+
+            <!-- GROUP 4: RESTORAN MODÜLÜ -->
+            <?php
+            $is_restaurant_active = in_array($active_menu, ['restaurant_floor_plan', 'restaurant_reservations']);
+            ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_restaurant_active ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-restaurant" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $is_restaurant_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-restaurant">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-utensils me-2 text-danger" style="width: 20px;"></i>
+                        <span class="fw-semibold">Restoran Modülü</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
+                <div class="collapse <?= $is_restaurant_active ? 'show' : '' ?>" id="sidebar-menu-restaurant">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'restaurant_floor_plan' ? 'active' : '' ?>">
+                            <a href="<?= site_url('restaurant') ?>" class="nav-link text-white">
+                                <i class="fas fa-border-all me-2"></i>
+                                Masa Planı
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'restaurant_reservations' ? 'active' : '' ?>">
+                            <a href="<?= site_url('restaurant/reservations') ?>" class="nav-link text-white">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                Rezervasyonlar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
-            <li class="nav-item <?= $active_menu == PRIV_SERVICES ? 'active' : '' ?>">
-                <a href="<?= site_url('services') ?>" class="nav-link text-white">
-                    <i class="fas fa-business-time me-2"></i>
-                    Hizmetler & Menü
+
+            <!-- GROUP 5: ENVANTER & ÜRÜNLER -->
+            <li class="nav-item mb-1 <?= $active_menu == 'products' ? 'active' : '' ?>">
+                <a href="<?= site_url('products') ?>" class="nav-link text-white d-flex align-items-center">
+                    <i class="fas fa-boxes me-2 text-warning" style="width: 20px;"></i>
+                    <span>Ürünler & Stok</span>
                 </a>
             </li>
 
-            <!-- SECTION: CUSTOMERS -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Müşteriler & CRM
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_CUSTOMERS ? 'active' : '' ?>">
-                <a href="<?= site_url('customers') ?>" class="nav-link text-white">
-                    <i class="fas fa-user-friends me-2"></i>
-                    <?= lang('customers') ?>
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == 'packages' ? 'active' : '' ?>">
-                <a href="<?= site_url('packages') ?>" class="nav-link text-white">
-                    <i class="fas fa-box me-2"></i>
-                    Paket Seanslar
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_MEMBERSHIPS ? 'active' : '' ?>">
-                <a href="<?= site_url('memberships') ?>" class="nav-link text-white">
-                    <i class="fas fa-id-card me-2"></i>
-                    Üyelikler & Planlar
+            <!-- GROUP 6: EKİP & PERSONEL -->
+            <li class="nav-item mb-1 <?= $active_menu == PRIV_USERS ? 'active' : '' ?>">
+                <a href="<?= site_url('providers') ?>" class="nav-link text-white d-flex align-items-center">
+                    <i class="fas fa-user-tie me-2 text-primary" style="width: 20px;"></i>
+                    <span>Personel & Uzmanlar</span>
                 </a>
             </li>
 
-            <!-- SECTION: SALES & FINANCE -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Satış & Finans
-            </li>
-            <li class="nav-item <?= $active_menu == 'adisyons' ? 'active' : '' ?>">
-                <a href="<?= site_url('adisyons') ?>" class="nav-link text-white">
-                    <i class="fas fa-receipt me-2"></i>
-                    Adisyonlar
+            <!-- GROUP 7: PAZARLAMA & İTİBAR -->
+            <?php
+            $is_marketing_active = in_array($active_menu, [PRIV_MARKETING, PRIV_REVIEWS]);
+            ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_marketing_active ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-marketing" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $is_marketing_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-marketing">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-bullhorn me-2 text-info" style="width: 20px;"></i>
+                        <span class="fw-semibold">Pazarlama & İtibar</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-            </li>
-            <li class="nav-item <?= $active_menu == 'finance' ? 'active' : '' ?>">
-                <a href="<?= site_url('finance') ?>" class="nav-link text-white">
-                    <i class="fas fa-wallet me-2"></i>
-                    Finans & Kasa
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_POS ? 'active' : '' ?>">
-                <a href="<?= site_url('pos') ?>" class="nav-link text-white">
-                    <i class="fas fa-cash-register me-2"></i>
-                    Hızlı Satış (POS)
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_INVOICES ? 'active' : '' ?>">
-                <a href="<?= site_url('invoices') ?>" class="nav-link text-white">
-                    <i class="fas fa-file-invoice-dollar me-2"></i>
-                    Faturalar & e-Fatura
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == 'expenses' ? 'active' : '' ?>">
-                <a href="<?= site_url('expenses') ?>" class="nav-link text-white">
-                    <i class="fas fa-receipt me-2"></i>
-                    Gider Yönetimi
-                </a>
+                <div class="collapse <?= $is_marketing_active ? 'show' : '' ?>" id="sidebar-menu-marketing">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == PRIV_MARKETING ? 'active' : '' ?>">
+                            <a href="<?= site_url('marketing') ?>" class="nav-link text-white">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Kampanyalar
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_REVIEWS ? 'active' : '' ?>">
+                            <a href="<?= site_url('reviews') ?>" class="nav-link text-white">
+                                <i class="fas fa-star me-2"></i>
+                                Müşteri Yorumları
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
-            <!-- SECTION: INVENTORY -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Envanter & Stok
-            </li>
-            <li class="nav-item <?= $active_menu == 'products' ? 'active' : '' ?>">
-                <a href="<?= site_url('products') ?>" class="nav-link text-white">
-                    <i class="fas fa-boxes me-2"></i>
-                    Ürünler & Sarf Malzeme
+            <!-- GROUP 8: RAPORLAR & AI -->
+            <?php
+            $is_reports_active = in_array($active_menu, [PRIV_REPORTS, PRIV_AI_AGENT]);
+            ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_reports_active ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-reports" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $is_reports_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-reports">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-chart-pie me-2 text-success" style="width: 20px;"></i>
+                        <span class="fw-semibold">Raporlama & AI</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-            </li>
-
-            <!-- SECTION: RESTAURANT (Always accessible or enabled) -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Restoran Modülü
-            </li>
-            <li class="nav-item <?= $active_menu == 'restaurant_floor_plan' ? 'active' : '' ?>">
-                <a href="<?= site_url('restaurant') ?>" class="nav-link text-white">
-                    <i class="fas fa-utensils me-2"></i>
-                    Masa Planı
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == 'restaurant_reservations' ? 'active' : '' ?>">
-                <a href="<?= site_url('restaurant/reservations') ?>" class="nav-link text-white">
-                    <i class="fas fa-calendar-check me-2"></i>
-                    Restoran Rezervasyonları
-                </a>
-            </li>
-
-            <!-- SECTION: STAFF -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Ekip & Personel
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_USERS ? 'active' : '' ?>">
-                <a href="<?= site_url('providers') ?>" class="nav-link text-white">
-                    <i class="fas fa-users me-2"></i>
-                    Personel & Uzmanlar
-                </a>
-            </li>
-
-            <!-- SECTION: MARKETING & REVIEWS -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Pazarlama & İtibar
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_MARKETING ? 'active' : '' ?>">
-                <a href="<?= site_url('marketing') ?>" class="nav-link text-white">
-                    <i class="fas fa-bullhorn me-2"></i>
-                    Pazarlama & Kampanya
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_REVIEWS ? 'active' : '' ?>">
-                <a href="<?= site_url('reviews') ?>" class="nav-link text-white">
-                    <i class="fas fa-star me-2"></i>
-                    Müşteri Yorumları
-                </a>
-            </li>
-
-            <!-- SECTION: REPORTS -->
-            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
-                Raporlama
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_REPORTS ? 'active' : '' ?>">
-                <a href="<?= site_url('reports') ?>" class="nav-link text-white">
-                    <i class="fas fa-chart-pie me-2"></i>
-                    İşletme Raporları
-                </a>
-            </li>
-            <li class="nav-item <?= $active_menu == PRIV_AI_AGENT ? 'active' : '' ?>">
-                <a href="<?= site_url('ai_agent') ?>" class="nav-link text-white">
-                    <i class="fas fa-robot me-2"></i>
-                    AI Asistan
-                </a>
+                <div class="collapse <?= $is_reports_active ? 'show' : '' ?>" id="sidebar-menu-reports">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == PRIV_REPORTS ? 'active' : '' ?>">
+                            <a href="<?= site_url('reports') ?>" class="nav-link text-white">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                İşletme Raporları
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == PRIV_AI_AGENT ? 'active' : '' ?>">
+                            <a href="<?= site_url('ai_agent') ?>" class="nav-link text-white">
+                                <i class="fas fa-robot me-2"></i>
+                                AI Asistan
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
         </ul>
 

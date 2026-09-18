@@ -191,6 +191,13 @@ body {
 #sidebar .nav-item.active > .nav-link i {
     color: #fff;
 }
+#sidebar .sidebar-group-toggle.active-parent {
+    color: var(--bs-primary) !important;
+    background: var(--bs-primary-bg-subtle) !important;
+}
+#sidebar .sub-nav-list .nav-link {
+    color: var(--kcc-text);
+}
 #sidebar .border-top {
     border-color: var(--kcc-line) !important;
 }

@@ -82,23 +82,54 @@
 <script src="<?= asset_url('assets/js/ki-theme-switcher.min.js') ?>"></script>
 
 <style>
-    /* BooKi (2026-09-10) - sidebar navigation. Mobile-first: #sidebar is a Bootstrap
-       offcanvas (off-screen drawer) by default; the media query below turns it into a normal,
-       always-visible, fixed-position left column at/above the "md" breakpoint (768px), matching
-       Bootstrap's own `offcanvas-md` behavior contract. */
-    #sidebar .nav-link { padding: .55rem .75rem; border-radius: 6px; font-weight: 300; }
-    /* BooKi (2026-09-11 redesign) - hover/active paint moved to ki-command-center.min.css
-       (light-sidebar design); this file only keeps layout-only rules now. */
-    #sidebar .nav-item.active > .nav-link { font-weight: 600; }
-    #sidebar .nav-link .fa-chevron-down { transition: transform .2s ease; }
-    #sidebar .nav-link[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
+    /* BooKi (2026-09-18) - Modern sidebar accordion navigation & smooth scroll */
+    #sidebar .nav-link {
+        padding: .5rem .75rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 13.5px;
+        transition: all .15s ease;
+    }
+    #sidebar .nav-item.active > .nav-link {
+        font-weight: 600;
+    }
+    #sidebar .sidebar-group-toggle {
+        cursor: pointer;
+        font-size: 13.5px;
+    }
+    #sidebar .sidebar-group-toggle .chevron-icon {
+        transition: transform .25s ease;
+        font-size: 11px;
+    }
+    #sidebar .sidebar-group-toggle[aria-expanded="true"] .chevron-icon {
+        transform: rotate(180deg);
+    }
+    #sidebar .sidebar-group-toggle.active-parent {
+        background: rgba(var(--bs-primary-rgb), 0.08);
+        color: var(--bs-primary) !important;
+        font-weight: 600;
+    }
+    #sidebar .sub-nav-list {
+        border-left: 2px solid rgba(148, 163, 184, 0.25);
+        margin-left: 1.15rem;
+        margin-top: 3px;
+        margin-bottom: 6px;
+        padding-left: 0.5rem;
+    }
+    #sidebar .sub-nav-list .nav-link {
+        font-size: 13px;
+        padding: .35rem .6rem;
+        border-radius: 6px;
+        opacity: 0.9;
+    }
+    #sidebar .sub-nav-list .nav-link:hover {
+        opacity: 1;
+    }
+    #sidebar .sub-nav-list .nav-item.active > .nav-link {
+        opacity: 1;
+        font-weight: 600;
+    }
 
-    /* BooKi (2026-09-10) - Bootstrap's own `.offcanvas-md` breakpoint rules force
-       .offcanvas-body to `flex-grow:0; overflow-y:visible` at >=768px (it assumes a "static, just
-       render inline" mode, not a persistent full-height column) - that broke both "push the account
-       block to the bottom" and "only the middle nav list scrolls". These overrides apply at every
-       width (not only >=768px) so the same single-scroll-container behavior is consistent in the
-       mobile offcanvas drawer too. */
     #sidebar,
     #sidebar .offcanvas-body {
         display: flex !important;
@@ -111,19 +142,36 @@
     }
     #sidebar .sidebar-nav {
         flex: 1 1 auto;
-        min-height: 0; /* let the flex child actually shrink so overflow-y:auto can kick in */
-        overflow-y: auto;
+        min-height: 0;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+    }
+    #sidebar .sidebar-nav::-webkit-scrollbar {
+        width: 5px;
+    }
+    #sidebar .sidebar-nav::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    #sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.35);
+        border-radius: 4px;
+    }
+    #sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.6);
     }
     @media (min-width: 768px) {
         #sidebar {
-            width: 230px !important;
+            width: 235px !important;
             position: fixed !important;
             top: 0;
             left: 0;
             bottom: 0;
             z-index: 100;
         }
-        #main-content, #footer { margin-left: 230px; }
+        #main-content, #footer { margin-left: 235px; }
     }
 
     /* Salon Flora customization - live session status indicators on calendar appointment events. */
