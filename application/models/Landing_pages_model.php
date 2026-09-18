@@ -100,7 +100,9 @@ class Landing_pages_model extends EA_Model
 
         // Normalize slug
         if (!empty($data['slug'])) {
-            $data['slug'] = url_title(convert_accented_characters($data['slug']), '-', true);
+            $data['slug'] = $this->generate_slug((string) $data['slug']);
+        } elseif (!empty($data['title'])) {
+            $data['slug'] = $this->generate_slug((string) $data['title']);
         }
 
         if (empty($data['id'])) {
@@ -180,5 +182,30 @@ class Landing_pages_model extends EA_Model
         if ($existing) {
             throw new InvalidArgumentException('Bu slug zaten kullanılıyor: ' . $data['slug']);
         }
+    }
+
+    /**
+     * Generate URL-friendly slug supporting Turkish and foreign characters.
+     */
+    public function generate_slug(string $str): string
+    {
+        $turkish = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç', 'I'];
+        $english = ['i', 'g', 'u', 's', 'o', 'c', 'i', 'g', 'u', 's', 'o', 'c', 'i'];
+        $str = str_replace($turkish, $english, $str);
+
+        if (function_exists('convert_accented_characters')) {
+            $str = convert_accented_characters($str);
+        }
+
+        if (function_exists('url_title')) {
+            return url_title($str, '-', true);
+        }
+
+        $str = preg_replace('~[^\pL\d]+~u', '-', $str);
+        $str = iconv('utf-8', 'us-ascii//TRANSLIT', $str) ?: $str;
+        $str = preg_replace('~[^-\w]+~', '', $str);
+        $str = trim($str, '-');
+        $str = preg_replace('~-+~', '-', $str);
+        return strtolower($str);
     }
 }

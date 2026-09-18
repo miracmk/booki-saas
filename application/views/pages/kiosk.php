@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
     <title><?= e($company_name) ?> — Hızlı Giriş Kiosk</title>
+    <link rel="stylesheet" href="<?= asset_url('assets/css/themes/' . setting('theme', 'default') . '.css') ?>">
     <link rel="stylesheet" href="<?= asset_url('assets/css/general.css') ?>">
     <link rel="stylesheet" href="<?= asset_url('assets/css/backend.css') ?>">
     <link rel="stylesheet" href="<?= asset_url('assets/css/ki-command-center.min.css') ?>">
@@ -12,7 +13,7 @@
     <style>
         :root {
             --kiosk-bg: #0f172a;
-            --kiosk-card-bg: rgba(30, 41, 59, 0.92);
+            --kiosk-card-bg: rgba(30, 41, 59, 0.94);
             --kiosk-accent: #3b82f6;
         }
         * {
@@ -44,7 +45,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0.75rem 1.25rem;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(15, 23, 42, 0.7);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             z-index: 10;
@@ -54,12 +55,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.75rem;
+            padding: 1rem;
             width: 100%;
         }
         .kiosk-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             margin: 0 auto;
         }
         .kiosk-card {
@@ -68,7 +69,7 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         }
         .kiosk-logo-img {
             max-height: clamp(38px, 6vh, 56px);
@@ -76,81 +77,91 @@
             object-fit: contain;
         }
         .kiosk-input-display {
-            height: clamp(50px, 7.5vh, 64px);
-            font-size: clamp(22px, 4vw, 30px);
-            letter-spacing: 2px;
-            font-weight: 700;
+            width: 100% !important;
+            height: clamp(50px, 7.5vh, 64px) !important;
+            font-size: clamp(22px, 4vw, 30px) !important;
+            letter-spacing: 2px !important;
+            font-weight: 700 !important;
             background: rgba(15, 23, 42, 0.9) !important;
             color: #38bdf8 !important;
             border: 1.5px solid rgba(56, 189, 248, 0.3) !important;
-            border-radius: 16px;
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+            border-radius: 16px !important;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5) !important;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .kiosk-input-display:focus {
             border-color: #38bdf8 !important;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+        }
+        .kiosk-keypad-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 10px !important;
+            width: 100% !important;
         }
         .num-pad-btn {
-            height: clamp(48px, 7vh, 68px);
-            font-size: clamp(20px, 3.5vh, 26px);
-            font-weight: 700;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
-            touch-action: manipulation;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            height: clamp(48px, 7vh, 66px) !important;
+            font-size: clamp(20px, 3.5vh, 26px) !important;
+            font-weight: 700 !important;
+            border-radius: 14px !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            color: #ffffff !important;
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            touch-action: manipulation !important;
+            user-select: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100% !important;
+            padding: 0 !important;
         }
         .num-pad-btn:hover {
-            background: rgba(255, 255, 255, 0.14);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.25) !important;
         }
         .num-pad-btn:active {
-            transform: scale(0.94);
-            background: rgba(56, 189, 248, 0.4);
-            color: #ffffff;
+            transform: scale(0.94) !important;
+            background: rgba(56, 189, 248, 0.4) !important;
+            color: #ffffff !important;
         }
         .num-pad-btn.action-clear {
-            color: #f87171;
-            background: rgba(239, 68, 68, 0.12);
-            border-color: rgba(239, 68, 68, 0.25);
-            font-size: clamp(15px, 2.5vh, 19px);
+            color: #f87171 !important;
+            background: rgba(239, 68, 68, 0.12) !important;
+            border-color: rgba(239, 68, 68, 0.25) !important;
+            font-size: clamp(15px, 2.5vh, 19px) !important;
         }
         .num-pad-btn.action-clear:active {
-            background: rgba(239, 68, 68, 0.35);
+            background: rgba(239, 68, 68, 0.35) !important;
         }
         .num-pad-btn.action-submit {
-            color: #4ade80;
-            background: rgba(34, 197, 94, 0.15);
-            border-color: rgba(34, 197, 94, 0.3);
+            color: #4ade80 !important;
+            background: rgba(34, 197, 94, 0.15) !important;
+            border-color: rgba(34, 197, 94, 0.3) !important;
         }
         .num-pad-btn.action-submit:active {
-            background: rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.4) !important;
         }
         .btn-kiosk-submit {
-            height: clamp(50px, 7.5vh, 64px);
-            font-size: clamp(17px, 2.5vh, 21px);
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            border: none;
-            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
-            transition: all 0.15s ease;
+            height: clamp(50px, 7.5vh, 64px) !important;
+            font-size: clamp(17px, 2.5vh, 21px) !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px !important;
+            border-radius: 16px !important;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            border: none !important;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4) !important;
+            transition: all 0.15s ease !important;
+            color: #ffffff !important;
         }
         .btn-kiosk-submit:hover {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.55);
-            color: #ffffff;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.55) !important;
+            color: #ffffff !important;
         }
         .btn-kiosk-submit:active {
-            transform: scale(0.98);
+            transform: scale(0.98) !important;
         }
         .kiosk-footer-note {
             padding: 0.5rem 1rem;
@@ -174,7 +185,7 @@
     <!-- Kiosk Top Navigation Bar -->
     <header class="kiosk-top-bar">
         <a href="<?= site_url('checkin') ?>" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1" style="font-size: 12px; border-color: rgba(255,255,255,0.2);">
-            <i class="fas fa-arrow-left me-1"></i> Panale Dön
+            <i class="fas fa-arrow-left me-1"></i> Panele Dön
         </a>
         <div class="d-flex align-items-center gap-3">
             <div id="kiosk-live-clock" class="text-white-50 fw-semibold font-monospace small d-none d-sm-block">
@@ -209,20 +220,20 @@
                 <!-- Feedback Alert Box -->
                 <div id="kiosk-feedback" class="alert d-none mb-3 py-2 py-sm-3 fw-semibold rounded-3 shadow-sm"></div>
 
-                <!-- Touch Number Keypad -->
-                <div class="row g-2 mb-3 mb-sm-4">
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('1')">1</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('2')">2</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('3')">3</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('4')">4</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('5')">5</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('6')">6</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('7')">7</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('8')">8</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('9')">9</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn action-clear w-100" onclick="clearKey()"><i class="fas fa-backspace me-1"></i>Sil</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn w-100" onclick="pressKey('0')">0</button></div>
-                    <div class="col-4"><button type="button" class="btn num-pad-btn keypad-btn action-submit w-100" onclick="submitKioskCheckin()"><i class="fas fa-check"></i></button></div>
+                <!-- Touch Number Keypad (3x4 CSS Grid) -->
+                <div class="kiosk-keypad-grid mb-3 mb-sm-4">
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('1')">1</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('2')">2</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('3')">3</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('4')">4</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('5')">5</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('6')">6</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('7')">7</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('8')">8</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('9')">9</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn action-clear" onclick="clearKey()"><i class="fas fa-backspace me-1"></i>Sil</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn" onclick="pressKey('0')">0</button>
+                    <button type="button" class="btn num-pad-btn keypad-btn action-submit" onclick="submitKioskCheckin()"><i class="fas fa-check"></i></button>
                 </div>
 
                 <!-- Big Checkin Action Button -->

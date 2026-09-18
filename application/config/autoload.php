@@ -90,6 +90,7 @@ $autoload['helper'] = [
     'string',
     'tenant', // BooKi (2026-08-26) - tenant_context()/is_multi_tenant_mode(), see the helper's docblock
     'tenant_master_crypto', // BooKi (2026-08-26) - protects tenant secrets in the master DB
+    'text',
     'url',
     'validation',
 ];
