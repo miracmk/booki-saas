@@ -59,7 +59,41 @@ class Checkin extends EA_Controller
         $this->load->view('pages/kiosk', [
             'company_name' => setting('company_name') ?: 'BooKi',
             'company_logo' => setting('company_logo') ?: base_url('assets/img/logo.png'),
+            'touchless_url' => site_url('checkin/mobile'),
         ]);
+    }
+
+    /**
+     * Mobile Touchless Check-in / Check-out page (opened by customer via Kiosk QR).
+     */
+    public function mobile(): void
+    {
+        $this->load->view('pages/mobile_checkin', [
+            'company_name' => setting('company_name') ?: 'BooKi',
+            'company_logo' => setting('company_logo') ?: base_url('assets/img/logo.png'),
+        ]);
+    }
+
+    /**
+     * Unified Kiosk Action (Giriş / Çıkış / QR / Auto AJAX).
+     */
+    public function do_kiosk_action(): void
+    {
+        $identifier = $this->input->post('identifier') ?: ($this->input->post('phone') ?: $this->input->post('qr_token'));
+        $action = $this->input->post('action') ?: 'auto';
+        $method = $this->input->post('checkin_method') ?: 'kiosk';
+
+        try {
+            $res = $this->checkin_model->kiosk_process((string) $identifier, (string) $action, (string) $method);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($res));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
+        }
     }
 
     /**

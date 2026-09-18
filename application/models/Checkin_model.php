@@ -7,47 +7,90 @@
 class Checkin_model extends EA_Model
 {
     /**
-     * Perform check-in by customer ID, phone, QR code or appointment ID.
+     * Unified Identifier Resolver (resolves phone, QR token, appointment hash, membership token, customer ID, or URL).
+     *
+     * @param string $identifier
+     * @return array ['customer_id' => ?int, 'appointment_id' => ?int, 'membership_id' => ?int]
      */
-    public function check_in(array $params): array
+    public function resolve_identifier(string $identifier): array
     {
-        $customer_id = !empty($params['id_users_customer']) ? (int) $params['id_users_customer'] : null;
-        $phone = !empty($params['phone']) ? trim($params['phone']) : null;
-        $qr_token = !empty($params['qr_token']) ? trim($params['qr_token']) : null;
-        $appointment_id = !empty($params['id_appointments']) ? (int) $params['id_appointments'] : null;
-        $method = $params['checkin_method'] ?? 'manual';
-        $now = date('Y-m-d H:i:s');
+        $raw = trim($identifier);
+        if (empty($raw)) {
+            return ['customer_id' => null, 'appointment_id' => null, 'membership_id' => null];
+        }
 
-        // Locate customer if not directly provided
+        $this->load->model('customers_model');
+        $customer_id = null;
+        $appointment_id = null;
+        $membership_id = null;
+
+        // 1. If identifier is a URL, extract potential hash/token from URL path
+        if (filter_var($raw, FILTER_VALIDATE_URL) || strpos($raw, 'http://') === 0 || strpos($raw, 'https://') === 0) {
+            $path = parse_url($raw, PHP_URL_PATH);
+            $parts = array_values(array_filter(explode('/', trim((string) $path, '/'))));
+            $possible_token = end($parts);
+            if (!empty($possible_token)) {
+                $raw = $possible_token;
+            }
+        }
+
+        // 2. Formatted prefixes (e.g. CUST:123, APPT:456, MEMB:789)
+        if (preg_match('/^(?:CUST|CUSTOMER):(\d+)$/i', $raw, $m)) {
+            $customer_id = (int) $m[1];
+        } elseif (preg_match('/^(?:APPT|APPOINTMENT):(\d+)$/i', $raw, $m)) {
+            $appt = $this->db->get_where('appointments', ['id' => (int) $m[1]])->row_array();
+            if ($appt) {
+                $appointment_id = (int) $appt['id'];
+                $customer_id = (int) $appt['id_users_customer'];
+            }
+        } elseif (preg_match('/^(?:MEMB|MEMBERSHIP):(\d+)$/i', $raw, $m)) {
+            $memb = $this->db->get_where('customer_memberships', ['id' => (int) $m[1]])->row_array();
+            if ($memb) {
+                $membership_id = (int) $memb['id'];
+                $customer_id = (int) $memb['id_users_customer'];
+            }
+        }
+
+        // 3. Check appointment hash (e.g. standard appointment confirmation QR)
         if (!$customer_id) {
-            $this->load->model('customers_model');
+            $appt = $this->db->get_where('appointments', ['hash' => $raw])->row_array();
+            if ($appt) {
+                $appointment_id = (int) $appt['id'];
+                $customer_id = (int) $appt['id_users_customer'];
+            }
+        }
 
-            if ($qr_token) {
-                // Check if QR token matches customer membership or customer
-                $membership = $this->db->get_where('customer_memberships', ['qr_code_token' => $qr_token])->row_array();
-                if ($membership) {
-                    $customer_id = (int) $membership['id_users_customer'];
-                    $params['id_customer_memberships'] = (int) $membership['id'];
-                } else {
-                    $customer = $this->db->get_where('users', ['id' => (int) $qr_token])->row_array();
-                    if ($customer) {
-                        $customer_id = (int) $customer['id'];
-                    }
-                }
-            } elseif ($phone) {
-                $clean_digits = preg_replace('/[^\d]/', '', $phone);
-                $last10 = substr($clean_digits, -10);
+        // 4. Check customer membership qr_code_token
+        if (!$customer_id) {
+            $memb = $this->db->get_where('customer_memberships', ['qr_code_token' => $raw])->row_array();
+            if ($memb) {
+                $membership_id = (int) $memb['id'];
+                $customer_id = (int) $memb['id_users_customer'];
+            }
+        }
 
-                // Build possible phone format candidates
+        // 5. Check numeric customer ID (if short 1-6 digits and not a phone number)
+        if (!$customer_id && is_numeric($raw) && strlen($raw) <= 6 && (int)$raw > 0) {
+            $cust_check = $this->db->get_where('users', ['id' => (int) $raw, 'id_roles' => 3])->row_array();
+            if ($cust_check) {
+                $customer_id = (int) $cust_check['id'];
+            }
+        }
+
+        // 6. Check phone number (Phone numbers with PII hash matching or decrypted search)
+        if (!$customer_id) {
+            $clean_digits = preg_replace('/[^\d]/', '', $raw);
+            $last10 = substr($clean_digits, -10);
+
+            if (!empty($last10)) {
                 $candidates = array_unique(array_filter([
-                    $phone,
+                    $raw,
                     $clean_digits,
                     $last10,
                     '0' . $last10,
                     '+90' . $last10,
                     '90' . $last10,
                     '0090' . $last10,
-                    // Turkish standard spacing: 05XX XXX XX XX / 5XX XXX XX XX
                     (strlen($last10) === 10) ? sprintf('0%s %s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
                     (strlen($last10) === 10) ? sprintf('%s %s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
                     (strlen($last10) === 10) ? sprintf('0%s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 4)) : null,
@@ -57,7 +100,7 @@ class Checkin_model extends EA_Model
                     (strlen($last10) === 10) ? sprintf('%s-%s-%s-%s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)) : null,
                 ]));
 
-                // 1. First attempt: Quick index match on phone_number_hash or plaintext phone_number
+                // A. PII Hash matching
                 $hashes = [];
                 if (function_exists('sf_pii_hash')) {
                     foreach ($candidates as $cand) {
@@ -77,6 +120,7 @@ class Checkin_model extends EA_Model
                         ->row_array();
                 }
 
+                // B. Plaintext match
                 if (!$customer_row && !empty($candidates)) {
                     $customer_row = $this->db
                         ->group_start()
@@ -87,13 +131,14 @@ class Checkin_model extends EA_Model
                         ->row_array();
                 }
 
-                // 2. Second attempt / fail-safe: Scan decrypted customer list matching clean 10 digits
+                // C. Decrypted customer scan fallback
                 if (!$customer_row && !empty($last10)) {
                     $all_customers = $this->customers_model->get();
                     foreach ($all_customers as $c) {
-                        $cust_phone = preg_replace('/[^\d]/', '', $c['phone_number'] ?? ($c['mobile_number'] ?? ''));
-                        if (!empty($cust_phone) && substr($cust_phone, -10) === $last10) {
-                            $customer_row = $c;
+                        $c_phone = is_array($c) ? ($c['phone_number'] ?? '') : ($c->phone_number ?? '');
+                        $cust_clean = preg_replace('/[^\d]/', '', $c_phone);
+                        if (!empty($cust_clean) && substr($cust_clean, -10) === $last10) {
+                            $customer_row = is_array($c) ? $c : (array) $c;
                             break;
                         }
                     }
@@ -101,6 +146,169 @@ class Checkin_model extends EA_Model
 
                 if ($customer_row) {
                     $customer_id = (int) $customer_row['id'];
+                }
+            }
+        }
+
+        return [
+            'customer_id' => $customer_id,
+            'appointment_id' => $appointment_id,
+            'membership_id' => $membership_id,
+        ];
+    }
+
+    /**
+     * Find customer by phone number (helper for compatibility).
+     */
+    public function find_customer_by_phone(string $phone)
+    {
+        $res = $this->resolve_identifier($phone);
+        if (!empty($res['customer_id'])) {
+            $this->load->model('customers_model');
+            try {
+                $cust = $this->customers_model->find((int) $res['customer_id']);
+                return is_array($cust) ? (object) $cust : $cust;
+            } catch (Throwable $e) {
+                return $this->db->get_where('users', ['id' => (int) $res['customer_id']])->row();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Unified Kiosk handler for Check-in & Check-out by phone, QR or customer ID.
+     */
+    public function kiosk_process(string $identifier, string $action = 'auto', string $method = 'kiosk'): array
+    {
+        $identifier = trim($identifier);
+        if (empty($identifier)) {
+            throw new InvalidArgumentException('Lütfen geçerli bir telefon numarası veya QR kod okutun.');
+        }
+
+        $resolved = $this->resolve_identifier($identifier);
+        $customer_id = $resolved['customer_id'] ?? null;
+        $appointment_id = $resolved['appointment_id'] ?? null;
+        $membership_id = $resolved['membership_id'] ?? null;
+
+        if (!$customer_id) {
+            throw new InvalidArgumentException('Müşteri veya randevu kaydı bulunamadı. Lütfen bilgilerinizi kontrol ediniz.');
+        }
+
+        // Fetch decrypted customer profile
+        $this->load->model('customers_model');
+        try {
+            $customer = $this->customers_model->find($customer_id);
+        } catch (Throwable $e) {
+            $customer = $this->db->get_where('users', ['id' => $customer_id])->row_array();
+        }
+
+        if (!$customer) {
+            throw new InvalidArgumentException('Müşteri kaydı bulunamadı.');
+        }
+
+        $cust_name = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'Değerli Müşterimiz';
+
+        // Check active inside status
+        $active_log = $this->db
+            ->get_where('checkin_logs', [
+                'id_users_customer' => $customer_id,
+                'status' => 'inside',
+            ])
+            ->row_array();
+
+        // 1. Explicit CHECK-OUT requested
+        if ($action === 'checkout') {
+            if (!$active_log) {
+                return [
+                    'status' => 'not_inside',
+                    'customer' => $customer,
+                    'message' => "Sayın {$cust_name}, şu an aktif bir giriş kaydınız bulunmuyor.",
+                ];
+            }
+            $checkout_res = $this->check_out((int) $active_log['id']);
+            return [
+                'status' => 'success',
+                'action' => 'checkout',
+                'checkin_id' => $active_log['id'],
+                'customer' => $customer,
+                'duration_minutes' => $checkout_res['duration_minutes'],
+                'exit_time' => $checkout_res['exit_time'],
+                'message' => "✓ Güle güle Sayın {$cust_name}! İçeride geçirilen süre: {$checkout_res['duration_minutes']} dakika. İyi günler dileriz.",
+            ];
+        }
+
+        // 2. Explicit CHECK-IN requested
+        if ($action === 'checkin') {
+            if ($active_log) {
+                $entry_time = date('H:i', strtotime($active_log['entry_timestamp']));
+                return [
+                    'status' => 'already_inside',
+                    'action' => 'checkin',
+                    'checkin_id' => (int) $active_log['id'],
+                    'customer' => $customer,
+                    'entry_time' => $entry_time,
+                    'message' => "Sayın {$cust_name}, zaten içeridesiniz (Giriş: {$entry_time}).",
+                ];
+            }
+            $checkin_res = $this->check_in([
+                'id_users_customer' => $customer_id,
+                'id_appointments' => $appointment_id,
+                'id_customer_memberships' => $membership_id,
+                'checkin_method' => $method,
+            ]);
+            $checkin_res['action'] = 'checkin';
+            $checkin_res['message'] = "✓ Hoş geldiniz Sayın {$cust_name}! Girişiniz başarıyla yapıldı.";
+            return $checkin_res;
+        }
+
+        // 3. AUTO Mode (Toggle: If inside -> check out; If outside -> check in)
+        if ($active_log) {
+            $checkout_res = $this->check_out((int) $active_log['id']);
+            return [
+                'status' => 'success',
+                'action' => 'checkout',
+                'checkin_id' => $active_log['id'],
+                'customer' => $customer,
+                'duration_minutes' => $checkout_res['duration_minutes'],
+                'exit_time' => $checkout_res['exit_time'],
+                'message' => "✓ Güle güle Sayın {$cust_name}! Çıkışınız yapıldı (Süre: {$checkout_res['duration_minutes']} dk).",
+            ];
+        } else {
+            $checkin_res = $this->check_in([
+                'id_users_customer' => $customer_id,
+                'id_appointments' => $appointment_id,
+                'id_customer_memberships' => $membership_id,
+                'checkin_method' => $method,
+            ]);
+            $checkin_res['action'] = 'checkin';
+            $checkin_res['message'] = "✓ Hoş geldiniz Sayın {$cust_name}! Girişiniz başarıyla yapıldı.";
+            return $checkin_res;
+        }
+    }
+
+    /**
+     * Perform check-in by customer ID, phone, QR code or appointment ID.
+     */
+    public function check_in(array $params): array
+    {
+        $customer_id = !empty($params['id_users_customer']) ? (int) $params['id_users_customer'] : null;
+        $phone = !empty($params['phone']) ? trim($params['phone']) : null;
+        $qr_token = !empty($params['qr_token']) ? trim($params['qr_token']) : null;
+        $appointment_id = !empty($params['id_appointments']) ? (int) $params['id_appointments'] : null;
+        $method = $params['checkin_method'] ?? 'manual';
+        $now = date('Y-m-d H:i:s');
+
+        // Locate customer if not directly provided
+        if (!$customer_id) {
+            $identifier = $qr_token ?: $phone;
+            if ($identifier) {
+                $resolved = $this->resolve_identifier($identifier);
+                $customer_id = $resolved['customer_id'];
+                if (!empty($resolved['appointment_id']) && !$appointment_id) {
+                    $appointment_id = $resolved['appointment_id'];
+                }
+                if (!empty($resolved['membership_id']) && empty($params['id_customer_memberships'])) {
+                    $params['id_customer_memberships'] = $resolved['membership_id'];
                 }
             } elseif ($appointment_id) {
                 $appt = $this->db->get_where('appointments', ['id' => $appointment_id])->row_array();
@@ -150,9 +358,10 @@ class Checkin_model extends EA_Model
             ->row_array();
 
         if ($active_checkin) {
+            $cust_name = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
             return [
                 'status' => 'already_inside',
-                'message' => $customer['first_name'] . ' ' . $customer['last_name'] . ' zaten içeride (Giriş: ' . date('H:i', strtotime($active_checkin['entry_timestamp'])) . ')',
+                'message' => $cust_name . ' zaten içeride (Giriş: ' . date('H:i', strtotime($active_checkin['entry_timestamp'])) . ')',
                 'checkin_log' => $active_checkin,
                 'customer' => $customer,
             ];
