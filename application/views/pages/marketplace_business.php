@@ -142,17 +142,17 @@ extract(html_vars());
         .booking-button {
             display: inline-block;
             padding: 0.75rem 2rem;
-            background-color: #4CAF50;
+            background-color: #35A768;
             color: white;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-weight: 600;
             margin-bottom: 1.5rem;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s ease;
         }
 
         .booking-button:hover {
-            background-color: #45a049;
+            background-color: #2d8f58;
         }
 
         .reviews-section {

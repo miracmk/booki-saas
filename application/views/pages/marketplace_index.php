@@ -72,16 +72,18 @@ extract(html_vars());
 
         .filters button {
             padding: 0.5rem 1.5rem;
-            background-color: #4CAF50;
+            background-color: #35A768;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
         }
 
         .filters button:hover {
-            background-color: #45a049;
+            background-color: #2d8f58;
         }
 
         .filters a.clear-filters {

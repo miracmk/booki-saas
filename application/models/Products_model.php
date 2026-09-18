@@ -242,16 +242,29 @@ class Products_model extends EA_Model
         ?float $unit_price = null,
         int $recorded_by = 0,
     ): void {
-        $this->db->trans_start();
+        $this->db->trans_begin();
 
         try {
             // Validate product exists
             $product = $this->find($product_id);
+            if (empty($product)) {
+                throw new InvalidArgumentException('Product not found: ' . $product_id);
+            }
 
-            // Update stock quantity
-            $new_quantity = (int) $product['stock_quantity'] + $delta;
+            // Atomic SQL update with conditional stock guard if deducting
+            $this->db->where('id', (int)$product_id);
+            if ($delta < 0) {
+                $this->db->where('stock_quantity >=', abs($delta));
+            }
+            $delta_int = (int)$delta;
+            $this->db->set('stock_quantity', "stock_quantity + ({$delta_int})", false);
+            $this->db->set('updated_at', date('Y-m-d H:i:s'));
+            $this->db->update('products');
 
-            $this->db->update('products', ['stock_quantity' => $new_quantity, 'updated_at' => date('Y-m-d H:i:s')], ['id' => $product_id]);
+            if ($delta < 0 && $this->db->affected_rows() === 0) {
+                $this->db->trans_rollback();
+                throw new InvalidArgumentException('Insufficient stock for product ID ' . $product_id);
+            }
 
             // Record the movement
             $this->db->insert('stock_movements', [
@@ -265,7 +278,12 @@ class Products_model extends EA_Model
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
 
-            $this->db->trans_complete();
+            if ($this->db->trans_status() === false) {
+                $this->db->trans_rollback();
+                throw new RuntimeException('Failed to record stock movement.');
+            }
+
+            $this->db->trans_commit();
         } catch (Throwable $e) {
             $this->db->trans_rollback();
             throw new RuntimeException('Could not adjust stock: ' . $e->getMessage());

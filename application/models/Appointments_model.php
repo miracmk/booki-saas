@@ -249,11 +249,14 @@ class Appointments_model extends EA_Model
             return [];
         }
 
+        $day_start = $date . ' 00:00:00';
+        $day_end   = $date . ' 23:59:59';
+
         $this->db
             ->where_in('id_users_provider', array_map('intval', $provider_ids))
             ->where('is_unavailability', false)
-            ->where('DATE(start_datetime) <=', $date)
-            ->where('DATE(end_datetime) >=', $date);
+            ->where('start_datetime <=', $day_end)
+            ->where('end_datetime >=', $day_start);
 
         if ($exclude_appointment_id) {
             $this->db->where('id !=', (int) $exclude_appointment_id);

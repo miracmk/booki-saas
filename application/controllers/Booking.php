@@ -502,8 +502,9 @@ class Booking extends EA_Controller
                 $existing_appointments = $this->appointments_model->get([
                     'id !=' => $manage_mode ? $appointment['id'] : null,
                     'id_users_customer' => $customer['id'],
-                    'start_datetime <=' => $appointment['start_datetime'],
-                    'end_datetime >=' => $appointment['end_datetime'],
+                    'start_datetime <' => $appointment['end_datetime'],
+                    'end_datetime >' => $appointment['start_datetime'],
+                    'is_unavailability' => 0,
                 ]);
 
                 if (count($existing_appointments)) {
@@ -612,10 +613,28 @@ class Booking extends EA_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
 
+            // Mark waitlist converted if applicable
+            try {
+                if (!empty($customer['id'])) {
+                    $this->load->model('waitlist_model');
+                    $matching_waitlists = $this->waitlist_model->get([
+                        'id_users_customer' => (int) $customer['id'],
+                        'id_services' => (int) $service['id'],
+                    ]);
+                    foreach ($matching_waitlists as $wl_entry) {
+                        if (in_array($wl_entry['status'], ['waiting', 'notified'], true)) {
+                            $this->waitlist_model->mark_converted((int)$wl_entry['id'], (int)$appointment_id);
+                        }
+                    }
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'Failed to mark waitlist converted in Booking.php: ' . $e->getMessage());
+            }
+
             // Attribute booking conversion to marketing ad / session attribution
             try {
                 $this->load->model('traffic_attributions_model');
-                $sessionId = $this->input->cookie('booki_session_id') ?: ($post_data['session_id'] ?? session_id());
+                $sessionId = $this->input->cookie('booki_session_id') ?: (request('session_id') ?? session_id());
                 $servicePrice = (float) ($service['price'] ?? 0);
                 $this->traffic_attributions_model->attribute_conversion(
                     (string) $sessionId,

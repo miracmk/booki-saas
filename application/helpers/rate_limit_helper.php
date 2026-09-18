@@ -25,16 +25,21 @@ if (!function_exists('rate_limit')) {
      * @param int $max_requests Number of allowed requests, defaults to 100.
      * @param int $duration In seconds, defaults to 2 minutes.
      */
-    function rate_limit(string $ip, int $max_requests = 100, int $duration = 120): void
+    function rate_limit(string $ip, int $max_requests = 1000, int $duration = 120): void
     {
         /** @var EA_Controller $CI */
         $CI = &get_instance();
 
         $rate_limiting = $CI->config->item('rate_limiting');
+        $configured_max = $CI->config->item('rate_limit_max_requests');
+        if (!empty($configured_max)) {
+            $max_requests = (int) $configured_max;
+        }
 
         if (
             !$rate_limiting
             || is_cli()
+            || (defined('ENVIRONMENT') && (ENVIRONMENT === 'testing' || ENVIRONMENT === 'development'))
             || in_array($ip, ['127.0.0.1', '::1'], true)
             || str_starts_with($ip, '192.168.')
             || str_starts_with($ip, '172.')

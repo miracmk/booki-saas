@@ -80,7 +80,7 @@ App.Pages.Reviews = (function () {
     }
 
     if (rows.length === 0) {
-      $tbody.html('<tr><td colspan="8" class="text-center text-muted py-4">Bu filtrelere uygun yorum bulunmuyor.</td></tr>');
+      $tbody.html('<tr><td colspan="8" class="text-center text-muted py-5"><div class="py-3"><i class="fas fa-comments text-muted opacity-25 fa-3x d-block mb-3"></i><p class="mb-0 fw-medium">Bu filtrelere uygun yorum bulunmuyor.</p></div></td></tr>');
       return;
     }
 

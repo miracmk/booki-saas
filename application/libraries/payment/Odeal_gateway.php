@@ -156,17 +156,21 @@ class Odeal_gateway extends Payment_gateway_abstract
     {
         $secret = $this->get_setting('odeal_secret_key') ?: $this->get_setting('webhook_secret');
         if (empty($secret)) {
-            return true;
+            $this->log_error('ÖdeAl webhook secret is not configured.');
+            return false;
         }
 
-        $signature = $headers['X-Odeal-Signature'] ?? ($headers['x-odeal-signature'] ?? null);
-        if (!$signature) {
-            return true;
+        $signature = $headers['X-Odeal-Signature'] 
+            ?? ($headers['x-odeal-signature'] 
+            ?? ($headers['HTTP_X_ODEAL_SIGNATURE'] ?? null));
+        if (empty($signature)) {
+            $this->log_error('Missing X-Odeal-Signature header.');
+            return false;
         }
 
         $computed = hash_hmac('sha256', $raw_body, $secret);
 
-        return hash_equals($computed, $signature);
+        return hash_equals($computed, (string) $signature);
     }
 
     public function parse_webhook_event(string $raw_body, array $headers): array

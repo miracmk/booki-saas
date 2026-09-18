@@ -250,8 +250,8 @@ class Agent_api extends EA_Controller
 
             $query = trim(request('query'));
 
-            if (mb_strlen($query) < 2) {
-                throw new InvalidArgumentException('Query must be at least 2 characters.');
+            if (mb_strlen($query) < 3) {
+                throw new InvalidArgumentException('Query must be at least 3 characters.');
             }
 
             $customers = [];

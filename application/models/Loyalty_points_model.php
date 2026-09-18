@@ -111,14 +111,6 @@ class Loyalty_points_model extends EA_Model
             $reason = 'redeemed';
         }
 
-        $current_balance = $this->get_balance($customer_id);
-
-        if ($points > $current_balance) {
-            throw new InvalidArgumentException(
-                'Insufficient points: ' . $current_balance . ' available, ' . $points . ' requested',
-            );
-        }
-
         try {
             $this->db->trans_begin();
 
@@ -131,16 +123,17 @@ class Loyalty_points_model extends EA_Model
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
 
-            // Update the customer's balance
+            // Atomically decrement the customer's balance ensuring it doesn't go below zero
             $this->db->query(
                 'UPDATE ' . $this->db->dbprefix('users') .
-                ' SET loyalty_points_balance = loyalty_points_balance - ' . intval($points) .
-                ' WHERE id = ' . intval($customer_id),
+                ' SET loyalty_points_balance = loyalty_points_balance - ? ' .
+                ' WHERE id = ? AND loyalty_points_balance >= ?',
+                [(int)$points, (int)$customer_id, (int)$points]
             );
 
-            if ($this->db->trans_status() === false) {
+            if ($this->db->affected_rows() !== 1 || $this->db->trans_status() === false) {
                 $this->db->trans_rollback();
-                throw new RuntimeException('Failed to record loyalty points redemption.');
+                throw new InvalidArgumentException('Insufficient loyalty points or concurrent modification.');
             }
 
             $this->db->trans_commit();

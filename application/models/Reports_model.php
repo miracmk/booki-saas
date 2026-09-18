@@ -132,8 +132,8 @@ class Reports_model extends EA_Model
 
         return [
             'minutes' => $duration_minutes,
-            'price' => $price,
-            'payout' => $payout,
+            'price' => round($price, 2),
+            'payout' => round($payout, 2),
         ];
     }
 

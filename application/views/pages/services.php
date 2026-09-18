@@ -112,11 +112,11 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label" for="attendants-number" disabled>
+                <label class="form-label" for="attendants-number">
                     <?= lang('attendants_number') ?>
                     <span class="text-danger" hidden>*</span>
                 </label>
-                <input id="attendants-number" class="form-control required" type="number" min="1">
+                <input id="attendants-number" class="form-control required" type="number" min="1" disabled>
             </div>
 
             <div class="mb-3">

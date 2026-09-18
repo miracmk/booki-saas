@@ -35,7 +35,6 @@ class Availability
         $this->CI->load->model('appointments_model');
         $this->CI->load->model('providers_model');
         $this->CI->load->model('secretaries_model');
-        $this->CI->load->model('secretaries_model');
         $this->CI->load->model('settings_model');
         $this->CI->load->model('unavailabilities_model');
         $this->CI->load->model('blocked_periods_model');
@@ -413,12 +412,14 @@ class Availability
 
                 if ($break_start <= $period_start && $break_end >= $period_end) {
                     // break contains period
-                    $period['start'] = $break_end;
+                    $period['start'] = $period_end;
                 }
             }
         }
 
-        return $periods;
+        return array_values(array_filter($periods, function ($p) {
+            return $p['start'] < $p['end'];
+        }));
     }
 
     /**
@@ -480,12 +481,14 @@ class Availability
 
                 if ($unavailability_start <= $period_start && $unavailability_end >= $period_end) {
                     // Unavailability contains period
-                    $period['start'] = $unavailability_end;
+                    $period['start'] = $period_end;
                 }
             }
         }
 
-        return $periods;
+        return array_values(array_filter($periods, function ($p) {
+            return $p['start'] < $p['end'];
+        }));
     }
 
     /**

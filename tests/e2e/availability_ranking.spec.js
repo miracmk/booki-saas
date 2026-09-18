@@ -22,6 +22,7 @@ test.describe('İlk Müsaitlik sıralama (demo-guzellik)', () => {
     await page.getByPlaceholder(/password/i).fill('administrator');
     await page.getByRole('button', { name: /login/i }).click();
     await expect(page).toHaveURL(/dashboard/);
+    await page.waitForFunction(() => typeof window.App !== 'undefined' && typeof window.App.Http !== 'undefined' && typeof window.App.Http.Calendar !== 'undefined');
 
     // Call the app's own authenticated JS client in-page (reuses the session cookie + CSRF token
     // already loaded into the page) instead of re-implementing the request by hand.
@@ -52,6 +53,7 @@ test.describe('İlk Müsaitlik sıralama (demo-guzellik)', () => {
     await page.getByPlaceholder(/password/i).fill('administrator');
     await page.getByRole('button', { name: /login/i }).click();
     await expect(page).toHaveURL(/dashboard/);
+    await page.waitForFunction(() => typeof window.App !== 'undefined' && typeof window.App.Http !== 'undefined' && typeof window.App.Http.Calendar !== 'undefined');
 
     const before = await page.evaluate(async () => {
       return new Promise((resolve) => {
@@ -72,6 +74,7 @@ test.describe('İlk Müsaitlik sıralama (demo-guzellik)', () => {
     await expect(page.locator('.form-message.alert-success, .alert-success')).toBeVisible({ timeout: 8000 }).catch(() => {});
 
     await page.goto('/dashboard'); // App.Http.Calendar is only loaded on dashboard/calendar pages, not /stations
+    await page.waitForFunction(() => typeof window.App !== 'undefined' && typeof window.App.Http !== 'undefined' && typeof window.App.Http.Calendar !== 'undefined');
     const after = await page.evaluate(async () => {
       return new Promise((resolve) => {
         App.Http.Calendar.getRoomAvailability()

@@ -48,8 +48,13 @@ select {
     .color-selection-option {
         border: none;
         color: var(--bs-white);
-        width: 32px;
-        height: 32px;
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 8px;
+        margin: 3px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
 
         .fa-check {
             display: none;

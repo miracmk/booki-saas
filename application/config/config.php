@@ -500,8 +500,7 @@ $config['rewrite_short_tags'] = false;
 | header in order to properly identify the visitor's IP address.
 | Comma-delimited, e.g. '10.0.1.200,10.0.1.201'
 |
-*/
-$config['proxy_ips'] = '';
+$config['proxy_ips'] = getenv('TRUSTED_PROXY_IPS') ?: '127.0.0.1,172.16.0.0/12,10.0.0.0/8,192.168.0.0/16';
 
 /*
 |--------------------------------------------------------------------------
@@ -513,6 +512,7 @@ $config['proxy_ips'] = '';
 |
 */
 $config['rate_limiting'] = true;
+$config['rate_limit_max_requests'] = getenv('RATE_LIMIT_MAX_REQUESTS') ?: 1000;
 
 /* End of file config.php */
 /* Location: ./application/config/config.php */

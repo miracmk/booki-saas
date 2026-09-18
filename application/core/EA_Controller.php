@@ -244,7 +244,7 @@ class EA_Controller extends CI_Controller
             'dbdriver' => 'mysqli',
             'dbprefix' => 'ea_',
             'pconnect' => false,
-            'db_debug' => true,
+            'db_debug' => defined('ENVIRONMENT') && ENVIRONMENT === 'development',
             'cache_on' => false,
             'cachedir' => '',
             'char_set' => 'utf8mb4',

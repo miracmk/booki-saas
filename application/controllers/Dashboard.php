@@ -101,13 +101,8 @@ class Dashboard extends EA_Controller
             ->join('users AS customers', 'customers.id = appointments.id_users_customer', 'left')
             ->join('services', 'services.id = appointments.id_services', 'inner')
             ->join('stations', 'stations.id = appointments.id_stations', 'left')
-            ->where('appointments.is_unavailability', false)
-            // BooKi bugfix (2026-09-10) - CI's query builder only auto-prefixes/backticks a
-            // bare "table.column" condition key; wrapped in DATE(...) it's passed through completely
-            // raw, so "appointments.start_datetime" (no dbprefix) doesn't match the real
-            // "ea_appointments" table. Bare "start_datetime" is unambiguous here (no other joined
-            // table has that column) - same pattern Reports_model::get_revenue_rows() already uses.
-            ->where('DATE(start_datetime)', $date)
+            ->where('appointments.start_datetime >=', $date . ' 00:00:00')
+            ->where('appointments.start_datetime <=', $date . ' 23:59:59')
             ->where_not_in('appointments.status', self::CANCELLED_LIKE_STATUSES);
 
         if ($provider_id) {

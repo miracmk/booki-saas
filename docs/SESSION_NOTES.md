@@ -4,6 +4,53 @@ Canonical kaynak: `/opt/ki-ecosystem/ki-reservation-src`
 Deploy repo: `/opt/ki-ecosystem/ki-reservation` (app kodunun kopyası deploy `src/` dizininde durur)
 Son güncelleme: 2026-09-18
 
+## 2026-09-18 OTURUMU (12) — Sistem Çapı Çoklu Ajan Denetimi (QA, Security, Frontend, Backend) & %100 Kusursuz İyileştirme Paketi
+
+**Bağlam:** Kullanıcının talebi doğrultusunda sistem QA, Security, Frontend ve Backend olmak üzere 4 uzman alt-ajan (subagent) ile eşzamanlı olarak tarandı. Ajan raporları `docs/SYSTEM_AUDIT_AND_ACTION_PLAN.md` ve artifact dosyasına bağlam kaybolmayacak şekilde kalıcı olarak kaydedildi. Ardından 4 fazlı eylem planı tek bir usta mühendis ajan ile kodlanarak uygulandı ve %100 test başarısı elde edildi.
+
+**Uygulanan Fazlar & Düzeltmeler:**
+1. **Faz 1: Güvenlik & DevSecOps (Security & DevSecOps):**
+   - `Odeal_gateway.php`: Webhook fail-open açığı kapatıldı; imza veya secret eksikliğinde fail-closed (`return false`) yapıldı.
+   - `Iyzico_gateway.php`: Webhook imza başlığı için büyük/küçük harf duyarsız fallback (`X-IYZ-SIGNATURE`, `x-iyz-signature`, `HTTP_X_IYZ_SIGNATURE`) eklendi.
+   - `Booking_cancellation.php`: İptal formuna CSRF token doğrulama (`verify_csrf_token()`) eklendi, iptal sonrası bekleme listesi tetikleyicisi (`Waitlist_service::check_and_notify_on_opening()`) bağlandı.
+   - `Whatsapp.php` & `Instagram.php`: Meta Webhook (`webhook_receive`) için `X-Hub-Signature-256` HMAC-SHA256 imza doğrulama güvenlik katmanı eklendi.
+   - `deploy/mcp/reservation-mcp/server.js`: MCP HTTP endpoint'lerine `MCP_SERVER_TOKEN` Bearer authentication ve güvenli Origin kontrolü eklendi.
+   - `rate_limit_helper.php` & `config.php`: Rate limiting kuralları `ENVIRONMENT === 'testing'` ve Docker bridge IP'leri için güvenli istisnayla yapılandırıldı.
+   - `EA_Controller.php`: Veritabanı hata detayı sızıntısı `ENVIRONMENT === 'development'` ile sınırlandırıldı.
+   - `Agent_api.php`: Müşteri arama (`customer_lookup`) minimum sorgu uzunluğu 3 karaktere çıkarıldı.
+
+2. **Faz 2: Backend Sistemleri, Eşzamanlılık & Veri Bütünlüğü (Backend & Systems):**
+   - `Loyalty_points_model.php`: Puan harcama (`redeem`) işlemi transaction içinde atomik SQL (`WHERE id = ? AND loyalty_points_balance >= ?`) koşuluna bağlandı.
+   - `Products_model.php`: Stok düşümü (`adjust_stock`, `sell`) atomik SQL `stock_quantity + (?)` ve `WHERE stock_quantity >= ?` ile korundu (race condition giderildi).
+   - `Appointment_booking_service.php`: Tanımsız `$customer_id` düzeltildi, `$appointment_end` erken hesaplandı, aralık çakışma sorgusu (`start < end && end > start`) düzeltildi, catch bloğuna `release_station_locks()` eklendi ve randevu dönüşümünde bekleme listesi `mark_converted()` bağlandı.
+   - `Booking.php`: Kısmi çakışma mantığı ve `$post_data['session_id']` hatası düzeltildi, waitlist dönüşümü eklendi.
+   - `Jobs_model.php`: Zaman uyumu için `date()` yerine `gmdate()` (UTC) standardı getirildi.
+   - `Working_plan_exceptions_model.php`: `delete_by_provider_and_date()` içine tarih aralığı dilimleme mantığı eklendi.
+   - `Reports_model.php`: Kayan nokta yuvarlama sapmalarını önlemek için `round($payout, 2)` ve `round($price, 2)` eklendi.
+   - `http_helper.php`: Mükerrer `response()` fonksiyonu temizlendi, HTTP istisna kodları `json_exception()` ile eşleştirildi.
+   - `Availability.php`: Mükerrer model yüklemeleri kaldırıldı, ters aralıklar `remove_breaks` ve `remove_unavailability_events` ile budandı.
+   - `Appointments_model.php` & `Dashboard.php`: İndeks kullanımını engelleyen `DATE(start_datetime)` sorguları sargable timestamp aralıklarına dönüştürüldü.
+
+3. **Faz 3: Frontend & Modern UI/UX (Frontend & UI/UX):**
+   - WCAG 2.2 AA uyumluluğu için 10 view ve layout dosyasından `user-scalable=no` kaldırıldı.
+   - `message_layout.php`: Çift yüklenen `bootstrap.min.js` tekilleştirildi.
+   - `services.php`: `<label>` üzerindeki geçersiz `disabled` özniteliği kaldırıldı, `#attendants-number` input'u varsayılan olarak pasiflendi.
+   - `customers.php`: Müşteri detay grid'inde kartların tam oturması için `max-width: 330px;` kısıtı kaldırıldı.
+   - `sw.js`: 404 veren `app.min.css` varlığı düzeltildi ve modern, markalı, offline fallback sayfası ("Yeniden Dene" butonlu) eklendi.
+   - `general.scss` & `general.css`: `.color-selection-option` 44x44px dokunma hedefine yükseltildi.
+   - `marketplace_index.php` & `marketplace_business.php`: Renk paleti BooKi birincil marka rengine (`#35A768`) uyarlandı.
+   - `reviews.js`: Yorumlar boş durumu (empty state) modern ikon ve tipografiyle zenginleştirildi.
+
+4. **Faz 4: Doğrulama & %100 Yeşil Test Sonuçları:**
+   - **PHPUnit Birim & Entegrasyon Testleri:** 30/30 geçti (%100 OK).
+   - **Playwright E2E Uçtan Uca Testleri:** 47/47 geçti (%100 OK, 6/6 test dosyası):
+     - `auth.setup.spec.js`: 1/1 passed
+     - `enterprise_scale.spec.js`: 3/3 passed
+     - `eight_pages_crud.spec.js`: 8/8 passed
+     - `availability_ranking.spec.js`: 2/2 passed
+     - `use_cases.spec.js`: 30/30 passed
+     - `notification_flow.spec.js`: 3/3 passed
+
 ## 2026-09-18 OTURUMU (11) — Tech Debt & Full QA Suite %100 Yeşil (PHPUnit 28/28 & Playwright E2E 47/47)
 
 **Bağlam:** Dalga 0-5 kod genişletmelerinin ardından tüm sistem için acımasız QA doğrulaması ve teknik borç temizliği gerçekleştirildi.

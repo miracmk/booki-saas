@@ -560,11 +560,43 @@ class Working_plan_exceptions_model extends EA_Model
      */
     public function delete_by_provider_and_date(int $provider_id, string $date): void
     {
-        // Delete any exception where the date falls within the range
-        $this->db
+        $matching = $this->db
             ->where('id_users_provider', $provider_id)
             ->where('start_date <=', $date)
             ->where('end_date >=', $date)
-            ->delete('working_plan_exceptions');
+            ->get('working_plan_exceptions')
+            ->result_array();
+
+        foreach ($matching as $exception) {
+            $start = $exception['start_date'];
+            $end = $exception['end_date'];
+            $id = (int)$exception['id'];
+
+            if ($start === $date && $end === $date) {
+                // Exact single day match: delete row
+                $this->db->delete('working_plan_exceptions', ['id' => $id]);
+            } elseif ($start === $date) {
+                // Starts on date, extends after: shift start_date to date + 1 day
+                $next_day = date('Y-m-d', strtotime($date . ' +1 day'));
+                $this->db->update('working_plan_exceptions', ['start_date' => $next_day], ['id' => $id]);
+            } elseif ($end === $date) {
+                // Ends on date, starts before: shift end_date to date - 1 day
+                $prev_day = date('Y-m-d', strtotime($date . ' -1 day'));
+                $this->db->update('working_plan_exceptions', ['end_date' => $prev_day], ['id' => $id]);
+            } else {
+                // Date is in the middle: split into two disjoint ranges
+                $prev_day = date('Y-m-d', strtotime($date . ' -1 day'));
+                $next_day = date('Y-m-d', strtotime($date . ' +1 day'));
+
+                // Trim first segment
+                $this->db->update('working_plan_exceptions', ['end_date' => $prev_day], ['id' => $id]);
+
+                // Insert second segment
+                $new_exception = $exception;
+                unset($new_exception['id']);
+                $new_exception['start_date'] = $next_day;
+                $this->db->insert('working_plan_exceptions', $new_exception);
+            }
+        }
     }
 }

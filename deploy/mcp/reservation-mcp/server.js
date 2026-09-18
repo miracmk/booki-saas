@@ -313,6 +313,8 @@ if (process.env.TRANSPORT === 'http') {
   log('info', 'kirsv-mcp listening on stdio');
 }
 
+const MCP_SERVER_TOKEN = process.env.MCP_SERVER_TOKEN || process.env.MCP_AUTH_TOKEN || '';
+
 async function startHttp() {
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => randomUUID(),
@@ -329,7 +331,7 @@ async function startHttp() {
 
     if (req.method === 'OPTIONS') {
       const headers = {};
-      applyCors(headers);
+      applyCors(headers, req);
       headers['Allow'] = 'GET, POST, DELETE';
       headers['Content-Length'] = '0';
       res.writeHead(204, headers);
@@ -343,13 +345,22 @@ async function startHttp() {
       return;
     }
 
+    // Authenticate MCP transport request if token is configured
+    if (MCP_SERVER_TOKEN) {
+      const authHeader = req.headers['authorization'] || '';
+      const match = authHeader.match(/^Bearer\s+(.+)$/i);
+      if (!match || match[1] !== MCP_SERVER_TOKEN) {
+        log('warn', 'Unauthorized MCP HTTP request', { ip: req.socket.remoteAddress });
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Unauthorized: Invalid or missing MCP server token' }));
+        return;
+      }
+    }
+
     const origWriteHead = res.writeHead.bind(res);
     res.writeHead = (code, ...args) => {
       try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, MCP-Protocol-Version, MCP-Session-ID, Authorization');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Expose-Headers', 'MCP-Session-ID');
+        applyCorsHeaders(res, req);
       } catch {
         // headers may already be sent; transport responses still carry the session id
       }
@@ -374,9 +385,18 @@ async function startHttp() {
   log('info', `kirsv-mcp HTTP streamable listening on :${PORT}${BASE_PATH}`);
 }
 
-function applyCors(headers) {
-  headers['Access-Control-Allow-Origin'] = '*';
+function applyCors(headers, req) {
+  const origin = req?.headers?.origin || '*';
+  headers['Access-Control-Allow-Origin'] = origin;
   headers['Access-Control-Allow-Headers'] = 'Content-Type, Accept, MCP-Protocol-Version, MCP-Session-ID, Authorization';
   headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, OPTIONS';
   headers['Access-Control-Expose-Headers'] = 'MCP-Session-ID';
+}
+
+function applyCorsHeaders(res, req) {
+  const origin = req?.headers?.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, MCP-Protocol-Version, MCP-Session-ID, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Expose-Headers', 'MCP-Session-ID');
 }

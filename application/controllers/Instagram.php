@@ -124,7 +124,8 @@ class Instagram extends EA_Controller
     private function webhook_receive(): void
     {
         try {
-            $payload = json_decode(file_get_contents('php://input'), true) ?: [];
+            $raw_input = file_get_contents('php://input');
+            $payload = json_decode($raw_input, true) ?: [];
 
             if (empty($payload)) {
                 response();
@@ -132,6 +133,19 @@ class Instagram extends EA_Controller
             }
 
             $settings = $this->messaging_settings_model->get_settings();
+
+            // Verify Meta HMAC signature if app secret is configured
+            $app_secret = $settings['meta_app_secret'] ?? ($settings['instagram_app_secret'] ?? (getenv('META_APP_SECRET') ?: ''));
+            $signature_header = $this->input->get_request_header('X-Hub-Signature-256')
+                ?? ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? null);
+
+            if (!empty($app_secret) && !empty($signature_header)) {
+                $expected = 'sha256=' . hash_hmac('sha256', $raw_input, $app_secret);
+                if (!hash_equals($expected, (string) $signature_header)) {
+                    log_message('error', 'Instagram::webhook_receive - Invalid X-Hub-Signature-256');
+                    abort(403, 'Invalid Meta signature');
+                }
+            }
 
             // Extract messages from Meta Graph API webhook structure
             // entry[].messaging[]

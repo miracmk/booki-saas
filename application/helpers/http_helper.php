@@ -69,27 +69,6 @@ if (!function_exists('response')) {
     }
 }
 
-if (!function_exists('response')) {
-    /**
-     * Return a new response from the application.
-     *
-     * @param string $content
-     * @param int $status
-     * @param array $headers
-     */
-    function response(string $content = '', int $status = 200, array $headers = []): void
-    {
-        /** @var EA_Controller $CI */
-        $CI = &get_instance();
-
-        foreach ($headers as $header) {
-            $CI->output->set_header($header);
-        }
-
-        $CI->output->set_status_header($status)->set_output($content);
-    }
-}
-
 if (!function_exists('json_response')) {
     /**
      * Return a new response from the application.
@@ -176,7 +155,12 @@ if (!function_exists('json_exception')) {
 
         unset($response['trace']); // Do not send the trace to the browser as it might contain sensitive info
 
-        json_response($response, 500);
+        $status_code = (int) $e->getCode();
+        if ($status_code < 400 || $status_code > 599) {
+            $status_code = ($e instanceof InvalidArgumentException) ? 422 : 500;
+        }
+
+        json_response($response, $status_code);
     }
 }
 

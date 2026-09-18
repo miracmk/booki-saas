@@ -67,6 +67,9 @@ class Booking_cancellation extends EA_Controller
                 abort(403, 'Forbidden');
             }
 
+            // Verify CSRF token
+            $this->verify_csrf_token();
+
             // Apply rate limiting for cancellations (5 per 10 minutes per IP)
             $this->apply_cancellation_rate_limit();
 
@@ -114,6 +117,10 @@ class Booking_cancellation extends EA_Controller
             ];
 
             $this->appointments_model->delete($appointment['id']);
+
+            // Notify waitlist on slot opening
+            $this->load->library('waitlist_service');
+            $this->waitlist_service->check_and_notify_on_opening($appointment);
 
             $this->synchronization->sync_appointment_deleted($appointment, $provider);
 
@@ -191,6 +198,22 @@ class Booking_cancellation extends EA_Controller
             throw $e;
         } catch (Throwable $e) {
             log_message('error', 'Cache error in cancellation rate limiting: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Verify CSRF token for cancellation request.
+     *
+     * @throws RuntimeException If CSRF token is invalid.
+     */
+    private function verify_csrf_token(): void
+    {
+        $csrf_token = request('csrf_token') ?? $this->input->get_request_header('X-CSRF');
+        $csrf_cookie = $this->input->cookie('csrf_cookie');
+
+        if (empty($csrf_token) || empty($csrf_cookie) || !hash_equals($csrf_cookie, $csrf_token)) {
+            log_message('error', 'Invalid CSRF token in booking cancellation from IP: ' . $this->input->ip_address());
+            throw new RuntimeException('Security validation failed. Please refresh the page and try again.');
         }
     }
 }

@@ -62,7 +62,7 @@ class Jobs_model extends EA_Model
      */
     public function reserve_batch(int $limit, string $worker_id, string $queue): array
     {
-        $now = date('Y-m-d H:i:s');
+        $now = gmdate('Y-m-d H:i:s');
 
         // A per-call unique reservation token, NOT just $worker_id: reserved_at has only
         // second-level precision, so two calls from the same worker within the same second

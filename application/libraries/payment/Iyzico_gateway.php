@@ -284,8 +284,9 @@ class Iyzico_gateway extends Payment_gateway_abstract
                 return false;
             }
 
-            // iyzico uses X-IYZ-SIGNATURE header (verify against documentation)
-            $received_signature = $headers['X-IYZ-SIGNATURE'] ?? '';
+            $received_signature = $headers['X-IYZ-SIGNATURE'] 
+                ?? ($headers['x-iyz-signature'] 
+                ?? ($headers['HTTP_X_IYZ_SIGNATURE'] ?? ''));
 
             if (empty($received_signature)) {
                 $this->log_error('No X-IYZ-SIGNATURE header in iyzico webhook.');

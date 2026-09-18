@@ -164,18 +164,24 @@ class Appointment_booking_service
                 return $this->error_response('invalid_phone', 'Telefon numarası gerekli.');
             }
 
+            // Pre-calculate appointment end datetime
+            $appointment_end = clone $appointment_start;
+            $appointment_end->modify('+' . (int) $service['duration'] . ' minutes');
+
             // Step 6: Check for duplicate customer appointments
             if ($this->CI->customers_model->exists($customer)) {
                 // Reuse the existing customer record - save() validates email uniqueness BEFORE its own
                 // exists() fallback runs, so unless the resolved id is set HERE it throws "email already
                 // in use" for every returning customer (Booking.php, by contrast, pre-resolves the id the
                 // same way before calling save()).
-                $customer['id'] = $this->CI->customers_model->find_record_id($customer);
+                $customer_id = (int) $this->CI->customers_model->find_record_id($customer);
+                $customer['id'] = $customer_id;
 
                 $existing_appointments = $this->CI->appointments_model->get([
                     'id_users_customer' => $customer_id,
-                    'start_datetime <=' => $appointment_start->format('Y-m-d H:i:s'),
-                    'end_datetime >=' => $appointment_start->format('Y-m-d H:i:s'),
+                    'start_datetime <' => $appointment_end->format('Y-m-d H:i:s'),
+                    'end_datetime >' => $appointment_start->format('Y-m-d H:i:s'),
+                    'is_unavailability' => 0,
                 ]);
 
                 if (!empty($existing_appointments)) {
@@ -196,9 +202,6 @@ class Appointment_booking_service
 
                 $station_locks_held = $provider_station_ids;
 
-                $appointment_end = clone $appointment_start;
-                $appointment_end->modify('+' . (int) $service['duration'] . ' minutes');
-
                 $free_station_id = $this->CI->stations_model->find_free_station(
                     $provider_station_ids,
                     $appointment_start->format('Y-m-d H:i:s'),
@@ -207,6 +210,7 @@ class Appointment_booking_service
 
                 if ($free_station_id === null) {
                     $this->CI->stations_model->release_station_locks($station_locks_held);
+                    $station_locks_held = [];
 
                     return $this->error_response('no_available_station', 'Bu saat için istasyon uygunluğu bulunmuyor.');
                 }
@@ -346,6 +350,24 @@ class Appointment_booking_service
                 );
             }
 
+            // Mark waitlist converted if applicable
+            try {
+                if (!empty($customer['id'])) {
+                    $this->CI->load->model('waitlist_model');
+                    $matching_waitlists = $this->CI->waitlist_model->get([
+                        'id_users_customer' => (int) $customer['id'],
+                        'id_services' => (int) $service['id'],
+                    ]);
+                    foreach ($matching_waitlists as $wl_entry) {
+                        if (in_array($wl_entry['status'], ['waiting', 'notified'], true)) {
+                            $this->CI->waitlist_model->mark_converted((int)$wl_entry['id'], (int)$appointment_id);
+                        }
+                    }
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'Failed to mark waitlist converted: ' . $e->getMessage());
+            }
+
             $response = [
                 'success' => true,
                 'appointment_id' => $appointment_id,
@@ -359,6 +381,9 @@ class Appointment_booking_service
 
             return $response;
         } catch (Throwable $e) {
+            if (!empty($station_locks_held)) {
+                $this->CI->stations_model->release_station_locks($station_locks_held);
+            }
             log_message('error', 'Appointment_booking_service::create - ' . $e->getMessage());
 
             return $this->error_response('internal_error', 'İç hata oluştu. Lütfen daha sonra tekrar deneyin.');

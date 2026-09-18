@@ -305,13 +305,13 @@
                         Müşteri İçgörüleri
                     </h4>
 
-                    <div id="customer-insights" class="card border p-3 mb-4" style="max-width: 330px; width: 100%;"></div>
+                    <div id="customer-insights" class="card border p-3 mb-4 w-100"></div>
 
                     <h4 class="mb-3 fw-light">
                         <?= lang('appointments') ?>
                     </h4>
 
-                    <div id="customer-appointments" class="card border p-3 overflow-auto mb-4" style="min-height: 400px; max-height: 800px; max-width: 330px; width: 100%;"></div>
+                    <div id="customer-appointments" class="card border p-3 overflow-auto mb-4 w-100" style="min-height: 400px; max-height: 800px;"></div>
 
                 </div>
             </div>

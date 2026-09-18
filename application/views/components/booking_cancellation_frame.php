@@ -18,6 +18,7 @@
                   action="<?= site_url('booking_cancellation/of/' . $appointment_data['hash']) ?>">
 
                 <input id="hidden-cancellation-reason" name="cancellation_reason" type="hidden">
+                <input type="hidden" name="csrf_token" value="<?= $this->security->get_csrf_hash() ?>">
 
                 <button id="cancel-appointment" class="btn btn-warning btn-sm">
                     <i class="fas fa-trash me-2"></i>
