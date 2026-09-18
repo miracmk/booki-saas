@@ -251,7 +251,7 @@ class Checkin_model extends EA_Model
      */
     public function get_live_occupancy(): array
     {
-        $inside = $this->db
+        $result_inside = $this->db
             ->select('cl.*, 
                       c.first_name as customer_first_name, c.last_name as customer_last_name, c.phone_number as customer_phone,
                       mp.name as membership_plan_name,
@@ -266,15 +266,23 @@ class Checkin_model extends EA_Model
             ->get()
             ->result_array();
 
+        if (function_exists('sf_pii_decrypt')) {
+            foreach ($result_inside as &$guest) {
+                if (!empty($guest['customer_phone'])) {
+                    $guest['customer_phone'] = sf_pii_decrypt($guest['customer_phone']);
+                }
+            }
+        }
+
         $capacity = (int) ($this->db->get_where('settings', ['name' => 'max_capacity'])->row()->value ?? 50);
-        $current_count = count($inside);
+        $current_count = count($result_inside);
         $occupancy_rate = $capacity > 0 ? min(100, round(($current_count / $capacity) * 100)) : 0;
 
         return [
             'current_count' => $current_count,
             'max_capacity' => $capacity,
             'occupancy_rate' => $occupancy_rate,
-            'active_guests' => $inside,
+            'active_guests' => $result_inside,
         ];
     }
 
@@ -303,10 +311,20 @@ class Checkin_model extends EA_Model
             $this->db->where('DATE(cl.entry_timestamp)', $date);
         }
 
-        return $this->db
+        $logs = $this->db
             ->order_by('cl.entry_timestamp DESC')
             ->limit($limit)
             ->get()
             ->result_array();
+
+        if (function_exists('sf_pii_decrypt')) {
+            foreach ($logs as &$log) {
+                if (!empty($log['customer_phone'])) {
+                    $log['customer_phone'] = sf_pii_decrypt($log['customer_phone']);
+                }
+            }
+        }
+
+        return $logs;
     }
 }
