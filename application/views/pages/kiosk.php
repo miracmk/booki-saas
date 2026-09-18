@@ -65,11 +65,11 @@
             max-width: 180px;
             object-fit: contain;
         }
-        /* Mode Switcher Tabs */
+        /* Mode Switcher Tabs (3 Tabs) */
         .kiosk-nav-pills {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
             background: rgba(15, 23, 42, 0.7);
             padding: 6px;
             border-radius: 16px;
@@ -79,9 +79,9 @@
             border: none;
             background: transparent;
             color: #94a3b8;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
-            padding: 8px 4px;
+            padding: 10px 6px;
             border-radius: 12px;
             display: flex;
             flex-direction: column;
@@ -91,27 +91,22 @@
             cursor: pointer;
         }
         .kiosk-tab-btn i {
-            font-size: 15px;
+            font-size: 16px;
         }
-        .kiosk-tab-btn.active.tab-in {
-            background: var(--kiosk-success);
+        .kiosk-tab-btn.active.tab-keypad {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
-        }
-        .kiosk-tab-btn.active.tab-out {
-            background: var(--kiosk-danger);
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
         }
         .kiosk-tab-btn.active.tab-camera {
-            background: #8b5cf6;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
         }
         .kiosk-tab-btn.active.tab-mobile {
-            background: var(--kiosk-accent);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
         }
 
         /* Display Screen */
@@ -180,27 +175,17 @@
 
         /* Action Buttons */
         .btn-kiosk-submit {
-            height: clamp(48px, 8vh, 58px);
-            font-size: clamp(16px, 3.6vw, 18px);
+            height: clamp(50px, 8.5vh, 60px);
+            font-size: clamp(16px, 3.8vw, 19px);
             font-weight: 700;
             letter-spacing: 0.5px;
             border-radius: 16px;
             transition: all 0.15s ease;
-        }
-        .btn-kiosk-in {
-            background: var(--kiosk-success) !important;
-            border-color: var(--kiosk-success) !important;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            border: none !important;
             box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
         }
-        .btn-kiosk-in:active {
-            transform: scale(0.98);
-        }
-        .btn-kiosk-out {
-            background: var(--kiosk-danger) !important;
-            border-color: var(--kiosk-danger) !important;
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
-        }
-        .btn-kiosk-out:active {
+        .btn-kiosk-submit:active {
             transform: scale(0.98);
         }
 
@@ -229,7 +214,7 @@
             overflow: hidden !important;
             border: 2px solid rgba(139, 92, 246, 0.4) !important;
             background: #000000 !important;
-            min-height: 260px;
+            min-height: 240px;
         }
         #kiosk-qr-reader video {
             border-radius: 18px !important;
@@ -254,14 +239,6 @@
             display: block !important;
             margin: 0 auto !important;
             border-radius: 12px;
-        }
-
-        /* Prompt Box */
-        .kiosk-inline-checkout-prompt {
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            border-radius: 14px;
-            padding: 12px;
         }
     </style>
 </head>
@@ -292,44 +269,33 @@
                         <img src="<?= e($company_logo) ?>" alt="logo" class="kiosk-logo-img mb-1">
                     <?php endif; ?>
                     <h3 class="fw-bold mb-0 fs-4"><?= e($company_name) ?></h3>
-                    <p class="text-white-50 small mb-0" id="kiosk-subtitle">Self-Service Giriş & Çıkış Terminali</p>
+                    <p class="text-white-50 small mb-0" id="kiosk-subtitle">Telefon numaranızı girerek anında giriş veya çıkış yapın</p>
                 </div>
 
-                <!-- Mode Switcher Tabs -->
+                <!-- Mode Switcher Tabs (3 Tabs) -->
                 <div class="kiosk-nav-pills mb-3" id="kiosk-tabs">
-                    <button type="button" class="kiosk-tab-btn tab-in active" onclick="switchKioskTab('checkin')">
-                        <i class="fas fa-sign-in-alt"></i> Giriş Yap
-                    </button>
-                    <button type="button" class="kiosk-tab-btn tab-out" onclick="switchKioskTab('checkout')">
-                        <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                    <button type="button" class="kiosk-tab-btn tab-keypad active" onclick="switchKioskTab('keypad')">
+                        <i class="fas fa-keyboard"></i> Telefon Numarası
                     </button>
                     <button type="button" class="kiosk-tab-btn tab-camera" onclick="switchKioskTab('camera')">
-                        <i class="fas fa-camera"></i> QR Tara
+                        <i class="fas fa-camera"></i> QR Kod Tara
                     </button>
                     <button type="button" class="kiosk-tab-btn tab-mobile" onclick="switchKioskTab('mobile')">
-                        <i class="fas fa-qrcode"></i> Temassız
+                        <i class="fas fa-mobile-screen"></i> Temassız QR
                     </button>
                 </div>
 
                 <!-- Feedback Alert Box -->
                 <div id="kiosk-feedback" class="alert d-none mb-3 py-2 py-sm-3 fw-semibold rounded-3 shadow-sm text-start"></div>
 
-                <!-- Inline Action Box (for when customer is already inside or quick checkout prompt) -->
-                <div id="kiosk-prompt-box" class="kiosk-inline-checkout-prompt d-none mb-3 text-center">
-                    <p class="text-white small mb-2" id="kiosk-prompt-text"></p>
-                    <button type="button" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold" id="kiosk-prompt-btn" onclick="executePromptAction()">
-                        <i class="fas fa-sign-out-alt me-1"></i> Şimdi Çıkış Yap
-                    </button>
-                </div>
-
-                <!-- SUCCESS QR BADGE (Shown after checkin to photograph or use for checkout) -->
+                <!-- SUCCESS QR BADGE (Shown after checkin) -->
                 <div id="kiosk-success-badge" class="d-none mb-3 p-3 rounded-3 text-center" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3);">
                     <div class="text-success fw-bold mb-1 fs-5" id="success-guest-name"></div>
-                    <p class="text-white-50 small mb-2">Çıkışta hızlı işlem yapmak için telefon numaranızı veya QR kodunuzu kullanabilirsiniz.</p>
+                    <p class="text-white-50 small mb-2">Çıkışta hızlı işlem yapmak için bu QR kodunu veya telefon numaranızı kullanabilirsiniz.</p>
                     <div id="kiosk-checkout-qr-box" class="touchless-qr-card mx-auto"></div>
                 </div>
 
-                <!-- TAB 1 & 2: KEYPAD INPUT VIEW (For Check-in & Check-out) -->
+                <!-- TAB 1: KEYPAD INPUT VIEW (Unified Giriş / Çıkış) -->
                 <div id="view-keypad-mode">
                     <!-- Display Screen -->
                     <div class="kiosk-input-wrap mb-3">
@@ -354,18 +320,18 @@
                         <button type="button" class="btn num-pad-btn keypad-btn action-submit" onclick="submitKioskAction()"><i class="fas fa-check"></i></button>
                     </div>
 
-                    <!-- Big Action Button -->
-                    <button type="button" id="btn-kiosk-submit" class="btn btn-kiosk-submit btn-kiosk-in w-100 shadow" onclick="submitKioskAction()">
-                        <i class="fas fa-sign-in-alt me-2"></i> <span id="btn-kiosk-text">GİRİŞ YAP</span>
+                    <!-- Single Unified Action Button -->
+                    <button type="button" id="btn-kiosk-submit" class="btn btn-kiosk-submit text-white w-100 shadow" onclick="submitKioskAction()">
+                        <i class="fas fa-right-to-bracket me-2"></i> <span id="btn-kiosk-text">GİRİŞ / ÇIKIŞ YAP</span>
                     </button>
                 </div>
 
-                <!-- TAB 3: CAMERA QR SCANNER VIEW (Html5Qrcode Powered) -->
+                <!-- TAB 2: CAMERA QR SCANNER VIEW (Html5Qrcode Engine + Permission Handler) -->
                 <div id="view-camera-mode" class="d-none text-center">
                     <div id="kiosk-qr-reader" class="mb-3"></div>
 
                     <div class="d-flex flex-column gap-2 mb-2">
-                        <button type="button" id="btn-start-camera" class="btn btn-primary rounded-pill py-2 fw-bold" onclick="requestAndStartCamera()">
+                        <button type="button" id="btn-start-camera" class="btn btn-primary rounded-pill py-2 fw-bold shadow" onclick="requestAndStartCamera()">
                             <i class="fas fa-video me-2"></i> Kamerayı Başlat (İzin İste)
                         </button>
                         
@@ -373,9 +339,9 @@
                             <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="switchCameraFacing()">
                                 <i class="fas fa-camera-rotate me-1"></i> Ön/Arka Kamera
                             </button>
-                            <!-- File / Native Camera capture fallback -->
-                            <label class="btn btn-sm btn-outline-info rounded-pill px-3 mb-0 cursor-pointer">
-                                <i class="fas fa-image me-1"></i> Fotoğraftan Tara
+                            <!-- Direct Photo / Camera Capture Fallback -->
+                            <label class="btn btn-sm btn-success rounded-pill px-3 mb-0 cursor-pointer shadow-sm">
+                                <i class="fas fa-camera me-1"></i> Fotoğraftan Tara
                                 <input type="file" id="qr-file-input" accept="image/*" capture="environment" class="d-none" onchange="scanQRFromFile(this)">
                             </label>
                         </div>
@@ -383,7 +349,7 @@
                     <span class="text-white-50 small d-block"><i class="fas fa-info-circle me-1"></i> Randevu veya Üyelik QR kodunuzu kameraya gösterin</span>
                 </div>
 
-                <!-- TAB 4: TOUCHLESS DYNAMIC QR VIEW (For Smartphone Scan) -->
+                <!-- TAB 3: TOUCHLESS DYNAMIC QR VIEW (For Smartphone Scan) -->
                 <div id="view-mobile-mode" class="d-none text-center">
                     <div class="touchless-qr-card mb-3 mx-auto" id="kiosk-touchless-qr-container"></div>
                     <h5 class="fw-bold text-white mb-1">Telefonunuzla Tarayın</h5>
@@ -398,18 +364,17 @@
 
     <!-- Kiosk Footer Note -->
     <footer class="kiosk-footer-note">
-        BooKi Self-Service Terminal &bull; Dokunmatik ekran, kamera veya telefonunuzla temassız işlem yapabilirsiniz
+        BooKi Self-Service Terminal &bull; Numara girdiğinizde içeride değilseniz giriş, içerideyseniz otomatik çıkış yapılır
     </footer>
 
     <!-- KIOSK APPLICATION LOGIC -->
     <script>
-    let activeTab = 'checkin';
+    let activeTab = 'keypad';
     let phoneBuffer = '';
     let feedbackTimeout = null;
     let html5QrCode = null;
     let currentCameraFacing = 'environment';
     let isScannerRunning = false;
-    let promptCustomerId = null;
     const touchlessUrl = '<?= $touchless_url ?? site_url('checkin/mobile') ?>';
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -417,7 +382,7 @@
         updateClock();
     });
 
-    // Initialize Touchless QR Code with standard QRCode.js
+    // Initialize Touchless QR Code
     function initTouchlessQR() {
         const container = document.getElementById('kiosk-touchless-qr-container');
         if (container) {
@@ -447,39 +412,26 @@
     function switchKioskTab(tab) {
         haptic();
         activeTab = tab;
-        hidePromptBox();
 
-        // Update Tab Pill UI
         document.querySelectorAll('.kiosk-tab-btn').forEach(btn => btn.classList.remove('active'));
-        const tabBtn = document.querySelector(`.tab-${tab === 'checkin' ? 'in' : (tab === 'checkout' ? 'out' : tab)}`);
+        const tabBtn = document.querySelector(`.tab-${tab}`);
         if (tabBtn) tabBtn.classList.add('active');
 
-        // View Containers
         const keypadView = document.getElementById('view-keypad-mode');
         const cameraView = document.getElementById('view-camera-mode');
         const mobileView = document.getElementById('view-mobile-mode');
-        const submitBtn = document.getElementById('btn-kiosk-submit');
-        const submitText = document.getElementById('btn-kiosk-text');
 
         keypadView.classList.add('d-none');
         cameraView.classList.add('d-none');
         mobileView.classList.add('d-none');
         stopCameraScanner();
 
-        if (tab === 'checkin') {
+        if (tab === 'keypad') {
             keypadView.classList.remove('d-none');
-            submitBtn.className = 'btn btn-kiosk-submit btn-kiosk-in w-100 shadow';
-            submitText.innerText = 'GİRİŞ YAP';
-            document.getElementById('kiosk-subtitle').innerText = 'Telefon Numaranızı Girerek Giriş Yapın';
-        } else if (tab === 'checkout') {
-            keypadView.classList.remove('d-none');
-            submitBtn.className = 'btn btn-kiosk-submit btn-kiosk-out w-100 shadow';
-            submitText.innerText = 'ÇIKIŞ YAP';
-            document.getElementById('kiosk-subtitle').innerText = 'Telefon Numaranızı Girerek Çıkış Yapın';
+            document.getElementById('kiosk-subtitle').innerText = 'Telefon numaranızı girerek anında giriş veya çıkış yapın';
         } else if (tab === 'camera') {
             cameraView.classList.remove('d-none');
             document.getElementById('kiosk-subtitle').innerText = 'Kameraya QR Kodunuzu Gösterin';
-            // Trigger camera request
             requestAndStartCamera();
         } else if (tab === 'mobile') {
             mobileView.classList.remove('d-none');
@@ -509,7 +461,6 @@
         haptic();
         phoneBuffer = '';
         updateDisplay();
-        hidePromptBox();
         hideSuccessBadge();
     }
 
@@ -551,9 +502,8 @@
         }
     });
 
-    // Execute Action (Giriş / Çıkış)
-    function submitKioskAction(targetAction = null, identifierVal = null) {
-        const action = targetAction || activeTab;
+    // Unified Automatic Giriş / Çıkış Action
+    function submitKioskAction(identifierVal = null) {
         const identifier = identifierVal || phoneBuffer;
 
         if (!identifier || identifier.length < 4) {
@@ -564,12 +514,12 @@
         const submitBtn = document.getElementById('btn-kiosk-submit');
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> İşleniyor...';
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Kontrol ediliyor...';
         }
 
         const fd = new FormData();
         fd.append('identifier', identifier);
-        fd.append('action', action);
+        fd.append('action', 'auto'); // Auto mode: Checks in if outside, Checks out if inside!
         fd.append('checkin_method', (identifier.includes('APPT') || identifier.includes('MEMB') || activeTab === 'camera') ? 'qr_kiosk' : 'kiosk');
 
         fetch('<?= site_url('checkin/do_kiosk_action') ?>', { method: 'POST', body: fd })
@@ -587,17 +537,10 @@
 
                     phoneBuffer = '';
                     updateDisplay();
-                    hidePromptBox();
                 } else if (data.status === 'already_inside') {
                     showFeedback(data.message || 'Zaten aktif bir giriş kaydınız bulunmaktadır.', 'alert-info');
-                    promptCustomerId = data.customer ? data.customer.id : identifier;
-                    showPromptBox(`Sayın ${data.customer ? data.customer.first_name : ''}, şu an içeride görünüyorsunuz. Çıkış yapmak ister misiniz?`, 'checkout');
-                } else if (data.status === 'not_inside') {
-                    showFeedback(data.message || 'Aktif bir giriş kaydınız bulunmamaktadır.', 'alert-warning');
-                    hidePromptBox();
                 } else {
                     showFeedback(data.message || 'İşlem gerçekleştirilemedi. Resepsiyona danışınız.', 'alert-danger');
-                    hidePromptBox();
                 }
             })
             .catch(() => {
@@ -606,29 +549,9 @@
             .finally(() => {
                 if (submitBtn) {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = activeTab === 'checkin' ? '<i class="fas fa-sign-in-alt me-2"></i> GİRİŞ YAP' : '<i class="fas fa-sign-out-alt me-2"></i> ÇIKIŞ YAP';
+                    submitBtn.innerHTML = '<i class="fas fa-right-to-bracket me-2"></i> GİRİŞ / ÇIKIŞ YAP';
                 }
             });
-    }
-
-    function showPromptBox(text, actionType) {
-        const box = document.getElementById('kiosk-prompt-box');
-        const txt = document.getElementById('kiosk-prompt-text');
-        if (box && txt) {
-            txt.innerText = text;
-            box.classList.remove('d-none');
-        }
-    }
-
-    function hidePromptBox() {
-        const box = document.getElementById('kiosk-prompt-box');
-        if (box) box.classList.add('d-none');
-    }
-
-    function executePromptAction() {
-        if (promptCustomerId) {
-            submitKioskAction('checkout', String(promptCustomerId));
-        }
     }
 
     function showSuccessBadge(customer, identifier) {
@@ -682,18 +605,13 @@
         } catch(e) {}
     }
 
-    // CAMERA QR SCANNER (Html5Qrcode Engine)
+    // CAMERA QR SCANNER (Html5Qrcode Engine with Clear Permission Guides)
     function requestAndStartCamera() {
         if (isScannerRunning) return;
 
         const startBtn = document.getElementById('btn-start-camera');
         if (startBtn) {
             startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Kamera İzni Bekleniyor...';
-        }
-
-        // Check Secure Context
-        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            showFeedback('⚠️ <strong>Uyarı:</strong> Tarayıcı güvenlik politikası gereği kamera erişimi için HTTPS bağlantısı gerekmektedir (Şu an HTTP üzerindesiniz). Kamerayı doğrudan açmak için "Fotoğraftan Tara" butonunu da kullanabilirsiniz.', 'alert-warning');
         }
 
         if (!html5QrCode) {
@@ -709,7 +627,7 @@
                 onQrCodeScanned(decodedText);
             },
             (errorMessage) => {
-                // scanning frame error (ignore frame misses)
+                // scanning frame
             }
         ).then(() => {
             isScannerRunning = true;
@@ -725,7 +643,20 @@
                 startBtn.classList.remove('btn-dark');
                 startBtn.classList.add('btn-primary');
             }
-            showFeedback('Kamera başlatılamadı: ' + (err || 'Lütfen tarayıcı izinlerinden kameraya izin veriniz.'), 'alert-danger');
+
+            const errStr = String(err);
+            if (errStr.includes('NotAllowedError') || errStr.includes('Permission denied') || errStr.includes('PermissionDismissedError')) {
+                showFeedback(`
+                    <div class="small">
+                        <strong class="text-danger"><i class="fas fa-ban me-1"></i> Kamera İzni Tarayıcıda Engellenmiş:</strong><br>
+                        1. Tarayıcınızın adres çubuğundaki (sol üstteki) <strong>Kilit / Site Ayarları</strong> simgesine tıklayın.<br>
+                        2. <strong>Kamera İznini 'İzin Ver'</strong> yapıp sayfayı yenileyin.<br>
+                        3. Veya hemen aşağıdaki <strong>"Fotoğraftan Tara"</strong> butonuna basarak doğrudan cihaz kamerasını açabilirsiniz.
+                    </div>
+                `, 'alert-warning');
+            } else {
+                showFeedback('Kamera başlatılamadı: ' + errStr, 'alert-danger');
+            }
         });
     }
 
@@ -758,10 +689,9 @@
         playSuccessBeep();
         showFeedback(`📷 QR Kod Okundu: <strong>${qrText.substring(0, 28)}...</strong>`, 'alert-info');
 
-        // Process Kiosk Action (auto mode or active tab)
-        submitKioskAction('auto', qrText);
+        // Automatically Check-in or Check-out
+        submitKioskAction(qrText);
 
-        // Pause scanner briefly to avoid multiple instant triggers
         if (html5QrCode && isScannerRunning) {
             try {
                 html5QrCode.pause();
@@ -774,7 +704,7 @@
         }
     }
 
-    // Native file input / device camera snapshot fallback
+    // Direct Native Camera Snapshot / File Fallback
     function scanQRFromFile(input) {
         if (!input.files || input.files.length === 0) return;
         const imageFile = input.files[0];
@@ -790,7 +720,7 @@
                 onQrCodeScanned(decodedText);
             })
             .catch(err => {
-                showFeedback('Fotoğrafta geçerli bir QR kod bulunamadı. Lütfen daha net çekiniz.', 'alert-warning');
+                showFeedback('Fotoğrafta geçerli bir QR kod algılanamadı. Lütfen daha net çekiniz.', 'alert-warning');
             });
     }
     </script>

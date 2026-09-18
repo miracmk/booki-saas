@@ -29,19 +29,6 @@
             backdrop-filter: blur(12px);
             width: 100%; max-width: 440px;
         }
-        .mode-pill-btn {
-            border-radius: 12px; font-weight: 600; font-size: 14px; padding: 10px;
-            border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; background: rgba(15,23,42,0.6);
-            transition: all 0.2s ease;
-        }
-        .mode-pill-btn.active.mode-checkin {
-            background: #10b981 !important; color: #fff !important; border-color: #10b981 !important;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
-        }
-        .mode-pill-btn.active.mode-checkout {
-            background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
-        }
         .mobile-input {
             background: rgba(15, 23, 42, 0.8) !important;
             border: 2px solid rgba(255, 255, 255, 0.15) !important;
@@ -54,6 +41,9 @@
         }
         .btn-action-submit {
             height: 52px; font-size: 17px; font-weight: 700; border-radius: 14px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            border: none !important;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
         }
     </style>
 </head>
@@ -65,32 +55,25 @@
                 <img src="<?= e($company_logo) ?>" alt="logo" style="max-height: 52px; object-fit: contain;" class="mb-2">
             <?php endif; ?>
             <h4 class="fw-bold mb-1"><?= e($company_name) ?></h4>
-            <p class="text-white-50 small mb-0">Temassız Giriş & Çıkış</p>
+            <p class="text-white-50 small mb-0">Temassız Hızlı Giriş & Çıkış</p>
         </div>
 
-        <!-- Mode Switcher -->
-        <div class="d-grid grid-template-columns gap-2 mb-4" style="grid-template-columns: 1fr 1fr;">
-            <button type="button" class="btn mode-pill-btn mode-checkin active" id="btn-mode-in" onclick="setMode('checkin')">
-                <i class="fas fa-sign-in-alt me-1"></i> GİRİŞ YAP
-            </button>
-            <button type="button" class="btn mode-pill-btn mode-checkout" id="btn-mode-out" onclick="setMode('checkout')">
-                <i class="fas fa-sign-out-alt me-1"></i> ÇIKIŞ YAP
-            </button>
-        </div>
-
-        <!-- Phone Input -->
+        <!-- Unified Form -->
         <form id="mobile-checkin-form" onsubmit="event.preventDefault(); submitMobileAction();">
             <div class="mb-3 text-start">
                 <label class="form-label text-white-50 small fw-semibold" id="input-label">Telefon Numaranız</label>
                 <input type="tel" id="mobile-identifier" class="form-control mobile-input text-center py-2"
                        placeholder="05XX XXX XX XX" autofocus required autocomplete="tel">
+                <span class="text-white-50 small mt-1 d-block" style="font-size: 11px;">
+                    İçeride değilseniz girişiniz, içerideyseniz otomatik çıkışınız yapılır.
+                </span>
             </div>
 
             <!-- Feedback Alert -->
-            <div id="mobile-feedback" class="alert d-none mb-3 py-2 fw-semibold rounded-3 shadow-sm"></div>
+            <div id="mobile-feedback" class="alert d-none mb-3 py-2 fw-semibold rounded-3 shadow-sm text-start"></div>
 
-            <button type="submit" id="btn-mobile-submit" class="btn btn-success btn-action-submit w-100 shadow">
-                <i class="fas fa-check-circle me-2"></i> <span id="submit-text">GİRİŞİ TAMAMLA</span>
+            <button type="submit" id="btn-mobile-submit" class="btn btn-action-submit text-white w-100 shadow">
+                <i class="fas fa-right-to-bracket me-2"></i> <span id="submit-text">GİRİŞ / ÇIKIŞ YAP</span>
             </button>
         </form>
 
@@ -100,28 +83,6 @@
     </div>
 
     <script>
-    let currentMode = 'checkin';
-
-    function setMode(mode) {
-        currentMode = mode;
-        const btnIn = document.getElementById('btn-mode-in');
-        const btnOut = document.getElementById('btn-mode-out');
-        const submitBtn = document.getElementById('btn-mobile-submit');
-        const submitText = document.getElementById('submit-text');
-
-        if (mode === 'checkin') {
-            btnIn.classList.add('active');
-            btnOut.classList.remove('active');
-            submitBtn.className = 'btn btn-success btn-action-submit w-100 shadow';
-            submitText.innerText = 'GİRİŞİ TAMAMLA';
-        } else {
-            btnOut.classList.add('active');
-            btnIn.classList.remove('active');
-            submitBtn.className = 'btn btn-danger btn-action-submit w-100 shadow';
-            submitText.innerText = 'ÇIKIŞI TAMAMLA';
-        }
-    }
-
     function submitMobileAction() {
         const input = document.getElementById('mobile-identifier');
         const val = (input ? input.value : '').trim();
@@ -129,11 +90,11 @@
 
         const btn = document.getElementById('btn-mobile-submit');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> İşleniyor...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Kontrol ediliyor...';
 
         const fd = new FormData();
         fd.append('identifier', val);
-        fd.append('action', currentMode);
+        fd.append('action', 'auto');
         fd.append('checkin_method', 'mobile_qr');
 
         fetch('<?= site_url('checkin/do_kiosk_action') ?>', { method: 'POST', body: fd })
@@ -144,10 +105,8 @@
                     input.value = '';
                 } else if (data.status === 'already_inside') {
                     showFeedback(data.message || 'Zaten aktif bir girişiniz bulunuyor.', 'alert-info');
-                } else if (data.status === 'not_inside') {
-                    showFeedback(data.message || 'Aktif bir giriş kaydı bulunamadı.', 'alert-warning');
                 } else {
-                    showFeedback(data.message || 'İşlem gerçekleştirilemedi.', 'alert-danger');
+                    showFeedback(data.message || 'İşlem gerçekleştirilemedi. Resepsiyona danışınız.', 'alert-danger');
                 }
             })
             .catch(() => {
@@ -155,15 +114,15 @@
             })
             .finally(() => {
                 btn.disabled = false;
-                setMode(currentMode);
+                btn.innerHTML = '<i class="fas fa-right-to-bracket me-2"></i> GİRİŞ / ÇIKIŞ YAP';
             });
     }
 
     function showFeedback(msg, cls) {
         const fb = document.getElementById('mobile-feedback');
         if (!fb) return;
-        fb.className = 'alert ' + cls + ' mb-3 py-2 fw-semibold rounded-3 shadow-sm';
-        fb.innerText = msg;
+        fb.className = 'alert ' + cls + ' mb-3 py-2 fw-semibold rounded-3 shadow-sm text-start';
+        fb.innerHTML = msg;
         fb.classList.remove('d-none');
     }
     </script>
