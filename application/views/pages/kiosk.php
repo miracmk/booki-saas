@@ -431,8 +431,7 @@
             document.getElementById('kiosk-subtitle').innerText = 'Telefon numaranızı girerek anında giriş veya çıkış yapın';
         } else if (tab === 'camera') {
             cameraView.classList.remove('d-none');
-            document.getElementById('kiosk-subtitle').innerText = 'Kameraya QR Kodunuzu Gösterin';
-            requestAndStartCamera();
+            document.getElementById('kiosk-subtitle').innerText = 'Kameranızı açarak QR kodunuzu gösterin';
         } else if (tab === 'mobile') {
             mobileView.classList.remove('d-none');
             document.getElementById('kiosk-subtitle').innerText = 'Telefonunuzla Tarayın ve Temassız İşlem Yapın';
@@ -611,7 +610,7 @@
 
         const startBtn = document.getElementById('btn-start-camera');
         if (startBtn) {
-            startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Kamera İzni Bekleniyor...';
+            startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Kamera Açılıyor...';
         }
 
         if (!html5QrCode) {
@@ -639,7 +638,7 @@
         }).catch(err => {
             isScannerRunning = false;
             if (startBtn) {
-                startBtn.innerHTML = '<i class="fas fa-video me-2"></i> Kamerayı Tekrar Başlat';
+                startBtn.innerHTML = '<i class="fas fa-video me-2"></i> Canlı Kamerayı Başlat';
                 startBtn.classList.remove('btn-dark');
                 startBtn.classList.add('btn-primary');
             }
@@ -648,16 +647,22 @@
             if (errStr.includes('NotAllowedError') || errStr.includes('Permission denied') || errStr.includes('PermissionDismissedError')) {
                 showFeedback(`
                     <div class="small">
-                        <strong class="text-danger"><i class="fas fa-ban me-1"></i> Kamera İzni Tarayıcıda Engellenmiş:</strong><br>
-                        1. Tarayıcınızın adres çubuğundaki (sol üstteki) <strong>Kilit / Site Ayarları</strong> simgesine tıklayın.<br>
-                        2. <strong>Kamera İznini 'İzin Ver'</strong> yapıp sayfayı yenileyin.<br>
-                        3. Veya hemen aşağıdaki <strong>"Fotoğraftan Tara"</strong> butonuna basarak doğrudan cihaz kamerasını açabilirsiniz.
+                        <strong class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i> Tarayıcıda Kamera İzni Bekleniyor:</strong><br>
+                        Tarayıcınız izin popup'ını göstermediyse, lütfen adres çubuğundaki (sol üstteki) <strong>Kilit / Site Ayarları</strong> simgesinden <strong>Kamera İznini 'İzin Ver'</strong> yapınız.<br><br>
+                        <button type="button" class="btn btn-sm btn-success fw-bold text-white rounded-pill px-3 py-1 shadow" onclick="triggerNativeCamera()">
+                            <i class="fas fa-camera me-1"></i> Cihaz Kamerasını Aç & Fotoğraftan Tara
+                        </button>
                     </div>
                 `, 'alert-warning');
             } else {
                 showFeedback('Kamera başlatılamadı: ' + errStr, 'alert-danger');
             }
         });
+    }
+
+    function triggerNativeCamera() {
+        const fileInput = document.getElementById('qr-file-input');
+        if (fileInput) fileInput.click();
     }
 
     function stopCameraScanner() {
