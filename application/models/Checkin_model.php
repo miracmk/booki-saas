@@ -175,7 +175,7 @@ class Checkin_model extends EA_Model
             ->join('services s', 's.id = cp.id_services', 'left')
             ->where('cp.id_users_customer', $customer_id)
             ->where('cp.status', 'active')
-            ->where('cp.used_sessions <', $this->db->raw('total_sessions'))
+            ->where('cp.used_sessions < cp.total_sessions', NULL, FALSE)
             ->get()
             ->result_array();
 

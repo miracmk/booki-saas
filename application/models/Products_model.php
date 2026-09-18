@@ -333,7 +333,7 @@ class Products_model extends EA_Model
             ->select()
             ->from('products')
             ->where('is_active', true)
-            ->where('stock_quantity <=', $this->db->raw('low_stock_threshold'))
+            ->where('stock_quantity <= low_stock_threshold', NULL, FALSE)
             ->order_by('stock_quantity ASC')
             ->get()
             ->result_array();
