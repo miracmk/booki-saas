@@ -221,6 +221,35 @@ class Customers extends EA_Controller
     }
 
     /**
+     * Get 360 Degree Customer CRM Context & Chronological Timeline.
+     */
+    public function get_360(): void
+    {
+        try {
+            method('get');
+
+            if (cannot('view', PRIV_CUSTOMERS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $customer_id = (int) $this->input->get('customer_id');
+            if ($customer_id <= 0) {
+                throw new InvalidArgumentException('Invalid customer ID');
+            }
+
+            $user_id = session('user_id');
+            if (!$this->permissions->has_customer_access($user_id, $customer_id)) {
+                abort(403, 'Forbidden');
+            }
+
+            $data = $this->customers_model->get_customer_360_timeline($customer_id);
+            json_response($data);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
      * Filter customers by the provided keyword.
      */
     public function search(): void

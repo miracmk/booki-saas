@@ -444,6 +444,12 @@ $config['csrf_exclude_uris'] = [
     'telegram/webhook',
     // Instagram webhook - Meta POSTs updates here with hub challenge verification
     'instagram/webhook',
+    // Modern SaaS Transformation Fetch Endpoints (session authenticated via ensure_authenticated)
+    'adisyons/.*',
+    'restaurant/.*',
+    'checkin/.*',
+    'finance/.*',
+    'expenses/.*',
 ];
 
 /*

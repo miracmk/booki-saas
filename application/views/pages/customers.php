@@ -45,6 +45,9 @@
                             <?= lang('edit') ?>
                         </button>
                     <?php endif; ?>
+                    <button id="btn-customer-360" class="btn btn-primary" disabled="disabled" onclick="openCustomer360Drawer()">
+                        <i class="fas fa-history me-1"></i> 360° Zaman Tüneli & CRM
+                    </button>
                 </div>
 
                 <div id="save-cancel-group" style="display:none;">
@@ -312,12 +315,125 @@
                     </h4>
 
                     <div id="customer-appointments" class="card border p-3 overflow-auto mb-4 w-100" style="min-height: 400px; max-height: 800px;"></div>
-
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Customer 360 Offcanvas Drawer -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="customer-360-drawer" style="width: 650px; max-width: 100%;">
+    <div class="offcanvas-header border-bottom bg-light">
+        <div>
+            <h5 class="offcanvas-title fw-bold" id="c360-name">Müşteri 360° Görünümü</h5>
+            <div id="c360-tags" class="mt-1"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0 d-flex flex-column">
+        <!-- Customer KPI Metrics -->
+        <div class="p-3 border-bottom bg-light bg-opacity-50">
+            <div class="row g-2 text-center">
+                <div class="col-4">
+                    <div class="p-2 bg-white rounded-3 shadow-sm border">
+                        <small class="text-muted d-block">Toplam Harcama</small>
+                        <span class="fw-bold text-success fs-6" id="c360-total-spent">0.00 ₺</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-2 bg-white rounded-3 shadow-sm border">
+                        <small class="text-muted d-block">Tamamlanan Randevu</small>
+                        <span class="fw-bold text-primary fs-6" id="c360-completed-count">0</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-2 bg-white rounded-3 shadow-sm border">
+                        <small class="text-muted d-block">İptal / No-Show</small>
+                        <span class="fw-bold text-danger fs-6" id="c360-noshow-count">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Section -->
+        <div class="flex-grow-1 overflow-auto p-3">
+            <h6 class="fw-bold small text-muted mb-3"><i class="fas fa-stream text-primary me-2"></i>Tüm İşlem & Etkileşim Geçmişi</h6>
+            <div class="timeline" id="c360-timeline-container"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openCustomer360Drawer() {
+    const customerId = document.getElementById('customer-id').value;
+    if (!customerId) return;
+
+    fetch('<?= site_url('customers/get_360?customer_id=') ?>' + customerId)
+        .then(res => res.json())
+        .then(data => {
+            const c = data.customer;
+            document.getElementById('c360-name').innerText = c.first_name + ' ' + (c.last_name || '');
+            
+            // Render tags
+            const tagsBox = document.getElementById('c360-tags');
+            tagsBox.innerHTML = (data.tags || []).map(t => `<span class="badge ${t.class} me-1">${t.label}</span>`).join('');
+
+            // Metrics
+            document.getElementById('c360-total-spent').innerText = data.metrics.total_spent.toFixed(2) + ' ₺';
+            document.getElementById('c360-completed-count').innerText = data.metrics.completed_appointments;
+            document.getElementById('c360-noshow-count').innerText = data.metrics.no_shows;
+
+            // Render Timeline
+            const container = document.getElementById('c360-timeline-container');
+            container.innerHTML = '';
+            if (!data.timeline || data.timeline.length === 0) {
+                container.innerHTML = '<div class="text-muted text-center py-4">Henüz işlem geçmişi bulunmuyor.</div>';
+            } else {
+                data.timeline.forEach(t => {
+                    const item = document.createElement('div');
+                    item.className = 'd-flex gap-3 mb-3 pb-3 border-bottom';
+                    item.innerHTML = `
+                        <div class="rounded-circle bg-${t.badge} bg-opacity-10 text-${t.badge} p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; flex-shrink: 0;">
+                            <i class="fas ${t.icon}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold small text-dark">${t.title}</span>
+                                <small class="text-muted">${t.date}</small>
+                            </div>
+                            <small class="text-muted d-block">${t.subtitle}</small>
+                            ${t.amount > 0 ? `<span class="badge bg-light text-success border mt-1">${parseFloat(t.amount).toFixed(2)} ₺</span>` : ''}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+
+            const drawerEl = document.getElementById('customer-360-drawer');
+            const bsDrawer = bootstrap.Offcanvas.getOrCreateInstance(drawerEl);
+            bsDrawer.show();
+        });
+}
+
+// Enable 360 button when a customer is selected
+document.addEventListener('DOMContentLoaded', function() {
+    const observer = new MutationObserver(function() {
+        const cid = document.getElementById('customer-id')?.value;
+        const btn = document.getElementById('btn-customer-360');
+        if (btn) {
+            if (cid && cid !== '') {
+                btn.removeAttribute('disabled');
+            } else {
+                btn.setAttribute('disabled', 'disabled');
+            }
+        }
+    });
+    const cidInput = document.getElementById('customer-id');
+    if (cidInput) {
+        observer.observe(cidInput, { attributes: true, attributeFilter: ['value'] });
+    }
+});
+</script>
 
 <?php end_section('content'); ?>
 

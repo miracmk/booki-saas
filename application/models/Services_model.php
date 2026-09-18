@@ -560,4 +560,98 @@ class Services_model extends EA_Model
 
         $service = $decoded_resource;
     }
+
+    /**
+     * Get active add-ons for a service.
+     */
+    public function get_addons(int $service_id): array
+    {
+        if (!$this->db->table_exists('service_addons')) {
+            return [];
+        }
+
+        return $this->db
+            ->from('service_addons')
+            ->where('id_services', $service_id)
+            ->where('is_active', 1)
+            ->order_by('name', 'ASC')
+            ->get()
+            ->result_array();
+    }
+
+    /**
+     * Save or update an add-on.
+     */
+    public function save_addon(array $data): int
+    {
+        if (empty($data['id_services']) || empty($data['name'])) {
+            throw new InvalidArgumentException('Hizmet ve ek hizmet adı zorunludur.');
+        }
+
+        if (empty($data['id'])) {
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('service_addons', $data);
+            return $this->db->insert_id();
+        } else {
+            $id = (int) $data['id'];
+            unset($data['id']);
+            $this->db->update('service_addons', $data, ['id' => $id]);
+            return $id;
+        }
+    }
+
+    /**
+     * Delete an add-on.
+     */
+    public function delete_addon(int $addon_id): void
+    {
+        $this->db->delete('service_addons', ['id' => $addon_id]);
+    }
+
+    /**
+     * Get required resources for a service.
+     */
+    public function get_required_resources(int $service_id): array
+    {
+        if (!$this->db->table_exists('service_required_resources')) {
+            return [];
+        }
+
+        return $this->db
+            ->select('srr.*, st.name as station_name')
+            ->from('service_required_resources srr')
+            ->join('stations st', 'st.id = srr.id_stations', 'left')
+            ->where('srr.id_services', $service_id)
+            ->get()
+            ->result_array();
+    }
+
+    /**
+     * Save required resource.
+     */
+    public function save_required_resource(array $data): int
+    {
+        if (empty($data['id_services'])) {
+            throw new InvalidArgumentException('Hizmet seçilmelidir.');
+        }
+
+        if (empty($data['id'])) {
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('service_required_resources', $data);
+            return $this->db->insert_id();
+        } else {
+            $id = (int) $data['id'];
+            unset($data['id']);
+            $this->db->update('service_required_resources', $data, ['id' => $id]);
+            return $id;
+        }
+    }
+
+    /**
+     * Delete required resource.
+     */
+    public function delete_required_resource(int $resource_id): void
+    {
+        $this->db->delete('service_required_resources', ['id' => $resource_id]);
+    }
 }

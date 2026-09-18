@@ -48,6 +48,7 @@ class Services extends EA_Controller
         $this->load->model('services_model');
         $this->load->model('providers_model');
         $this->load->model('roles_model');
+        $this->load->model('inventory_consumables_model');
 
         $this->load->library('accounts');
         $this->load->library('timezones');
@@ -81,12 +82,14 @@ class Services extends EA_Controller
         $role_slug = session('role_slug');
 
         $providers = $this->providers_model->get();
+        $products = $this->db->table_exists('products') ? $this->db->order_by('name', 'ASC')->get('products')->result_array() : [];
 
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
             'event_minimum_duration' => EVENT_MINIMUM_DURATION,
             'providers' => filter_sensitive_users_data($providers),
+            'products' => $products,
         ]);
 
         html_vars([
@@ -96,6 +99,7 @@ class Services extends EA_Controller
             'timezones' => $this->timezones->to_array(),
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
             'providers' => filter_sensitive_users_data($providers),
+            'products' => $products,
         ]);
 
         $this->load->view('pages/services');
@@ -268,6 +272,153 @@ class Services extends EA_Controller
             json_response([
                 'success' => true,
             ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get add-ons for a service.
+     */
+    public function get_addons(int $service_id): void
+    {
+        try {
+            method('get');
+            $addons = $this->services_model->get_addons($service_id);
+            json_response($addons);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Save an add-on.
+     */
+    public function save_addon(): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->services_model->save_addon($data);
+            json_response(['success' => true, 'id' => $id]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Delete an add-on.
+     */
+    public function delete_addon(int $addon_id): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+            $this->services_model->delete_addon($addon_id);
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get consumable recipes for a service.
+     */
+    public function get_consumables(int $service_id): void
+    {
+        try {
+            method('get');
+            $recipes = $this->inventory_consumables_model->get_recipes_for_service($service_id);
+            json_response($recipes);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Save consumable recipe for a service.
+     */
+    public function save_consumable(): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->inventory_consumables_model->save_recipe($data);
+            json_response(['success' => true, 'id' => $id]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Delete consumable recipe.
+     */
+    public function delete_consumable(int $recipe_id): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+            $this->inventory_consumables_model->delete_recipe($recipe_id);
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get required resources for a service.
+     */
+    public function get_resources(int $service_id): void
+    {
+        try {
+            method('get');
+            $resources = $this->services_model->get_required_resources($service_id);
+            json_response($resources);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Save required resource for a service.
+     */
+    public function save_resource(): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->services_model->save_required_resource($data);
+            json_response(['success' => true, 'id' => $id]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Delete required resource.
+     */
+    public function delete_resource(int $resource_id): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+            $this->services_model->delete_required_resource($resource_id);
+            json_response(['success' => true]);
         } catch (Throwable $e) {
             json_exception($e);
         }

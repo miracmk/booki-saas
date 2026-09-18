@@ -874,4 +874,212 @@ class Customers_model extends EA_Model
 
         $customer = $decoded_resource;
     }
+
+    /**
+     * BooKi 360 Degree Customer Profile & Unified Interaction Timeline
+     */
+    public function get_customer_360_timeline(int $customer_id): array
+    {
+        $customer = $this->find($customer_id);
+        $timeline = [];
+
+        // 1. Appointments
+        $appts = $this->db
+            ->select('a.*, s.name as service_name, s.price as service_price, u.first_name as provider_first_name, u.last_name as provider_last_name')
+            ->from('appointments a')
+            ->join('services s', 's.id = a.id_services', 'left')
+            ->join('users u', 'u.id = a.id_users_provider', 'left')
+            ->where('a.id_users_customer', $customer_id)
+            ->order_by('a.start_datetime DESC')
+            ->get()
+            ->result_array();
+
+        $total_spent = 0.00;
+        $completed_count = 0;
+        $cancellation_count = 0;
+        $no_show_count = 0;
+        $last_visit = null;
+        $next_appointment = null;
+        $now = date('Y-m-d H:i:s');
+
+        foreach ($appts as $ap) {
+            $status = $ap['status'] ?? 'pending';
+            if ($status === 'completed' || $status === 'closed') {
+                $completed_count++;
+                $total_spent += (float) ($ap['service_price'] ?? 0);
+                if (!$last_visit && $ap['start_datetime'] <= $now) {
+                    $last_visit = $ap['start_datetime'];
+                }
+            } elseif ($status === 'cancelled') {
+                $cancellation_count++;
+            } elseif ($status === 'no_show') {
+                $no_show_count++;
+            }
+
+            if (!$next_appointment && $ap['start_datetime'] > $now && $status !== 'cancelled') {
+                $next_appointment = $ap;
+            }
+
+            $timeline[] = [
+                'type' => 'appointment',
+                'id' => $ap['id'],
+                'date' => $ap['start_datetime'],
+                'title' => 'Randevu: ' . ($ap['service_name'] ?: 'Hizmet'),
+                'subtitle' => 'Uzman: ' . trim(($ap['provider_first_name'] ?? '') . ' ' . ($ap['provider_last_name'] ?? '')),
+                'status' => $status,
+                'amount' => (float) ($ap['service_price'] ?? 0),
+                'badge' => 'primary',
+                'icon' => 'fa-calendar-check',
+            ];
+        }
+
+        // 2. Packages
+        $packages = $this->db
+            ->select('cp.*, s.name as service_name')
+            ->from('customer_packages cp')
+            ->join('services s', 's.id = cp.id_services', 'left')
+            ->where('cp.id_users_customer', $customer_id)
+            ->order_by('cp.created_at DESC')
+            ->get()
+            ->result_array();
+
+        foreach ($packages as $pkg) {
+            $timeline[] = [
+                'type' => 'package_purchase',
+                'id' => $pkg['id'],
+                'date' => $pkg['created_at'],
+                'title' => 'Paket Satın Alımı: ' . ($pkg['service_name'] ?: 'Hizmet Paketi'),
+                'subtitle' => $pkg['total_sessions'] . ' Seans (Kullanılan: ' . $pkg['used_sessions'] . ', Kalan: ' . ($pkg['total_sessions'] - $pkg['used_sessions']) . ')',
+                'status' => $pkg['status'],
+                'amount' => (float) ($pkg['unit_price'] * $pkg['total_sessions']),
+                'badge' => 'success',
+                'icon' => 'fa-box',
+            ];
+        }
+
+        // 3. Memberships
+        $memberships = $this->db
+            ->select('cm.*, mp.name as plan_name, mp.price as plan_price')
+            ->from('customer_memberships cm')
+            ->join('membership_plans mp', 'mp.id = cm.id_membership_plans', 'left')
+            ->where('cm.id_users_customer', $customer_id)
+            ->order_by('cm.created_at DESC')
+            ->get()
+            ->result_array();
+
+        foreach ($memberships as $mem) {
+            $timeline[] = [
+                'type' => 'membership_subscription',
+                'id' => $mem['id'],
+                'date' => $mem['created_at'],
+                'title' => 'Üyelik: ' . ($mem['plan_name'] ?: 'Plan'),
+                'subtitle' => 'Durum: ' . $mem['status'] . ' | Dönem Kullanımı: ' . ($mem['sessions_used_this_period'] ?? 0),
+                'status' => $mem['status'],
+                'amount' => (float) ($mem['plan_price'] ?? 0),
+                'badge' => 'info',
+                'icon' => 'fa-id-card',
+            ];
+        }
+
+        // 4. Adisyons
+        if ($this->db->table_exists('adisyons')) {
+            $adisyons = $this->db
+                ->get_where('adisyons', ['id_users_customer' => $customer_id])
+                ->result_array();
+
+            foreach ($adisyons as $ad) {
+                $timeline[] = [
+                    'type' => 'adisyon',
+                    'id' => $ad['id'],
+                    'date' => $ad['opened_at'],
+                    'title' => 'Adisyon: ' . $ad['adisyon_number'],
+                    'subtitle' => 'Ödeme Durumu: ' . $ad['payment_status'] . ' | Toplam: ' . $ad['total_amount'] . ' ₺',
+                    'status' => $ad['status'],
+                    'amount' => (float) $ad['total_amount'],
+                    'badge' => 'warning',
+                    'icon' => 'fa-receipt',
+                ];
+            }
+        }
+
+        // 5. Invoices
+        if ($this->db->table_exists('invoices')) {
+            $invoices = $this->db
+                ->get_where('invoices', ['id_users_customer' => $customer_id])
+                ->result_array();
+
+            foreach ($invoices as $inv) {
+                $timeline[] = [
+                    'type' => 'invoice',
+                    'id' => $inv['id'],
+                    'date' => $inv['created_at'],
+                    'title' => 'Fatura: ' . $inv['invoice_number'],
+                    'subtitle' => 'Tutar: ' . $inv['total'] . ' ' . ($inv['currency'] ?? 'TRY'),
+                    'status' => $inv['status'],
+                    'amount' => (float) $inv['total'],
+                    'badge' => 'secondary',
+                    'icon' => 'fa-file-invoice-dollar',
+                ];
+            }
+        }
+
+        // 6. Check-ins
+        if ($this->db->table_exists('checkin_logs')) {
+            $checkins = $this->db
+                ->get_where('checkin_logs', ['id_users_customer' => $customer_id])
+                ->result_array();
+
+            foreach ($checkins as $chk) {
+                $timeline[] = [
+                    'type' => 'checkin',
+                    'id' => $chk['id'],
+                    'date' => $chk['entry_timestamp'],
+                    'title' => 'Tesis Ziyareti / Giriş (' . strtoupper($chk['checkin_method']) . ')',
+                    'subtitle' => 'Süre: ' . ($chk['duration_minutes'] ? $chk['duration_minutes'] . ' dk' : 'Hala içeride'),
+                    'status' => $chk['status'],
+                    'amount' => 0.00,
+                    'badge' => 'dark',
+                    'icon' => 'fa-sign-in-alt',
+                ];
+            }
+        }
+
+        // Sort timeline descending by date
+        usort($timeline, function ($a, $b) {
+            return strcmp($b['date'], $a['date']);
+        });
+
+        // Determine tags
+        $tags = [];
+        if ($total_spent > 5000 || $completed_count > 10) {
+            $tags[] = ['label' => 'VIP', 'class' => 'bg-warning text-dark'];
+        } elseif ($completed_count <= 1) {
+            $tags[] = ['label' => 'Yeni Müşteri', 'class' => 'bg-success text-white'];
+        } else {
+            $tags[] = ['label' => 'Düzenli Müşteri', 'class' => 'bg-primary text-white'];
+        }
+
+        if ($no_show_count >= 2) {
+            $tags[] = ['label' => 'Riskli (No-Show)', 'class' => 'bg-danger text-white'];
+        }
+
+        return [
+            'customer' => $customer,
+            'metrics' => [
+                'total_spent' => round($total_spent, 2),
+                'total_appointments' => count($appts),
+                'completed_appointments' => $completed_count,
+                'cancellations' => $cancellation_count,
+                'no_shows' => $no_show_count,
+                'last_visit' => $last_visit,
+                'next_appointment' => $next_appointment,
+                'active_packages_count' => count($packages),
+                'active_memberships_count' => count($memberships),
+            ],
+            'tags' => $tags,
+            'packages' => $packages,
+            'memberships' => $memberships,
+            'timeline' => $timeline,
+        ];
+    }
 }

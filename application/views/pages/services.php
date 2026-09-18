@@ -186,6 +186,138 @@
                 <?php endforeach; ?>
             </div>
 
+            <!-- World-Class SaaS: Ek Hizmetler (Add-ons) -->
+            <div class="card border mb-3" id="service-addons-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                    <span class="fw-semibold text-dark"><i class="fas fa-puzzle-piece text-primary me-2"></i>Ek Hizmetler & Opsiyonlar (Add-ons)</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-addon-modal" disabled>
+                        <i class="fas fa-plus me-1"></i>Ek Hizmet Ekle
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="service-addons-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ek Hizmet</th>
+                                    <th>Ek Süre (dk)</th>
+                                    <th>Ek Fiyat</th>
+                                    <th class="text-end">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-muted text-center py-3"><td colspan="4">Kayıtlı ek hizmet bulunamadı.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- World-Class SaaS: Otomatik Stok Sarfiyat Reçetesi -->
+            <div class="card border mb-3" id="service-consumables-card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                    <div>
+                        <span class="fw-semibold text-dark"><i class="fas fa-boxes-stacked text-warning me-2"></i>Otomatik Stok Sarfiyat Reçetesi (Recipe)</span>
+                        <small class="text-muted d-block" style="font-size:11px;">Randevu tamamlandığında stoktan otomatik düşecek sarf malzemeler</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-warning" id="btn-add-consumable-modal" disabled>
+                        <i class="fas fa-plus me-1"></i>Sarf Malzeme Ekle
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="service-consumables-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ürün / Malzeme</th>
+                                    <th>Kullanılan Miktar</th>
+                                    <th>Mevcut Stok</th>
+                                    <th class="text-end">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="text-muted text-center py-3"><td colspan="4">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ek Hizmet Ekle -->
+<div class="modal fade" id="modal-addon-form" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-puzzle-piece text-primary me-2"></i>Ek Hizmet Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Ek Hizmet Adı *</label>
+                    <input type="text" class="form-control" id="addon-name-input" placeholder="Örn: Saç Bakım Maskesi, Masaj Yağı Aromaterapi">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Ek Süre (Dakika)</label>
+                        <input type="number" class="form-control" id="addon-duration-input" value="15" min="0">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Ek Fiyat (₺)</label>
+                        <input type="number" step="0.01" class="form-control" id="addon-price-input" value="0.00">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Açıklama</label>
+                    <textarea class="form-control" id="addon-desc-input" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="btn-save-addon-submit">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Sarf Malzeme Ekle -->
+<div class="modal fade" id="modal-consumable-form" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-boxes-stacked text-warning me-2"></i>Sarf Malzeme Reçetesi Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Ürün / Stok Kalemi *</label>
+                    <select class="form-select" id="consumable-product-select">
+                        <option value="">-- Ürün Seçin --</option>
+                        <?php foreach (vars('products') ?? [] as $prod): ?>
+                            <option value="<?= $prod['id'] ?>" data-stock="<?= $prod['stock_quantity'] ?? 0 ?>" data-unit="<?= e($prod['unit'] ?? 'adet') ?>">
+                                <?= e($prod['name']) ?> (Stok: <?= $prod['stock_quantity'] ?? 0 ?> <?= e($prod['unit'] ?? 'adet') ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Kullanılan Miktar *</label>
+                        <input type="number" step="0.01" class="form-control" id="consumable-qty-input" value="1.00">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Birim</label>
+                        <input type="text" class="form-control" id="consumable-unit-display" value="adet" readonly>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-warning" id="btn-save-consumable-submit">Reçeteye Ekle</button>
+            </div>
         </div>
     </div>
 </div>

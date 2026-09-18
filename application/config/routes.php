@@ -278,5 +278,20 @@ $route['marketing/track_interaction'] = 'track/interaction';
 $route['track/visit'] = 'track/visit';
 $route['track/interaction'] = 'track/interaction';
 
+// BooKi (2026-09-18) - World-Class SaaS Transformation Routes
+$route['adisyons'] = 'adisyons/index';
+$route['adisyons/(:any)'] = 'adisyons/$1';
+$route['restaurant'] = 'restaurant/index';
+$route['restaurant/(:any)'] = 'restaurant/$1';
+$route['checkin'] = 'checkin/index';
+$route['checkin/(:any)'] = 'checkin/$1';
+$route['finance'] = 'finance/index';
+$route['finance/(:any)'] = 'finance/$1';
+$route['expenses'] = 'expenses/index';
+$route['expenses/(:any)'] = 'expenses/$1';
+$route['search'] = 'search/index';
+$route['search/(:any)'] = 'search/$1';
+$route['portal'] = 'customers/portal';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

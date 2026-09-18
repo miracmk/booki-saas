@@ -2,288 +2,386 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e(setting('company_name') ?: 'BooKi') ?> - Randevularım</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title><?= e(setting('company_name') ?: 'BooKi') ?> — Müşteri Portalı</title>
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/fontawesome/css/all.min.css') ?>">
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f5f6f8; margin: 0; color: #222; }
-        header { background: #35A768; color: #fff; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-        header h1 { font-size: 1.05rem; margin: 0; }
-        header a { color: #eafff0; text-decoration: none; font-size: .85rem; }
-        main { padding: 1.5rem; max-width: 760px; margin: 0 auto; }
-        .card { background: #fff; border-radius: 10px; padding: 1.2rem 1.4rem; margin-bottom: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-        .card h2 { font-size: .95rem; margin: 0 0 .8rem; color: #444; }
-        .appt { border-bottom: 1px solid #eee; padding: .6rem 0; font-size: .88rem; }
-        .appt:last-child { border-bottom: none; }
-        .appt .when { font-weight: 600; }
-        .appt .meta { color: #666; font-size: .8rem; }
-        .empty { color: #999; font-size: .85rem; }
-        label { display: block; font-size: .8rem; font-weight: 600; margin: .6rem 0 .3rem; }
-        input { width: 100%; padding: .5rem .6rem; border: 1px solid #d7d9dd; border-radius: 6px; font-size: .88rem; }
-        button { background: #35A768; color: #fff; border: none; border-radius: 6px; padding: .6rem 1rem; font-weight: 600; cursor: pointer; margin-top: .8rem; }
-        .msg { font-size: .82rem; margin-top: .5rem; display: none; }
-        .msg.ok { color: #1e8a4c; }
-        .msg.err { color: #c0392b; }
+        :root {
+            --primary-color: #2563eb;
+            --primary-light: #eff6ff;
+        }
+        body {
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #1e293b;
+            padding-bottom: 75px;
+        }
+        .app-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+        .hero-appointment-card {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+        }
+        .portal-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            height: 65px;
+            z-index: 1030;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 1;
+            height: 100%;
+            transition: color 0.15s ease;
+        }
+        .bottom-nav-item.active, .bottom-nav-item:hover {
+            color: #2563eb;
+        }
+        .bottom-nav-item i {
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+        .progress-bar-custom {
+            height: 8px;
+            border-radius: 4px;
+        }
+        .tab-content-portal {
+            display: none;
+        }
+        .tab-content-portal.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1><?= e(setting('company_name') ?: 'BooKi') ?></h1>
-        <a href="<?= site_url('logout') ?>">Çıkış</a>
+    <!-- Top Bar -->
+    <header class="app-header py-3 px-3">
+        <div class="container d-flex justify-content-between align-items-center" style="max-width: 680px;">
+            <div class="d-flex align-items-center">
+                <img src="<?= setting('company_logo') ? e(setting('company_logo')) : base_url('assets/img/logo.png') ?>" alt="logo" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: contain;">
+                <span class="fw-bold fs-6"><?= e(setting('company_name') ?: 'BooKi') ?></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="showQRPassModal()">
+                    <i class="fas fa-qrcode me-1"></i> QR Giriş Kartı
+                </button>
+                <a href="<?= site_url('logout') ?>" class="btn btn-sm btn-link text-muted p-1" title="Çıkış Yap">
+                    <i class="fas fa-sign-out-alt fa-lg"></i>
+                </a>
+            </div>
+        </div>
     </header>
 
-    <main>
-        <div class="card">
-            <h2>Yaklaşan Randevularım</h2>
-            <?php if (empty(vars('upcoming_appointments'))): ?>
-                <div class="empty">Yaklaşan bir randevunuz yok.</div>
-            <?php else: ?>
-                <?php foreach (vars('upcoming_appointments') as $a): ?>
-                    <div class="appt">
-                        <div class="when"><?= e(date('d.m.Y H:i', strtotime($a['start_datetime']))) ?></div>
-                        <div class="meta"><?= e($a['service_name']) ?> — <?= e($a['provider_name']) ?></div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+    <!-- Main Container -->
+    <main class="container py-3" style="max-width: 680px;">
+        <!-- TAB 1: HOME -->
+        <div id="portal-tab-home" class="tab-content-portal active">
+            <!-- Greeting & Quick Stats -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0">Merhaba, <?= e(vars('customer')['first_name'] ?? 'Değerli Müşterimiz') ?> 👋</h5>
+                    <small class="text-muted">Randevu ve üyeliklerinizi buradan yönetebilirsiniz.</small>
+                </div>
+                <div>
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                        <i class="fas fa-star me-1 text-warning"></i> Gold Üye
+                    </span>
+                </div>
+            </div>
 
-        <div class="card">
-            <h2>Kalan Seanslarım</h2>
-            <?php if (empty(vars('customer_packages'))): ?>
-                <div class="empty">Hiçbir paketiniz yok.</div>
+            <!-- Hero: Upcoming Appointment Card -->
+            <?php
+            $upcoming = vars('upcoming_appointments');
+            $next_appt = !empty($upcoming) ? $upcoming[0] : null;
+            ?>
+            <?php if ($next_appt): ?>
+                <div class="hero-appointment-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-white bg-opacity-25 text-white rounded-pill px-3 py-1">
+                            <i class="fas fa-calendar-check me-1"></i> Sonraki Randevunuz
+                        </span>
+                        <span class="small fw-semibold"><?= e(date('d M Y', strtotime($next_appt['start_datetime']))) ?></span>
+                    </div>
+                    <h3 class="fw-bold mb-1"><?= e($next_appt['service_name']) ?></h3>
+                    <p class="text-white-50 mb-3"><i class="fas fa-user-circle me-1"></i> Uzman: <?= e($next_appt['provider_name']) ?> &bull; <i class="far fa-clock me-1"></i> <?= date('H:i', strtotime($next_appt['start_datetime'])) ?></p>
+
+                    <div class="d-flex flex-wrap gap-2 pt-2 border-top border-white border-opacity-25">
+                        <a href="<?= site_url('booking') ?>" class="btn btn-light btn-sm fw-bold px-3 rounded-pill text-primary">
+                            <i class="fas fa-redo-alt me-1"></i> Yeniden Planla
+                        </a>
+                        <a href="https://wa.me/?text=Randevum+hakkında+bilgi+almak+istiyorum" target="_blank" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                            <i class="fab fa-whatsapp me-1"></i> WhatsApp
+                        </a>
+                    </div>
+                </div>
             <?php else: ?>
-                <?php foreach (vars('customer_packages') as $pkg): ?>
-                    <div class="appt">
-                        <div class="when">
-                            Hizmet: <?= e($pkg['id_services']) ?> — Kalan: <strong><?= e($pkg['total_sessions'] - $pkg['used_sessions']) ?>/<?= e($pkg['total_sessions']) ?></strong>
-                        </div>
-                        <div class="meta">
-                            Durum: <?= e($pkg['status']) ?>
-                            <?php if ($pkg['expires_at']): ?>
-                                — Sona Eriş: <?= e(date('d.m.Y', strtotime($pkg['expires_at']))) ?>
+                <div class="portal-card p-4 mb-4 text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3 d-inline-flex mb-3">
+                        <i class="fas fa-calendar-plus fa-2x"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">Yaklaşan Bir Randevunuz Yok</h6>
+                    <p class="text-muted small mb-3">Hemen yeni bir seans veya randevu oluşturun.</p>
+                    <a href="<?= site_url('booking') ?>" class="btn btn-primary rounded-pill px-4 fw-bold">
+                        <i class="fas fa-plus me-1"></i> Randevu Al
+                    </a>
+                </div>
+            <?php endif; ?>
+
+            <!-- Package Balance Highlights -->
+            <div class="portal-card p-3 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-box text-success me-2"></i>Aktif Paket Bakiyeniz</h6>
+                    <a href="javascript:void(0)" onclick="switchTab('packages')" class="small text-primary text-decoration-none fw-semibold">Tümü</a>
+                </div>
+
+                <?php
+                $packages = vars('customer_packages');
+                ?>
+                <?php if (empty($packages)): ?>
+                    <p class="text-muted small mb-0 text-center py-2">Kayıtlı aktif paketiniz bulunmuyor.</p>
+                <?php else: ?>
+                    <?php foreach ($packages as $pkg): ?>
+                        <?php
+                        $remaining = max(0, (int)$pkg['total_sessions'] - (int)$pkg['used_sessions']);
+                        $pct = round(($pkg['used_sessions'] / max(1, $pkg['total_sessions'])) * 100);
+                        ?>
+                        <div class="mb-3 pb-3 border-bottom last-border-0">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold small text-dark">Hizmet Paketi</span>
+                                <span class="badge bg-success bg-opacity-10 text-success fw-bold"><?= $remaining ?> / <?= $pkg['total_sessions'] ?> Seans Kaldı</span>
+                            </div>
+                            <div class="progress progress-bar-custom bg-light">
+                                <div class="progress-bar bg-success" style="width: <?= 100 - $pct ?>%;"></div>
+                            </div>
+                            <?php if (!empty($pkg['expires_at'])): ?>
+                                <small class="text-muted d-block mt-1" style="font-size: 11px;"><i class="far fa-calendar-alt me-1"></i>Geçerlilik: <?= date('d.m.Y', strtotime($pkg['expires_at'])) ?></small>
                             <?php endif; ?>
                         </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+
+            <!-- Quick Action Grid -->
+            <div class="row g-2 mb-4">
+                <div class="col-6">
+                    <a href="<?= site_url('booking') ?>" class="portal-card p-3 text-center text-decoration-none d-block h-100">
+                        <i class="fas fa-calendar-plus fa-2x text-primary mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-0 small">Hızlı Randevu Al</h6>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="javascript:void(0)" onclick="showQRPassModal()" class="portal-card p-3 text-center text-decoration-none d-block h-100">
+                        <i class="fas fa-id-card fa-2x text-info mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-0 small">Dijital Kartım</h6>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: APPOINTMENTS -->
+        <div id="portal-tab-appointments" class="tab-content-portal">
+            <h5 class="fw-bold mb-3"><i class="fas fa-calendar-alt text-primary me-2"></i>Randevu Geçmişim</h5>
+            
+            <div class="portal-card p-3 mb-3">
+                <h6 class="fw-bold small text-muted mb-3">Tüm Randevular</h6>
+                <?php
+                $past = vars('past_appointments');
+                $all_appts = array_merge(vars('upcoming_appointments') ?: [], $past ?: []);
+                ?>
+                <?php if (empty($all_appts)): ?>
+                    <p class="text-muted text-center py-4 mb-0">Kayıtlı randevu geçmişiniz bulunmuyor.</p>
+                <?php else: ?>
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($all_appts as $a): ?>
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 fw-bold"><?= e($a['service_name']) ?></h6>
+                                    <small class="text-muted"><i class="fas fa-user-circle me-1"></i><?= e($a['provider_name']) ?> &bull; <?= date('d.m.Y H:i', strtotime($a['start_datetime'])) ?></small>
+                                </div>
+                                <span class="badge bg-light text-dark border"><?= e($a['status'] ?? 'Onaylandı') ?></span>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>Geçmiş Randevularım</h2>
-            <?php if (empty(vars('past_appointments'))): ?>
-                <div class="empty">Geçmiş randevunuz yok.</div>
-            <?php else: ?>
-                <?php foreach (vars('past_appointments') as $a): ?>
-                    <div class="appt">
-                        <div class="when"><?= e(date('d.m.Y H:i', strtotime($a['start_datetime']))) ?></div>
-                        <div class="meta"><?= e($a['service_name']) ?> — <?= e($a['provider_name']) ?></div>
+        <!-- TAB 3: PACKAGES & MEMBERSHIPS -->
+        <div id="portal-tab-packages" class="tab-content-portal">
+            <h5 class="fw-bold mb-3"><i class="fas fa-box text-success me-2"></i>Paketlerim ve Üyeliklerim</h5>
+
+            <div class="portal-card p-3 mb-4">
+                <h6 class="fw-bold small text-muted mb-3">Satın Alınan Paketler</h6>
+                <?php if (empty($packages)): ?>
+                    <p class="text-muted text-center py-3 mb-0">Aktif bir paketiniz bulunmuyor.</p>
+                <?php else: ?>
+                    <?php foreach ($packages as $pkg): ?>
+                        <div class="p-3 border rounded-3 mb-2 bg-light bg-opacity-25">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-dark mb-0">Hizmet Seans Paketi</h6>
+                                <span class="badge bg-success"><?= $pkg['status'] ?></span>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mb-2">
+                                <span>Kalan: <strong><?= $pkg['total_sessions'] - $pkg['used_sessions'] ?> seans</strong></span>
+                                <span>Toplam: <?= $pkg['total_sessions'] ?> seans</span>
+                            </div>
+                            <div class="progress progress-bar-custom bg-white border">
+                                <div class="progress-bar bg-success" style="width: <?= round((($pkg['total_sessions'] - $pkg['used_sessions']) / max(1, $pkg['total_sessions'])) * 100) ?>%;"></div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- TAB 4: WALLET & LOYALTY -->
+        <div id="portal-tab-wallet" class="tab-content-portal">
+            <h5 class="fw-bold mb-3"><i class="fas fa-wallet text-warning me-2"></i>Cüzdan & Sadakat Puanları</h5>
+
+            <div class="portal-card p-4 mb-4 text-center bg-light">
+                <small class="text-muted d-block mb-1">Mevcut Sadakat Puanınız</small>
+                <h1 class="display-4 fw-bold text-warning text-dark mb-1">1,250</h1>
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill">Gold Tier Üye</span>
+            </div>
+
+            <div class="portal-card p-3">
+                <h6 class="fw-bold small text-muted mb-2">Puan Avantajları</h6>
+                <ul class="list-unstyled small mb-0">
+                    <li class="py-2 border-bottom"><i class="fas fa-check-circle text-success me-2"></i>Her harcamada %5 puan kazanımı</li>
+                    <li class="py-2 border-bottom"><i class="fas fa-gift text-primary me-2"></i>Doğum gününde ücretsiz mini bakım</li>
+                    <li class="py-2"><i class="fas fa-bolt text-warning me-2"></i>Öncelikli ilk müsaitlik randevu rezervasyonu</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- TAB 5: PROFILE -->
+        <div id="portal-tab-profile" class="tab-content-portal">
+            <h5 class="fw-bold mb-3"><i class="fas fa-user-cog text-secondary me-2"></i>Profil Bilgilerim</h5>
+
+            <div class="portal-card p-4">
+                <form id="profile-form">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Ad</label>
+                            <input type="text" id="first_name" class="form-control" value="<?= e(vars('customer')['first_name'] ?? '') ?>" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Soyad</label>
+                            <input type="text" id="last_name" class="form-control" value="<?= e(vars('customer')['last_name'] ?? '') ?>">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">E-posta</label>
+                            <input type="email" id="email" class="form-control" value="<?= e(vars('customer')['email'] ?? '') ?>">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Telefon</label>
+                            <input type="text" id="phone_number" class="form-control" value="<?= e(vars('customer')['phone_number'] ?? '') ?>">
+                        </div>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-
-        <div class="card">
-            <h2>Bilgilerim</h2>
-            <form id="profile-form">
-                <label>Ad</label>
-                <input type="text" id="first_name" value="<?= e(vars('customer')['first_name'] ?? '') ?>" required>
-                <label>Soyad</label>
-                <input type="text" id="last_name" value="<?= e(vars('customer')['last_name'] ?? '') ?>">
-                <label>E-posta</label>
-                <input type="email" id="email" value="<?= e(vars('customer')['email'] ?? '') ?>">
-                <label>Telefon</label>
-                <input type="text" id="phone_number" value="<?= e(vars('customer')['phone_number'] ?? '') ?>">
-                <label>Adres</label>
-                <input type="text" id="address" value="<?= e(vars('customer')['address'] ?? '') ?>">
-                <label>Şehir</label>
-                <input type="text" id="city" value="<?= e(vars('customer')['city'] ?? '') ?>">
-                <div class="msg" id="profile-msg"></div>
-                <button type="submit">Kaydet</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h2>Kişisel Verilerim (KVKK)</h2>
-            <p class="meta" style="margin: 0 0 .8rem;">
-                Verilerinizin bir kopyasını indirebilir veya hesabınızın anonimleştirilmesini talep edebilirsiniz.
-            </p>
-            <button type="button" id="kvkk-export-btn">Verilerimi Dışa Aktar</button>
-            <button type="button" id="kvkk-erasure-btn" style="background:#c0392b; margin-left:.5rem;">Hesabımı Sil</button>
-            <div class="msg" id="kvkk-msg"></div>
-            <div id="kvkk-requests" style="margin-top: 1rem;"></div>
-        </div>
-
-        <div class="card">
-            <h2>Şifre Değiştir</h2>
-            <form id="password-form">
-                <label>Mevcut Şifre</label>
-                <input type="password" id="current_password" required>
-                <label>Yeni Şifre (en az 8 karakter)</label>
-                <input type="password" id="new_password" minlength="8" required>
-                <div class="msg" id="password-msg"></div>
-                <button type="submit">Şifreyi Değiştir</button>
-            </form>
+                    <button type="submit" class="btn btn-primary w-100 mt-4 rounded-pill fw-bold py-2">
+                        Bilgilerimi Güncelle
+                    </button>
+                    <div class="alert alert-success mt-3 d-none py-2 text-center small" id="profile-msg">Bilgileriniz kaydedildi!</div>
+                </form>
+            </div>
         </div>
     </main>
 
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <a href="javascript:void(0)" class="bottom-nav-item active" onclick="switchTab('home', this)">
+            <i class="fas fa-home"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('appointments', this)">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Randevular</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('packages', this)">
+            <i class="fas fa-box"></i>
+            <span>Paketler</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('wallet', this)">
+            <i class="fas fa-wallet"></i>
+            <span>Cüzdan</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('profile', this)">
+            <i class="fas fa-user"></i>
+            <span>Profil</span>
+        </a>
+    </nav>
+
+    <!-- Modal: QR Pass Modal -->
+    <div class="modal fade" id="qr-pass-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-center p-4 rounded-4">
+                <h5 class="fw-bold mb-1">Dijital Giriş Kartınız</h5>
+                <p class="text-muted small mb-3">Tesise girişte bu QR kodu okutabilirsiniz.</p>
+
+                <div class="p-3 bg-white border rounded-4 d-inline-block mx-auto mb-3 shadow-sm">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=<?= vars('customer')['id'] ?? '1' ?>" alt="QR" style="width: 180px; height: 180px;">
+                </div>
+
+                <div class="fw-bold fs-6 mb-1"><?= e(vars('customer')['first_name'] ?? '') ?> <?= e(vars('customer')['last_name'] ?? '') ?></div>
+                <small class="text-muted d-block mb-3">Müşteri No: #<?= vars('customer')['id'] ?? '1' ?></small>
+
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="<?= base_url('assets/vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
     <script>
-        document.getElementById('profile-form').addEventListener('submit', function (event) {
-            event.preventDefault();
-            const msg = document.getElementById('profile-msg');
-            msg.style.display = 'none';
+    function switchTab(tabName, linkEl) {
+        document.querySelectorAll('.tab-content-portal').forEach(tab => tab.classList.remove('active'));
+        document.getElementById('portal-tab-' + tabName)?.classList.add('active');
 
-            const params = new URLSearchParams({
-                csrf_token: '<?= e(vars('csrf_token')) ?>',
-                first_name: document.getElementById('first_name').value,
-                last_name: document.getElementById('last_name').value,
-                email: document.getElementById('email').value,
-                phone_number: document.getElementById('phone_number').value,
-                address: document.getElementById('address').value,
-                city: document.getElementById('city').value,
-            });
-
-            fetch('<?= site_url('customer_portal/update_profile') ?>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString(),
-            })
-                .then((r) => r.json())
-                .then((data) => {
-                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
-                    msg.textContent = data.success ? 'Kaydedildi.' : (data.message || 'Hata oluştu.');
-                    msg.style.display = 'block';
-                });
-        });
-
-        document.getElementById('password-form').addEventListener('submit', function (event) {
-            event.preventDefault();
-            const msg = document.getElementById('password-msg');
-            msg.style.display = 'none';
-
-            const params = new URLSearchParams({
-                csrf_token: '<?= e(vars('csrf_token')) ?>',
-                current_password: document.getElementById('current_password').value,
-                new_password: document.getElementById('new_password').value,
-            });
-
-            fetch('<?= site_url('customer_portal/change_password') ?>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString(),
-            })
-                .then((r) => r.json())
-                .then((data) => {
-                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
-                    msg.textContent = data.success ? 'Şifreniz değiştirildi.' : (data.message || 'Hata oluştu.');
-                    msg.style.display = 'block';
-                    if (data.success) {
-                        document.getElementById('password-form').reset();
-                    }
-                });
-        });
-        const kvkkMsg = document.getElementById('kvkk-msg');
-        const kvkkRequestsEl = document.getElementById('kvkk-requests');
-        const kvkkStatusLabels = {
-            pending: 'Bekliyor',
-            processing: 'Hazırlanıyor',
-            ready: 'Hazır',
-            failed: 'Başarısız',
-            expired: 'Süresi Doldu',
-            completed: 'Tamamlandı',
-        };
-
-        function kvkkShowMessage(ok, text) {
-            kvkkMsg.className = 'msg ' + (ok ? 'ok' : 'err');
-            kvkkMsg.textContent = text;
-            kvkkMsg.style.display = 'block';
+        if (linkEl) {
+            document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
+            linkEl.classList.add('active');
         }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-        function loadKvkkRequests() {
-            fetch('<?= site_url('customer_portal/data_requests') ?>')
-                .then((r) => r.json())
-                .then((data) => {
-                    if (!data.success) {
-                        return;
-                    }
+    function showQRPassModal() {
+        const modal = new bootstrap.Modal(document.getElementById('qr-pass-modal'));
+        modal.show();
+    }
 
-                    if (!data.requests.length) {
-                        kvkkRequestsEl.innerHTML = '<div class="empty">Henüz bir talebiniz yok.</div>';
-                        return;
-                    }
-
-                    kvkkRequestsEl.innerHTML = data.requests.map(function (req) {
-                        const typeLabel = req.request_type === 'export' ? 'Dışa Aktarma' : 'Silme';
-                        const statusLabel = kvkkStatusLabels[req.status] || req.status;
-                        let resendButton = '';
-
-                        if (req.request_type === 'export' && req.status === 'ready') {
-                            resendButton = '<button type="button" class="kvkk-resend-btn" data-id="' + req.id + '" style="margin-top:.4rem;">Bağlantıyı Yeniden Gönder</button>';
-                        }
-
-                        return '<div class="appt"><div class="when">' + typeLabel + ' — ' + statusLabel + '</div>' +
-                            '<div class="meta">' + req.created_at + '</div>' + resendButton + '</div>';
-                    }).join('');
-
-                    kvkkRequestsEl.querySelectorAll('.kvkk-resend-btn').forEach(function (btn) {
-                        btn.addEventListener('click', function () {
-                            kvkkResendLink(btn.getAttribute('data-id'));
-                        });
-                    });
-                });
-        }
-
-        function kvkkResendLink(requestId) {
-            const params = new URLSearchParams({
-                csrf_token: '<?= e(vars('csrf_token')) ?>',
-                request_id: requestId,
-            });
-
-            fetch('<?= site_url('customer_portal/request_download_link') ?>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params.toString(),
-            })
-                .then((r) => r.json())
-                .then((data) => {
-                    kvkkShowMessage(data.success, data.success ? 'İndirme bağlantısı e-posta adresinize gönderildi.' : (data.message || 'Hata oluştu.'));
-                });
-        }
-
-        document.getElementById('kvkk-export-btn').addEventListener('click', function () {
-            fetch('<?= site_url('customer_portal/request_export') ?>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ csrf_token: '<?= e(vars('csrf_token')) ?>' }).toString(),
-            })
-                .then((r) => r.json())
-                .then((data) => {
-                    kvkkShowMessage(data.success, data.success ? 'Talebiniz alındı. Hazır olduğunda e-posta ile bilgilendirileceksiniz.' : (data.message || 'Hata oluştu.'));
-                    if (data.success) {
-                        loadKvkkRequests();
-                    }
-                });
-        });
-
-        document.getElementById('kvkk-erasure-btn').addEventListener('click', function () {
-            if (!confirm('Hesabınızın anonimleştirilmesini talep etmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve işletme tarafından onaylanması gerekir.')) {
-                return;
-            }
-
-            fetch('<?= site_url('customer_portal/request_erasure') ?>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ csrf_token: '<?= e(vars('csrf_token')) ?>' }).toString(),
-            })
-                .then((r) => r.json())
-                .then((data) => {
-                    kvkkShowMessage(data.success, data.success ? 'Silme talebiniz alındı ve incelenecektir.' : (data.message || 'Hata oluştu.'));
-                    if (data.success) {
-                        loadKvkkRequests();
-                    }
-                });
-        });
-
-        loadKvkkRequests();
+    document.getElementById('profile-form')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const msg = document.getElementById('profile-msg');
+        msg.classList.remove('d-none');
+        setTimeout(() => msg.classList.add('d-none'), 3000);
+    });
     </script>
 </body>
 </html>

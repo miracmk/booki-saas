@@ -234,6 +234,107 @@ App.Pages.Services = (function () {
         $services.on('click', '#select-none-providers', () => {
             $('#service-providers input:checkbox').prop('checked', false);
         });
+
+        // Add-on modal opener
+        $services.on('click', '#btn-add-addon-modal', () => {
+            $('#addon-name-input').val('');
+            $('#addon-duration-input').val('15');
+            $('#addon-price-input').val('0.00');
+            $('#addon-desc-input').val('');
+            $('#modal-addon-form').modal('show');
+        });
+
+        // Add-on submit
+        $('#btn-save-addon-submit').on('click', () => {
+            const serviceId = $id.val();
+            const name = $('#addon-name-input').val().trim();
+            if (!serviceId || !name) {
+                alert('Lütfen ek hizmet adını girin.');
+                return;
+            }
+            const data = {
+                id_services: Number(serviceId),
+                name: name,
+                duration_minutes: Number($('#addon-duration-input').val() || 0),
+                price: Number($('#addon-price-input').val() || 0),
+                description: $('#addon-desc-input').val().trim(),
+            };
+            $.ajax({
+                url: App.Utils.Url.siteUrl('services/save_addon'),
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: () => {
+                    $('#modal-addon-form').modal('hide');
+                    loadAddons(serviceId);
+                    App.Layouts.Backend.displayNotification('Ek hizmet kaydedildi.');
+                },
+                error: () => alert('Ek hizmet kaydedilemedi.'),
+            });
+        });
+
+        // Add-on delete
+        $services.on('click', '.btn-delete-addon', function () {
+            const addonId = $(this).data('id');
+            const serviceId = $id.val();
+            if (!confirm('Bu ek hizmeti silmek istediğinize emin misiniz?')) return;
+            $.post(App.Utils.Url.siteUrl('services/delete_addon/' + addonId), () => {
+                loadAddons(serviceId);
+                App.Layouts.Backend.displayNotification('Ek hizmet silindi.');
+            });
+        });
+
+        // Consumable modal opener
+        $services.on('click', '#btn-add-consumable-modal', () => {
+            $('#consumable-product-select').val('');
+            $('#consumable-qty-input').val('1.00');
+            $('#consumable-unit-display').val('adet');
+            $('#modal-consumable-form').modal('show');
+        });
+
+        $('#consumable-product-select').on('change', function () {
+            const unit = $(this).find('option:selected').data('unit') || 'adet';
+            $('#consumable-unit-display').val(unit);
+        });
+
+        // Consumable submit
+        $('#btn-save-consumable-submit').on('click', () => {
+            const serviceId = $id.val();
+            const productId = $('#consumable-product-select').val();
+            const qty = Number($('#consumable-qty-input').val());
+            if (!serviceId || !productId || qty <= 0) {
+                alert('Lütfen ürün ve geçerli bir miktar seçin.');
+                return;
+            }
+            const data = {
+                id_services: Number(serviceId),
+                id_products: Number(productId),
+                quantity_used: qty,
+            };
+            $.ajax({
+                url: App.Utils.Url.siteUrl('services/save_consumable'),
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: () => {
+                    $('#modal-consumable-form').modal('hide');
+                    loadConsumables(serviceId);
+                    App.Layouts.Backend.displayNotification('Sarf malzeme reçeteye eklendi.');
+                },
+                error: () => alert('Sarf malzeme kaydedilemedi.'),
+            });
+        });
+
+        // Consumable delete
+        $services.on('click', '.btn-delete-consumable', function () {
+            const recId = $(this).data('id');
+            const serviceId = $id.val();
+            if (!confirm('Bu sarf malzemeyi reçeteden çıkarmak istediğinize emin misiniz?')) return;
+            $.post(App.Utils.Url.siteUrl('services/delete_consumable/' + recId), () => {
+                loadConsumables(serviceId);
+                App.Layouts.Backend.displayNotification('Sarf malzeme reçeteden çıkarıldı.');
+            });
+        });
     }
 
     /**
@@ -352,6 +453,11 @@ App.Pages.Services = (function () {
         const serviceCategoryId = service.id_service_categories !== null ? service.id_service_categories : '';
         $serviceCategoryId.val(serviceCategoryId);
 
+        // Load Addons & Consumables for this service
+        $('#btn-add-addon-modal, #btn-add-consumable-modal').prop('disabled', false);
+        loadAddons(service.id);
+        loadConsumables(service.id);
+
         // Display providers
         $('#service-providers a').remove();
         $('#service-providers input:checkbox').prop('checked', false);
@@ -388,6 +494,81 @@ App.Pages.Services = (function () {
                 new bootstrap.Tooltip($link[0]);
             });
         }
+    }
+
+    /**
+     * Load add-ons for the selected service.
+     */
+    function loadAddons(serviceId) {
+        const $tbody = $('#service-addons-table tbody');
+        $tbody.html('<tr class="text-muted text-center py-2"><td colspan="4"><i class="fas fa-spinner fa-spin me-2"></i>Yükleniyor...</td></tr>');
+
+        $.get(App.Utils.Url.siteUrl('services/get_addons/' + serviceId))
+            .done((addons) => {
+                $tbody.empty();
+                if (!addons || !addons.length) {
+                    $tbody.html('<tr class="text-muted text-center py-2"><td colspan="4">Kayıtlı ek hizmet bulunamadı.</td></tr>');
+                    return;
+                }
+                addons.forEach((addon) => {
+                    const tr = `
+                        <tr>
+                            <td class="fw-semibold text-dark">${escapeHtml(addon.name)}</td>
+                            <td>+${addon.duration_minutes || 0} dk</td>
+                            <td class="text-primary fw-bold">+${Number(addon.price || 0).toFixed(2)} ₺</td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete-addon" data-id="${addon.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    $tbody.append(tr);
+                });
+            })
+            .fail(() => {
+                $tbody.html('<tr class="text-danger text-center py-2"><td colspan="4">Ek hizmetler yüklenemedi.</td></tr>');
+            });
+    }
+
+    /**
+     * Load consumables recipes for the selected service.
+     */
+    function loadConsumables(serviceId) {
+        const $tbody = $('#service-consumables-table tbody');
+        $tbody.html('<tr class="text-muted text-center py-2"><td colspan="4"><i class="fas fa-spinner fa-spin me-2"></i>Yükleniyor...</td></tr>');
+
+        $.get(App.Utils.Url.siteUrl('services/get_consumables/' + serviceId))
+            .done((recipes) => {
+                $tbody.empty();
+                if (!recipes || !recipes.length) {
+                    $tbody.html('<tr class="text-muted text-center py-2"><td colspan="4">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
+                    return;
+                }
+                recipes.forEach((rec) => {
+                    const tr = `
+                        <tr>
+                            <td class="fw-semibold text-dark">${escapeHtml(rec.product_name || 'Ürün #' + rec.id_products)}</td>
+                            <td><span class="badge bg-light text-dark border">${rec.quantity_used}</span></td>
+                            <td><span class="badge ${Number(rec.stock_quantity) > 0 ? 'bg-success' : 'bg-danger'}">${rec.stock_quantity || 0}</span></td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete-consumable" data-id="${rec.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    $tbody.append(tr);
+                });
+            })
+            .fail(() => {
+                $tbody.html('<tr class="text-danger text-center py-2"><td colspan="4">Sarf reçetesi yüklenemedi.</td></tr>');
+            });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     /**

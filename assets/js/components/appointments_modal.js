@@ -698,9 +698,11 @@ App.Components.AppointmentsModal = (function () {
                 $customField3.val(customer.custom_field_3);
                 $customField4.val(customer.custom_field_4);
                 $customField5.val(customer.custom_field_5);
+                displayCustomerContext(customer);
             }
 
             $selectCustomer.trigger('click'); // Hide the list.
+            updateLiveSummary();
         });
 
         let filterExistingCustomersTimeout = null;
@@ -1088,6 +1090,11 @@ App.Components.AppointmentsModal = (function () {
         // fill the station dropdown for that provider.
         updateStationOptions();
 
+        $('#customer-context-banner').addClass('d-none');
+        $('#addons-checkbox-list').empty();
+        $('#service-addons-selector').addClass('d-none');
+        updateLiveSummary();
+
         // Salon Flora customization - BUG FIX: $selectService.trigger('change') above re-populates the provider
         // list and, via its own 'change' handler, calls stepController.lockFrom(4) - which UNLOCKS steps 2/3
         // (hizmet/sağlayıcı) even though staff haven't picked a time yet for a brand new appointment. Re-lock
@@ -1235,6 +1242,11 @@ App.Components.AppointmentsModal = (function () {
                 App.Utils.SessionActions.hasPayment(appointment) ? 'Tahsilat Bilgisini Düzenle' : 'Tahsilat Al',
             );
         }
+
+        if (appointment.customer) {
+            displayCustomerContext(appointment.customer);
+        }
+        updateLiveSummary();
     }
 
     /**
@@ -1303,11 +1315,183 @@ App.Components.AppointmentsModal = (function () {
     }
 
     /**
+     * Update the live summary sidebar panel dynamically.
+     */
+    function updateLiveSummary() {
+        // 1. Customer
+        const firstName = $firstName.val() || '';
+        const lastName = $lastName.val() || '';
+        const customerName = (firstName + ' ' + lastName).trim() || 'Seçilmedi';
+        $('#summary-customer-name').text(customerName);
+        $('#summary-customer-phone').text($phoneNumber.val() || '-');
+
+        // 2. Service & Addons
+        const serviceId = $selectService.val();
+        const service = (vars('available_services') || []).find((s) => Number(s.id) === Number(serviceId));
+        const serviceName = service ? service.name : '-';
+        let baseDuration = service ? Number(service.duration) : 0;
+        if ($customDuration.val()) {
+            baseDuration = Number($customDuration.val());
+        }
+
+        let basePrice = service ? Number(service.price) : 0;
+        if ($priceOverride.val() !== '' && $priceOverride.val() !== null) {
+            basePrice = Number($priceOverride.val());
+        }
+
+        let totalAddonsDuration = 0;
+        let totalAddonsPrice = 0;
+        const selectedAddonNames = [];
+
+        $('.addon-checkbox:checked').each(function () {
+            const addonName = $(this).data('name');
+            const addonDur = Number($(this).data('duration') || 0);
+            const addonPrice = Number($(this).data('price') || 0);
+            selectedAddonNames.push(addonName);
+            totalAddonsDuration += addonDur;
+            totalAddonsPrice += addonPrice;
+        });
+
+        $('#summary-service-name').text(serviceName);
+        if (selectedAddonNames.length) {
+            $('#summary-addons-list').html(selectedAddonNames.map(n => '<span class="badge bg-white text-dark border me-1">+' + escapeHtml(n) + '</span>').join(' '));
+        } else {
+            $('#summary-addons-list').text('Ek hizmet seçilmedi');
+        }
+
+        // 3. Timing
+        const totalDuration = baseDuration + totalAddonsDuration;
+        $('#summary-duration-breakdown').text(totalDuration + ' dakika (' + baseDuration + ' dk temel' + (totalAddonsDuration > 0 ? ' + ' + totalAddonsDuration + ' dk ek' : '') + ')');
+        
+        let startStr = '-';
+        try {
+            const startObj = App.Utils.UI.getDateTimePickerValue($startDatetime);
+            const endObj = App.Utils.UI.getDateTimePickerValue($endDatetime);
+            if (startObj && endObj) {
+                startStr = moment(startObj).format('DD MMM YYYY, HH:mm') + ' - ' + moment(endObj).format('HH:mm');
+            }
+        } catch(e) {}
+        $('#summary-datetime').text(startStr);
+
+        // 4. Provider & Station
+        const providerId = $selectProvider.val();
+        const provider = (vars('available_providers') || []).find((p) => Number(p.id) === Number(providerId));
+        const providerName = provider ? provider.first_name + ' ' + provider.last_name : 'Seçilmedi';
+        const stationText = $stationSelect.find('option:selected').text() || 'Atanmadı';
+        $('#summary-provider-station').text(providerName + ' · ' + stationText);
+
+        // 5. Pricing
+        const totalPrice = basePrice + totalAddonsPrice;
+        $('#summary-base-price').text(basePrice.toFixed(2) + ' ₺');
+        $('#summary-addons-price').text('+' + totalAddonsPrice.toFixed(2) + ' ₺');
+        $('#summary-total-price').text(totalPrice.toFixed(2) + ' ₺');
+
+        // 6. Fast actions & badge
+        if ($appointmentId.val()) {
+            $('#summary-status-badge').text('Randevu #' + $appointmentId.val()).removeClass('bg-primary').addClass('bg-dark');
+            $('#summary-fast-actions').removeClass('d-none');
+        } else {
+            $('#summary-status-badge').text('Yeni Randevu').removeClass('bg-dark').addClass('bg-primary');
+            $('#summary-fast-actions').addClass('d-none');
+        }
+    }
+
+    /**
+     * Load add-ons for the selected service into the booking form.
+     */
+    function loadServiceAddons(serviceId) {
+        const $container = $('#service-addons-selector');
+        const $list = $('#addons-checkbox-list');
+        $list.empty();
+
+        if (!serviceId) {
+            $container.addClass('d-none');
+            return;
+        }
+
+        $.get(App.Utils.Url.siteUrl('services/get_addons/' + serviceId))
+            .done((addons) => {
+                if (!addons || !addons.length) {
+                    $container.addClass('d-none');
+                    return;
+                }
+                $container.removeClass('d-none');
+                addons.forEach((addon) => {
+                    const label = `${escapeHtml(addon.name)} (+${addon.duration_minutes} dk, +${Number(addon.price).toFixed(2)} ₺)`;
+                    const checkboxHtml = `
+                        <div class="form-check form-check-inline bg-white px-2 py-1 border rounded me-2 mb-2">
+                            <input class="form-check-input addon-checkbox" type="checkbox" id="addon-check-${addon.id}" 
+                                   data-id="${addon.id}" data-name="${escapeHtml(addon.name)}" 
+                                   data-duration="${addon.duration_minutes}" data-price="${addon.price}">
+                            <label class="form-check-label small fw-semibold" for="addon-check-${addon.id}">
+                                ${label}
+                            </label>
+                        </div>
+                    `;
+                    $list.append(checkboxHtml);
+                });
+                updateLiveSummary();
+            })
+            .fail(() => {
+                $container.addClass('d-none');
+            });
+    }
+
+    /**
+     * Display Customer Context banner with 360 preview and VIP status.
+     */
+    function displayCustomerContext(customer) {
+        const $banner = $('#customer-context-banner');
+        if (!customer || !customer.id) {
+            $banner.addClass('d-none');
+            return;
+        }
+
+        const fullName = [(customer.first_name || ''), (customer.last_name || '')].join(' ').trim() || 'Müşteri #' + customer.id;
+        $('#ctx-cust-avatar').text(fullName.charAt(0).toUpperCase());
+        $('#ctx-cust-name').text(fullName);
+        $('#ctx-cust-phone').text(customer.phone_number || '-');
+        $('#ctx-cust-email').text(customer.email || '-');
+
+        $('#btn-open-ctx-360').off('click').on('click', () => {
+            if (window.openCustomer360) {
+                window.openCustomer360(customer.id);
+            }
+        });
+
+        // Check customer packages & VIP from 360 endpoint
+        $.get(App.Utils.Url.siteUrl('customers/get_360/' + customer.id))
+            .done((res) => {
+                if (res && res.success) {
+                    const packages = res.packages || [];
+                    const activePkg = packages.find(p => Number(p.remaining_sessions) > 0);
+                    if (activePkg) {
+                        $('#ctx-cust-pkg-badge').text('Paket: ' + activePkg.package_name + ' (' + activePkg.remaining_sessions + ' Seans)').removeClass('d-none');
+                    } else {
+                        $('#ctx-cust-pkg-badge').addClass('d-none');
+                    }
+
+                    const metrics = res.metrics || {};
+                    if (Number(metrics.completed_appointments) >= 5 || Number(metrics.total_spend) > 3000) {
+                        $('#ctx-cust-vip-badge').removeClass('d-none');
+                    } else {
+                        $('#ctx-cust-vip-badge').addClass('d-none');
+                    }
+                }
+            });
+
+        $banner.removeClass('d-none');
+        updateLiveSummary();
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /**
      * Salon Flora customization - providers must only ever see a customer's first name, never surname, email,
-     * phone or address. The backend already never sends those fields for a provider (see
-     * Appointments_model::filter_customer_for_role()) and refuses to save them even if submitted anyway - this
-     * just hides the now-always-empty fields so the form doesn't show confusing blank inputs, and drops
-     * "required" from them so a provider can still save the appointment without filling in data they can't see.
+     * phone or address.
      */
     function applyCustomerPrivacyRestrictions() {
         if (vars('role_slug') !== App.Layouts.Backend.DB_SLUG_PROVIDER) {
@@ -1323,8 +1507,6 @@ App.Components.AppointmentsModal = (function () {
                 .prop('disabled', true);
         });
 
-        // The existing-customer picker surfaces full names/contact details in its filter list - not meaningful
-        // (and not privacy-safe) when only first names are available.
         $('#select-customer, #filter-existing-customers').addClass('d-none');
     }
 
@@ -1334,6 +1516,48 @@ App.Components.AppointmentsModal = (function () {
     function initialize() {
         addEventListeners();
         applyCustomerPrivacyRestrictions();
+
+        // Bind live summary updates to inputs
+        $appointmentsModal.on('input change', 'input, select, textarea', () => {
+            updateLiveSummary();
+        });
+
+        $appointmentsModal.on('change', '.addon-checkbox', function () {
+            // Recompute end datetime based on added addon duration
+            const serviceId = $selectService.val();
+            const service = (vars('available_services') || []).find(s => Number(s.id) === Number(serviceId));
+            let totalMins = service ? Number(service.duration) : 30;
+            if ($customDuration.val()) {
+                totalMins = Number($customDuration.val());
+            }
+
+            $('.addon-checkbox:checked').each(function () {
+                totalMins += Number($(this).data('duration') || 0);
+            });
+
+            try {
+                const startObj = App.Utils.UI.getDateTimePickerValue($startDatetime);
+                if (startObj) {
+                    const newEnd = new Date(startObj.getTime() + totalMins * 60000);
+                    App.Utils.UI.setDateTimePickerValue($endDatetime, newEnd);
+                }
+            } catch(e) {}
+
+            updateLiveSummary();
+        });
+
+        // Fast open adisyon button
+        $('#btn-fast-open-adisyon').on('click', () => {
+            const aptId = $appointmentId.val();
+            if (aptId) {
+                window.location.href = App.Utils.Url.siteUrl('adisyons/create_for_appointment/' + aptId);
+            }
+        });
+
+        $selectService.on('change', function () {
+            loadServiceAddons($(this).val());
+            updateLiveSummary();
+        });
     }
 
     document.addEventListener('DOMContentLoaded', initialize);
@@ -1342,5 +1566,7 @@ App.Components.AppointmentsModal = (function () {
         resetModal,
         validateAppointmentForm,
         displaySessionTracking,
+        updateLiveSummary,
+        displayCustomerContext,
     };
 })();

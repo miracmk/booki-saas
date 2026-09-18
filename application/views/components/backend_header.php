@@ -14,12 +14,8 @@ if ('serviceWorker' in navigator) {
 ?>
 
 <?php
-// BooKi (2026-08-26) - "N gün kaldı" advance warning, admin role only (see
-// EA_Controller::build_expiry_warning()). The hard cutoff (402, once actually expired) is enforced
-// separately in EA_Controller::resolve_tenant() - this is purely the advance notice before that.
 $expiry_warning = vars('expiry_warning');
-?>
-<?php if ($expiry_warning): ?>
+if ($expiry_warning): ?>
     <div class="w-100 text-center py-2 px-3" style="background: #fff4e0; color: #b3720a; font-size: .85rem;">
         <?= e($expiry_warning['label']) ?> bitimine <strong><?= e($expiry_warning['days_left']) ?> gün</strong> kaldı
         (<?= e($expiry_warning['date']) ?>) - devam etmek için lütfen bizimle iletişime geçin.
@@ -27,22 +23,19 @@ $expiry_warning = vars('expiry_warning');
 <?php endif; ?>
 
 <?php
-// BooKi (2026-09-10) - sidebar navigation redesign. Below the "md" breakpoint (768px),
-// Bootstrap's `offcanvas-md` turns #sidebar into a real dismissible offcanvas panel, triggered by
-// this thin top bar's hamburger button. At/above "md" it renders as a normal, always-visible,
-// fixed-position column (see the CSS block in backend_layout.php) - this thin bar is hidden there
-// via `d-md-none`. #header keeps its ID here (not on the sidebar) so calendar_default_view.js's/
-// calendar_table_view.js's `$('#header').outerHeight()` height budget still works unmodified: 0 on
-// desktop (element hidden), this bar's real height on mobile.
 $header_company_name = vars('company_name') ?: 'BooKi';
 $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
 ?>
+<!-- Mobile Top Navigation Bar -->
 <nav id="header" class="d-md-none navbar navbar-dark bg-primary py-2 px-2">
     <button type="button" class="btn btn-link text-white p-1" data-bs-toggle="offcanvas" data-bs-target="#sidebar"
             aria-controls="sidebar" aria-label="Menüyü aç">
         <i class="fas fa-bars fa-lg"></i>
     </button>
     <span class="text-white fw-bold ms-2 flex-grow-1" style="font-size: 15px;"><?= e($header_company_name) ?></span>
+    <button type="button" class="btn btn-link text-white p-1 me-1" onclick="openOmnisearch()" aria-label="Arama">
+        <i class="fas fa-search"></i>
+    </button>
     <?php if (can('view', PRIV_CUSTOMERS)): ?>
         <div class="dropdown">
             <button type="button" class="btn btn-link text-white position-relative p-1 kcc-notif-trigger"
@@ -58,6 +51,7 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
     <?php endif; ?>
 </nav>
 
+<!-- Sidebar Navigation -->
 <nav id="sidebar" class="offcanvas-md offcanvas-start bg-primary text-white" tabindex="-1"
      aria-labelledby="sidebar-label">
     <div class="offcanvas-header d-md-none">
@@ -67,11 +61,12 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
     </div>
 
     <div class="offcanvas-body d-flex flex-column p-0">
+        <!-- Logo Header -->
         <div id="header-logo" class="d-none d-md-flex align-items-center p-3">
-            <img src="<?= e($header_company_logo) ?>" alt="logo" class="me-2" style="width: 40px; height: 40px;">
-            <div class="flex-grow-1">
-                <h6 class="mb-0 fw-bold text-white" style="font-size: 14px;"><?= e($header_company_name) ?></h6>
-                <small class="d-block text-white-50" style="font-size: 11px;">Online Appointment Scheduler</small>
+            <img src="<?= e($header_company_logo) ?>" alt="logo" class="me-2 rounded-2" style="width: 36px; height: 36px; object-fit: contain; background: white; padding: 2px;">
+            <div class="flex-grow-1 text-truncate">
+                <h6 class="mb-0 fw-bold text-white text-truncate" style="font-size: 14px;"><?= e($header_company_name) ?></h6>
+                <small class="d-block text-white-50" style="font-size: 11px;">Business Operating System</small>
             </div>
             <?php if (can('view', PRIV_CUSTOMERS)): ?>
                 <div class="dropdown">
@@ -88,278 +83,225 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
             <?php endif; ?>
         </div>
 
-        <ul class="nav flex-column flex-grow-1 overflow-auto px-2 sidebar-nav">
-            <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == 'dashboard' ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a href="<?= site_url('dashboard') ?>" class="nav-link text-white" data-tippy-content="Genel bakış">
+        <!-- Global Search / Command Center Trigger & Quick Action -->
+        <div class="px-3 pb-2 pt-1">
+            <button type="button" class="btn btn-light bg-opacity-10 text-white border-0 w-100 text-start d-flex align-items-center justify-content-between py-2 px-2 rounded-3 mb-2" onclick="openOmnisearch()" style="background: rgba(255,255,255,0.12);">
+                <span class="small"><i class="fas fa-search me-2 text-white-50"></i>Hızlı Ara...</span>
+                <span class="badge bg-dark bg-opacity-50 text-white-50 font-monospace" style="font-size: 10px;">⌘K</span>
+            </button>
+            <div class="dropdown w-100">
+                <button class="btn btn-warning w-100 fw-bold btn-sm py-2 rounded-3 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-plus-circle me-1"></i> Hızlı İşlem
+                </button>
+                <ul class="dropdown-menu shadow border-0 rounded-3">
+                    <li><a class="dropdown-item py-2" href="<?= site_url('calendar') ?>"><i class="fas fa-calendar-plus text-primary me-2"></i>Yeni Randevu</a></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('customers') ?>"><i class="fas fa-user-plus text-success me-2"></i>Yeni Müşteri</a></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('adisyons') ?>"><i class="fas fa-receipt text-warning me-2"></i>Yeni Adisyon / Sipariş</a></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('checkin') ?>"><i class="fas fa-sign-in-alt text-info me-2"></i>Müşteri Girişi (Check-in)</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('packages') ?>"><i class="fas fa-box text-secondary me-2"></i>Paket Satışı</a></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('memberships') ?>"><i class="fas fa-id-card text-secondary me-2"></i>Üyelik Satışı</a></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('expenses') ?>"><i class="fas fa-file-invoice-dollar text-danger me-2"></i>Gider Ekle</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Grouped Navigation Menu -->
+        <ul class="nav flex-column flex-grow-1 overflow-auto px-2 sidebar-nav mt-1">
+            <!-- Dashboard -->
+            <li class="nav-item <?= $active_menu == 'dashboard' ? 'active' : '' ?>">
+                <a href="<?= site_url('dashboard') ?>" class="nav-link text-white">
                     <i class="fas fa-gauge-high me-2"></i>
                     Dashboard
                 </a>
             </li>
 
-            <?php $has_plan = plan_allows(PRIV_AI_AGENT); ?>
-            <?php $hidden = can('view', PRIV_AI_AGENT) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_AI_AGENT ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('ai_agent') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_AI_AGENT; ?>" data-tier="Elite"<?php endif; ?> class="nav-link text-white" data-tippy-content="AI Asistan">
-                    <i class="fas fa-robot me-2"></i>
-                    AI Asistan
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Elite Plan"></i><?php endif; ?></a>
+            <!-- SECTION: OPERATIONS -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Operasyon
             </li>
-
-            <?php $hidden = can('view', PRIV_APPOINTMENTS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_APPOINTMENTS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a href="<?= site_url(
-                    'calendar' . (vars('calendar_view') === CALENDAR_VIEW_TABLE ? '?view=table' : ''),
-                ) ?>"
-                   class="nav-link text-white"
-                   data-tippy-content="<?= lang('manage_appointment_record_hint') ?>">
+            <li class="nav-item <?= $active_menu == PRIV_APPOINTMENTS ? 'active' : '' ?>">
+                <a href="<?= site_url('calendar' . (vars('calendar_view') === CALENDAR_VIEW_TABLE ? '?view=table' : '')) ?>" class="nav-link text-white">
                     <i class="fas fa-calendar-alt me-2"></i>
                     <?= lang('calendar') ?>
                 </a>
             </li>
+            <li class="nav-item <?= $active_menu == 'checkin' ? 'active' : '' ?>">
+                <a href="<?= site_url('checkin') ?>" class="nav-link text-white">
+                    <i class="fas fa-sign-in-alt me-2"></i>
+                    Giriş / Çıkış & Kiosk
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_WAITLIST ? 'active' : '' ?>">
+                <a href="<?= site_url('waitlist') ?>" class="nav-link text-white">
+                    <i class="fas fa-hourglass-half me-2"></i>
+                    Bekleme Listesi
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_STATIONS ? 'active' : '' ?>">
+                <a href="<?= site_url('stations') ?>" class="nav-link text-white">
+                    <i class="fas fa-door-open me-2"></i>
+                    İstasyonlar & Odalar
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_SERVICES ? 'active' : '' ?>">
+                <a href="<?= site_url('services') ?>" class="nav-link text-white">
+                    <i class="fas fa-business-time me-2"></i>
+                    Hizmetler & Menü
+                </a>
+            </li>
 
-            <?php $hidden = can('view', PRIV_CUSTOMERS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_CUSTOMERS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a href="<?= site_url('customers') ?>" class="nav-link text-white"
-                   data-tippy-content="<?= lang('manage_customers_hint') ?>">
+            <!-- SECTION: CUSTOMERS -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Müşteriler & CRM
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_CUSTOMERS ? 'active' : '' ?>">
+                <a href="<?= site_url('customers') ?>" class="nav-link text-white">
                     <i class="fas fa-user-friends me-2"></i>
                     <?= lang('customers') ?>
                 </a>
             </li>
-
-            <?php $hidden = can('view', PRIV_SERVICES) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_SERVICES ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
-                   data-bs-toggle="collapse" data-bs-target="#sidebar-services-collapse"
-                   data-tippy-content="<?= lang('manage_services_hint') ?>">
-                    <span><i class="fas fa-business-time me-2"></i><?= lang('services') ?></span>
-                    <i class="fas fa-chevron-down small"></i>
-                </a>
-                <div class="collapse <?= $active ? 'show' : '' ?>" id="sidebar-services-collapse">
-                    <ul class="nav flex-column ps-4">
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50" href="<?= site_url('services') ?>">
-                                <?= lang('services') ?>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50" href="<?= site_url('service_categories') ?>">
-                                <?= lang('categories') ?>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-
-            <?php $hidden = can('view', PRIV_STATIONS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_STATIONS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a href="<?= site_url('stations') ?>" class="nav-link text-white"
-                   data-tippy-content="İstasyonları yönet">
-                    <i class="fas fa-door-open me-2"></i>
-                    İstasyonlar
+            <li class="nav-item <?= $active_menu == 'packages' ? 'active' : '' ?>">
+                <a href="<?= site_url('packages') ?>" class="nav-link text-white">
+                    <i class="fas fa-box me-2"></i>
+                    Paket Seanslar
                 </a>
             </li>
-
-            <?php $has_plan = plan_allows(PRIV_WAITLIST); ?>
-            <?php $hidden = can('view', PRIV_WAITLIST) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_WAITLIST ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('waitlist') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_WAITLIST; ?>" data-tier="Basic"<?php endif; ?> class="nav-link text-white"
-                   data-tippy-content="Bekleme listesini yönet">
-                    <i class="fas fa-hourglass-half me-2"></i>
-                    Bekleme Listesi
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Basic Plan"></i><?php endif; ?></a>
-            </li>
-
-            <?php $has_plan = plan_allows(PRIV_MEMBERSHIPS); ?>
-            <?php $hidden = can('view', PRIV_MEMBERSHIPS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_MEMBERSHIPS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('memberships') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_MEMBERSHIPS; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
-                   data-tippy-content="Üyelikleri yönet">
+            <li class="nav-item <?= $active_menu == PRIV_MEMBERSHIPS ? 'active' : '' ?>">
+                <a href="<?= site_url('memberships') ?>" class="nav-link text-white">
                     <i class="fas fa-id-card me-2"></i>
-                    Üyelikler
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
-            </li>
-
-            <?php $hidden = can('view', PRIV_CUSTOMERS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == 'data_requests' ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a href="<?= site_url('data_requests') ?>" class="nav-link text-white"
-                   data-tippy-content="KVKK veri talepleri">
-                    <i class="fas fa-shield-alt me-2"></i>
-                    Veri Talepleri
+                    Üyelikler & Planlar
                 </a>
             </li>
 
-            <?php $has_plan = plan_allows(PRIV_INVOICES); ?>
-            <?php $hidden = can('view', PRIV_INVOICES) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_INVOICES ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('invoices') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_INVOICES; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
-                   data-tippy-content="Faturaları yönet">
-                    <i class="fas fa-file-invoice me-2"></i>
-                    Faturalar
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
+            <!-- SECTION: SALES & FINANCE -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Satış & Finans
             </li>
-
-            <?php $has_plan = plan_allows(PRIV_POS); ?>
-            <?php $hidden = can('view', PRIV_POS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_POS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('pos') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_POS; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
-                   data-tippy-content="Satış noktası">
+            <li class="nav-item <?= $active_menu == 'adisyons' ? 'active' : '' ?>">
+                <a href="<?= site_url('adisyons') ?>" class="nav-link text-white">
+                    <i class="fas fa-receipt me-2"></i>
+                    Adisyonlar
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == 'finance' ? 'active' : '' ?>">
+                <a href="<?= site_url('finance') ?>" class="nav-link text-white">
+                    <i class="fas fa-wallet me-2"></i>
+                    Finans & Kasa
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_POS ? 'active' : '' ?>">
+                <a href="<?= site_url('pos') ?>" class="nav-link text-white">
                     <i class="fas fa-cash-register me-2"></i>
-                    POS
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
-            </li>
-
-            <?php $has_plan = plan_allows(PRIV_REPORTS); ?>
-            <?php $hidden = can('view', PRIV_REPORTS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_REPORTS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('reports') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_REPORTS; ?>" data-tier="Basic"<?php endif; ?> class="nav-link text-white"
-                   data-tippy-content="Günlük ciro raporu">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Raporlar
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Basic Plan"></i><?php endif; ?></a>
-            </li>
-
-            <?php $has_plan = plan_allows(PRIV_MARKETING); ?>
-            <?php $hidden = can('view', PRIV_MARKETING) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_MARKETING ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('marketing') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_MARKETING; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
-                   data-tippy-content="Pazarlama kampanyaları">
-                    <i class="fas fa-bullhorn me-2"></i>
-                    Pazarlama
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
-            </li>
-
-            <?php $has_plan = plan_allows(PRIV_REVIEWS); ?>
-            <?php $hidden = can('view', PRIV_REVIEWS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_REVIEWS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a <?php if ($has_plan): ?>href="<?= site_url('reviews') ?>"<?php else: ?>href="#" data-locked="true" data-feature="<?php echo PRIV_REVIEWS; ?>" data-tier="Premium"<?php endif; ?> class="nav-link text-white"
-                   data-tippy-content="Müşteri yorumları">
-                    <i class="fas fa-star me-2"></i>
-                    Yorumlar
-                <?php if (!$has_plan): ?><i class="fas fa-lock ms-auto text-warning ms-2" title="Premium Plan"></i><?php endif; ?></a>
-            </li>
-
-            <?php $hidden = can('view', PRIV_USERS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_USERS ? 'active' : ''; ?>
-            <li class="nav-item <?= $active ?> <?= $hidden ?>">
-                <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
-                   data-bs-toggle="collapse" data-bs-target="#sidebar-users-collapse"
-                   data-tippy-content="<?= lang('manage_users_hint') ?>">
-                    <span><i class="fas fa-users me-2"></i><?= lang('users') ?></span>
-                    <i class="fas fa-chevron-down small"></i>
+                    Hızlı Satış (POS)
                 </a>
-                <div class="collapse <?= $active ? 'show' : '' ?>" id="sidebar-users-collapse">
-                    <ul class="nav flex-column ps-4">
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50" href="<?= site_url('providers') ?>">
-                                <?= lang('providers') ?>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50" href="<?= site_url('secretaries') ?>">
-                                <?= lang('secretaries') ?>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50" href="<?= site_url('admins') ?>">
-                                <?= lang('admins') ?>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_INVOICES ? 'active' : '' ?>">
+                <a href="<?= site_url('invoices') ?>" class="nav-link text-white">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Faturalar & e-Fatura
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == 'expenses' ? 'active' : '' ?>">
+                <a href="<?= site_url('expenses') ?>" class="nav-link text-white">
+                    <i class="fas fa-receipt me-2"></i>
+                    Gider Yönetimi
+                </a>
+            </li>
+
+            <!-- SECTION: INVENTORY -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Envanter & Stok
+            </li>
+            <li class="nav-item <?= $active_menu == 'products' ? 'active' : '' ?>">
+                <a href="<?= site_url('products') ?>" class="nav-link text-white">
+                    <i class="fas fa-boxes me-2"></i>
+                    Ürünler & Sarf Malzeme
+                </a>
+            </li>
+
+            <!-- SECTION: RESTAURANT (Always accessible or enabled) -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Restoran Modülü
+            </li>
+            <li class="nav-item <?= $active_menu == 'restaurant_floor_plan' ? 'active' : '' ?>">
+                <a href="<?= site_url('restaurant') ?>" class="nav-link text-white">
+                    <i class="fas fa-utensils me-2"></i>
+                    Masa Planı
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == 'restaurant_reservations' ? 'active' : '' ?>">
+                <a href="<?= site_url('restaurant/reservations') ?>" class="nav-link text-white">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    Restoran Rezervasyonları
+                </a>
+            </li>
+
+            <!-- SECTION: STAFF -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Ekip & Personel
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_USERS ? 'active' : '' ?>">
+                <a href="<?= site_url('providers') ?>" class="nav-link text-white">
+                    <i class="fas fa-users me-2"></i>
+                    Personel & Uzmanlar
+                </a>
+            </li>
+
+            <!-- SECTION: MARKETING & REVIEWS -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Pazarlama & İtibar
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_MARKETING ? 'active' : '' ?>">
+                <a href="<?= site_url('marketing') ?>" class="nav-link text-white">
+                    <i class="fas fa-bullhorn me-2"></i>
+                    Pazarlama & Kampanya
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_REVIEWS ? 'active' : '' ?>">
+                <a href="<?= site_url('reviews') ?>" class="nav-link text-white">
+                    <i class="fas fa-star me-2"></i>
+                    Müşteri Yorumları
+                </a>
+            </li>
+
+            <!-- SECTION: REPORTS -->
+            <li class="nav-heading text-uppercase text-white-50 px-3 pt-3 pb-1" style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                Raporlama
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_REPORTS ? 'active' : '' ?>">
+                <a href="<?= site_url('reports') ?>" class="nav-link text-white">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    İşletme Raporları
+                </a>
+            </li>
+            <li class="nav-item <?= $active_menu == PRIV_AI_AGENT ? 'active' : '' ?>">
+                <a href="<?= site_url('ai_agent') ?>" class="nav-link text-white">
+                    <i class="fas fa-robot me-2"></i>
+                    AI Asistan
+                </a>
             </li>
         </ul>
 
+        <!-- User & Settings Footer -->
         <div class="border-top border-light border-opacity-25 p-2">
-            <?php $hidden = can('view', PRIV_SYSTEM_SETTINGS) || can('view', PRIV_USER_SETTINGS) ? '' : 'd-none'; ?>
-            <?php $active = $active_menu == PRIV_SYSTEM_SETTINGS ? 'active' : ''; ?>
-            <ul class="nav flex-column <?= $hidden ?>">
-                <li class="nav-item <?= $active ?>">
+            <ul class="nav flex-column">
+                <li class="nav-item">
                     <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
-                       data-bs-toggle="collapse" data-bs-target="#sidebar-account-collapse"
-                       data-tippy-content="<?= lang('settings_hint') ?>">
+                       data-bs-toggle="collapse" data-bs-target="#sidebar-account-collapse">
                         <span><i class="fas fa-user me-2"></i><?= e(vars('user_display_name')) ?></span>
                         <i class="fas fa-chevron-down small"></i>
                     </a>
                     <div class="collapse" id="sidebar-account-collapse">
                         <ul class="nav flex-column ps-4">
                             <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50" href="<?= site_url('general_settings') ?>">
-                                        <i class="fas fa-cogs me-2"></i>
-                                        <?= lang('settings') ?>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50" href="<?= site_url('jobs') ?>">
-                                        <i class="fas fa-hourglass-start me-2"></i>
-                                        İş Kuyruğu
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50" href="<?= site_url('audit_log') ?>">
-                                        <i class="fas fa-clipboard-list me-2"></i>
-                                        Denetim Kayıtları
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50" href="<?= site_url('google_sync_dashboard') ?>">
-                                        <i class="fab fa-google me-2"></i>
-                                        Google Takvim Senkron Durumu
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white-50" href="<?= site_url('custom_domain') ?>">
-                                        <i class="fas fa-globe me-2"></i>
-                                        Özel Alan Adı
-                                    </a>
-                                </li>
+                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('general_settings') ?>"><i class="fas fa-cogs me-2"></i><?= lang('settings') ?></a></li>
+                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('audit_log') ?>"><i class="fas fa-clipboard-list me-2"></i>Denetim Kayıtları</a></li>
+                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('data_requests') ?>"><i class="fas fa-shield-alt me-2"></i>Veri Talepleri (KVKK)</a></li>
                             <?php endif; ?>
-
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50 kcc-theme-trigger" href="#">
-                                    <i class="fas fa-palette me-2"></i>
-                                    Renk Teması
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50" href="<?= site_url('account') ?>">
-                                    <i class="fas fa-user me-2"></i>
-                                    <?= lang('account') ?>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50" href="<?= site_url('about') ?>">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    <?= lang('about') ?>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50" href="<?= site_url('booking') ?>" target="_blank">
-                                    <i class="fas fa-external-link me-2"></i>
-                                    <?= lang('booking') ?>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50" href="<?= site_url('logout') ?>">
-                                    <i class="fas fa-sign-out me-2"></i>
-                                    <?= lang('log_out') ?>
-                                </a>
-                            </li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('account') ?>"><i class="fas fa-user me-2"></i><?= lang('account') ?></a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('booking') ?>" target="_blank"><i class="fas fa-external-link me-2"></i>Müşteri Randevu Sayfası</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('logout') ?>"><i class="fas fa-sign-out me-2"></i><?= lang('log_out') ?></a></li>
                         </ul>
                     </div>
                 </li>
@@ -367,6 +309,32 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
         </div>
     </div>
 </nav>
+
+<!-- Global Command Center / Omnisearch Modal (Cmd+K) -->
+<div class="modal fade" id="omnisearch-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-bottom bg-light p-3">
+                <div class="input-group input-group-lg border-0">
+                    <span class="input-group-text bg-transparent border-0 text-muted ps-2"><i class="fas fa-search fa-lg"></i></span>
+                    <input type="text" id="omnisearch-input" class="form-control bg-transparent border-0 fs-5" placeholder="Müşteri, randevu, adisyon, fatura, ürün veya masa arayın..." autocomplete="off">
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="max-height: 480px; overflow-y: auto;">
+                <div id="omnisearch-empty" class="text-center py-5 text-muted">
+                    <i class="fas fa-search fa-3x mb-3 text-secondary opacity-50"></i>
+                    <p class="mb-0">Aramak istediğiniz terimi yazın (Örn: Ayşe, AD-2026, Masa 4)...</p>
+                </div>
+                <div id="omnisearch-results" class="list-group list-group-flush"></div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-3 justify-content-between small text-muted">
+                <span><kbd>ESC</kbd> kapatır &bull; <kbd>↵</kbd> seçer</span>
+                <span class="fw-semibold">BooKi Command Center</span>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="notification" style="display: none;"></div>
 
@@ -376,71 +344,61 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
     </div>
 </div>
 
-<!-- Upgrade Plan Modal -->
-<div class="modal fade" id="upgrade-plan-modal" tabindex="-1" aria-labelledby="upgradePlanModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title" id="upgradePlanModalLabel">
-                    <i class="fas fa-lock text-warning me-2"></i> <span id="upgrade-feature-name">Özellik Kilitli</span>
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center p-4">
-                <div class="mb-4">
-                    <i class="fas fa-gem fa-4x text-primary"></i>
-                </div>
-                <h5>Paketinizi Yükseltin</h5>
-                <p class="text-muted mt-3">
-                    Bu özelliği kullanabilmek için planınızı 
-                    <strong class="text-dark" id="upgrade-tier-name">Premium</strong> veya daha üst bir pakete yükseltmeniz gerekmektedir.
-                </p>
-                <p class="text-muted">
-                    Lütfen yöneticiniz veya <?php echo (plan_allows('white_label') && setting('white_label_enabled') == 1) ? 'destek ekibi' : 'BooKi destek ekibi'; ?> ile iletişime geçin.
-                </p>
-            </div>
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
-                <a href="https://kisoftware.com/contact" target="_blank" class="btn btn-primary">İletişime Geçin</a>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-locked="true"]').forEach(function(el) {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation(); // prevent collapse toggles if any
-            
-            var feature = this.getAttribute('data-feature') || 'Bu Özellik';
-            var tier = this.getAttribute('data-tier') || 'Üst';
-            
-            // Re-map constants if possible, or just capitalize
-            var featureNameMap = {
-                'reports': 'Raporlar',
-                'waitlist': 'Bekleme Listesi',
-                'webhooks': 'Webhooks',
-                'products': 'Ürün & Stok',
-                'marketing': 'Pazarlama',
-                'invoices': 'Faturalama',
-                'pos': 'Kasa & POS',
-                'reviews': 'Değerlendirmeler',
-                'memberships': 'Üyelikler',
-                'packages': 'Paket Seanslar',
-                'branches': 'Şubeler',
-                'ai_agent': 'AI Asistan'
-            };
-            
-            var displayFeature = featureNameMap[feature] || feature.replace('PRIV_', '').replace('_', ' ');
-            
-            document.getElementById('upgrade-feature-name').innerText = displayFeature + ' Kilitli';
-            document.getElementById('upgrade-tier-name').innerText = tier;
-            
-            var upgradeModal = new bootstrap.Modal(document.getElementById('upgrade-plan-modal'));
-            upgradeModal.show();
+// Global Command Palette Shortcut Listener (Cmd+K / Ctrl+K)
+document.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        openOmnisearch();
+    }
+});
+
+function openOmnisearch() {
+    const modalEl = document.getElementById('omnisearch-modal');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+    setTimeout(() => document.getElementById('omnisearch-input').focus(), 300);
+}
+
+document.getElementById('omnisearch-input')?.addEventListener('input', function() {
+    const q = this.value.trim();
+    const resultsBox = document.getElementById('omnisearch-results');
+    const emptyBox = document.getElementById('omnisearch-empty');
+
+    if (q.length < 2) {
+        resultsBox.innerHTML = '';
+        emptyBox.classList.remove('d-none');
+        return;
+    }
+
+    fetch('<?= site_url('search/global_query?q=') ?>' + encodeURIComponent(q))
+        .then(res => res.json())
+        .then(data => {
+            resultsBox.innerHTML = '';
+            if (data.results && data.results.length > 0) {
+                emptyBox.classList.add('d-none');
+                data.results.forEach(r => {
+                    const a = document.createElement('a');
+                    a.href = r.url;
+                    a.className = 'list-group-item list-group-item-action d-flex align-items-center justify-content-between p-3';
+                    a.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-${r.badge} bg-opacity-10 text-${r.badge} p-2 me-3" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas ${r.icon}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">${r.title}</h6>
+                                <small class="text-muted">${r.subtitle}</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-light text-dark border">${r.category}</span>
+                    `;
+                    resultsBox.appendChild(a);
+                });
+            } else {
+                emptyBox.classList.remove('d-none');
+                emptyBox.innerHTML = '<p class="py-4 text-muted mb-0">Eşleşen sonuç bulunamadı.</p>';
+            }
         });
-    });
 });
 </script>

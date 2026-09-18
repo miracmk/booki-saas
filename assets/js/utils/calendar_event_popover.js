@@ -195,6 +195,11 @@ App.Utils.CalendarEventPopover = (function () {
                     'fas fa-sticky-note',
                     'add_note',
                 ).attr('data-appointment-id', appointmentId),
+                $('<a/>', {
+                    class: 'btn btn-outline-success btn-sm ' + displayEdit,
+                    href: App.Utils.Url.siteUrl('adisyons/create_for_appointment/' + appointmentId),
+                    html: [$('<i class="fas fa-receipt me-1"></i>'), $('<span>Adisyon / Kasa</span>')],
+                }),
                 createPopoverButton('edit-popover btn btn-primary ' + displayEdit, 'fas fa-edit', 'edit'),
             ],
         });
@@ -535,7 +540,18 @@ App.Utils.CalendarEventPopover = (function () {
                 $('<br/>'),
                 $('<strong/>', {class: 'd-inline-block me-2', text: lang('customer')}),
                 renderMapIcon(customer),
-                $('<span/>', {class: 'd-inline-block', text: customerName}),
+                $('<span/>', {class: 'd-inline-block fw-semibold', text: customerName}),
+                customer.id ? $('<button/>', {
+                    type: 'button',
+                    class: 'btn btn-link btn-sm p-0 ms-2 text-decoration-none',
+                    title: 'Müşteri 360°',
+                    click: () => {
+                        if (window.openCustomer360) {
+                            window.openCustomer360(customer.id);
+                        }
+                    },
+                    html: [$('<i class="fas fa-id-card text-primary me-1"></i>'), $('<small class="text-primary fw-bold">360°</small>')],
+                }) : null,
                 $('<br/>'),
                 $('<strong/>', {class: 'd-inline-block me-2', text: lang('email')}),
                 renderMailIcon(customer.email),
