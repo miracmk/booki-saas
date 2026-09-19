@@ -163,9 +163,38 @@ class Dashboard extends EA_Controller
                 ->get('ai_agent_pending_changes')
                 ->result_array();
         }
-        $ai_pending_count = count($ai_pending_items);
+        // Sektöre özel modül istatistikleri
+        $open_adisyons_count = 0;
+        if ($this->db->table_exists('adisyons')) {
+            $open_adisyons_count = $this->db->where('status', 'open')->count_all_results('adisyons');
+        }
+
+        $occupied_tables_count = 0;
+        $total_tables_count = 0;
+        if ($this->db->table_exists('restaurant_tables')) {
+            $total_tables_count = $this->db->count_all_results('restaurant_tables');
+            $occupied_tables_count = $this->db->where('status', 'occupied')->count_all_results('restaurant_tables');
+        }
+
+        $industry_code = current_industry_code();
+        $industry_info = current_industry_info();
+        $industry_config = industry_dashboard_config($industry_code);
+        $terminology = [
+            'customer_label' => industry_term('customer_label', 'Müşteri'),
+            'provider_label' => industry_term('provider_label', 'Personel / Uzman'),
+            'service_label' => industry_term('service_label', 'Hizmet'),
+            'station_label' => industry_term('station_label', 'İstasyon / Alan'),
+            'appointment_label' => industry_term('appointment_label', 'Randevu'),
+        ];
 
         return [
+            'industry_code' => $industry_code,
+            'industry_info' => $industry_info,
+            'industry_config' => $industry_config,
+            'terminology' => $terminology,
+            'open_adisyons_count' => $open_adisyons_count,
+            'occupied_tables_count' => $occupied_tables_count,
+            'total_tables_count' => $total_tables_count,
             'appointment_count' => count($today_appointments),
             'appointments' => array_map(static function (array $row): array {
                 return [

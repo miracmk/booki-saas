@@ -20,8 +20,17 @@ $status_badge = [
 
     <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-2">
         <div>
-            <h1 class="h3 mb-1 fw-bold">Günaydın, <?= e(vars('user_display_name')) ?></h1>
-            <p class="text-muted mb-0">Bugün <?= e(setting('company_name') ?: 'işletmeniz') ?> için olan bitene genel bakış.</p>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <h1 class="h3 mb-0 fw-bold">Günaydın, <?= e(vars('user_display_name')) ?></h1>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-3 py-1 rounded-pill">
+                    <span class="me-1"><?= $summary['industry_info']['icon'] ?? '✨' ?></span>
+                    <?= e($summary['industry_config']['badge'] ?? ($summary['industry_info']['name'] ?? 'İşletme')) ?>
+                </span>
+                <a href="<?= site_url('industry_settings') ?>" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 11px;" title="Sektör ve Modülleri Özelleştir">
+                    <i class="fas fa-sliders-h me-1"></i>Sektör Ayarları
+                </a>
+            </div>
+            <p class="text-muted mb-0">Bugün <?= e(setting('company_name') ?: 'işletmeniz') ?> için olan bitene sektörel genel bakış.</p>
         </div>
         <div class="text-muted small"><?= e($today_label ?? vars('today_label')) ?></div>
     </div>
@@ -42,11 +51,11 @@ $status_badge = [
             <div class="card kcc-kpi h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
-                        <span>Bugünkü Randevular</span>
+                        <span><?= e($summary['industry_config']['kpi_1_title'] ?? 'Bugünkü Randevular') ?></span>
                         <span class="kcc-kpi-icon kcc-kpi-icon-blue"><i class="fas fa-calendar-alt"></i></span>
                     </div>
                     <div class="kcc-kpi-value"><?= (int) $summary['appointment_count'] ?></div>
-                    <span class="kcc-trend neutral">bugün için planlanan</span>
+                    <span class="kcc-trend neutral"><?= e($summary['industry_config']['kpi_1_sub'] ?? 'bugün için planlanan') ?></span>
                 </div>
             </div>
         </div>
@@ -54,7 +63,7 @@ $status_badge = [
             <div class="card kcc-kpi h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
-                        <span>Bugünkü Gelir</span>
+                        <span><?= e($summary['industry_config']['kpi_2_title'] ?? 'Bugünkü Gelir') ?></span>
                         <span class="kcc-kpi-icon kcc-kpi-icon-amber">₺</span>
                     </div>
                     <div class="kcc-kpi-value">₺<?= number_format((float) $summary['revenue_collected'], 0, ',', '.') ?></div>
@@ -68,11 +77,17 @@ $status_badge = [
             <div class="card kcc-kpi h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
-                        <span>Aktif Seanslar</span>
+                        <span><?= e($summary['industry_config']['kpi_3_title'] ?? 'Aktif Seanslar') ?></span>
                         <span class="kcc-kpi-icon kcc-kpi-icon-coral"><i class="fas fa-stopwatch"></i></span>
                     </div>
-                    <div class="kcc-kpi-value" id="dash-active-count"><?= (int) $summary['active_sessions_count'] ?></div>
-                    <span class="kcc-trend neutral" id="dash-active-sub">canlı</span>
+                    <div class="kcc-kpi-value" id="dash-active-count">
+                        <?php if ($summary['industry_code'] === 'restaurant' && !empty($summary['open_adisyons_count'])): ?>
+                            <?= (int) $summary['open_adisyons_count'] ?>
+                        <?php else: ?>
+                            <?= (int) $summary['active_sessions_count'] ?>
+                        <?php endif; ?>
+                    </div>
+                    <span class="kcc-trend neutral" id="dash-active-sub"><?= e($summary['industry_config']['kpi_3_sub'] ?? 'canlı') ?></span>
                 </div>
             </div>
         </div>
@@ -80,10 +95,16 @@ $status_badge = [
             <div class="card kcc-kpi h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start text-muted small fw-semibold">
-                        <span>Doluluk</span>
+                        <span><?= e($summary['industry_config']['kpi_4_title'] ?? 'Doluluk') ?></span>
                         <span class="kcc-kpi-icon kcc-kpi-icon-violet">%</span>
                     </div>
-                    <div class="kcc-kpi-value"><?= $summary['occupancy_pct'] !== null ? $summary['occupancy_pct'] . '%' : '—' ?></div>
+                    <div class="kcc-kpi-value">
+                        <?php if ($summary['industry_code'] === 'restaurant' && !empty($summary['total_tables_count'])): ?>
+                            <?= round(($summary['occupied_tables_count'] / max($summary['total_tables_count'], 1)) * 100) ?>%
+                        <?php else: ?>
+                            <?= $summary['occupancy_pct'] !== null ? $summary['occupancy_pct'] . '%' : '—' ?>
+                        <?php endif; ?>
+                    </div>
                     <span class="kcc-trend neutral">bugün</span>
                 </div>
             </div>
@@ -95,11 +116,11 @@ $status_badge = [
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h3 class="h6 mb-0 fw-bold">Bugünün Akışı</h3>
-                    <span class="text-muted small"><?= (int) $summary['appointment_count'] ?> randevu · <?= (int) $summary['waiting_count'] ?> bekliyor</span>
+                    <span class="text-muted small"><?= (int) $summary['appointment_count'] ?> <?= e(strtolower($summary['terminology']['appointment_label'] ?? 'randevu')) ?> · <?= (int) $summary['waiting_count'] ?> bekliyor</span>
                 </div>
                 <div class="list-group list-group-flush">
                     <?php if (empty($summary['appointments'])): ?>
-                        <div class="list-group-item text-muted small py-4 text-center">Bugün için planlanmış randevu yok.</div>
+                        <div class="list-group-item text-muted small py-4 text-center">Bugün için planlanmış <?= e(strtolower($summary['terminology']['appointment_label'] ?? 'randevu')) ?> yok.</div>
                     <?php endif; ?>
                     <?php foreach ($summary['appointments'] as $appt): ?>
                         <a href="<?= site_url('calendar') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
@@ -230,13 +251,22 @@ $status_badge = [
         <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
                 <strong>Hızlı İşlemler</strong>
-                <div class="text-muted small">En sık kullandığınız operasyonlara tek tıkla erişin.</div>
+                <div class="text-muted small">Sektörünüze özel sık kullandığınız operasyonlara tek tıkla erişin.</div>
             </div>
             <div class="d-flex flex-wrap gap-2">
-                <a href="<?= site_url('calendar') ?>" class="btn btn-primary btn-sm">+ Yeni Randevu</a>
-                <a href="<?= site_url('customers') ?>" class="btn btn-outline-secondary btn-sm">+ Müşteri</a>
-                <a href="<?= site_url('calendar') ?>" class="btn btn-outline-secondary btn-sm">₺ Ödeme Al</a>
-                <a href="<?= site_url('waitlist') ?>" class="btn btn-outline-secondary btn-sm">+ Bekleme Talebi</a>
+                <?php if (!empty($summary['industry_config']['quick_actions'])): ?>
+                    <?php foreach ($summary['industry_config']['quick_actions'] as $qa): ?>
+                        <a href="<?= e($qa['url']) ?>" class="btn <?= e($qa['class']) ?> btn-sm"><?= e($qa['label']) ?></a>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <a href="<?= site_url('calendar') ?>" class="btn btn-primary btn-sm">+ Yeni Randevu</a>
+                    <a href="<?= site_url('customers') ?>" class="btn btn-outline-secondary btn-sm">+ Müşteri</a>
+                    <a href="<?= site_url('calendar') ?>" class="btn btn-outline-secondary btn-sm">₺ Ödeme Al</a>
+                    <a href="<?= site_url('waitlist') ?>" class="btn btn-outline-secondary btn-sm">+ Bekleme Talebi</a>
+                <?php endif; ?>
+                <a href="<?= site_url('industry_settings') ?>" class="btn btn-outline-primary btn-sm" title="Sektörü ve bağlı modülleri yönet">
+                    <i class="fas fa-shapes me-1"></i>Sektör & Modüller
+                </a>
             </div>
         </div>
     </div>

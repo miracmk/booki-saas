@@ -94,14 +94,29 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                     <i class="fas fa-plus-circle me-1"></i> Hızlı İşlem
                 </button>
                 <ul class="dropdown-menu shadow border-0 rounded-3">
-                    <li><a class="dropdown-item py-2" href="<?= site_url('calendar') ?>"><i class="fas fa-calendar-plus text-primary me-2"></i>Yeni Randevu</a></li>
-                    <li><a class="dropdown-item py-2" href="<?= site_url('customers') ?>"><i class="fas fa-user-plus text-success me-2"></i>Yeni Müşteri</a></li>
-                    <li><a class="dropdown-item py-2" href="<?= site_url('adisyons') ?>"><i class="fas fa-receipt text-warning me-2"></i>Yeni Adisyon / Sipariş</a></li>
-                    <li><a class="dropdown-item py-2" href="<?= site_url('checkin') ?>"><i class="fas fa-sign-in-alt text-info me-2"></i>Müşteri Girişi (Check-in)</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item py-2" href="<?= site_url('packages') ?>"><i class="fas fa-box text-secondary me-2"></i>Paket Satışı</a></li>
-                    <li><a class="dropdown-item py-2" href="<?= site_url('memberships') ?>"><i class="fas fa-id-card text-secondary me-2"></i>Üyelik Satışı</a></li>
-                    <li><a class="dropdown-item py-2" href="<?= site_url('expenses') ?>"><i class="fas fa-file-invoice-dollar text-danger me-2"></i>Gider Ekle</a></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('calendar') ?>"><i class="fas fa-calendar-plus text-primary me-2"></i>Yeni <?= e(industry_term('appointment_label', 'Randevu')) ?></a></li>
+                    <li><a class="dropdown-item py-2" href="<?= site_url('customers') ?>"><i class="fas fa-user-plus text-success me-2"></i>Yeni <?= e(industry_term('customer_label', 'Müşteri')) ?></a></li>
+                    <?php if (is_module_enabled('restaurant_floor_plan')): ?>
+                        <li><a class="dropdown-item py-2" href="<?= site_url('restaurant') ?>"><i class="fas fa-border-all text-danger me-2"></i>Canlı Masa Planı</a></li>
+                    <?php endif; ?>
+                    <?php if (is_module_enabled('adisyon')): ?>
+                        <li><a class="dropdown-item py-2" href="<?= site_url('adisyons') ?>"><i class="fas fa-receipt text-warning me-2"></i>Yeni Adisyon / Sipariş</a></li>
+                    <?php endif; ?>
+                    <?php if (is_module_enabled('checkin')): ?>
+                        <li><a class="dropdown-item py-2" href="<?= site_url('checkin') ?>"><i class="fas fa-sign-in-alt text-info me-2"></i><?= e(industry_term('customer_label', 'Müşteri')) ?> Girişi (Check-in)</a></li>
+                    <?php endif; ?>
+                    <?php if (is_module_enabled('packages') || is_module_enabled('memberships') || is_module_enabled('expenses')): ?>
+                        <li><hr class="dropdown-divider"></li>
+                    <?php endif; ?>
+                    <?php if (is_module_enabled('packages')): ?>
+                        <li><a class="dropdown-item py-2" href="<?= site_url('packages') ?>"><i class="fas fa-box text-secondary me-2"></i>Paket Satışı</a></li>
+                    <?php endif; ?>
+                    <?php if (is_module_enabled('memberships')): ?>
+                        <li><a class="dropdown-item py-2" href="<?= site_url('memberships') ?>"><i class="fas fa-id-card text-secondary me-2"></i>Üyelik Satışı</a></li>
+                    <?php endif; ?>
+                    <?php if (is_module_enabled('expenses')): ?>
+                        <li><a class="dropdown-item py-2" href="<?= site_url('expenses') ?>"><i class="fas fa-file-invoice-dollar text-danger me-2"></i>Gider Ekle</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -138,28 +153,32 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                                 <?= lang('calendar') ?>
                             </a>
                         </li>
+                        <?php if (is_module_enabled('checkin')): ?>
                         <li class="nav-item <?= $active_menu == 'checkin' ? 'active' : '' ?>">
                             <a href="<?= site_url('checkin') ?>" class="nav-link text-white">
                                 <i class="fas fa-sign-in-alt me-2"></i>
                                 Giriş / Kiosk
                             </a>
                         </li>
+                        <?php endif; ?>
                         <li class="nav-item <?= $active_menu == PRIV_WAITLIST ? 'active' : '' ?>">
                             <a href="<?= site_url('waitlist') ?>" class="nav-link text-white">
                                 <i class="fas fa-hourglass-half me-2"></i>
                                 Bekleme Listesi
                             </a>
                         </li>
+                        <?php if (is_module_enabled('stations')): ?>
                         <li class="nav-item <?= $active_menu == PRIV_STATIONS ? 'active' : '' ?>">
                             <a href="<?= site_url('stations') ?>" class="nav-link text-white">
                                 <i class="fas fa-door-open me-2"></i>
-                                İstasyonlar & Odalar
+                                <?= e(industry_term('station_label', 'İstasyonlar & Odalar')) ?>
                             </a>
                         </li>
+                        <?php endif; ?>
                         <li class="nav-item <?= $active_menu == PRIV_SERVICES ? 'active' : '' ?>">
                             <a href="<?= site_url('services') ?>" class="nav-link text-white">
                                 <i class="fas fa-business-time me-2"></i>
-                                Hizmetler & Menü
+                                <?= e(industry_term('service_label', 'Hizmetler & Menü')) ?>
                             </a>
                         </li>
                     </ul>
@@ -176,7 +195,7 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                    aria-expanded="<?= $is_customers_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-customers">
                     <span class="d-flex align-items-center">
                         <i class="fas fa-user-friends me-2 text-success" style="width: 20px;"></i>
-                        <span class="fw-semibold">Müşteriler & CRM</span>
+                        <span class="fw-semibold"><?= e(industry_term('customer_label', 'Müşteriler')) ?> & CRM</span>
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
@@ -185,21 +204,25 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                         <li class="nav-item <?= $active_menu == PRIV_CUSTOMERS ? 'active' : '' ?>">
                             <a href="<?= site_url('customers') ?>" class="nav-link text-white">
                                 <i class="fas fa-users me-2"></i>
-                                <?= lang('customers') ?>
+                                <?= e(industry_term('customer_label', lang('customers'))) ?>
                             </a>
                         </li>
+                        <?php if (is_module_enabled('packages')): ?>
                         <li class="nav-item <?= $active_menu == 'packages' ? 'active' : '' ?>">
                             <a href="<?= site_url('packages') ?>" class="nav-link text-white">
                                 <i class="fas fa-box me-2"></i>
                                 Paket Seanslar
                             </a>
                         </li>
+                        <?php endif; ?>
+                        <?php if (is_module_enabled('memberships')): ?>
                         <li class="nav-item <?= $active_menu == PRIV_MEMBERSHIPS ? 'active' : '' ?>">
                             <a href="<?= site_url('memberships') ?>" class="nav-link text-white">
                                 <i class="fas fa-id-card me-2"></i>
                                 Üyelikler & Planlar
                             </a>
                         </li>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </li>
@@ -220,43 +243,55 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                 </a>
                 <div class="collapse <?= $is_finance_active ? 'show' : '' ?>" id="sidebar-menu-finance">
                     <ul class="nav flex-column sub-nav-list">
+                        <?php if (is_module_enabled('adisyon')): ?>
                         <li class="nav-item <?= $active_menu == 'adisyons' ? 'active' : '' ?>">
                             <a href="<?= site_url('adisyons') ?>" class="nav-link text-white">
                                 <i class="fas fa-receipt me-2"></i>
                                 Adisyonlar
                             </a>
                         </li>
+                        <?php endif; ?>
+                        <?php if (is_module_enabled('finance')): ?>
                         <li class="nav-item <?= $active_menu == 'finance' ? 'active' : '' ?>">
                             <a href="<?= site_url('finance') ?>" class="nav-link text-white">
                                 <i class="fas fa-chart-line me-2"></i>
                                 Finans & Kasa
                             </a>
                         </li>
+                        <?php endif; ?>
+                        <?php if (is_module_enabled('pos')): ?>
                         <li class="nav-item <?= $active_menu == PRIV_POS ? 'active' : '' ?>">
                             <a href="<?= site_url('pos') ?>" class="nav-link text-white">
                                 <i class="fas fa-cash-register me-2"></i>
                                 Hızlı Satış (POS)
                             </a>
                         </li>
+                        <?php endif; ?>
+                        <?php if (is_module_enabled('invoices')): ?>
                         <li class="nav-item <?= $active_menu == PRIV_INVOICES ? 'active' : '' ?>">
                             <a href="<?= site_url('invoices') ?>" class="nav-link text-white">
                                 <i class="fas fa-file-invoice-dollar me-2"></i>
                                 Faturalar & e-Fatura
                             </a>
                         </li>
+                        <?php endif; ?>
+                        <?php if (is_module_enabled('expenses')): ?>
                         <li class="nav-item <?= $active_menu == 'expenses' ? 'active' : '' ?>">
                             <a href="<?= site_url('expenses') ?>" class="nav-link text-white">
                                 <i class="fas fa-money-bill-wave me-2"></i>
                                 Gider Yönetimi
                             </a>
                         </li>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </li>
 
             <!-- GROUP 4: RESTORAN MODÜLÜ -->
             <?php
-            $is_restaurant_active = in_array($active_menu, ['restaurant_floor_plan', 'restaurant_reservations']);
+            $has_restaurant = is_module_enabled('restaurant_floor_plan') || is_module_enabled('restaurant_reservations');
+            if ($has_restaurant):
+                $is_restaurant_active = in_array($active_menu, ['restaurant_floor_plan', 'restaurant_reservations']);
             ?>
             <li class="nav-item sidebar-group mb-1">
                 <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_restaurant_active ? 'active-parent' : '' ?>"
@@ -270,35 +305,42 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                 </a>
                 <div class="collapse <?= $is_restaurant_active ? 'show' : '' ?>" id="sidebar-menu-restaurant">
                     <ul class="nav flex-column sub-nav-list">
+                        <?php if (is_module_enabled('restaurant_floor_plan')): ?>
                         <li class="nav-item <?= $active_menu == 'restaurant_floor_plan' ? 'active' : '' ?>">
                             <a href="<?= site_url('restaurant') ?>" class="nav-link text-white">
                                 <i class="fas fa-border-all me-2"></i>
-                                Masa Planı
+                                Canlı Masa Planı
                             </a>
                         </li>
+                        <?php endif; ?>
+                        <?php if (is_module_enabled('restaurant_reservations')): ?>
                         <li class="nav-item <?= $active_menu == 'restaurant_reservations' ? 'active' : '' ?>">
                             <a href="<?= site_url('restaurant/reservations') ?>" class="nav-link text-white">
                                 <i class="fas fa-calendar-check me-2"></i>
-                                Rezervasyonlar
+                                Masa Rezervasyonları
                             </a>
                         </li>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </li>
+            <?php endif; ?>
 
             <!-- GROUP 5: ENVANTER & ÜRÜNLER -->
+            <?php if (is_module_enabled('inventory')): ?>
             <li class="nav-item mb-1 <?= $active_menu == 'products' ? 'active' : '' ?>">
                 <a href="<?= site_url('products') ?>" class="nav-link text-white d-flex align-items-center">
                     <i class="fas fa-boxes me-2 text-warning" style="width: 20px;"></i>
                     <span>Ürünler & Stok</span>
                 </a>
             </li>
+            <?php endif; ?>
 
             <!-- GROUP 6: EKİP & PERSONEL -->
             <li class="nav-item mb-1 <?= $active_menu == PRIV_USERS ? 'active' : '' ?>">
                 <a href="<?= site_url('providers') ?>" class="nav-link text-white d-flex align-items-center">
                     <i class="fas fa-user-tie me-2 text-primary" style="width: 20px;"></i>
-                    <span>Personel & Uzmanlar</span>
+                    <span><?= e(industry_term('provider_label', 'Personel & Uzmanlar')) ?></span>
                 </a>
             </li>
 
@@ -385,8 +427,9 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                     <div class="collapse" id="sidebar-account-collapse">
                         <ul class="nav flex-column ps-4">
                             <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
-                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('onboarding') ?>"><i class="fas fa-magic me-2"></i>Sektör Şablonları & Sihirbaz</a></li>
+                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('industry_settings') ?>"><i class="fas fa-shapes me-2 text-warning"></i>Sektör & Modüller</a></li>
                                 <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('general_settings') ?>"><i class="fas fa-cogs me-2"></i><?= lang('settings') ?></a></li>
+                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('onboarding') ?>"><i class="fas fa-magic me-2"></i>Sektör Sihirbazı</a></li>
                                 <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('audit_log') ?>"><i class="fas fa-clipboard-list me-2"></i>Denetim Kayıtları</a></li>
                                 <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('data_requests') ?>"><i class="fas fa-shield-alt me-2"></i>Veri Talepleri (KVKK)</a></li>
                             <?php endif; ?>

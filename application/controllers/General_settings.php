@@ -111,6 +111,7 @@ class General_settings extends EA_Controller
         'marketplace_short_description',
         'marketplace_cover_image_url',
         'marketplace_price_range',
+        'industry_code',
     ];
 
     /**

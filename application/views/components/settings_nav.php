@@ -10,6 +10,12 @@
     </li>
 
     <li class="nav-item mb-3">
+        <a class="nav-link px-0 py-2 text-primary fw-bold" href="<?= site_url('industry_settings') ?>">
+            <i class="fas fa-shapes me-1"></i> Sektör & Modüller
+        </a>
+    </li>
+
+    <li class="nav-item mb-3">
         <a class="nav-link px-0 py-2" href="<?= site_url('booking_settings') ?>">
             <?= lang('booking_settings') ?>
         </a>

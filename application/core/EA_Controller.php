@@ -353,6 +353,8 @@ class EA_Controller extends CI_Controller
             // makes the header consume the same setting the admin panel lets staff edit.
             'company_name' => $has_settings ? setting('company_name') : null,
             'company_logo' => $has_settings ? setting('company_logo') : null,
+            'industry_code' => $has_settings ? current_industry_code() : 'beauty_salon',
+            'industry_info' => $has_settings ? current_industry_info() : null,
             'expiry_warning' => $this->build_expiry_warning(),
         ]);
     }

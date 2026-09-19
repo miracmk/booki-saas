@@ -24,6 +24,30 @@
                             <?php endif; ?>
                         </div>
 
+                        <!-- Sektörel Blueprint Bilgi & Ayar Kartı -->
+                        <?php $ind_info = current_industry_info(); ?>
+                        <div class="card mb-4 border-0 shadow-sm bg-light-subtle">
+                            <div class="card-body p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="fs-1 me-3 p-2 bg-white rounded-3 shadow-xs text-center" style="width: 54px; height: 54px; line-height: 38px;">
+                                        <?= $ind_info['icon'] ?>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <h6 class="mb-0 fw-bold"><?= e($ind_info['name']) ?></h6>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 11px;">Aktif Sektör</span>
+                                        </div>
+                                        <small class="text-muted d-block"><?= e($ind_info['description']) ?></small>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="<?= site_url('industry_settings') ?>" class="btn btn-outline-primary btn-sm px-3 shadow-xs">
+                                        <i class="fas fa-shapes me-1"></i> Sektör & Modülleri Değiştir →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row mb-5">
                             <div class="col-12">
                                 <h5 class="mb-3 fw-light"><?= lang('company') ?></h5>
