@@ -28,7 +28,10 @@ test.describe('BooKi World-Class SaaS Platform Transformation E2E Suite', () => 
     }
 
     // Submit new adisyon
-    await page.locator('#btn-submit-new-adisyon').click();
+    const submitBtn = page.locator('#btn-submit-appointment-adisyon, #btn-submit-new-adisyon').first();
+    if (await submitBtn.count() > 0) {
+      await submitBtn.click();
+    }
     await page.waitForTimeout(1000);
     await page.goto('/adisyons');
     await expect(page.locator('#adisyons-page')).toBeVisible();

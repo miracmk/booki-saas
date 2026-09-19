@@ -21,4 +21,19 @@ module.exports = defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
+  projects: [
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.spec\.js/,
+    },
+    {
+      name: 'e2e',
+      testIgnore: /auth\.setup\.spec\.js/,
+      dependencies: ['setup'],
+      use: {
+        storageState: 'tests/e2e/.auth/admin.json',
+      },
+    },
+  ],
 });
+
