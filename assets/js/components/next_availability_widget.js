@@ -78,21 +78,15 @@ App.Components.NextAvailabilityWidget = (function () {
         return $pill;
     }
 
-    function renderGroup($container, label, rows) {
-        const $group = $('<div/>', { class: 'kcc-availability-group' });
-        $group.append($('<div/>', { class: 'kcc-availability-group-label', text: label }));
+    function renderGroup($container, label, rows, iconClass) {
+        const $group = $('<div/>', { class: 'kcc-availability-group flex-grow-1' });
+        const iconHtml = iconClass ? `<i class="${iconClass} me-1 opacity-75"></i> ` : '';
+        $group.append($('<div/>', { class: 'kcc-availability-group-label d-flex align-items-center mb-1' }).html(iconHtml + label));
 
-        // BooKi (2026-09-17 UI fix) - a dedicated class instead of raw Bootstrap
-        // `flex-wrap` utilities: the narrow `#calendar-filter` toolbar mount squeezed
-        // this row's available width down far enough that `flex-wrap` dropped every
-        // pill onto its own line (looked like a vertical stack instead of a strip).
-        // `.kcc-availability-row` (see ki-command-center.min.css) makes it a
-        // horizontally-scrolling strip instead - it always stays one row regardless
-        // of how narrow the mount point is.
         const $row = $('<div/>', { class: 'kcc-availability-row d-flex gap-2' });
 
         if (!rows || !rows.length) {
-            $row.append($('<span/>', { class: 'text-muted small', text: 'Müsaitlik bilgisi yok.' }));
+            $row.append($('<span/>', { class: 'text-muted small fst-italic py-1', text: 'Müsaitlik bilgisi yok.' }));
         } else {
             rows.forEach((row) => $row.append(renderRow(row)));
         }
@@ -108,8 +102,8 @@ App.Components.NextAvailabilityWidget = (function () {
      */
     function render($container, providerRows, roomRows) {
         $container.empty();
-        renderGroup($container, 'Terapistler', providerRows);
-        renderGroup($container, 'Odalar', roomRows);
+        renderGroup($container, 'Terapistler', providerRows, 'fas fa-user-clock text-primary');
+        renderGroup($container, 'Odalar', roomRows, 'fas fa-door-open text-info');
     }
 
     function pollMount(mount) {
@@ -140,12 +134,22 @@ App.Components.NextAvailabilityWidget = (function () {
             mounts.push({ $container: $dashboardStrip, getProviderId: () => null });
         }
 
-        if ($('#calendar-page').length && $('#calendar-filter').length) {
-            const $calendarStrip = $('<div/>', {
-                id: 'next-availability-widget',
-                class: 'mb-2 mb-lg-0',
-            });
-            $('#calendar-filter').prepend($calendarStrip);
+        if ($('#calendar-page').length) {
+            let $calendarStrip = $('#next-availability-widget');
+            if (!$calendarStrip.length) {
+                $calendarStrip = $('<div/>', {
+                    id: 'next-availability-widget',
+                    class: 'kcc-availability-card p-3 bg-white rounded-3 shadow-sm border',
+                });
+                if ($('#next-availability-container').length) {
+                    $('#next-availability-container').append($calendarStrip);
+                } else if ($('#calendar-filter').length) {
+                    $('#calendar-filter').prepend($calendarStrip);
+                }
+            } else {
+                $calendarStrip.addClass('kcc-availability-card p-3 bg-white rounded-3 shadow-sm border');
+            }
+
             mounts.push({ $container: $calendarStrip, getProviderId: getCalendarFilterProviderId });
 
             $('#select-filter-item').on('change', () => pollMount(mounts[mounts.length - 1]));

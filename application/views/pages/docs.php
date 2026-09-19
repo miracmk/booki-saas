@@ -4,25 +4,117 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>API Dokümantasyonu - <?= e($company_name) ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/ki-command-center.min.css') ?>">
+    <script defer src="<?= base_url('assets/vendor/@fortawesome-fontawesome-free/fontawesome.min.js') ?>"></script>
+    <script defer src="<?= base_url('assets/vendor/@fortawesome-fontawesome-free/solid.min.js') ?>"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f8f9fa; }
-        .sidebar { background: #fff; height: 100vh; position: fixed; border-right: 1px solid #dee2e6; overflow-y: auto; padding-top: 1rem; }
-        .sidebar .nav-link { color: #495057; font-weight: 500; }
-        .sidebar .nav-link.active { color: #0d6efd; background: #e9ecef; border-radius: 4px; }
-        .main-content { margin-left: 25%; padding: 2rem; background: #fff; min-height: 100vh; }
-        @media (max-width: 768px) {
-            .sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid #dee2e6; }
-            .main-content { margin-left: 0; }
+        :root {
+            --bs-primary: #35A768;
+            --bs-font-sans-serif: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+            --bs-body-font-family: var(--bs-font-sans-serif);
+            --kcc-font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+            --kcc-bg: #f8fafc;
+            --kcc-surface: #ffffff;
+            --kcc-line: #e2e8f0;
+            --kcc-muted: #64748b;
+            --kcc-text: #0f172a;
         }
-        pre { background: #212529; color: #f8f9fa; padding: 1rem; border-radius: .375rem; }
-        h1, h2, h3 { margin-top: 2rem; margin-bottom: 1rem; }
-        .endpoint { display: flex; align-items: center; margin-bottom: 1rem; }
-        .endpoint-method { font-weight: bold; padding: 0.25rem 0.5rem; border-radius: 4px; margin-right: 0.75rem; color: #fff; }
-        .endpoint-method.get { background-color: #0d6efd; }
-        .endpoint-method.post { background-color: #198754; }
-        .endpoint-path { font-family: monospace; font-size: 1.1rem; }
+        body {
+            font-family: var(--bs-body-font-family);
+            background-color: var(--kcc-bg);
+            color: var(--kcc-text);
+            -webkit-font-smoothing: antialiased;
+        }
+        :focus-visible {
+            outline: 2px solid var(--bs-primary) !important;
+            outline-offset: 2px !important;
+        }
+        .sidebar {
+            background: var(--kcc-surface);
+            height: 100vh;
+            position: fixed;
+            border-right: 1px solid var(--kcc-line);
+            overflow-y: auto;
+            padding-top: 1.5rem;
+        }
+        .sidebar .nav-link {
+            color: var(--kcc-muted);
+            font-weight: 500;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 2px;
+            transition: all 0.15s ease;
+        }
+        .sidebar .nav-link:hover {
+            color: var(--kcc-text);
+            background: rgba(0,0,0,0.03);
+        }
+        .sidebar .nav-link.active {
+            color: var(--bs-primary);
+            background: rgba(53, 167, 104, 0.08);
+            font-weight: 600;
+        }
+        .main-content {
+            margin-left: 25%;
+            padding: 2.5rem 3rem;
+            background: var(--kcc-surface);
+            min-height: 100vh;
+        }
+        @media (max-width: 768px) {
+            .sidebar { position: relative; height: auto; border-right: none; border-bottom: 1px solid var(--kcc-line); }
+            .main-content { margin-left: 0; padding: 1.5rem; }
+        }
+        pre {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 12px;
+            font-family: var(--kcc-font-mono);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        code {
+            font-family: var(--kcc-font-mono);
+            font-size: 0.9em;
+        }
+        h1, h2, h3 {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .endpoint {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            background: var(--kcc-bg);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--kcc-line);
+        }
+        .endpoint-method {
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            margin-right: 0.85rem;
+            color: #fff;
+        }
+        .endpoint-method.get { background-color: #0284c7; }
+        .endpoint-method.post { background-color: #10b981; }
+        .endpoint-method.put { background-color: #f59e0b; }
+        .endpoint-method.delete { background-color: #ef4444; }
+        .endpoint-path {
+            font-family: var(--kcc-font-mono);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--kcc-text);
+        }
     </style>
 </head>
 <body data-bs-spy="scroll" data-bs-target="#docs-nav" data-bs-smooth-scroll="true" tabindex="0">
@@ -151,6 +243,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= base_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
 </body>
 </html>

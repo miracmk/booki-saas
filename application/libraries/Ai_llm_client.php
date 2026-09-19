@@ -42,8 +42,11 @@ class Ai_llm_client
     public function chat(array $messages, array $context): array
     {
         try {
+            $CI = &get_instance();
+            $CI->load->library('ai_llm_gateway');
+
             // Try Gemini first
-            $gemini_api_key = getenv('GEMINI_API_KEY');
+            $gemini_api_key = $CI->ai_llm_gateway->get_api_key('google');
 
             if (!empty($gemini_api_key)) {
                 $result = $this->call_gemini($messages, $context, $gemini_api_key);
@@ -54,7 +57,7 @@ class Ai_llm_client
             }
 
             // Fallback to Groq
-            $groq_api_key = getenv('GROQ_API_KEY');
+            $groq_api_key = $CI->ai_llm_gateway->get_api_key('groq');
 
             if (!empty($groq_api_key)) {
                 $result = $this->call_groq($messages, $context, $groq_api_key);

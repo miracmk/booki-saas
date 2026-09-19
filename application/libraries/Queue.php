@@ -90,7 +90,7 @@ class Queue
                 'reference_type' => $reference_type,
                 'reference_id' => $reference_id,
                 'correlation_id' => $correlation_id,
-                'created_at' => date('Y-m-d H:i:s'),
+                'created_at' => gmdate('Y-m-d H:i:s'),
             ];
 
             return $this->CI->jobs_model->insert($job);
@@ -137,7 +137,7 @@ class Queue
     {
         try {
             $this->CI->jobs_model->mark_status($job_id, 'succeeded', [
-                'completed_at' => date('Y-m-d H:i:s'),
+                'completed_at' => gmdate('Y-m-d H:i:s'),
             ]);
         } catch (Throwable $e) {
             log_message('error', 'Queue::mark_succeeded() failed: ' . $e->getMessage());

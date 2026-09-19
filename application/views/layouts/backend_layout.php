@@ -36,6 +36,9 @@
     <?php slot('styles'); ?>
 </head>
 <body class="d-flex flex-column h-100">
+<a href="#main-content" class="visually-hidden-focusable btn btn-primary position-fixed top-0 start-0 m-3 z-3">
+    <?= lang('skip_to_main_content') ?: 'Ana İçeriğe Atla' ?>
+</a>
 
 <?php component('backend_header', ['active_menu' => vars('active_menu')]); ?>
 
@@ -65,6 +68,7 @@
 <script src="<?= asset_url('assets/js/utils/http.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/lang.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/message.js') ?>"></script>
+<script src="<?= asset_url('assets/js/utils/toast.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/string.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/url.js') ?>"></script>
 <script src="<?= asset_url('assets/js/utils/validation.js') ?>"></script>

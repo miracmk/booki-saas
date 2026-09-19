@@ -53,19 +53,19 @@ require_once __DIR__ . '/../helpers/routes_helper.php';
 
 $route['default_controller'] = 'booking';
 
-// BooKi (2026-08-26) - multi-tenant SaaS: the bare app domain (reservationapp.kibusiness.co,
+// BooKi (2026-08-26) - multi-tenant SaaS: the bare app domain (bookiapp.kibusiness.co,
 // no tenant subdomain) has no booking page of its own - it's the "which company are you with?"
 // portal instead. See Portal.php / EA_Controller::resolve_tenant()'s bare-host exception.
 $portal_host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
 
-if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co')) {
+if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) {
     $route['default_controller'] = 'portal';
 }
 
-// BooKi (2026-08-26) - SaaS admin panel: reservationadmin.kibusiness.co has no booking page
+// BooKi (2026-08-26) - SaaS admin panel: admin-bookiapp.kibusiness.co has no booking page
 // either - it's the super-admin login/dashboard. See EA_Controller::resolve_tenant()'s superadmin
 // host exception (stays on the master DB for the whole "Superadmin*" controller family).
-if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'reservationadmin.kibusiness.co')) {
+if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'admin-bookiapp.kibusiness.co')) {
     $route['default_controller'] = 'superadmin_auth';
 }
 
@@ -77,7 +77,20 @@ $marketplace_domain = strtolower((string) (getenv('MARKETPLACE_DOMAIN') ?: 'book
 if ($portal_host !== '' && $portal_host === $marketplace_domain) {
     $route['default_controller'] = 'landing';
     $route['marketplace'] = 'marketplace/index';
+    $route['marketplace/business/(:any)'] = 'marketplace/business/$1';
+    $route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
+    $route['sitemap.xml'] = 'marketplace/sitemap';
+    $route['robots.txt'] = 'marketplace/robots';
+    $route['llms.txt'] = 'marketplace/llms';
 }
+
+// Global sitemap, robots and marketplace routes
+$route['sitemap.xml'] = 'marketplace/sitemap';
+$route['robots.txt'] = 'marketplace/robots';
+$route['llms.txt'] = 'marketplace/llms';
+$route['marketplace'] = 'marketplace/index';
+$route['marketplace/business/(:any)'] = 'marketplace/business/$1';
+$route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
 
 $route['404_override'] = '';
 
@@ -133,32 +146,36 @@ header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 */
 
 // Get allowed origins from configuration or use a whitelist
-$allowed_origins = defined('CORS_ALLOWED_ORIGINS') ? explode(',', CORS_ALLOWED_ORIGINS) : [];
+$allowed_origins = (defined('CORS_ALLOWED_ORIGINS') && trim(CORS_ALLOWED_ORIGINS) !== '')
+    ? array_map('trim', explode(',', CORS_ALLOWED_ORIGINS))
+    : [];
 $request_origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-// Only allow CORS for configured origins, or same-origin requests
-if (!empty($request_origin) && (empty($allowed_origins) || in_array($request_origin, $allowed_origins, true))) {
+// Only allow CORS when origins are explicitly whitelisted and origin matches
+if (!empty($request_origin) && !empty($allowed_origins) && in_array($request_origin, $allowed_origins, true)) {
     header('Access-Control-Allow-Origin: ' . $request_origin);
     header('Access-Control-Allow-Credentials: true');
-} elseif (empty($request_origin)) {
-    // No Origin header - same-origin request, no CORS needed
-} else {
-    // Origin not in whitelist - don't set CORS headers (will fail CORS check)
+    header('Vary: Origin');
 }
 
 if (
     isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']) &&
     !empty($request_origin) &&
-    (empty($allowed_origins) || in_array($request_origin, $allowed_origins, true))
+    !empty($allowed_origins) &&
+    in_array($request_origin, $allowed_origins, true)
 ) {
     // May also be using PUT, PATCH, HEAD etc
     header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD');
+    header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization, X-CSRF, X-CSRF-Token');
+    header('Access-Control-Max-Age: 86400');
+    exit(0);
 }
 
 if (
     isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']) &&
     !empty($request_origin) &&
-    (empty($allowed_origins) || in_array($request_origin, $allowed_origins, true))
+    !empty($allowed_origins) &&
+    in_array($request_origin, $allowed_origins, true)
 ) {
     // Only allow safe headers
     $allowed_headers = ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF'];
@@ -292,6 +309,10 @@ $route['expenses/(:any)'] = 'expenses/$1';
 $route['search'] = 'search/index';
 $route['search/(:any)'] = 'search/$1';
 $route['portal'] = 'customers/portal';
+
+// BooKi (2026-09-18) - Industry Blueprints & Onboarding Wizard
+$route['onboarding'] = 'onboarding/index';
+$route['onboarding/(:any)'] = 'onboarding/$1';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

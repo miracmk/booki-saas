@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -50,7 +50,7 @@ $danger: $red !default;
 $light: $gray-100 !default;
 $dark: $gray-900 !default;
 
-$min-contrast-ratio: 2.5 !default;
+$min-contrast-ratio: 4.5 !default; // WCAG 2.2 AA compliant minimum contrast ratio
 
 // Options - Enable rounded corners for glass effect
 

@@ -86,7 +86,7 @@ if [ "$DRY_RUN" = "--dry-run" ]; then
     log "[DRY-RUN] Sağlık kontrolü çalıştırılacaktı"
 else
     sleep 3
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://reservationapp.kibusiness.co/health || true)
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://bookiapp.kibusiness.co/health || true)
     if [ "$HTTP_CODE" = "200" ]; then
         log "✓ Sağlık kontrolü başarılı (HTTP $HTTP_CODE)"
     else
@@ -96,6 +96,6 @@ fi
 
 log "========================================="
 log "Promosyon tamamlandı!"
-log "Canlı URL: https://reservationapp.kibusiness.co"
-log "Admin URL: https://reservationadmin.kibusiness.co"
+log "Canlı URL: https://bookiapp.kibusiness.co"
+log "Admin URL: https://admin-bookiapp.kibusiness.co"
 log "========================================="

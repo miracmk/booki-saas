@@ -404,6 +404,21 @@ class Booking extends EA_Controller
                 throw new InvalidArgumentException('Invalid appointment data.');
             }
 
+            // IDOR Protection: If manage_mode is requested, verify the caller possesses the appointment hash
+            if ($manage_mode) {
+                $appointment_hash = trim((string) ($post_data['appointment_hash'] ?? ($appointment['hash'] ?? '')));
+                if (empty($appointment_hash) || empty($appointment['id'])) {
+                    throw new InvalidArgumentException('Geçersiz randevu güncelleme isteği.');
+                }
+                $target_appt = $this->appointments_model->find((int) $appointment['id']);
+                if (!$target_appt || !hash_equals($target_appt['hash'], $appointment_hash)) {
+                    throw new InvalidArgumentException('Randevu kimlik doğrulaması başarısız.');
+                }
+            } else {
+                // Public booking must always insert a new appointment, never update an existing one
+                unset($appointment['id']);
+            }
+
             // Validate required customer fields
             if (empty($customer) || !is_array($customer)) {
                 throw new InvalidArgumentException('Invalid customer data.');
@@ -524,91 +539,96 @@ class Booking extends EA_Controller
             // Stations_model::acquire_station_locks() for why this is safe to leave unreleased on a crash.
             $station_locks_held = [];
 
-            if (!empty($provider_station_ids)) {
-                if (!$this->stations_model->acquire_station_locks($provider_station_ids)) {
-                    throw new RuntimeException(
-                        'Bu saat için istasyon uygunluğu kontrol edilirken bir sorun oluştu. Lütfen tekrar deneyin.',
+            try {
+                if (!empty($provider_station_ids)) {
+                    if (!$this->stations_model->acquire_station_locks($provider_station_ids)) {
+                        throw new RuntimeException(
+                            'Bu saat için istasyon uygunluğu kontrol edilirken bir sorun oluştu. Lütfen tekrar deneyin.',
+                        );
+                    }
+
+                    $station_locks_held = $provider_station_ids;
+
+                    $free_station_id = $this->stations_model->find_free_station(
+                        $provider_station_ids,
+                        $appointment['start_datetime'],
+                        $appointment['end_datetime'],
+                        $manage_mode ? (int) $appointment['id'] : null,
                     );
+
+                    if ($free_station_id === null) {
+                        throw new RuntimeException(
+                            'Bu saat için seçilen istasyon başka bir randevu tarafından kullanılıyor. Lütfen başka bir saat seçin.',
+                        );
+                    }
+
+                    $appointment['id_stations'] = $free_station_id;
                 }
 
-                $station_locks_held = $provider_station_ids;
-
-                $free_station_id = $this->stations_model->find_free_station(
-                    $provider_station_ids,
-                    $appointment['start_datetime'],
-                    $appointment['end_datetime'],
-                    $manage_mode ? (int) $appointment['id'] : null,
-                );
-
-                if ($free_station_id === null) {
-                    $this->stations_model->release_station_locks($station_locks_held);
-
-                    throw new RuntimeException(
-                        'Bu saat için seçilen istasyon başka bir randevu tarafından kullanılıyor. Lütfen başka bir saat seçin.',
-                    );
+                // Jitsi integration: if enabled, generate a Jitsi meeting link for the appointment
+                if (setting('jitsi_enabled') === '1') {
+                    $appointment['meeting_link'] = $this->jitsi_client->generate_link();
                 }
 
-                $appointment['id_stations'] = $free_station_id;
-            }
+                if (empty($appointment['location']) && !empty($service['location'])) {
+                    $appointment['location'] = $service['location'];
+                }
 
-            // Jitsi integration: if enabled, generate a Jitsi meeting link for the appointment
-            if (setting('jitsi_enabled') === '1') {
-                $appointment['meeting_link'] = $this->jitsi_client->generate_link();
-            }
+                if (empty($appointment['color']) && !empty($service['color'])) {
+                    $appointment['color'] = $service['color'];
+                }
 
-            if (empty($appointment['location']) && !empty($service['location'])) {
-                $appointment['location'] = $service['location'];
-            }
+                $customer_ip = $this->input->ip_address();
 
-            if (empty($appointment['color']) && !empty($service['color'])) {
+                // Create the consents (if needed).
+                $consent = [
+                    'first_name' => $customer['first_name'] ?? '-',
+                    'last_name' => $customer['last_name'] ?? '-',
+                    'email' => $customer['email'] ?? '-',
+                    'ip' => $customer_ip,
+                ];
+
+                if (setting('display_terms_and_conditions')) {
+                    $consent['type'] = 'terms-and-conditions';
+
+                    $this->consents_model->save($consent);
+                }
+
+                if (setting('display_privacy_policy')) {
+                    $consent['type'] = 'privacy-policy';
+
+                    $this->consents_model->save($consent);
+                }
+
+                // Save customer language (the language which is used to render the booking page).
+                $customer['language'] = session('language') ?? config('language');
+
+                $this->customers_model->only($customer, $this->allowed_customer_fields);
+
+                $customer_id = $this->customers_model->save($customer);
+                $customer = $this->customers_model->find($customer_id);
+
+                $appointment['id_users_customer'] = $customer_id;
+                $appointment['is_unavailability'] = false;
                 $appointment['color'] = $service['color'];
-            }
 
-            $customer_ip = $this->input->ip_address();
+                $appointment_status_options_json = setting('appointment_status_options', '[]');
+                $appointment_status_options = json_decode($appointment_status_options_json, true) ?? [];
+                $appointment['status'] = $appointment_status_options[0] ?? null;
+                $appointment['end_datetime'] = $this->appointments_model->calculate_end_datetime($appointment);
 
-            // Create the consents (if needed).
-            $consent = [
-                'first_name' => $customer['first_name'] ?? '-',
-                'last_name' => $customer['last_name'] ?? '-',
-                'email' => $customer['email'] ?? '-',
-                'ip' => $customer_ip,
-            ];
+                // Enforce provider conflict check to prevent concurrent double-booking
+                if ($this->appointments_model->has_provider_conflict((int) $provider['id'], $appointment['start_datetime'], $appointment['end_datetime'], $manage_mode ? (int) ($appointment['id'] ?? null) : null)) {
+                    throw new RuntimeException(lang('requested_hour_is_unavailable'));
+                }
 
-            if (setting('display_terms_and_conditions')) {
-                $consent['type'] = 'terms-and-conditions';
+                $this->appointments_model->only($appointment, $this->allowed_appointment_fields);
 
-                $this->consents_model->save($consent);
-            }
-
-            if (setting('display_privacy_policy')) {
-                $consent['type'] = 'privacy-policy';
-
-                $this->consents_model->save($consent);
-            }
-
-            // Save customer language (the language which is used to render the booking page).
-            $customer['language'] = session('language') ?? config('language');
-
-            $this->customers_model->only($customer, $this->allowed_customer_fields);
-
-            $customer_id = $this->customers_model->save($customer);
-            $customer = $this->customers_model->find($customer_id);
-
-            $appointment['id_users_customer'] = $customer_id;
-            $appointment['is_unavailability'] = false;
-            $appointment['color'] = $service['color'];
-
-            $appointment_status_options_json = setting('appointment_status_options', '[]');
-            $appointment_status_options = json_decode($appointment_status_options_json, true) ?? [];
-            $appointment['status'] = $appointment_status_options[0] ?? null;
-            $appointment['end_datetime'] = $this->appointments_model->calculate_end_datetime($appointment);
-
-            $this->appointments_model->only($appointment, $this->allowed_appointment_fields);
-
-            $appointment_id = $this->appointments_model->save($appointment);
-
-            if (!empty($station_locks_held)) {
-                $this->stations_model->release_station_locks($station_locks_held);
+                $appointment_id = $this->appointments_model->save($appointment);
+            } finally {
+                if (!empty($station_locks_held)) {
+                    $this->stations_model->release_station_locks($station_locks_held);
+                }
             }
 
             $appointment = $this->appointments_model->find($appointment_id);

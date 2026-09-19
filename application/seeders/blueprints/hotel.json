@@ -1,0 +1,217 @@
+{
+  "industry": {
+    "code": "hotel",
+    "name": "Otel & Butik Konaklama / Resort",
+    "icon": "🏨",
+    "service_type": "station",
+    "description": "Butik oteller, tatil köyleri, oda konaklama, otel içi SPA & masaj, havalimanı VIP transfer ve toplantı salonu yönetim sistemi."
+  },
+  "terminology": {
+    "customer_label": "Misafir / Konuk",
+    "provider_label": "Resepsiyonist / Concierge",
+    "appointment_label": "Rezervasyon",
+    "station_label": "Oda / Salon / Alan",
+    "service_label": "Konaklama / Hizmet"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "reviews",
+    "marketing",
+    "staff_commissions"
+  ],
+  "default_settings": {
+    "business_type": "hospitality",
+    "slot_interval": 60,
+    "future_booking_limit": 180,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 30,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Oda Konaklama (Günlük)",
+      "description": "Standart, Deluxe ve Suite oda tipleri günlük rezervasyonları"
+    },
+    {
+      "name": "Otel İçi SPA & Wellness",
+      "description": "Otel misafirlerine özel aromatik masaj, hamam ve sauna seansları"
+    },
+    {
+      "name": "VIP Transfer & Concierge",
+      "description": "Havalimanı VIP karşılama, özel şoförlü transfer ve rehberli turlar"
+    },
+    {
+      "name": "Toplantı & Etkinlik Alanları",
+      "description": "İş toplantıları, seminer ve özel yemek salonu kiralama"
+    }
+  ],
+  "services": [
+    {
+      "name": "Standart Çift Kişilik Oda (Gecelik)",
+      "category": "Oda Konaklama (Günlük)",
+      "duration": 1440,
+      "price": 2800.00,
+      "slot_interval": 60,
+      "attendants_number": 2,
+      "color": "#3b82f6",
+      "description": "Queen size yatak, şehir manzarası, açık büfe kahvaltı ve ücretsiz Wi-Fi."
+    },
+    {
+      "name": "Deluxe Teraslı Suite Oda (Gecelik)",
+      "category": "Oda Konaklama (Günlük)",
+      "duration": 1440,
+      "price": 4500.00,
+      "slot_interval": 60,
+      "attendants_number": 3,
+      "color": "#1d4ed8",
+      "description": "King size yatak, jakuzili özel teras, mini bar ve premium karşılama ikramları."
+    },
+    {
+      "name": "Kral Dairesi (Presidential Suite)",
+      "category": "Oda Konaklama (Günlük)",
+      "duration": 1440,
+      "price": 9500.00,
+      "slot_interval": 60,
+      "attendants_number": 4,
+      "color": "#f59e0b",
+      "description": "Panoramik manzara, 2 yatak odası, özel salon, sauna ve 24 saat butler hizmeti."
+    },
+    {
+      "name": "Otel SPA Rahatlatıcı Masaj (50 Dk)",
+      "category": "Otel İçi SPA & Wellness",
+      "duration": 50,
+      "price": 1200.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#10b981",
+      "description": "Yorgunluk giderici aromatik bitki yağlarıyla tüm vücut masajı."
+    },
+    {
+      "name": "VIP Havalimanı Karşılama & Transfer",
+      "category": "VIP Transfer & Concierge",
+      "duration": 90,
+      "price": 1500.00,
+      "slot_interval": 60,
+      "attendants_number": 4,
+      "color": "#8b5cf6",
+      "description": "Mercedes Vito VIP araç ile Sabiha Gökçen / Yeni Havalimanı özel transferi."
+    },
+    {
+      "name": "Toplantı Salonu Kiralama (Yarım Gün)",
+      "category": "Toplantı & Etkinlik Alanları",
+      "duration": 240,
+      "price": 5000.00,
+      "slot_interval": 60,
+      "attendants_number": 20,
+      "color": "#ec4899",
+      "description": "20 kişilik toplantı salonu, projeksiyon, ses sistemi ve coffee break ikramları."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Oda 101 - Standart Çift Kişilik",
+      "notes": "1. Kat, bahçe manzaralı standart oda"
+    },
+    {
+      "name": "Oda 102 - Standart Çift Kişilik",
+      "notes": "1. Kat, bahçe manzaralı standart oda"
+    },
+    {
+      "name": "Oda 201 - Deluxe Teras Suite",
+      "notes": "2. Kat, panoramik deniz manzaralı jakuzili teras suite"
+    },
+    {
+      "name": "Oda 301 - Presidential Kral Dairesi",
+      "notes": "En üst kat, çift yatak odalı, özel saunalı kral dairesi"
+    },
+    {
+      "name": "Otel SPA Masaj Kabini",
+      "notes": "Isıtmalı sedye, jakuzi, duş kabini"
+    },
+    {
+      "name": "Zümrüt Toplantı Salonu",
+      "notes": "20 kişilik U masa düzeni, 4K ekran, ses ve video konferans"
+    }
+  ],
+  "demo": {
+    "admin": {
+      "first_name": "Ahmet",
+      "last_name": "Kıvanç",
+      "email": "demo-hotel-admin@kibusiness.co",
+      "phone_number": "05432137000",
+      "notes": "Otel Genel Müdürü"
+    },
+    "providers": [
+      {
+        "first_name": "Canan",
+        "last_name": "Erdem",
+        "email": "demo-hotel-uzman1@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Ön Büro Müdürü & Resepsiyonist",
+        "commission_type": "fixed",
+        "commission_value": 100.0,
+        "services": ["Standart Çift Kişilik Oda (Gecelik)", "Deluxe Teraslı Suite Oda (Gecelik)", "Kral Dairesi (Presidential Suite)", "Toplantı Salonu Kiralama (Yarım Gün)"],
+        "stations": ["Oda 101 - Standart Çift Kişilik", "Oda 102 - Standart Çift Kişilik", "Oda 201 - Deluxe Teras Suite", "Oda 301 - Presidential Kral Dairesi", "Zümrüt Toplantı Salonu"]
+      },
+      {
+        "first_name": "Deniz",
+        "last_name": "Tekin",
+        "email": "demo-hotel-uzman2@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Otel SPA & Terapi Uzmanı",
+        "commission_type": "percentage",
+        "commission_value": 30.0,
+        "services": ["Otel SPA Rahatlatıcı Masaj (50 Dk)"],
+        "stations": ["Otel SPA Masaj Kabini"]
+      },
+      {
+        "first_name": "Gonca",
+        "last_name": "Acar",
+        "email": "demo-hotel-uzman3@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "VIP Concierge & Transfer Sorumlusu",
+        "commission_type": "fixed",
+        "commission_value": 150.0,
+        "services": ["VIP Havalimanı Karşılama & Transfer"],
+        "stations": []
+      }
+    ],
+    "customers": [
+      { "first_name": "Thomas", "last_name": "Müller", "email": "demo-hotel-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Almanya'dan iş seyahati, 3 gece Deluxe Suite" },
+      { "first_name": "Maria", "last_name": "Schmidt", "email": "demo-hotel-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Balayı çifti, teras suite & SPA" },
+      { "first_name": "Kenji", "last_name": "Tanaka", "email": "demo-hotel-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Japonya delegasyonu, Kral Dairesi" },
+      { "first_name": "Anna", "last_name": "Petrova", "email": "demo-hotel-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Standart oda ve SPA rezervasyonu" },
+      { "first_name": "Luca", "last_name": "Rossi", "email": "demo-hotel-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Havalimanı VIP transfer talebi var" },
+      { "first_name": "Fatma", "last_name": "Yılmaz", "email": "demo-hotel-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Şirket yönetim kurulu toplantısı" },
+      { "first_name": "Carlos", "last_name": "Garcia", "email": "demo-hotel-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Standart oda konaklama" },
+      { "first_name": "Sofia", "last_name": "Andersen", "email": "demo-hotel-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Hafta sonu tatili Deluxe oda" },
+      { "first_name": "Rıza", "last_name": "Kaplan", "email": "demo-hotel-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Standart oda 2 gece" },
+      { "first_name": "Elif", "last_name": "Sever", "email": "demo-hotel-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Otel SPA masajı konuğu" }
+    ],
+    "appointments": [
+      { "day_offset": -3, "time": "14:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Deluxe Teraslı Suite Oda (Gecelik)", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -3, "time": "16:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Otel SPA Rahatlatıcı Masaj (50 Dk)", "station_idx": 4, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -2, "time": "11:00", "provider_idx": 2, "customer_idx": 4, "service_name": "VIP Havalimanı Karşılama & Transfer", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -2, "time": "14:00", "provider_idx": 0, "customer_idx": 6, "service_name": "Standart Çift Kişilik Oda (Gecelik)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -1, "time": "09:00", "provider_idx": 0, "customer_idx": 5, "service_name": "Toplantı Salonu Kiralama (Yarım Gün)", "station_idx": 5, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
+      { "day_offset": -1, "time": "17:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Otel SPA Rahatlatıcı Masaj (50 Dk)", "station_idx": 4, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "12:00", "provider_idx": 2, "customer_idx": 2, "service_name": "VIP Havalimanı Karşılama & Transfer", "station_idx": 0, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": 0, "time": "14:00", "provider_idx": 0, "customer_idx": 2, "service_name": "Kral Dairesi (Presidential Suite)", "station_idx": 3, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": 0, "time": "15:00", "provider_idx": 1, "customer_idx": 9, "service_name": "Otel SPA Rahatlatıcı Masaj (50 Dk)", "station_idx": 4, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 0, "time": "14:00", "provider_idx": 0, "customer_idx": 7, "service_name": "Deluxe Teraslı Suite Oda (Gecelik)", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "14:00", "provider_idx": 0, "customer_idx": 8, "service_name": "Standart Çift Kişilik Oda (Gecelik)", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "16:30", "provider_idx": 1, "customer_idx": 0, "service_name": "Otel SPA Rahatlatıcı Masaj (50 Dk)", "station_idx": 4, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 2, "time": "09:00", "provider_idx": 0, "customer_idx": 5, "service_name": "Toplantı Salonu Kiralama (Yarım Gün)", "station_idx": 5, "status": "reserved", "payment_status": "pending", "payment_method": "iban" },
+      { "day_offset": 2, "time": "14:00", "provider_idx": 0, "customer_idx": 3, "service_name": "Standart Çift Kişilik Oda (Gecelik)", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 3, "time": "14:00", "provider_idx": 0, "customer_idx": 1, "service_name": "Deluxe Teraslı Suite Oda (Gecelik)", "station_idx": 2, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
+    ]
+  }
+}
+

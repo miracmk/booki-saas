@@ -48,7 +48,7 @@ cat <<EOF >/var/www/html/application/config/email.php
 // Example: $config['smtp_host'] = 'smtp.gmail.com';
 // @link https://codeigniter.com/user_guide/libraries/email.html
 
-\$config['useragent'] = 'Ki Reservation';
+\$config['useragent'] = 'BooKi';
 \$config['protocol'] = '${MAIL_PROTOCOL}'; // or 'smtp'
 \$config['mailtype'] = 'html'; // or 'text'
 \$config['smtp_debug'] = '${MAIL_SMTP_DEBUG}'; // or '1'

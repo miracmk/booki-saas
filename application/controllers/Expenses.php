@@ -21,6 +21,11 @@ class Expenses extends EA_Controller
             return;
         }
 
+        if (session('role_slug') === DB_SLUG_CUSTOMER) {
+            redirect('customer_portal');
+            return;
+        }
+
         $category = $this->input->get('category') ?: null;
         $start_date = $this->input->get('start_date') ?: null;
         $end_date = $this->input->get('end_date') ?: null;
@@ -97,6 +102,14 @@ class Expenses extends EA_Controller
                 ->set_status_header(401)
                 ->set_content_type('application/json')
                 ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+            exit;
+        }
+
+        if (session('role_slug') === DB_SLUG_CUSTOMER) {
+            $this->output
+                ->set_status_header(403)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Forbidden']));
             exit;
         }
     }

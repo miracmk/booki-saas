@@ -1,0 +1,172 @@
+{
+  "industry": {
+    "code": "restaurant",
+    "name": "Restoran, Kafe & Bistro",
+    "icon": "🍽️",
+    "service_type": "station",
+    "description": "Restoran, kafe, bistro ve meyhaneler için canlı masa yerleşimi, adisyon, masa rezervasyonu ve deneyim yönetimi."
+  },
+  "terminology": {
+    "customer_label": "Misafir",
+    "provider_label": "Garson / Şef",
+    "appointment_label": "Masa Rezervasyonu",
+    "station_label": "Masa / Bölüm",
+    "service_label": "Menü & Rezervasyon"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "adisyon",
+    "pos",
+    "finance",
+    "expenses",
+    "checkin",
+    "reviews",
+    "marketing",
+    "restaurant_floor_plan",
+    "restaurant_reservations",
+    "restaurant_experiences"
+  ],
+  "default_settings": {
+    "business_type": "restaurant",
+    "slot_interval": 30,
+    "future_booking_limit": 30,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 15,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Masa Rezervasyonları",
+      "description": "Öğle ve akşam servisi standart masa rezervasyonları"
+    },
+    {
+      "name": "Şef Deneyimi & Tadım Menüleri",
+      "description": "Şefin özel tadım menüsü ve eşleşmeli gurme tadımlar"
+    },
+    {
+      "name": "Özel Gün & Organizasyon",
+      "description": "Doğum günü, kurumsal yemekler ve VIP oda tahsisi"
+    }
+  ],
+  "services": [
+    {
+      "name": "Akşam Yemeği Rezervasyonu (Standart)",
+      "category": "Masa Rezervasyonları",
+      "duration": 120,
+      "price": 0.00,
+      "slot_interval": 30,
+      "attendants_number": 4,
+      "color": "#ef4444",
+      "description": "2-4 kişilik ana salon veya bahçe masa rezervasyonu."
+    },
+    {
+      "name": "Şefin Tadım Menüsü (5 Aşamalı)",
+      "category": "Şef Deneyimi & Tadım Menüleri",
+      "duration": 150,
+      "price": 1850.00,
+      "slot_interval": 30,
+      "attendants_number": 2,
+      "color": "#f59e0b",
+      "description": "Mevsimlik lezzetlerden oluşan 5 aşamalı imza şef tadım menüsü."
+    },
+    {
+      "name": "VIP Salon Özel Kutlama & Akşam Yemeği",
+      "category": "Özel Gün & Organizasyon",
+      "duration": 180,
+      "price": 3500.00,
+      "slot_interval": 60,
+      "attendants_number": 10,
+      "color": "#8b5cf6",
+      "description": "10 kişiye kadar özel kapalı VIP salon tahsisi ve özel garson servisi."
+    },
+    {
+      "name": "Hafta Sonu Serpme Kahvaltı Rezervasyonu",
+      "category": "Masa Rezervasyonları",
+      "duration": 90,
+      "price": 450.00,
+      "slot_interval": 30,
+      "attendants_number": 4,
+      "color": "#10b981",
+      "description": "Organik serpme kahvaltı ve sınırsız çay servisi eşliğinde masa rezervasyonu."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Masa 1 (Cam Kenarı)",
+      "notes": "2-4 kişilik ana salon manzaralı masa"
+    },
+    {
+      "name": "Masa 2 (Cam Kenarı)",
+      "notes": "2-4 kişilik ana salon manzaralı masa"
+    },
+    {
+      "name": "Masa 3 (Orta Salon)",
+      "notes": "4-6 kişilik ferah salon masası"
+    },
+    {
+      "name": "Bahçe Masa 10",
+      "notes": "4 kişilik açık hava bahçe masası"
+    },
+    {
+      "name": "VIP Özel Oda",
+      "notes": "10-12 kişilik ses yalıtımlı özel yemek odası"
+    }
+  ],
+  "demo": {
+    "providers": [
+      {
+        "first_name": "Murat",
+        "last_name": "Şef",
+        "email": "murat.sef@demo-restoran.test",
+        "phone_number": "5551110001",
+        "notes": "Baş Şef & Restoran Müdürü"
+      },
+      {
+        "first_name": "Caner",
+        "last_name": "Kaptan",
+        "email": "caner.kaptan@demo-restoran.test",
+        "phone_number": "5551110002",
+        "notes": "Servis Şefi & Sommelier"
+      }
+    ],
+    "customers": [
+      {
+        "first_name": "Kemal",
+        "last_name": "Doğan",
+        "email": "kemal.dogan@example.test",
+        "phone_number": "5552220001"
+      },
+      {
+        "first_name": "Selin",
+        "last_name": "Yıldırım",
+        "email": "selin.yildirim@example.test",
+        "phone_number": "5552220002"
+      }
+    ],
+    "appointments": [
+      {
+        "service_name": "Akşam Yemeği Rezervasyonu (Standart)",
+        "station_name": "Masa 1 (Cam Kenarı)",
+        "days_offset": 0,
+        "time": "19:30:00",
+        "customer_index": 0,
+        "provider_index": 0,
+        "status": "confirmed",
+        "notes": "Cam kenarı tercih edildi, yıl dönümü kutlaması."
+      },
+      {
+        "service_name": "Şefin Tadım Menüsü (5 Aşamalı)",
+        "station_name": "Masa 2 (Cam Kenarı)",
+        "days_offset": 1,
+        "time": "20:00:00",
+        "customer_index": 1,
+        "provider_index": 1,
+        "status": "confirmed",
+        "notes": "Glutensiz ekmek talebi var."
+      }
+    ]
+  }
+}

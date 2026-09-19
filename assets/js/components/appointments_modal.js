@@ -1040,7 +1040,7 @@ App.Components.AppointmentsModal = (function () {
         // Get the selected service duration. It will be needed in order to calculate the appointment end datetime.
         const serviceId = $selectService.val();
 
-        const service = vars('available_services').forEach((service) => Number(service.id) === Number(serviceId));
+        const service = vars('available_services').find((service) => Number(service.id) === Number(serviceId));
 
         const duration = service ? service.duration : 0;
 
@@ -1048,37 +1048,80 @@ App.Components.AppointmentsModal = (function () {
         const endDatetime = moment().add(duration, 'minutes').toDate();
 
         App.Utils.UI.initializeDateTimePicker($startDatetime, {
+            onChange: (selectedDates) => {
+                if (selectedDates && selectedDates[0]) {
+                    const serviceId = $selectService.val();
+                    const service = (vars('available_services') || []).find(
+                        (availableService) => Number(availableService.id) === Number(serviceId),
+                    );
+                    const customMins = parseInt($customDuration.val(), 10);
+                    const baseDur = (!isNaN(customMins) && customMins > 0) ? customMins : (service ? Number(service.duration) : 60);
+
+                    let totalAddonsDuration = 0;
+                    $('.addon-checkbox:checked').each(function () {
+                        totalAddonsDuration += Number($(this).data('duration') || 0);
+                    });
+
+                    const totalMins = baseDur + totalAddonsDuration;
+                    const newEnd = new Date(selectedDates[0].getTime() + totalMins * 60000);
+                    App.Utils.UI.setDateTimePickerValue($endDatetime, newEnd);
+
+                    stepController.lockFrom(3);
+                    updateStationOptions($stationSelect.val());
+                    updateLiveSummary();
+                }
+            },
             onClose: () => {
-                // Salon Flora customization - BUG FIX: this used to unconditionally overwrite #end-datetime with
-                // start + service.duration EVERY time the start picker closed - even just opening and closing it
-                // without changing the value. For an EXISTING appointment, that silently wiped out any manually
-                // extended/shortened end time (booking-time duration override) the moment staff so much as
-                // touched the start field again. Only auto-follow the service's default duration for a brand new,
-                // unsaved appointment, where there's no manual end time yet to protect.
                 if (!$appointmentId.val()) {
                     const serviceId = $selectService.val();
-
-                    // Automatically update the #end-datetime DateTimePicker based on service duration.
                     const service = vars('available_services').find(
                         (availableService) => Number(availableService.id) === Number(serviceId),
                     );
 
                     const startDateTimeObject = App.Utils.UI.getDateTimePickerValue($startDatetime);
-                    const endDateTimeObject = new Date(startDateTimeObject.getTime() + service.duration * 60000);
-                    App.Utils.UI.setDateTimePickerValue($endDatetime, endDateTimeObject);
+                    if (startDateTimeObject && service) {
+                        const customMins = parseInt($customDuration.val(), 10);
+                        const dur = (!isNaN(customMins) && customMins > 0) ? customMins : Number(service.duration);
+                        const endDateTimeObject = new Date(startDateTimeObject.getTime() + dur * 60000);
+                        App.Utils.UI.setDateTimePickerValue($endDatetime, endDateTimeObject);
+                    }
                 }
 
-                // Salon Flora customization - sequential booking form: a time is now picked, unlock step 2
-                // (hizmet). The time may have just changed on an appointment that already had a provider/station
-                // chosen, so re-check station availability for the new time too.
                 stepController.lockFrom(3);
                 updateStationOptions($stationSelect.val());
+                updateLiveSummary();
             },
         });
 
         App.Utils.UI.setDateTimePickerValue($startDatetime, startDatetime);
 
-        App.Utils.UI.initializeDateTimePicker($endDatetime);
+        App.Utils.UI.initializeDateTimePicker($endDatetime, {
+            onChange: (selectedDates) => {
+                if (selectedDates && selectedDates[0]) {
+                    const startObj = $startDatetime[0]?._flatpickr?.selectedDates?.[0];
+                    if (startObj) {
+                        const diffMins = Math.round((selectedDates[0].getTime() - startObj.getTime()) / 60000);
+                        if (diffMins > 0) {
+                            const serviceId = $selectService.val();
+                            const service = (vars('available_services') || []).find(
+                                (availableService) => Number(availableService.id) === Number(serviceId),
+                            );
+                            const baseServiceDur = service ? Number(service.duration) : 60;
+                            let totalAddonsDuration = 0;
+                            $('.addon-checkbox:checked').each(function () {
+                                totalAddonsDuration += Number($(this).data('duration') || 0);
+                            });
+                            const netCustomDur = diffMins - totalAddonsDuration;
+                            if (netCustomDur !== baseServiceDur && netCustomDur > 0) {
+                                $customDuration.val(netCustomDur);
+                            }
+                        }
+                    }
+                    updateStationOptions($stationSelect.val());
+                    updateLiveSummary();
+                }
+            },
+        });
         App.Utils.UI.setDateTimePickerValue($endDatetime, endDatetime);
         $appointmentsModal.find('.modal-message').removeClass('alert-danger').text('').addClass('d-none');
 
@@ -1319,8 +1362,8 @@ App.Components.AppointmentsModal = (function () {
      */
     function updateLiveSummary() {
         // 1. Customer
-        const firstName = $firstName.val() || '';
-        const lastName = $lastName.val() || '';
+        const firstName = ($firstName.val() || '').trim();
+        const lastName = ($lastName.val() || '').trim();
         const customerName = (firstName + ' ' + lastName).trim() || 'Seçilmedi';
         $('#summary-customer-name').text(customerName);
         $('#summary-customer-phone').text($phoneNumber.val() || '-');
@@ -1328,15 +1371,21 @@ App.Components.AppointmentsModal = (function () {
         // 2. Service & Addons
         const serviceId = $selectService.val();
         const service = (vars('available_services') || []).find((s) => Number(s.id) === Number(serviceId));
-        const serviceName = service ? service.name : '-';
-        let baseDuration = service ? Number(service.duration) : 0;
-        if ($customDuration.val()) {
-            baseDuration = Number($customDuration.val());
+        let serviceName = service ? service.name : ($selectService.find('option:selected').text() || '-');
+        // Clean up service name if it has parenthetical duration/price
+        if (serviceName && serviceName.includes('(')) {
+            serviceName = serviceName.split('(')[0].trim();
+        }
+        let baseDuration = service ? Number(service.duration) : 60;
+        const customMins = parseInt($customDuration.val(), 10);
+        if (!isNaN(customMins) && customMins > 0) {
+            baseDuration = customMins;
         }
 
         let basePrice = service ? Number(service.price) : 0;
-        if ($priceOverride.val() !== '' && $priceOverride.val() !== null) {
-            basePrice = Number($priceOverride.val());
+        const priceOver = parseFloat($priceOverride.val());
+        if (!isNaN(priceOver) && priceOver >= 0) {
+            basePrice = priceOver;
         }
 
         let totalAddonsDuration = 0;
@@ -1365,10 +1414,12 @@ App.Components.AppointmentsModal = (function () {
         
         let startStr = '-';
         try {
-            const startObj = App.Utils.UI.getDateTimePickerValue($startDatetime);
-            const endObj = App.Utils.UI.getDateTimePickerValue($endDatetime);
+            const startObj = $startDatetime[0]?._flatpickr?.selectedDates?.[0] || ($startDatetime.val() ? new Date($startDatetime.val()) : null);
+            const endObj = $endDatetime[0]?._flatpickr?.selectedDates?.[0] || ($endDatetime.val() ? new Date($endDatetime.val()) : null);
             if (startObj && endObj) {
                 startStr = moment(startObj).format('DD MMM YYYY, HH:mm') + ' - ' + moment(endObj).format('HH:mm');
+            } else if ($startDatetime.val()) {
+                startStr = $startDatetime.val() + ($endDatetime.val() ? ' - ' + $endDatetime.val() : '');
             }
         } catch(e) {}
         $('#summary-datetime').text(startStr);
@@ -1376,7 +1427,7 @@ App.Components.AppointmentsModal = (function () {
         // 4. Provider & Station
         const providerId = $selectProvider.val();
         const provider = (vars('available_providers') || []).find((p) => Number(p.id) === Number(providerId));
-        const providerName = provider ? provider.first_name + ' ' + provider.last_name : 'Seçilmedi';
+        const providerName = provider ? (provider.first_name + ' ' + provider.last_name) : ($selectProvider.find('option:selected').text() || 'Seçilmedi');
         const stationText = $stationSelect.find('option:selected').text() || 'Atanmadı';
         $('#summary-provider-station').text(providerName + ' · ' + stationText);
 
@@ -1518,7 +1569,42 @@ App.Components.AppointmentsModal = (function () {
         applyCustomerPrivacyRestrictions();
 
         // Bind live summary updates to inputs
-        $appointmentsModal.on('input change', 'input, select, textarea', () => {
+        $appointmentsModal.on('input change keyup', 'input, select, textarea', () => {
+            updateLiveSummary();
+        });
+
+        $appointmentsModal.on('shown.bs.modal show.bs.modal', () => {
+            updateLiveSummary();
+        });
+
+        // Custom duration input handler - recalculates end-datetime live
+        $customDuration.on('input change keyup', function () {
+            const customMins = parseInt($(this).val(), 10);
+            const serviceId = $selectService.val();
+            const service = (vars('available_services') || []).find(s => Number(s.id) === Number(serviceId));
+            const baseDur = (!isNaN(customMins) && customMins > 0) ? customMins : (service ? Number(service.duration) : 60);
+
+            let totalAddonsDuration = 0;
+            $('.addon-checkbox:checked').each(function () {
+                totalAddonsDuration += Number($(this).data('duration') || 0);
+            });
+
+            const totalMins = baseDur + totalAddonsDuration;
+            try {
+                const startObj = $startDatetime[0]?._flatpickr?.selectedDates?.[0] || App.Utils.UI.getDateTimePickerValue($startDatetime);
+                if (startObj) {
+                    const newEnd = new Date(startObj.getTime() + totalMins * 60000);
+                    App.Utils.UI.setDateTimePickerValue($endDatetime, newEnd);
+                }
+            } catch(e) {}
+
+            updatePricePreview();
+            updateLiveSummary();
+            updateStationOptions($stationSelect.val());
+        });
+
+        $priceOverride.on('input change keyup', function () {
+            updatePricePreview();
             updateLiveSummary();
         });
 
@@ -1526,9 +1612,10 @@ App.Components.AppointmentsModal = (function () {
             // Recompute end datetime based on added addon duration
             const serviceId = $selectService.val();
             const service = (vars('available_services') || []).find(s => Number(s.id) === Number(serviceId));
-            let totalMins = service ? Number(service.duration) : 30;
-            if ($customDuration.val()) {
-                totalMins = Number($customDuration.val());
+            let totalMins = service ? Number(service.duration) : 60;
+            const customMins = parseInt($customDuration.val(), 10);
+            if (!isNaN(customMins) && customMins > 0) {
+                totalMins = customMins;
             }
 
             $('.addon-checkbox:checked').each(function () {
@@ -1536,7 +1623,7 @@ App.Components.AppointmentsModal = (function () {
             });
 
             try {
-                const startObj = App.Utils.UI.getDateTimePickerValue($startDatetime);
+                const startObj = $startDatetime[0]?._flatpickr?.selectedDates?.[0] || App.Utils.UI.getDateTimePickerValue($startDatetime);
                 if (startObj) {
                     const newEnd = new Date(startObj.getTime() + totalMins * 60000);
                     App.Utils.UI.setDateTimePickerValue($endDatetime, newEnd);
@@ -1544,6 +1631,7 @@ App.Components.AppointmentsModal = (function () {
             } catch(e) {}
 
             updateLiveSummary();
+            updateStationOptions($stationSelect.val());
         });
 
         // Fast open adisyon button

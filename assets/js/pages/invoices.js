@@ -261,6 +261,13 @@ App.Pages.Invoices = (function () {
   }
 
   function search() {
+    $tbody.html(
+      '<tr><td colspan="7" class="text-center py-4 text-muted">' +
+      '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>' +
+      '<span>Yükleniyor...</span>' +
+      '</td></tr>'
+    );
+
     $.ajax({
       url: App.Utils.ajaxUrl('invoices/search'),
       type: 'POST',
@@ -273,12 +280,35 @@ App.Pages.Invoices = (function () {
         renderTable();
       })
       .fail(function (jqxhr) {
+        $tbody.html(
+          '<tr><td colspan="7" class="text-center py-4 text-danger">' +
+          '<i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>' +
+          '<p class="mb-2 small">Faturalar yüklenirken bir hata oluştu.</p>' +
+          '<button class="btn btn-sm btn-outline-danger" onclick="App.Pages.Invoices.search()"><i class="fas fa-sync-alt me-1"></i>Tekrar Dene</button>' +
+          '</td></tr>'
+        );
         App.Utils.ajaxErrorMsg(jqxhr);
       });
   }
 
   function renderTable() {
     $tbody.empty();
+
+    if (!tableRows.length) {
+      $tbody.html(
+        '<tr><td colspan="7" class="text-center py-5">' +
+        '<div class="text-muted">' +
+        '<i class="fas fa-file-invoice fa-3x text-primary opacity-50 mb-3 d-block"></i>' +
+        '<h6 class="fw-semibold text-dark mb-1">Henüz düzenlenmiş fatura yok</h6>' +
+        '<p class="small text-muted mb-3">Tamamlanan randevuları ve adisyonları faturalandırabilir veya yeni bir fatura oluşturabilirsiniz.</p>' +
+        '<button class="btn btn-sm btn-primary" onclick="$(\'#add-invoice\').trigger(\'click\')">' +
+        '<i class="fas fa-plus me-1"></i>Yeni Fatura Oluştur' +
+        '</button>' +
+        '</div>' +
+        '</td></tr>'
+      );
+      return;
+    }
 
     tableRows.forEach(function (invoice) {
       const customerName = ((invoice.customer_first_name || '') + ' ' + (invoice.customer_last_name || '')).trim() || '—';

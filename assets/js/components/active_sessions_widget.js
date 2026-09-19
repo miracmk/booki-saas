@@ -27,11 +27,11 @@ App.Components.ActiveSessionsWidget = (function () {
     function buildDom() {
         $button = $('<button/>', {
             type: 'button',
-            class: 'btn btn-outline-light btn-sm ms-2',
+            class: 'btn btn-light border btn-sm text-dark ms-1 d-inline-flex align-items-center gap-1 shadow-sm',
             html: [
-                $('<i/>', {class: 'fas fa-stopwatch me-1'}),
-                'Aktif Seanslar ',
-                $('<span/>', {class: 'badge bg-secondary salonflora-active-sessions-badge', text: '0'}),
+                $('<i/>', {class: 'fas fa-stopwatch text-primary'}),
+                $('<span>', {class: 'fw-semibold small', text: 'Aktif Seanslar'}),
+                $('<span/>', {class: 'badge bg-secondary salonflora-active-sessions-badge ms-1', text: '0'}),
             ],
         });
 

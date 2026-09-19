@@ -36,11 +36,15 @@ if (!function_exists('setting')) {
         /** @var EA_Controller $CI */
         $CI = &get_instance();
 
-        $CI->load->model('settings_model');
-
         if (empty($key)) {
             throw new InvalidArgumentException('The $key argument cannot be empty.');
         }
+
+        if (!$CI->db->table_exists('settings')) {
+            return is_array($key) ? null : $default;
+        }
+
+        $CI->load->model('settings_model');
 
         if (is_array($key)) {
             foreach ($key as $name => $value) {

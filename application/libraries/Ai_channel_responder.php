@@ -1,19 +1,25 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
-/* ----------------------------------------------------------------------------
+/**
  * BooKi - Multi-Channel AI Assistant Responder Library.
  *
  * Handles inbound customer messages from WhatsApp, Telegram, and Instagram.
- * Provides automated AI responses using read-only customer & business context.
+ * Provides automated AI responses using read-only customer & business context
+ * powered by the Universal Multi-Provider AI LLM Gateway (Google AI Studio, Groq, OpenRouter, OpenAI, Anthropic).
  *
- * SECURITY INVARIANT:
- * Customer inbound messages NEVER trigger direct DB mutations or write tools.
- * The only action tool permitted is `propose_customer_update`, which queues
- * changes to `ai_agent_pending_changes` requiring human admin approval.
+ * RECOGNITION & SECURITY INVARIANTS:
+ * 1. Customer Recognition:
+ *    - WhatsApp: Matched directly by phone number / wa_id.
+ *    - Telegram / Instagram: Matched by telegram_chat_id / instagram_user_id if already linked.
+ *      If not linked yet, the AI politely asks for their phone number and links the channel
+ *      via `link_customer_channel`, greeting them by name for all future conversations.
+ * 2. Mutation Safety:
+ *    - Inbound messages NEVER directly alter appointments or core business data.
+ *    - New booking, cancellation, rescheduling, or profile update requests are queued as
+ *      proposals into `ai_agent_pending_changes` and require human admin approval.
  *
  * @package Libraries
- * ---------------------------------------------------------------------------- */
-
+ */
 class Ai_channel_responder
 {
     private const MAX_TOOL_ITERATIONS = 4;
@@ -21,6 +27,72 @@ class Ai_channel_responder
     private const ALLOWED_UPDATE_FIELDS = ['first_name', 'last_name', 'email', 'phone_number', 'address', 'notes'];
 
     private const TOOLS = [
+        [
+            'type' => 'function',
+            'function' => [
+                'name' => 'link_customer_channel',
+                'description' => 'Müşteri telefon numarasını paylaştığında çağrılır. Veritabanındaki müşteri profilini bularak bu mesajlaşma hesabını (Telegram/Instagram/WhatsApp) müşteriye bağlar.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'phone_number' => ['type' => 'string', 'description' => 'Müşterinin paylaştığı telefon numarası (örn: 05062505562 veya 506 250 55 62).'],
+                    ],
+                    'required' => ['phone_number'],
+                ],
+            ],
+        ],
+        [
+            'type' => 'function',
+            'function' => [
+                'name' => 'propose_appointment_create',
+                'description' => 'Müşterinin yeni randevu alma talebini (hizmet, tarih/saat, müşteri isim ve telefon bilgisi) yönetici onayına gönderir. Veritabanına doğrudan eklemez, yönetici onay kuyruğuna ekler.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'service_name' => ['type' => 'string', 'description' => 'İstenen hizmetin adı veya türü.'],
+                        'service_id' => ['type' => 'integer', 'description' => 'İstenen hizmetin ID numarası (varsa).'],
+                        'start_datetime' => ['type' => 'string', 'description' => 'Randevu başlangıç tarih ve saati (YYYY-AA-GG SS:DD:00 formatında, örn: 2026-09-20 14:00:00).'],
+                        'customer_name' => ['type' => 'string', 'description' => 'Müşterinin adı ve soyadı.'],
+                        'customer_phone' => ['type' => 'string', 'description' => 'Müşterinin telefon numarası.'],
+                        'customer_email' => ['type' => 'string', 'description' => 'Müşterinin e-posta adresi (varsa).'],
+                        'notes' => ['type' => 'string', 'description' => 'Müşteri notu veya özel istekleri.'],
+                        'reason' => ['type' => 'string', 'description' => 'Talep özeti veya gerekçesi.'],
+                    ],
+                    'required' => ['service_name', 'start_datetime', 'customer_name', 'customer_phone'],
+                ],
+            ],
+        ],
+        [
+            'type' => 'function',
+            'function' => [
+                'name' => 'propose_appointment_cancel',
+                'description' => 'Müşterinin mevcut bir randevusunu iptal etme/silme talebini yönetici onayına gönderir. Randevuyu doğrudan silmez, yönetici onay kuyruğuna ekler.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'appointment_id' => ['type' => 'integer', 'description' => 'İptal edilmek istenen randevunun ID numarası.'],
+                        'reason' => ['type' => 'string', 'description' => 'İptal gerekçesi (müşteri tarafından iletilen).'],
+                    ],
+                    'required' => ['appointment_id', 'reason'],
+                ],
+            ],
+        ],
+        [
+            'type' => 'function',
+            'function' => [
+                'name' => 'propose_appointment_reschedule',
+                'description' => 'Müşterinin mevcut bir randevusunun gün veya saatini değiştirme talebini yönetici onayına gönderir. Randevuyu doğrudan değiştirmez, yönetici onay kuyruğuna ekler.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'appointment_id' => ['type' => 'integer', 'description' => 'Değiştirilmek istenen randevunun ID numarası.'],
+                        'new_start_datetime' => ['type' => 'string', 'description' => 'Yeni randevu başlangıç tarih ve saati (YYYY-AA-GG SS:DD:00 formatında).'],
+                        'reason' => ['type' => 'string', 'description' => 'Değişiklik gerekçesi.'],
+                    ],
+                    'required' => ['appointment_id', 'new_start_datetime', 'reason'],
+                ],
+            ],
+        ],
         [
             'type' => 'function',
             'function' => [
@@ -43,6 +115,18 @@ class Ai_channel_responder
     ];
 
     /**
+     * @var CI_Controller
+     */
+    protected CI_Controller $CI;
+
+    public function __construct()
+    {
+        $this->CI = &get_instance();
+        $this->CI->load->library('ai_llm_gateway');
+        $this->CI->load->library('channel_templates');
+    }
+
+    /**
      * Generate an AI response to an inbound channel message.
      *
      * @param string $channel 'whatsapp' | 'telegram' | 'instagram'
@@ -59,17 +143,14 @@ class Ai_channel_responder
             return null;
         }
 
-        $api_key = getenv('OPENROUTER_API_KEY');
         $booking_url = site_url('booking');
 
-        // If no API key configured, provide a safe friendly fallback
-        if (empty($api_key)) {
-            $company_name = setting('company_name') ?: 'İşletmemiz';
-            return "Merhaba! {$company_name} AI asistanına ulaştınız. Mesajınız ekibimize iletildi, en kısa sürede size dönüş yapılacaktır.\n\nRandevu almak veya hizmetlerimizi incelemek için: {$booking_url}";
+        // Auto-match unlinked user by phone if message contains a phone number pattern
+        if (empty($matched_user['id'])) {
+            $matched_user = $this->try_auto_match_phone($clean_text, $channel, $sender_id);
         }
 
-        $model = getenv('AI_AGENT_MODEL') ?: 'openrouter/free';
-        $system_prompt = $this->build_system_prompt($channel, $matched_user);
+        $system_prompt = $this->build_system_prompt($channel, $sender_id, $matched_user);
 
         $conversation = [
             ['role' => 'system', 'content' => $system_prompt],
@@ -77,48 +158,88 @@ class Ai_channel_responder
         ];
 
         for ($i = 0; $i < self::MAX_TOOL_ITERATIONS; $i++) {
-            $response = $this->call_openrouter($conversation, $model, $api_key);
+            $response = $this->CI->ai_llm_gateway->chat($conversation, [
+                'tools' => self::TOOLS,
+                'temperature' => 0.3,
+                'max_tokens' => 800,
+            ]);
 
-            if ($response === null) {
+            if ($response === null || empty($response['success'])) {
                 $company_name = setting('company_name') ?: 'İşletmemiz';
-                return "Merhaba! Mesajınız ekibimize iletildi. Randevu almak veya müsaitlik durumunu görmek için bağlantımızı ziyaret edebilirsiniz:\n{$booking_url}";
+                return "Merhaba! Mesajınız ekibimize iletildi. Randevu almak veya müsaitlik durumunu incelemek için bağlantımızı ziyaret edebilirsiniz:\n{$booking_url}";
             }
 
-            $msg = $response['choices'][0]['message'] ?? null;
-            if ($msg === null) {
-                break;
-            }
-
-            $tool_calls = $msg['tool_calls'] ?? [];
+            $tool_calls = $response['tool_calls'] ?? [];
             if (empty($tool_calls)) {
-                $reply = trim((string) ($msg['content'] ?? ''));
+                $reply = trim((string) ($response['reply'] ?? ''));
                 return $reply !== '' ? $reply : null;
             }
 
-            // Execute safe tool call (propose_customer_update only)
-            $conversation[] = $msg;
+            // Append assistant response with tool calls
+            $conversation[] = [
+                'role' => 'assistant',
+                'content' => $response['reply'] ?? '',
+                'tool_calls' => $tool_calls,
+            ];
 
             foreach ($tool_calls as $call) {
                 $name = $call['function']['name'] ?? '';
                 $args = json_decode($call['function']['arguments'] ?? '{}', true) ?: [];
 
-                $result = $this->execute_tool($name, $args, $channel, $matched_user);
+                $result = $this->execute_tool($name, $args, $channel, $sender_id, $matched_user);
+
+                // If customer was newly linked during tool execution, refresh matched_user in memory
+                if ($name === 'link_customer_channel' && !empty($result['success']) && !empty($result['customer_id'])) {
+                    $this->CI->load->model('customers_model');
+                    $matched_user = $this->CI->customers_model->find((int) $result['customer_id']);
+                }
 
                 $conversation[] = [
                     'role' => 'tool',
+                    'name' => $name,
                     'tool_call_id' => $call['id'] ?? '',
                     'content' => json_encode($result, JSON_UNESCAPED_UNICODE),
                 ];
             }
         }
 
-        return "Mesajınız yetkili ekibimize iletildi. Randevu veya bilgi için bağlantımızı ziyaret edebilirsiniz:\n{$booking_url}";
+        return "Talebiniz alınarak yetkili ekibimize iletildi. Randevularınızı incelemek veya yeni randevu oluşturmak için:\n{$booking_url}";
+    }
+
+    /**
+     * Try to auto match customer if a phone number is detected in text.
+     */
+    private function try_auto_match_phone(string $text, string $channel, string $sender_id): ?array
+    {
+        $this->CI->load->model('customers_model');
+
+        // Look for 10-11 digit phone number patterns
+        if (preg_match('/(\+?90|0)?\s*(5\d{2})[\s.-]*(\d{3})[\s.-]*(\d{2})[\s.-]*(\d{2})/', $text, $matches)) {
+            $clean_phone = '0' . $matches[2] . $matches[3] . $matches[4] . $matches[5];
+            $found = $this->CI->customers_model->search($clean_phone, 1);
+            if (!empty($found[0])) {
+                $customer = $found[0];
+                // Auto link channel ID
+                $update_field = match ($channel) {
+                    'telegram' => 'telegram_chat_id',
+                    'instagram' => 'instagram_user_id',
+                    'whatsapp' => 'whatsapp_wa_id',
+                    default => null,
+                };
+                if ($update_field) {
+                    $this->CI->db->update('users', [$update_field => $sender_id], ['id' => $customer['id']]);
+                }
+                return $customer;
+            }
+        }
+
+        return null;
     }
 
     /**
      * Build the system prompt with rich read-only business and customer context.
      */
-    private function build_system_prompt(string $channel, ?array $matched_user): string
+    private function build_system_prompt(string $channel, string $sender_id, ?array $matched_user): string
     {
         $CI = &get_instance();
         $CI->load->model('services_model');
@@ -126,181 +247,345 @@ class Ai_channel_responder
 
         $company_name = setting('company_name') ?: 'İşletmemiz';
         $company_phone = setting('company_phone') ?: '';
-        $company_link = setting('company_link') ?: site_url();
+        $company_address = setting('company_address') ?: 'İşletme Adresi';
         $booking_url = site_url('booking');
+        $current_datetime = date('Y-m-d H:i:s');
+        $current_day_name = match (date('N')) {
+            '1' => 'Pazartesi',
+            '2' => 'Salı',
+            '3' => 'Çarşamba',
+            '4' => 'Perşembe',
+            '5' => 'Cuma',
+            '6' => 'Cumartesi',
+            '7' => 'Pazar',
+            default => '',
+        };
 
-        // Fetch available services (read-only)
+        // Fetch available services
         $services = $CI->services_model->get_available_services();
         $services_summary = [];
-        foreach (array_slice($services, 0, 15) as $s) {
+        foreach (array_slice($services, 0, 20) as $s) {
             $price = !empty($s['price']) ? $s['price'] . ' TL' : 'Ücretsiz / Bilgi alınız';
-            $duration = !empty($s['duration']) ? $s['duration'] . ' dk' : '';
-            $services_summary[] = "- {$s['name']} ({$duration}, {$price})";
+            $duration = !empty($s['duration']) ? $s['duration'] . ' dk' : '30 dk';
+            $services_summary[] = "- [ID: {$s['id']}] {$s['name']} (Süre: {$duration}, Fiyat: {$price})";
         }
         $services_text = !empty($services_summary) ? implode("\n", $services_summary) : "Hizmet listesi için web sitemizi ziyaret ediniz.";
 
-        // Customer context if recognized
-        $customer_context = "Müşteri durumu: Sistemde henüz kayıtlı/eşleşmiş değil (yeni misafir).";
+        // Customer context
+        $customer_context = "MÜŞTERİ DURUMU: Henüz sistemle eşleşmemiş misafir. Gönderici Kimliği: {$sender_id}";
+        $is_recognized = false;
+
         if (!empty($matched_user['id'])) {
+            $is_recognized = true;
             $name = trim(($matched_user['first_name'] ?? '') . ' ' . ($matched_user['last_name'] ?? ''));
-            $phone = $matched_user['phone_number'] ?? '';
+            $phone = $matched_user['phone_number'] ?? $sender_id;
             $email = $matched_user['email'] ?? '';
             $id = $matched_user['id'];
 
             // Fetch upcoming appointments
             $upcoming_text = 'Yok';
             $upcoming = $CI->db
-                ->select('appointments.*, services.name AS service_name, CONCAT(users.first_name, " ", users.last_name) AS provider_name')
+                ->select('appointments.id, appointments.start_datetime, appointments.end_datetime, appointments.status, services.name AS service_name, users.first_name AS provider_first_name, users.last_name AS provider_last_name')
                 ->from('appointments')
                 ->join('services', 'services.id = appointments.id_services', 'left')
                 ->join('users', 'users.id = appointments.id_users_provider', 'left')
                 ->where('appointments.id_users_customer', $id)
                 ->where('appointments.start_datetime >=', date('Y-m-d H:i:s'))
                 ->order_by('appointments.start_datetime', 'ASC')
-                ->limit(3)
+                ->limit(5)
                 ->get()
                 ->result_array();
 
             if (!empty($upcoming)) {
-                $up_lines = [];
-                foreach ($upcoming as $app) {
-                    $up_lines[] = "- {$app['start_datetime']}: {$app['service_name']} (Uzman: {$app['provider_name']})";
+                $u_lines = [];
+                foreach ($upcoming as $u) {
+                    $provider_name = trim(($u['provider_first_name'] ?? '') . ' ' . ($u['provider_last_name'] ?? '')) ?: 'Belirtilmedi';
+                    $u_lines[] = "• [Randevu ID: " . $u['id'] . "] " . $u['start_datetime'] . " - " . ($u['service_name'] ?? 'Hizmet') . " (Uzman: " . $provider_name . ", Durum: " . ($u['status'] ?? '') . ")";
                 }
-                $upcoming_text = implode("\n", $up_lines);
+                $upcoming_text = implode("\n", $u_lines);
             }
 
             $customer_context = <<<CUST
-Tanınan Müşteri Bilgileri:
+TANINAN MÜŞTERİ BİLGİLERİ (KAYITLI & EŞLEŞMİŞ):
 - ID: {$id}
-- Ad Soyad: {$name}
+- İsim: {$name}
 - Telefon: {$phone}
 - E-posta: {$email}
-- Yaklaşan Randevular:
+- Yaklaşan Randevuları:
 {$upcoming_text}
 CUST;
         }
 
-        $channel_name = ucfirst($channel);
+        $channel_name = match ($channel) {
+            'whatsapp' => 'WhatsApp',
+            'telegram' => 'Telegram',
+            'instagram' => 'Instagram Direct',
+            default => 'Mesajlaşma Kanalı',
+        };
+
+        $recognition_instructions = $is_recognized
+            ? "Müşteri sistemimizde kayıtlıdır ({$matched_user['first_name']} {$matched_user['last_name']}). Mesajına kesinlikle ismiyle hitap ederek başla (Örn: \"Merhaba {$matched_user['first_name']} Hanım/Bey...\"). Randevuları elinin altındadır."
+            : "Müşteri bu kanaldan ({$channel_name}) henüz eşleşmemiştir. Eğer müşteri randevularını sorgulamak, değiştirmek veya yeni randevu almak isterse, sistemdeki kaydını bulabilmemiz için kibarca telefon numarasını iste (Örn: \"Size daha iyi yardımcı olabilmem ve randevularınızı görüntüleyebilmem için kayıtlı telefon numaranızı paylaşabilir misiniz?\"). Müşteri numarasını yazdığında hemen `link_customer_channel` aracını çağır.";
 
         return <<<PROMPT
-Sen "{$company_name}" işletmesinin sanal AI Asistanısın. Müşteriler sana {$channel_name} kanalı üzerinden mesaj gönderiyor.
+Sen "{$company_name}" işletmesinin {$channel_name} üzerindeki resmi, nazik ve akıllı yapay zeka asistanısın.
 
-GÖREVLERİN:
-1. Müşteriyi kibar, yardımsever ve profesyonel bir dille Türkçe karşıla.
-2. İşletme ve hizmetler hakkındaki soruları aşağıdaki bilgilere göre yanıtla.
-3. Randevu almak veya saat seçmek isteyen müşterilere doğrudan online randevu bağlantısını ver: {$booking_url}
-4. Tanınan müşterinin yaklaşan randevusu varsa ve randevusunu soruyorsa randevu tarih/saat/hizmet bilgisini bildir.
-5. GÜVENLİK KURALI (KESİNLİKLE UYULMASI GEREKEN KURAL):
-   - Sen veritabanında ASLA doğrudan randevu oluşturamaz, değiştiremez veya silemezsin.
-   - Müşteri telefon numarası, e-posta veya iletişim bilgisini güncellemek isterse, `propose_customer_update` aracını çağır. Müşteriye "Bilgi güncelleme talebiniz alındı, yetkili personelimiz onayladıktan sonra sistemde güncellenecektir" şeklinde bilgi ver.
-   - Randevu iptali veya ertelemesi isteyen müşteriye: "Randevu değişiklik veya iptal talebinizi aldım, onay ve işlem için yetkili ekibimize ilettim. Acil durumlar için işletmemizle iletişime geçebilirsiniz." şeklinde yanıt ver.
-6. Yanıtlarında gereksiz uzun açıklamalardan kaçın, mesajlaşma uygulamasına (WhatsApp/Telegram/Instagram) uygun net ve okunaklı paragraflar kullan.
+GÜNCEL ZAMAN:
+- Sistem Zamanı: {$current_datetime} ({$current_day_name})
 
 İŞLETME BİLGİLERİ:
 - İşletme Adı: {$company_name}
 - Telefon: {$company_phone}
-- Web / Randevu Linki: {$booking_url}
+- Adres: {$company_address}
+- Online Randevu Bağlantısı: {$booking_url}
 
-SUNULAN HİZMETLER:
+MEVCUT HİZMETLER:
 {$services_text}
 
 {$customer_context}
+
+MÜŞTERİ TANIMA VE KANAL EŞLEŞTİRME:
+{$recognition_instructions}
+
+GÖREVLER VE İŞLEM AKIŞI (YÖNETİCİ ONAY PRENSİBİ):
+1. **YENİ RANDEVU ALMA TALEBİ:**
+   - Müşteri hizmet, tarih/saat, isim ve telefon paylaştığında `propose_appointment_create` aracını çağırarak talebi yönetici onay kuyruğuna ilet.
+   - Müşteriye yanıtında: Randevu talebinin alındığını, yönetici onayından sonra randevunun kesinleşeceğini bildir.
+
+2. **RANDEVU DEĞİŞTİRME / SAAT GÜNCELLEME:**
+   - Tanınan müşterinin yaklaşan randevularındaki [Randevu ID] ve istenen yeni tarih/saat ile `propose_appointment_reschedule` aracını çağır.
+   - Değişiklik talebinin yönetici onayına iletildiğini bildir.
+
+3. **RANDEVU İPTALİ / SİLME:**
+   - İlgili [Randevu ID] ile `propose_appointment_cancel` aracını çağır.
+   - İptal talebinin yönetici onayına iletildiğini bildir.
+
+4. **BİLGİ GÜNCELLEME:**
+   - Profil bilgisi (telefon, e-posta, not) değişikliğinde `propose_customer_update` aracını çağır.
+
+5. **ONLİNE RANDEVU SEÇENEĞİ:**
+   - Müsait saatleri canlı görüp anında randevu almak isteyenlere linki sun: {$booking_url}
+
+GENEL KURALLAR:
+- Her zaman Türkçe, saygılı, samimi ve mobil mesaja uygun formatta (kısa, paragraflı) yanıt ver.
+- Elinde olmayan hizmet veya fiyatı uydurma.
+- Teknik terimlerden (JSON, araç, prompt, database) asla bahsetme.
 PROMPT;
     }
 
     /**
-     * Safely execute tools (propose_customer_update only).
+     * Execute tool calls triggered by the LLM.
      */
-    private function execute_tool(string $name, array $args, string $channel, ?array $matched_user): array
-    {
-        if ($name !== 'propose_customer_update') {
-            return ['error' => 'Bu işlem için yetkiniz bulunmamaktadır.'];
-        }
-
-        $CI = &get_instance();
-        $CI->load->model('customers_model');
-
-        $customer_id = (int) ($args['customer_id'] ?? ($matched_user['id'] ?? 0));
-        $changes = (array) ($args['changes'] ?? []);
-        $reason = (string) ($args['reason'] ?? "Müşteri {$channel} üzerinden talep etti.");
-
-        if (empty($customer_id)) {
-            return ['error' => 'Kayıtlı müşteri bulunamadı.'];
-        }
-
-        $filtered = array_intersect_key($changes, array_flip(self::ALLOWED_UPDATE_FIELDS));
-        if (empty($filtered)) {
-            return ['error' => 'Güncellenebilir geçerli alan bulunamadı.'];
-        }
-
-        $CI->db->insert('ai_agent_pending_changes', [
-            'target_table' => 'users',
-            'target_id' => $customer_id,
-            'changes' => json_encode($filtered, JSON_UNESCAPED_UNICODE),
-            'reason' => "{$channel} kanalından otomatik asistan aracılığıyla talep edildi: {$reason}",
-            'model_name' => getenv('AI_AGENT_MODEL') ?: 'openrouter/free',
-            'status' => 'pending',
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return [
-            'status' => 'queued_for_approval',
-            'customer_id' => $customer_id,
-            'message' => 'Değişiklik önerisi yönetici onayı için kuyruğa eklendi.',
-        ];
-    }
-
-    /**
-     * Call OpenRouter completion endpoint.
-     */
-    private function call_openrouter(array $messages, string $model, string $api_key): ?array
+    private function execute_tool(string $name, array $args, string $channel, string $sender_id, ?array $matched_user): array
     {
         try {
-            $curl = curl_init();
+            $active_provider = $this->CI->ai_llm_gateway->get_active_provider();
+            $this->CI->load->model('customers_model');
 
-            curl_setopt_array($curl, [
-                CURLOPT_URL => 'https://openrouter.ai/api/v1/chat/completions',
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 25,
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => json_encode([
-                    'model' => $model,
-                    'messages' => $messages,
-                    'tools' => self::TOOLS,
-                    'temperature' => 0.4,
-                    'max_tokens' => 800,
-                ], JSON_UNESCAPED_UNICODE),
-                CURLOPT_HTTPHEADER => [
-                    'Authorization: Bearer ' . $api_key,
-                    'Content-Type: application/json',
-                    'HTTP-Referer: https://' . (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co'),
-                    'X-Title: BooKi Multi-Channel AI Assistant',
-                ],
-            ]);
+            switch ($name) {
+                case 'link_customer_channel':
+                    $phone = trim((string) ($args['phone_number'] ?? ''));
+                    if (empty($phone)) {
+                        return ['error' => 'Telefon numarası zorunludur.'];
+                    }
 
-            $response = curl_exec($curl);
-            $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            $error = curl_error($curl);
+                    $results = $this->CI->customers_model->search($phone, 1);
+                    if (empty($results)) {
+                        return [
+                            'success' => false,
+                            'message' => 'Bu telefon numarasıyla kayıtlı müşteri bulunamadı. Dilerseniz yeni müşteri olarak bilgilerinizi alarak randevu oluşturabilirim.',
+                        ];
+                    }
 
-            curl_close($curl);
+                    $customer = $results[0];
+                    $customer_id = (int) $customer['id'];
 
-            if ($error) {
-                log_message('error', 'Ai_channel_responder cURL error: ' . $error);
-                return null;
+                    // Permanently link channel ID to customer user record
+                    $update_field = match ($channel) {
+                        'telegram' => 'telegram_chat_id',
+                        'instagram' => 'instagram_user_id',
+                        'whatsapp' => 'whatsapp_wa_id',
+                        default => null,
+                    };
+
+                    if ($update_field) {
+                        $this->CI->db->update('users', [$update_field => $sender_id], ['id' => $customer_id]);
+                    }
+
+                    // Fetch customer's upcoming appointments
+                    $upcoming = $this->CI->db
+                        ->select('appointments.id, appointments.start_datetime, appointments.end_datetime, appointments.status, services.name AS service_name')
+                        ->from('appointments')
+                        ->join('services', 'services.id = appointments.id_services', 'left')
+                        ->where('appointments.id_users_customer', $customer_id)
+                        ->where('appointments.start_datetime >=', date('Y-m-d H:i:s'))
+                        ->order_by('appointments.start_datetime', 'ASC')
+                        ->limit(3)
+                        ->get()
+                        ->result_array();
+
+                    return [
+                        'success' => true,
+                        'customer_id' => $customer_id,
+                        'customer_name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')),
+                        'phone_number' => $customer['phone_number'] ?? $phone,
+                        'email' => $customer['email'] ?? '',
+                        'upcoming_appointments' => $upcoming,
+                        'note' => 'Hesap başarıyla eşleştirildi. Müşteriye artık ismiyle hitap edin.',
+                    ];
+
+                case 'propose_appointment_create':
+                    $service_name = (string) ($args['service_name'] ?? '');
+                    $service_id = (int) ($args['service_id'] ?? 0);
+                    $start_datetime = (string) ($args['start_datetime'] ?? '');
+                    $customer_name = trim((string) ($args['customer_name'] ?? ($matched_user ? (($matched_user['first_name'] ?? '') . ' ' . ($matched_user['last_name'] ?? '')) : 'Misafir')));
+                    $customer_phone = trim((string) ($args['customer_phone'] ?? ($matched_user['phone_number'] ?? $sender_id)));
+                    $customer_email = trim((string) ($args['customer_email'] ?? ($matched_user['email'] ?? '')));
+                    $notes = (string) ($args['notes'] ?? '');
+                    $reason = (string) ($args['reason'] ?? "{$channel} üzerinden randevu talebi");
+
+                    if (empty($start_datetime)) {
+                        return ['error' => 'start_datetime zorunludur.'];
+                    }
+
+                    $changes_payload = [
+                        'action' => 'create',
+                        'channel' => $channel,
+                        'sender_id' => $sender_id,
+                        'service_id' => $service_id,
+                        'service_name' => $service_name,
+                        'start_datetime' => $start_datetime,
+                        'customer_name' => $customer_name,
+                        'customer_phone' => $customer_phone,
+                        'customer_email' => $customer_email,
+                        'customer_id' => $matched_user['id'] ?? null,
+                        'notes' => $notes,
+                    ];
+
+                    $this->CI->db->insert('ai_agent_pending_changes', [
+                        'target_table' => 'appointments',
+                        'target_id' => 0,
+                        'changes' => json_encode($changes_payload, JSON_UNESCAPED_UNICODE),
+                        'reason' => "[{$channel}] " . $reason . " ({$customer_name} - {$service_name} @ {$start_datetime})",
+                        'model_name' => $active_provider,
+                        'status' => 'pending',
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    return [
+                        'queued' => true,
+                        'pending_id' => $this->CI->db->insert_id(),
+                        'note' => 'Yeni randevu talebi yönetici onay kuyruğuna alındı.',
+                    ];
+
+                case 'propose_appointment_cancel':
+                    $appointment_id = (int) ($args['appointment_id'] ?? 0);
+                    $reason = (string) ($args['reason'] ?? "{$channel} üzerinden iptal talebi");
+
+                    if (empty($appointment_id)) {
+                        return ['error' => 'appointment_id zorunludur.'];
+                    }
+
+                    $changes_payload = [
+                        'action' => 'cancel',
+                        'channel' => $channel,
+                        'sender_id' => $sender_id,
+                        'appointment_id' => $appointment_id,
+                        'customer_id' => $matched_user['id'] ?? null,
+                        'reason' => $reason,
+                    ];
+
+                    $this->CI->db->insert('ai_agent_pending_changes', [
+                        'target_table' => 'appointments',
+                        'target_id' => $appointment_id,
+                        'changes' => json_encode($changes_payload, JSON_UNESCAPED_UNICODE),
+                        'reason' => "[{$channel}] " . $reason . " (Randevu #{$appointment_id})",
+                        'model_name' => $active_provider,
+                        'status' => 'pending',
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    return [
+                        'queued' => true,
+                        'pending_id' => $this->CI->db->insert_id(),
+                        'note' => 'Randevu iptal talebi yönetici onay kuyruğuna alındı.',
+                    ];
+
+                case 'propose_appointment_reschedule':
+                    $appointment_id = (int) ($args['appointment_id'] ?? 0);
+                    $new_start_datetime = (string) ($args['new_start_datetime'] ?? '');
+                    $reason = (string) ($args['reason'] ?? "{$channel} üzerinden saat değişikliği talebi");
+
+                    if (empty($appointment_id) || empty($new_start_datetime)) {
+                        return ['error' => 'appointment_id ve new_start_datetime zorunludur.'];
+                    }
+
+                    $changes_payload = [
+                        'action' => 'reschedule',
+                        'channel' => $channel,
+                        'sender_id' => $sender_id,
+                        'appointment_id' => $appointment_id,
+                        'new_start_datetime' => $new_start_datetime,
+                        'customer_id' => $matched_user['id'] ?? null,
+                        'reason' => $reason,
+                    ];
+
+                    $this->CI->db->insert('ai_agent_pending_changes', [
+                        'target_table' => 'appointments',
+                        'target_id' => $appointment_id,
+                        'changes' => json_encode($changes_payload, JSON_UNESCAPED_UNICODE),
+                        'reason' => "[{$channel}] " . $reason . " (Randevu #{$appointment_id} -> {$new_start_datetime})",
+                        'model_name' => $active_provider,
+                        'status' => 'pending',
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    return [
+                        'queued' => true,
+                        'pending_id' => $this->CI->db->insert_id(),
+                        'note' => 'Randevu değişiklik talebi yönetici onay kuyruğuna alındı.',
+                    ];
+
+                case 'propose_customer_update':
+                    $customer_id = (int) ($args['customer_id'] ?? ($matched_user['id'] ?? 0));
+                    $changes = (array) ($args['changes'] ?? []);
+                    $reason = (string) ($args['reason'] ?? "{$channel} üzerinden müşteri bilgi güncelleme");
+
+                    if (empty($customer_id) || empty($changes)) {
+                        return ['error' => 'customer_id ve changes zorunludur.'];
+                    }
+
+                    if (!empty($matched_user['id']) && (int) $matched_user['id'] !== $customer_id) {
+                        return ['error' => 'Yetkisiz müşteri ID güncelleme talebi engellendi.'];
+                    }
+
+                    $filtered = array_intersect_key($changes, array_flip(self::ALLOWED_UPDATE_FIELDS));
+                    if (empty($filtered)) {
+                        return ['error' => 'Güncellenebilir geçerli alan bulunamadı.'];
+                    }
+
+                    $this->CI->db->insert('ai_agent_pending_changes', [
+                        'target_table' => 'users',
+                        'target_id' => $customer_id,
+                        'changes' => json_encode($filtered, JSON_UNESCAPED_UNICODE),
+                        'reason' => "[{$channel}] " . $reason,
+                        'model_name' => $active_provider,
+                        'status' => 'pending',
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                    return [
+                        'queued' => true,
+                        'pending_id' => $this->CI->db->insert_id(),
+                        'note' => 'Müşteri bilgisi güncelleme talebi yönetici onay kuyruğuna alındı.',
+                    ];
+
+                default:
+                    return ['error' => 'Geçersiz araç: ' . $name];
             }
-
-            if ($http_code !== 200) {
-                log_message('error', 'Ai_channel_responder OpenRouter error (HTTP ' . $http_code . '): ' . $response);
-                return null;
-            }
-
-            $data = json_decode($response, true);
-
-            return is_array($data) ? $data : null;
         } catch (Throwable $e) {
-            log_message('error', 'Ai_channel_responder OpenRouter call failed: ' . $e->getMessage());
-
-            return null;
+            log_message('error', 'Ai_channel_responder execute_tool failed: ' . $e->getMessage());
+            return ['error' => $e->getMessage()];
         }
     }
 }

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Unofficial WhatsApp sender sidecar (Baileys) - Ki Reservation Faz 3.5 part 2",
+  "description": "Unofficial WhatsApp sender sidecar (Baileys) - BooKi Faz 3.5 part 2",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js"

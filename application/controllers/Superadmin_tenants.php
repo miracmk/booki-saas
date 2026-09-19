@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * SaaS admin panel (reservationadmin.kibusiness.co) - tenant CRUD + plan/license tracking. Runs
+ * SaaS admin panel (admin-bookiapp.kibusiness.co) - tenant CRUD + plan/license tracking. Runs
  * against the master DB (see EA_Controller::resolve_tenant()'s superadmin host exception). Tenant
  * provisioning here mirrors Console::tenant_create() exactly (same DB-swap dance, same
  * Instance::migrate()/seed() call) - duplicated rather than shared because Console's version is
@@ -313,7 +313,7 @@ class Superadmin_tenants extends EA_Controller
 
             $this->connect_master_db();
 
-            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
 
             json_response([
                 'success' => true,
@@ -643,7 +643,7 @@ class Superadmin_tenants extends EA_Controller
 
             $reset_data = $this->accounts->generate_reset_token($admin['username'], $admin['email']);
 
-            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
             $host = $tenant['custom_domain'] ?: ($tenant['subdomain'] . '-' . $app_domain);
             $reset_link = 'https://' . $host . '/recovery/reset?token=' . $reset_data['token'];
 

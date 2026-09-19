@@ -1,0 +1,219 @@
+{
+  "industry": {
+    "code": "car_wash",
+    "name": "Araç Yıkama & Detailing / Auto Spa",
+    "icon": "🚗",
+    "service_type": "hybrid",
+    "description": "Oto yıkama, iç detaylı temizlik, seramik kaplama, pasta cila ve PPF boya koruma için peron ve istasyon yönetim sistemi."
+  },
+  "terminology": {
+    "customer_label": "Araç Sahibi / Müşteri",
+    "provider_label": "Detailing & Yıkama Uzmanı",
+    "appointment_label": "Servis Randevusu",
+    "station_label": "Yıkama Peronu / Detailing Alanı",
+    "service_label": "Uygulama / Paket"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "packages",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "inventory",
+    "reviews",
+    "marketing",
+    "loyalty",
+    "staff_commissions"
+  ],
+  "default_settings": {
+    "business_type": "general",
+    "slot_interval": 30,
+    "future_booking_limit": 14,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 15,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Standart & Hızlı Yıkama",
+      "description": "Fırçasız köpüklü dış yıkama, hızlı iç temizlik ve jant bakımı"
+    },
+    {
+      "name": "Detaylı İç & Dış Temizlik",
+      "description": "Koltuk yıkama, tavan/taban dezenfeksiyonu, buharlı klima temizliği"
+    },
+    {
+      "name": "Boya Koruma & Detailing",
+      "description": "Pasta cila, çizik giderme, seramik kaplama ve PPF kaplama"
+    }
+  ],
+  "services": [
+    {
+      "name": "Fırçasız Köpüklü Dış Yıkama",
+      "category": "Standart & Hızlı Yıkama",
+      "duration": 30,
+      "price": 250.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#3b82f6",
+      "description": "pH nötr aktif köpük, yüksek basınçlı durulama, mikrofiber kurulama ve lastik parlatma."
+    },
+    {
+      "name": "İç + Dış Standart Yıkama",
+      "category": "Standart & Hızlı Yıkama",
+      "duration": 50,
+      "price": 450.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#2563eb",
+      "description": "Köpüklü dış yıkama + iç süpürme, torpido temizliği, cam silme ve paspas yıkama."
+    },
+    {
+      "name": "Detaylı Koltuk & Döşeme Yıkama",
+      "category": "Detaylı İç & Dış Temizlik",
+      "duration": 90,
+      "price": 1200.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#0ea5e9",
+      "description": "Sıcak sulu vakumlu ekstraksiyon makinesi ile kumaş/deri koltuk leke arındırma."
+    },
+    {
+      "name": "VIP Detaylı İç Sterilizasyon & Ozon",
+      "category": "Detaylı İç & Dış Temizlik",
+      "duration": 120,
+      "price": 1800.00,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#0284c7",
+      "description": "Tavan, taban, bagaj, koltuklar, havalandırma kanalları buharlı temizlik + ozon jeneratörü ile dezenfeksiyon."
+    },
+    {
+      "name": "3 Aşamalı Pasta Cila & Çizik Giderme",
+      "category": "Boya Koruma & Detailing",
+      "duration": 180,
+      "price": 2500.00,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#f59e0b",
+      "description": "Kil temizliği, kalın/ince pasta ile hare ve çizik giderme, wax cila koruma."
+    },
+    {
+      "name": "9H Seramik Kaplama (2 Yıl Garantili)",
+      "category": "Boya Koruma & Detailing",
+      "duration": 240,
+      "price": 6000.00,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#eab308",
+      "description": "Tam boya düzeltme + çift kat 9H sertlikte nano seramik koruma katmanı."
+    },
+    {
+      "name": "Motor Yıkama & Koruma",
+      "category": "Detaylı İç & Dış Temizlik",
+      "duration": 40,
+      "price": 400.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#64748b",
+      "description": "Dielektrik kimyasal ve buhar ile susuz motor bloğu temizleme ve plastik koruma."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Peron 1 (Hızlı Yıkama)",
+      "notes": "Yüksek basınçlı su tabancası, köpük jeneratörü, ızgaralı zemin"
+    },
+    {
+      "name": "Peron 2 (İç Temizlik)",
+      "notes": "Endüstriyel vakum süpürgesi, hava tabancaları, mikrofiber kurutma"
+    },
+    {
+      "name": "Peron 3 (İç Temizlik & Yıkama)",
+      "notes": "Kombine yıkama ve iç süpürme alanı"
+    },
+    {
+      "name": "Detailing & Seramik Odası",
+      "notes": "Tozsuz kapalı alan, 360 derece LED aydınlatma, orbital polisaj makineleri"
+    }
+  ],
+  "demo": {
+    "admin": {
+      "first_name": "Hasan",
+      "last_name": "Korkmaz",
+      "email": "demo-car_wash-admin@kibusiness.co",
+      "phone_number": "05432137000",
+      "notes": "Oto Yıkama & Detailing İşletmecisi"
+    },
+    "providers": [
+      {
+        "first_name": "Okan",
+        "last_name": "Demir",
+        "email": "demo-car_wash-uzman1@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Master Detailing & Seramik Uzmanı",
+        "commission_type": "percentage",
+        "commission_value": 30.0,
+        "services": ["3 Aşamalı Pasta Cila & Çizik Giderme", "9H Seramik Kaplama (2 Yıl Garantili)", "VIP Detaylı İç Sterilizasyon & Ozon"],
+        "stations": ["Detailing & Seramik Odası"]
+      },
+      {
+        "first_name": "Yusuf",
+        "last_name": "Avcı",
+        "email": "demo-car_wash-uzman2@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "İç Detaylı Temizlik & Koltuk Yıkama",
+        "commission_type": "percentage",
+        "commission_value": 25.0,
+        "services": ["Detaylı Koltuk & Döşeme Yıkama", "VIP Detaylı İç Sterilizasyon & Ozon", "Motor Yıkama & Koruma", "İç + Dış Standart Yıkama"],
+        "stations": ["Peron 2 (İç Temizlik)", "Peron 3 (İç Temizlik & Yıkama)"]
+      },
+      {
+        "first_name": "Mehmet",
+        "last_name": "Çetin",
+        "email": "demo-car_wash-uzman3@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Yıkama & Hızlı Servis Sorumlusu",
+        "commission_type": "percentage",
+        "commission_value": 20.0,
+        "services": ["Fırçasız Köpüklü Dış Yıkama", "İç + Dış Standart Yıkama", "Motor Yıkama & Koruma"],
+        "stations": ["Peron 1 (Hızlı Yıkama)", "Peron 3 (İç Temizlik & Yıkama)"]
+      }
+    ],
+    "customers": [
+      { "first_name": "Recep", "last_name": "Taşkın", "email": "demo-car_wash-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "BMW 520d - Seramik kaplama randevusu" },
+      { "first_name": "Selim", "last_name": "Özer", "email": "demo-car_wash-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Mercedes C200 - Haftalık iç/dış yıkama" },
+      { "first_name": "Kadir", "last_name": "Uçar", "email": "demo-car_wash-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Audi A3 - Koltuk yıkama" },
+      { "first_name": "Fatih", "last_name": "Gül", "email": "demo-car_wash-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Volvo XC90 - VIP detaylı iç temizlik" },
+      { "first_name": "Erdem", "last_name": "Kılıç", "email": "demo-car_wash-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Passat - Pasta cila" },
+      { "first_name": "Hüsnü", "last_name": "Polat", "email": "demo-car_wash-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Golf - Hızlı dış yıkama" },
+      { "first_name": "Mücahit", "last_name": "Karataş", "email": "demo-car_wash-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Tiguan - Motor yıkama & iç/dış" },
+      { "first_name": "Serdar", "last_name": "Çakır", "email": "demo-car_wash-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Porsche Macan - Seramik bakım" },
+      { "first_name": "İsmail", "last_name": "Koç", "email": "demo-car_wash-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Megane - İç/dış standart" },
+      { "first_name": "Tuncay", "last_name": "Şeker", "email": "demo-car_wash-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Clio - Koltuk leke çıkarma" }
+    ],
+    "appointments": [
+      { "day_offset": -3, "time": "09:30", "provider_idx": 2, "customer_idx": 1, "service_name": "İç + Dış Standart Yıkama", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -3, "time": "13:00", "provider_idx": 0, "customer_idx": 4, "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -2, "time": "10:00", "provider_idx": 1, "customer_idx": 2, "service_name": "Detaylı Koltuk & Döşeme Yıkama", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": -2, "time": "14:30", "provider_idx": 2, "customer_idx": 5, "service_name": "Fırçasız Köpüklü Dış Yıkama", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": -1, "time": "09:00", "provider_idx": 0, "customer_idx": 0, "service_name": "9H Seramik Kaplama (2 Yıl Garantili)", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -1, "time": "15:00", "provider_idx": 1, "customer_idx": 3, "service_name": "VIP Detaylı İç Sterilizasyon & Ozon", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "10:00", "provider_idx": 2, "customer_idx": 8, "service_name": "İç + Dış Standart Yıkama", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "11:30", "provider_idx": 1, "customer_idx": 6, "service_name": "Motor Yıkama & Koruma", "station_idx": 1, "status": "confirmed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": 0, "time": "13:30", "provider_idx": 0, "customer_idx": 7, "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 0, "time": "16:00", "provider_idx": 2, "customer_idx": 1, "service_name": "Fırçasız Köpüklü Dış Yıkama", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 1, "time": "09:30", "provider_idx": 1, "customer_idx": 9, "service_name": "Detaylı Koltuk & Döşeme Yıkama", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "13:00", "provider_idx": 2, "customer_idx": 5, "service_name": "İç + Dış Standart Yıkama", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 1, "time": "14:30", "provider_idx": 0, "customer_idx": 4, "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 2, "time": "10:00", "provider_idx": 2, "customer_idx": 1, "service_name": "İç + Dış Standart Yıkama", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 2, "time": "14:00", "provider_idx": 1, "customer_idx": 3, "service_name": "VIP Detaylı İç Sterilizasyon & Ozon", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "iban" },
+      { "day_offset": 3, "time": "09:00", "provider_idx": 0, "customer_idx": 7, "service_name": "9H Seramik Kaplama (2 Yıl Garantili)", "station_idx": 3, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
+    ]
+  }
+}
+

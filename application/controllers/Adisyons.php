@@ -32,6 +32,10 @@ class Adisyons extends EA_Controller
         }
 
         $role_slug = session('role_slug');
+        if ($role_slug === DB_SLUG_CUSTOMER) {
+            redirect('customer_portal');
+            return;
+        }
 
         $status = $this->input->get('status') ?: 'all';
         $payment_status = $this->input->get('payment_status') ?: 'all';
@@ -432,6 +436,14 @@ class Adisyons extends EA_Controller
                 ->set_status_header(401)
                 ->set_content_type('application/json')
                 ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+            exit;
+        }
+
+        if (session('role_slug') === DB_SLUG_CUSTOMER) {
+            $this->output
+                ->set_status_header(403)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Forbidden']));
             exit;
         }
     }

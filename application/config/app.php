@@ -19,5 +19,4 @@ $config['debug'] = Config::DEBUG_MODE;
 // asset_url() append '?cache_busting_token' and rewrite .js -> .min.js) browsers kept serving stale cached JS
 // after every deploy, no matter how many times the Cloudflare cache was purged - a hard refresh was required to
 // see any JS change. ASSET_VERSION is set in docker-compose.yml's environment block and MUST be bumped (or the
-// container recreated with a new value) on every deploy that changes a JS/CSS asset.
-$config['cache_busting_token'] = getenv('ASSET_VERSION') ?: 'TSJ83';
+$config['cache_busting_token'] = getenv('ASSET_VERSION') ?: ('SF_CAL_' . (file_exists(FCPATH . 'assets/css/ki-command-center.min.css') ? filemtime(FCPATH . 'assets/css/ki-command-center.min.css') : time()));

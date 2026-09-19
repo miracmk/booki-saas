@@ -34,7 +34,7 @@ class Custom_domain extends EA_Controller
     // Mirrors scripts/add-custom-domain.sh's own DNS check (same server IP / canonical CNAME target).
     private static function canonical_cname_target(): string
     {
-        return getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+        return getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
     }
     private const CANONICAL_SERVER_IP = '168.231.109.167';
 

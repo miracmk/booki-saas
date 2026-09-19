@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * Ki Reservation - Online Appointment Scheduler
+ * BooKi - Online Appointment Scheduler
  *
  * @package     KiReservation
  * @author      Ki Software
@@ -533,12 +533,31 @@ body .modal.full-screen .modal-push {
     .breaks td .btn-sm,
     .working-plan-exceptions td .btn-sm,
     #working-plan-exceptions-breaks td .btn-sm {
-        padding: 0.2rem 0.4rem;
-        font-size: 0.7rem;
+        padding: 0.35rem 0.5rem;
+        min-height: 36px;
+        min-width: 36px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .working-plan input[type="checkbox"] {
         margin-right: 0.25rem;
+        min-width: 20px;
+        min-height: 20px;
+    }
+}
+
+/* WCAG 2.2 AA Focus Indicators & Mobile Touch Targets */
+:focus-visible {
+    outline: 2px solid var(--bs-primary) !important;
+    outline-offset: 2px !important;
+}
+
+@media (max-width: 767.98px) {
+    .btn:not(.btn-sm):not(.fc-button) {
+        min-height: 44px;
     }
 }
 

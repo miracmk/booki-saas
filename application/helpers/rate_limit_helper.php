@@ -41,9 +41,6 @@ if (!function_exists('rate_limit')) {
             || is_cli()
             || (defined('ENVIRONMENT') && (ENVIRONMENT === 'testing' || ENVIRONMENT === 'development'))
             || in_array($ip, ['127.0.0.1', '::1'], true)
-            || str_starts_with($ip, '192.168.')
-            || str_starts_with($ip, '172.')
-            || str_starts_with($ip, '10.')
         ) {
             return;
         }

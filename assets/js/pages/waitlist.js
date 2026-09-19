@@ -203,6 +203,13 @@ App.Pages.Waitlist = (function () {
    * Fetch the current waiting list.
    */
   function search() {
+    $tbody.html(
+      '<tr><td colspan="6" class="text-center py-4 text-muted">' +
+      '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>' +
+      '<span>Yükleniyor...</span>' +
+      '</td></tr>'
+    );
+
     $.ajax({
       url: App.Utils.ajaxUrl('waitlist/search'),
       type: 'POST',
@@ -215,6 +222,13 @@ App.Pages.Waitlist = (function () {
         renderTable();
       })
       .fail(function (jqxhr) {
+        $tbody.html(
+          '<tr><td colspan="6" class="text-center py-4 text-danger">' +
+          '<i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>' +
+          '<p class="mb-2 small">Bekleme listesi yüklenirken bir hata oluştu.</p>' +
+          '<button class="btn btn-sm btn-outline-danger" onclick="App.Pages.Waitlist.search()"><i class="fas fa-sync-alt me-1"></i>Tekrar Dene</button>' +
+          '</td></tr>'
+        );
         App.Utils.ajaxErrorMsg(jqxhr);
       });
   }
@@ -224,6 +238,22 @@ App.Pages.Waitlist = (function () {
    */
   function renderTable() {
     $tbody.empty();
+
+    if (!tableRows.length) {
+      $tbody.html(
+        '<tr><td colspan="6" class="text-center py-5">' +
+        '<div class="text-muted">' +
+        '<i class="fas fa-hourglass-half fa-3x text-primary opacity-50 mb-3 d-block"></i>' +
+        '<h6 class="fw-semibold text-dark mb-1">Bekleme listesinde henüz kayıt yok</h6>' +
+        '<p class="small text-muted mb-3">Dolu saatlerde randevu isteyen müşterileri bekleme listesine ekleyerek yer açıldığında bildirim gönderebilirsiniz.</p>' +
+        '<button class="btn btn-sm btn-primary" onclick="$(\'#add-entry\').trigger(\'click\')">' +
+        '<i class="fas fa-plus me-1"></i>Bekleme Listesine Ekle' +
+        '</button>' +
+        '</div>' +
+        '</td></tr>'
+      );
+      return;
+    }
 
     tableRows.forEach(function (entry) {
       const customerName = ((entry.customer_first_name || '') + ' ' + (entry.customer_last_name || '')).trim();

@@ -84,11 +84,17 @@ class Ai_agent extends EA_Controller
 
             $result = $this->ai_agent_client->chat($history);
 
-            $history[] = ['role' => 'assistant', 'content' => $result['reply']];
+            if (!empty($result['turn_messages'])) {
+                foreach ($result['turn_messages'] as $tm) {
+                    $history[] = $tm;
+                }
+            } else {
+                $history[] = ['role' => 'assistant', 'content' => $result['reply']];
+            }
 
             // Cap history length (keep it recent, not endless).
-            if (count($history) > self::MAX_HISTORY_MESSAGES) {
-                $history = array_slice($history, -self::MAX_HISTORY_MESSAGES);
+            if (count($history) > 30) {
+                $history = array_slice($history, -30);
             }
 
             $this->session->set_userdata(self::SESSION_KEY, $history);
@@ -170,6 +176,165 @@ class Ai_agent extends EA_Controller
                 $changes = json_decode((string) $change['changes'], true) ?: [];
 
                 $this->customers_model->save(array_merge($customer, $changes));
+            } elseif ($change['target_table'] === 'appointments') {
+                $this->load->model('appointments_model');
+                $this->load->model('customers_model');
+                $this->load->model('services_model');
+                $this->load->model('providers_model');
+
+                $payload = json_decode((string) $change['changes'], true) ?: [];
+                $action = $payload['action'] ?? 'create';
+
+                if ($action === 'create') {
+                    // 1. Resolve or create customer
+                    $customer_id = null;
+                    $phone = trim((string) ($payload['customer_phone'] ?? ''));
+                    $email = trim((string) ($payload['customer_email'] ?? ''));
+                    $full_name = trim((string) ($payload['customer_name'] ?? ''));
+
+                    if (!empty($phone)) {
+                        $existing = $this->customers_model->search($phone);
+                        if (!empty($existing)) {
+                            $customer_id = (int) $existing[0]['id'];
+                        }
+                    }
+
+                    if (!$customer_id && !empty($payload['customer_id'])) {
+                        $customer_id = (int) $payload['customer_id'];
+                    }
+
+                    if (!$customer_id) {
+                        $parts = explode(' ', $full_name, 2);
+                        $first_name = !empty($parts[0]) ? $parts[0] : 'Misafir';
+                        $last_name = !empty($parts[1]) ? $parts[1] : 'Müşteri';
+
+                        $customer_id = $this->customers_model->save([
+                            'first_name' => $first_name,
+                            'last_name' => $last_name,
+                            'phone_number' => $phone ?: '05000000000',
+                            'email' => $email ?: (bin2hex(random_bytes(4)) . '@kibusiness.co'),
+                        ]);
+                    }
+
+                    // 2. Resolve Service
+                    $service_id = (int) ($payload['service_id'] ?? 0);
+                    if (!$service_id && !empty($payload['service_name'])) {
+                        $srv = $this->db->like('name', $payload['service_name'])->get('services')->row_array();
+                        if ($srv) {
+                            $service_id = (int) $srv['id'];
+                        }
+                    }
+                    if (!$service_id) {
+                        $services = $this->services_model->get_available_services();
+                        if (!empty($services)) {
+                            $service_id = (int) $services[0]['id'];
+                        }
+                    }
+
+                    $service = $this->services_model->find($service_id);
+                    $duration = !empty($service['duration']) ? (int) $service['duration'] : 60;
+
+                    // 3. Resolve Provider
+                    $provider_id = (int) ($payload['provider_id'] ?? 0);
+                    if (!$provider_id) {
+                        $sp = $this->db->get_where('services_providers', ['id_services' => $service_id])->row_array();
+                        if ($sp) {
+                            $provider_id = (int) $sp['id_users'];
+                        } else {
+                            $providers = $this->providers_model->get_available_providers();
+                            if (!empty($providers)) {
+                                $provider_id = (int) $providers[0]['id'];
+                            }
+                        }
+                    }
+
+                    // 4. Calculate start and end datetime
+                    $start_datetime = !empty($payload['start_datetime']) ? date('Y-m-d H:i:s', strtotime($payload['start_datetime'])) : date('Y-m-d H:i:s');
+                    $end_datetime = !empty($payload['end_datetime'])
+                        ? date('Y-m-d H:i:s', strtotime($payload['end_datetime']))
+                        : date('Y-m-d H:i:s', strtotime($start_datetime) + ($duration * 60));
+
+                    $appointment = [
+                        'start_datetime' => $start_datetime,
+                        'end_datetime' => $end_datetime,
+                        'id_services' => $service_id,
+                        'id_users_provider' => $provider_id,
+                        'id_users_customer' => $customer_id,
+                        'notes' => $payload['notes'] ?? 'AI Asistan randevu talebi (Yönetici Onaylı)',
+                        'is_unavailability' => false,
+                    ];
+
+                    $created_id = $this->appointments_model->save($appointment);
+                    $payload['result_appointment_id'] = $created_id;
+                    $this->db->update('ai_agent_pending_changes', [
+                        'target_id' => $created_id,
+                        'changes' => json_encode($payload, JSON_UNESCAPED_UNICODE),
+                    ], ['id' => $id]);
+
+                } elseif ($action === 'cancel') {
+                    $appointment_id = (int) ($change['target_id'] ?: ($payload['appointment_id'] ?? 0));
+                    if ($appointment_id) {
+                        $this->appointments_model->delete($appointment_id);
+                    }
+                } elseif ($action === 'reschedule') {
+                    $appointment_id = (int) ($change['target_id'] ?: ($payload['appointment_id'] ?? 0));
+                    if ($appointment_id) {
+                        $appt = $this->appointments_model->find($appointment_id);
+                        if ($appt) {
+                            $new_start = !empty($payload['new_start_datetime']) ? date('Y-m-d H:i:s', strtotime($payload['new_start_datetime'])) : $appt['start_datetime'];
+                            $service = $this->services_model->find((int) $appt['id_services']);
+                            $duration = !empty($service['duration']) ? (int) $service['duration'] : 60;
+                            $new_end = date('Y-m-d H:i:s', strtotime($new_start) + ($duration * 60));
+
+                            $appt['start_datetime'] = $new_start;
+                            $appt['end_datetime'] = $new_end;
+                            if (!empty($payload['new_provider_id'])) {
+                                $appt['id_users_provider'] = (int) $payload['new_provider_id'];
+                            }
+                            if (!empty($payload['reason'])) {
+                                $appt['notes'] = trim(($appt['notes'] ?? '') . "\n[AI Değişiklik]: " . $payload['reason']);
+                            }
+
+                            $this->appointments_model->save($appt);
+                        }
+                    }
+                }
+                // Dispatch automated notification to customer channel
+                try {
+                    $this->load->library('channel_templates');
+                    $channel = $payload['channel'] ?? null;
+                    $sender_id = $payload['sender_id'] ?? null;
+
+                    if ($channel && $sender_id) {
+                        $template_key = match ($action) {
+                            'create' => 'appointment_approved',
+                            'reschedule' => 'appointment_rescheduled',
+                            'cancel' => 'appointment_cancelled',
+                            default => null,
+                        };
+
+                        if ($template_key) {
+                            $p_id = $provider_id ?? ($appt['id_users_provider'] ?? 0);
+                            $provider = $p_id ? $this->providers_model->find((int) $p_id) : null;
+                            $p_name = $provider ? trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')) : 'Uzman Personelimiz';
+
+                            $msg_text = $this->channel_templates->render($template_key, [
+                                'customer_name' => $payload['customer_name'] ?? ($customer['first_name'] ?? 'Değerli Misafirimiz'),
+                                'service_name' => $payload['service_name'] ?? ($service['name'] ?? 'Hizmet'),
+                                'start_datetime' => $payload['start_datetime'] ?? ($payload['new_start_datetime'] ?? ($appt['start_datetime'] ?? null)),
+                                'end_datetime' => $payload['end_datetime'] ?? ($new_end ?? ($appt['end_datetime'] ?? null)),
+                                'provider_name' => $p_name,
+                            ]);
+
+                            if ($channel === 'telegram') {
+                                $this->load->library('telegram_client');
+                                $this->telegram_client->send_message($sender_id, $msg_text);
+                            }
+                        }
+                    }
+                } catch (\Throwable $ne) {
+                    log_message('error', 'Ai_agent approval notification failed: ' . $ne->getMessage());
+                }
             } else {
                 throw new RuntimeException('Bilinmeyen hedef tablo: ' . $change['target_table']);
             }

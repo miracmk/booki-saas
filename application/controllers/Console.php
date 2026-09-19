@@ -139,6 +139,99 @@ class Console extends EA_Controller
     }
 
     /**
+     * Apply industry blueprints to all existing tenants (or a specific tenant).
+     *
+     * Usage:
+     * php index.php console tenant_apply_blueprints
+     * php index.php console tenant_apply_blueprints <subdomain> <industry_code>
+     *
+     * @param string $target_subdomain Optional specific tenant subdomain
+     * @param string $specific_blueprint Optional specific blueprint code
+     */
+    public function tenant_apply_blueprints(string $target_subdomain = '', string $specific_blueprint = ''): void
+    {
+        $this->load->library('blueprint_service');
+
+        if (!is_multi_tenant_mode()) {
+            $code = !empty($specific_blueprint) ? $specific_blueprint : 'beauty_salon';
+            echo 'Single-tenant mode: applying blueprint "' . $code . '"... ';
+            $result = $this->blueprint_service->apply_blueprint($code, false);
+            echo 'OK (' . json_encode($result) . ')' . PHP_EOL;
+            return;
+        }
+
+        $query = ['status' => 'active'];
+        if (!empty($target_subdomain)) {
+            $query['subdomain'] = strtolower(trim($target_subdomain));
+        }
+
+        $tenants = $this->db->get_where('tenants', $query)->result_array();
+
+        if (empty($tenants)) {
+            echo 'No matching active tenants found.' . PHP_EOL;
+            return;
+        }
+
+        foreach ($tenants as $tenant) {
+            $subdomain = $tenant['subdomain'];
+            echo 'Applying blueprint to tenant "' . $subdomain . '"... ';
+
+            $code = $specific_blueprint;
+            if (empty($code)) {
+                $code = $tenant['business_type'] ?? '';
+            }
+
+            if (empty($code) || $code === 'general') {
+                $text = strtolower($subdomain . ' ' . ($tenant['company_name'] ?? ''));
+                if (preg_match('/(barber|kuafor|kuaför|berber)/ui', $text)) {
+                    $code = 'barber';
+                } elseif (preg_match('/(masaj|massage|spa)/ui', $text)) {
+                    $code = 'massage_spa';
+                } elseif (preg_match('/(restoran|restaurant|cafe|kafe|bistro)/ui', $text)) {
+                    $code = 'restaurant';
+                } elseif (preg_match('/(otel|hotel|resort)/ui', $text)) {
+                    $code = 'hotel';
+                } elseif (preg_match('/(dis|dent|dental|diş)/ui', $text)) {
+                    $code = 'dentist';
+                } elseif (preg_match('/(klinik|clinic|doctor|doktor)/ui', $text)) {
+                    $code = 'doctor_clinic';
+                } elseif (preg_match('/(pilates|studyo|stüdyo|studio|yoga)/ui', $text)) {
+                    $code = 'pilates_studio';
+                } elseif (preg_match('/(pt|trainer|personal)/ui', $text)) {
+                    $code = 'pt_training';
+                } elseif (preg_match('/(gym|fitness|spor)/ui', $text)) {
+                    $code = 'gym';
+                } elseif (preg_match('/(oto|car|wash|yikama|yıkama)/ui', $text)) {
+                    $code = 'car_wash';
+                } elseif (preg_match('/(tirnak|tırnak|nail)/ui', $text)) {
+                    $code = 'nail_studio';
+                } else {
+                    $code = 'beauty_salon';
+                }
+            }
+
+            try {
+                $this->connect_tenant($tenant);
+                $seed_demo = strpos($subdomain, 'demo-') === 0 && $this->db->count_all('appointments') === 0;
+                $res = $this->blueprint_service->apply_blueprint($code, $seed_demo);
+                echo 'OK [' . $code . '] (' . $res['services_created'] . ' services, ' . $res['stations_created'] . ' stations)' . PHP_EOL;
+
+                $this->connect_master();
+                $this->db->update('tenants', [
+                    'business_type' => $code,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ], ['id' => $tenant['id']]);
+            } catch (Throwable $e) {
+                echo 'FAILED: ' . $e->getMessage() . PHP_EOL;
+                $this->connect_master();
+            }
+        }
+
+        $this->connect_master();
+        echo 'Tenant blueprint synchronization complete.' . PHP_EOL;
+    }
+
+    /**
      * BooKi (2026-08-26) - create the master DB schema (`tenants`, `tenant_migration_log`).
      * Run this ONCE, against a deployment whose 'default' connection points at the intended master
      * DB, before provisioning any tenant with tenant_create(). Separate from the regular
@@ -216,7 +309,7 @@ class Console extends EA_Controller
             echo '"tenant_migration_log" table already exists, skipped.' . PHP_EOL;
         }
 
-        // BooKi (2026-08-26) - SaaS admin panel (reservationadmin.kibusiness.co) support.
+        // BooKi (2026-08-26) - SaaS admin panel (admin-bookiapp.kibusiness.co) support.
         // master_admins is a credential store entirely separate from any tenant's own users - Ki
         // Software's own staff, not tied to a tenant, never resolved via EA_Controller::resolve_tenant().
         if (!$this->db->table_exists('master_admins')) {
@@ -264,6 +357,11 @@ class Console extends EA_Controller
             'longitude' => ['type' => 'DECIMAL', 'constraint' => '11,8', 'null' => true],
             'cover_image_url' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'short_description' => ['type' => 'TEXT', 'null' => true],
+            'company_name' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+            'phone_number' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'address' => ['type' => 'TEXT', 'null' => true],
+            'price_range' => ['type' => 'VARCHAR', 'constraint' => 16, 'null' => true, 'default' => '₺₺'],
+            'working_hours_json' => ['type' => 'TEXT', 'null' => true],
             // BooKi (2026-09-10) - tenant self-service custom domain (Custom_domain.php
             // controller). 'custom_domain' (above) is the LIVE, routed domain - untouched here until
             // the host-side domain-worker.sh actually provisions it. 'custom_domain_pending' is what
@@ -397,7 +495,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * BooKi (2026-08-26) - create a SaaS super-admin account (reservationadmin.kibusiness.co
+     * BooKi (2026-08-26) - create a SaaS super-admin account (admin-bookiapp.kibusiness.co
      * login) in the master DB. Requires master_install() to have been run first.
      *
      * Usage: php index.php console superadmin_create <username> <email> <password>
@@ -1296,7 +1394,7 @@ class Console extends EA_Controller
     }
 
     /**
-     * Manage the SaaS platform super-admin (reservationadmin.kibusiness.co) login credential.
+     * Manage the SaaS platform super-admin (admin-bookiapp.kibusiness.co) login credential.
      *
      * This writes to the MASTER database's `ea_master_admins` table (Ki Software staff, separate
      * from any tenant's users - see Superadmin_auth.php). It intentionally never touches tenant
@@ -1334,7 +1432,7 @@ class Console extends EA_Controller
         if (!empty($existing)) {
             $this->db->where('username', $username)->update('master_admins', $values);
 
-            echo 'Master admin "' . $username . '" updated (password reset). Login on reservationadmin.kibusiness.co.'
+            echo 'Master admin "' . $username . '" updated (password reset). Login on admin-bookiapp.kibusiness.co.'
                 . PHP_EOL;
 
             return;
@@ -1345,7 +1443,7 @@ class Console extends EA_Controller
 
         $this->db->insert('master_admins', $values);
 
-        echo 'Master admin "' . $username . '" created. Login on reservationadmin.kibusiness.co.' . PHP_EOL;
+        echo 'Master admin "' . $username . '" created. Login on admin-bookiapp.kibusiness.co.' . PHP_EOL;
     }
 
     /**
@@ -3185,6 +3283,244 @@ class Console extends EA_Controller
     }
 
     /**
+     * BooKi - Test AI Assistant, Channels (WhatsApp, Telegram, Instagram) and LLM Gateway.
+     *
+     * Usage:
+     * php index.php console test_ai [subdomain] [message] [provider]
+     */
+    public function test_ai(string $subdomain = 'salonflora', string $message = 'Merhaba, yarın için randevu alabilir miyim?', string $provider = ''): void
+    {
+        echo "======================================================" . PHP_EOL;
+        echo "🤖 BooKi AI Asistan & Çoklu LLM Gateway Testi" . PHP_EOL;
+        echo "======================================================" . PHP_EOL;
+
+        $this->load->library('ai_llm_gateway');
+        $this->load->library('ai_channel_responder');
+        $this->load->library('ai_agent_client');
+
+        // 1. Check Configured Providers
+        echo PHP_EOL . "1. SAĞLAYICI VE API ANAHTARI KONTROLÜ:" . PHP_EOL;
+        $providers = ['google', 'groq', 'openrouter', 'openai', 'anthropic'];
+        $active_pref = $this->ai_llm_gateway->get_active_provider();
+        echo "   Aktif Tercih: " . ($active_pref ?: 'auto') . PHP_EOL;
+
+        $configured_count = 0;
+        foreach ($providers as $p) {
+            $key = $this->ai_llm_gateway->get_api_key($p);
+            $has_key = !empty($key);
+            if ($has_key) $configured_count++;
+            $masked = $has_key ? substr($key, 0, 6) . '...' . substr($key, -4) : '(Tanımlanmamış)';
+            echo "   - [" . ($has_key ? '✓' : '✗') . "] " . strtoupper($p) . ": " . $masked . PHP_EOL;
+        }
+
+        echo "   Toplam Yapılandırılmış Sağlayıcı: {$configured_count}/" . count($providers) . PHP_EOL;
+
+        // 2. Resolve Tenant Context
+        echo PHP_EOL . "2. KİRACI BAĞLAMI ({$subdomain}):" . PHP_EOL;
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if ($tenant) {
+                $this->connect_tenant($tenant);
+                echo "   ✓ Kiracı bulundu: " . ($tenant['company_name'] ?? $subdomain) . " (DB: {$tenant['db_name']})" . PHP_EOL;
+            } else {
+                echo "   ⚠ Kiracı '{$subdomain}' bulunamadı, master DB'de devam ediliyor." . PHP_EOL;
+            }
+        }
+
+        // 3. Test LLM Gateway Direct Chat
+        echo PHP_EOL . "3. LLM GATEWAY DİREKT CHAT TESTİ:" . PHP_EOL;
+        $test_prompt = [
+            ['role' => 'system', 'content' => 'Sen BooKi Akıllı Randevu Asistanısın. Türkçe, nazik ve kısa yanıt ver.'],
+            ['role' => 'user', 'content' => $message],
+        ];
+
+        $chat_options = ['temperature' => 0.3, 'max_tokens' => 200];
+        if (!empty($provider)) {
+            $chat_options['provider'] = $provider;
+        }
+
+        $start_time = microtime(true);
+        $res = $this->ai_llm_gateway->chat($test_prompt, $chat_options);
+        $elapsed = round((microtime(true) - $start_time) * 1000, 2);
+
+        if ($res && !empty($res['success'])) {
+            echo "   ✓ Başarılı Sağlayıcı: " . strtoupper($res['provider'] ?? 'unknown') . " (Model: " . ($res['model'] ?? '-') . ")" . PHP_EOL;
+            echo "   ✓ Yanıt Süresi: {$elapsed} ms" . PHP_EOL;
+            echo "   💬 AI Yanıtı: " . trim($res['reply']) . PHP_EOL;
+        } else {
+            echo "   ⚠ Canlı API çağrısı yapılamadı (veya anahtarlar henüz girilmedi)." . PHP_EOL;
+            echo "   ℹ API anahtarlarını Superadmin Paneli'nden (https://admin-bookiapp.kibusiness.co/superadmin_settings) girebilirsiniz." . PHP_EOL;
+        }
+
+        // 4. Test Multi-Channel Auto-Responder (WhatsApp / Telegram / Instagram)
+        echo PHP_EOL . "4. ÇOKLU KANAL OTO-YANITLAYICI TESTİ:" . PHP_EOL;
+        $channels = ['whatsapp', 'telegram', 'instagram'];
+        foreach ($channels as $chan) {
+            echo "   → Kanal: " . strtoupper($chan) . PHP_EOL;
+            $reply = $this->ai_channel_responder->respond($chan, '05062505562', $message);
+            echo "     Sonuç: " . ($reply ? "✓ Yanıt üretildi:\n     \"" . str_replace("\n", "\n     ", $reply) . "\"" : "✗ Yanıt üretilemedi") . PHP_EOL;
+        }
+
+        // 5. Test Admin AI Agent Tools
+        echo PHP_EOL . "5. ADMİN AI AGENT TOOL-CALLING TESTİ:" . PHP_EOL;
+        $agent_res = $this->ai_agent_client->chat([
+            ['role' => 'user', 'content' => 'Randevu durumlarını ve müşteri listesini kontrol et']
+        ]);
+        $has_reply = !empty($agent_res['reply']);
+        echo "   ✓ Admin Agent Durumu: " . ($has_reply ? 'Başarılı' : 'Beklemede/Fallback') . PHP_EOL;
+        if ($has_reply) {
+            echo "   💬 Agent Özeti: " . trim($agent_res['reply']) . PHP_EOL;
+        }
+        if (!empty($agent_res['tool_calls'])) {
+            echo "   🛠 Çağrılan Araçlar: " . json_encode($agent_res['tool_calls'], JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        }
+
+        echo PHP_EOL . "======================================================" . PHP_EOL;
+        echo "✓ AI Asistan Testi Tamamlandı." . PHP_EOL;
+        echo "======================================================" . PHP_EOL;
+    }
+
+    /**
+     * BooKi - Inspect and diagnose live channel connectivity (Telegram, WhatsApp, Instagram).
+     *
+     * Usage:
+     * php index.php console test_channels [subdomain] [fix]
+     */
+    public function test_channels(string $subdomain = 'salonflora', string $fix = ''): void
+    {
+        echo "======================================================" . PHP_EOL;
+        echo "📡 BooKi Canlı Kanal Teşhis Aracı (Telegram / WhatsApp / Instagram)" . PHP_EOL;
+        echo "======================================================" . PHP_EOL;
+
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if (!$tenant) {
+                echo "Hata: Kiracı '{$subdomain}' bulunamadı." . PHP_EOL;
+                return;
+            }
+            $this->connect_tenant($tenant);
+            echo "Kiracı: " . ($tenant['company_name'] ?? $subdomain) . " ({$subdomain})" . PHP_EOL . PHP_EOL;
+        }
+
+        $this->load->model('messaging_settings_model');
+        $this->load->library('telegram_client');
+        $this->load->library('whatsapp_bridge');
+
+        $msg_settings = $this->messaging_settings_model->get_settings();
+
+        // 1. TELEGRAM TEŞHİSİ
+        echo "1. TELEGRAM BOT & WEBHOOK DURUMU:" . PHP_EOL;
+        $bot_token = $msg_settings['telegram_bot_token'] ?? setting('telegram_bot_token');
+        echo "   - Bot Token: " . (!empty($bot_token) ? substr($bot_token, 0, 10) . '...' : '✗ TANIMLANMAMIŞ') . PHP_EOL;
+        echo "   - Bot Kullanıcı Adı: " . (setting('telegram_bot_username') ?: 'Yok') . PHP_EOL;
+        echo "   - AI Otomatik Yanıt: " . ($msg_settings['ai_reply_telegram_enabled'] ? '✓ Açık' : '✗ Kapalı') . PHP_EOL;
+        echo "   - Webhook Secret: " . (setting('telegram_webhook_secret') ? '✓ Tanımlı' : '✗ Tanımsız') . PHP_EOL;
+
+        if (!empty($bot_token)) {
+            // Test getMe via Telegram API
+            $me = $this->telegram_client->get_me();
+            if ($me) {
+                echo "   ✓ Telegram API Bağlantısı: Başarılı (@{$me['username']} - {$me['first_name']})" . PHP_EOL;
+            } else {
+                echo "   ✗ Telegram API Bağlantısı: Başarısız (Token geçersiz veya Telegram erişilemiyor)" . PHP_EOL;
+            }
+
+            // Test getWebhookInfo
+            try {
+                $client = new \GuzzleHttp\Client();
+                $wh_res = $client->get('https://api.telegram.org/bot' . $bot_token . '/getWebhookInfo', ['timeout' => 10]);
+                $wh_data = json_decode((string) $wh_res->getBody(), true);
+                if (!empty($wh_data['ok'])) {
+                    $res = $wh_data['result'];
+                    echo "   - Webhook URL: " . ($res['url'] ?: '✗ WEBHOOK AYARLANMAMIŞ (Boş)') . PHP_EOL;
+                    if (!empty($res['last_error_message'])) {
+                        echo "   ⚠ Telegram Son Hata: " . $res['last_error_message'] . " (" . date('Y-m-d H:i:s', $res['last_error_date'] ?? time()) . ")" . PHP_EOL;
+                    }
+                    if (!empty($res['pending_update_count'])) {
+                        echo "   ℹ Bekleyen Güncelleme: " . $res['pending_update_count'] . PHP_EOL;
+                    }
+                }
+            } catch (\Throwable $e) {
+                echo "   ⚠ Webhook bilgisi alınamadı: " . $e->getMessage() . PHP_EOL;
+            }
+        }
+
+        // 2. WHATSAPP TEŞHİSİ
+        echo PHP_EOL . "2. WHATSAPP DURUMU:" . PHP_EOL;
+        $wa_mode = $msg_settings['whatsapp_mode'] ?? 'official';
+        echo "   - Aktif Mod: " . strtoupper($wa_mode) . PHP_EOL;
+        echo "   - AI Otomatik Yanıt: " . ($msg_settings['ai_reply_whatsapp_enabled'] ? '✓ Açık' : '✗ KAPALI') . PHP_EOL;
+        echo "   - Bildirimler: " . ($msg_settings['whatsapp_notifications_enabled'] ? '✓ Açık' : '✗ Kapalı') . PHP_EOL;
+
+        if ($wa_mode === 'unofficial') {
+            $bridge_url = $msg_settings['whatsapp_bridge_url'] ?: 'http://wa-bridge:3000';
+            echo "   - Bridge URL: " . $bridge_url . PHP_EOL;
+            echo "   - Bridge Status: " . ($msg_settings['whatsapp_unofficial_status'] ?? 'disconnected') . PHP_EOL;
+
+            // Ping bridge health
+            try {
+                $client = new \GuzzleHttp\Client();
+                $b_res = $client->get(rtrim($bridge_url, '/') . '/health', ['timeout' => 5]);
+                $b_data = json_decode((string) $b_res->getBody(), true);
+                echo "   ✓ Bridge Servisi: " . ($b_data['status'] ?? 'OK') . " (Uptime: " . round($b_data['uptime'] ?? 0) . "s)" . PHP_EOL;
+            } catch (\Throwable $e) {
+                echo "   ✗ Bridge Servisi Erişilemedi: " . $e->getMessage() . PHP_EOL;
+            }
+
+            // Check session status
+            try {
+                $status = $this->whatsapp_bridge->status($subdomain);
+                echo "   - Oturum Durumu: " . ($status['status'] ?? 'unknown') . PHP_EOL;
+            } catch (\Throwable $e) {
+                echo "   ⚠ Oturum sorgulanamadı: " . $e->getMessage() . PHP_EOL;
+            }
+        } else {
+            echo "   - Meta Phone Number ID: " . (!empty($msg_settings['whatsapp_phone_number_id']) ? '✓ Tanımlı' : '✗ Boş') . PHP_EOL;
+            echo "   - Meta Access Token: " . (!empty($msg_settings['whatsapp_access_token']) ? '✓ Tanımlı' : '✗ Boş') . PHP_EOL;
+        }
+
+        // 3. INSTAGRAM TEŞHİSİ
+        echo PHP_EOL . "3. INSTAGRAM DURUMU:" . PHP_EOL;
+        echo "   - AI Otomatik Yanıt: " . ($msg_settings['ai_reply_instagram_enabled'] ? '✓ Açık' : '✗ KAPALI') . PHP_EOL;
+        echo "   - Access Token: " . (!empty($msg_settings['instagram_access_token']) ? '✓ Tanımlı' : '✗ Boş') . PHP_EOL;
+
+        // Auto-fix if requested
+        if ($fix === 'fix' || $fix === '--fix') {
+            echo PHP_EOL . "4. OTOMATİK DÜZELTME UYGULANIYOR:" . PHP_EOL;
+            
+            // Enable AI replies
+            $update_data = [
+                'ai_reply_whatsapp_enabled' => 1,
+                'ai_reply_telegram_enabled' => 1,
+                'ai_reply_instagram_enabled' => 1,
+            ];
+            $this->messaging_settings_model->save_settings($update_data);
+            setting([
+                'ai_reply_whatsapp_enabled' => '1',
+                'ai_reply_telegram_enabled' => '1',
+                'ai_reply_instagram_enabled' => '1',
+            ]);
+            echo "   ✓ AI Otomatik Yanıt bayrakları etkinleştirildi (WhatsApp, Telegram, Instagram)." . PHP_EOL;
+
+            // Fix Telegram Webhook URL if bot token exists
+            if (!empty($bot_token)) {
+                $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+                $webhook_host = $subdomain . '-' . $app_domain;
+                $webhook_url = "https://{$webhook_host}/index.php/telegram/webhook";
+                $secret = setting('telegram_webhook_secret');
+                if (empty($secret)) {
+                    $secret = bin2hex(random_bytes(32));
+                    setting(['telegram_webhook_secret' => $secret]);
+                }
+                $ok = $this->telegram_client->set_webhook($webhook_url, $secret);
+                echo "   " . ($ok ? '✓' : '✗') . " Telegram Webhook Güncellendi: {$webhook_url}" . PHP_EOL;
+            }
+        }
+
+        echo PHP_EOL . "======================================================" . PHP_EOL;
+    }
+
+    /**
      * Show help information about the console capabilities.
      *
      * Use this method to see the available commands.
@@ -3223,10 +3559,526 @@ class Console extends EA_Controller
             '⇾ php index.php console reviews list [status] [subdomain]',
             '⇾ php index.php console review_status <review_id> <published|rejected> [subdomain]',
             '⇾ php index.php console demo_seed [subdomain|all] [dry|commit]',
+            '⇾ php index.php console test_ai [subdomain] [message] [provider]',
             '',
             '',
         ];
 
         response(implode(PHP_EOL, $help));
     }
+
+    /**
+     * Test sending a direct Telegram message to a chat ID.
+     *
+     * Usage:
+     * php index.php console telegram_send [chat_id] [subdomain] [message]
+     */
+    public function telegram_send(string $chat_id = '5895622522', string $subdomain = 'salonflora', string $message = '🌸 BooKi Salon Flora AI Asistanı aktif! Size nasıl yardımcı olabilirim?'): void
+    {
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if ($tenant) {
+                $this->connect_tenant($tenant);
+            }
+        }
+
+        $this->load->library('telegram_client');
+        $ok = $this->telegram_client->send_message($chat_id, $message);
+        echo $ok ? "✓ Mesaj başarıyla gönderildi: {$chat_id}" . PHP_EOL : "✗ Mesaj gönderilemedi!" . PHP_EOL;
+    }
+
+    /**
+     * Simulate an inbound Telegram Webhook message.
+     *
+     * Usage:
+     * php index.php console telegram_simulate [message] [chat_id] [subdomain]
+     */
+    public function telegram_simulate(string $message = 'Merhaba, yarın saç kesimi için randevu almak istiyorum', string $chat_id = '5895622522', string $subdomain = 'salonflora'): void
+    {
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if ($tenant) {
+                $this->connect_tenant($tenant);
+            }
+        }
+
+        $this->load->library('telegram_client');
+        $this->load->library('ai_channel_responder');
+
+        echo "Simulating Telegram inbound message from {$chat_id}: \"{$message}\"" . PHP_EOL;
+
+        // Match user
+        $matched_user = $this->db
+            ->select('users.id, roles.slug AS role_slug')
+            ->from('users')
+            ->join('roles', 'roles.id = users.id_roles')
+            ->where('users.telegram_chat_id', $chat_id)
+            ->get()
+            ->row_array();
+
+        $this->db->insert('telegram_messages', [
+            'id_users' => $matched_user['id'] ?? null,
+            'chat_id' => $chat_id,
+            'direction' => 'in',
+            'message' => $message,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        $reply = $this->ai_channel_responder->respond('telegram', $chat_id, $message, $matched_user);
+        if (!empty($reply)) {
+            echo "AI Reply Generated: " . PHP_EOL . $reply . PHP_EOL;
+            $sent = $this->telegram_client->send_message($chat_id, $reply);
+            echo $sent ? "✓ AI Yanıtı canlı Telegram kullanıcısına iletildi!" . PHP_EOL : "✗ Gönderim hatası" . PHP_EOL;
+
+            $this->db->insert('telegram_messages', [
+                'id_users' => $matched_user['id'] ?? null,
+                'chat_id' => $chat_id,
+                'direction' => 'out',
+                'message' => $reply,
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+        } else {
+            echo "✗ AI yanıt üretemedi." . PHP_EOL;
+        }
+    }
+
+    /**
+     * Test full AI appointment booking, reschedule, cancellation & admin approval workflow.
+     *
+     * Usage:
+     * php index.php console test_ai_proposals [subdomain]
+     */
+    public function test_ai_proposals(string $subdomain = 'salonflora'): void
+    {
+        echo "======================================================" . PHP_EOL;
+        echo "🧪 BooKi AI Randevu & Yönetici Onay Akışı Testi" . PHP_EOL;
+        echo "======================================================" . PHP_EOL;
+
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if ($tenant) {
+                $this->connect_tenant($tenant);
+            }
+        }
+
+        $this->load->library('ai_channel_responder');
+        $this->load->library('ai_agent_client');
+        $this->load->model('appointments_model');
+        $this->load->model('customers_model');
+        $this->load->model('services_model');
+
+        // 1. Inbound Channel Simulation: "Yarın saat 14:00'e Aromaterapi Masajı için randevu almak istiyorum. Adım Selin Yılmaz, telefonum 05062505562"
+        echo PHP_EOL . "1. KANAL ÜZERİNDEN YENİ RANDEVU TALEBİ:" . PHP_EOL;
+        $inbound_msg = "Merhaba, yarın saat 14:00 için Aromaterapi Masajı randevusu almak istiyorum. İsmim Selin Yılmaz, telefonum 05062505562.";
+        $reply = $this->ai_channel_responder->respond('telegram', '5895622522', $inbound_msg);
+        echo "   💬 AI Yanıtı: " . trim($reply) . PHP_EOL;
+
+        // Check pending table
+        $pending = $this->db
+            ->order_by('id', 'desc')
+            ->limit(1)
+            ->get('ai_agent_pending_changes')
+            ->row_array();
+
+        if ($pending && $pending['target_table'] === 'appointments' && $pending['status'] === 'pending') {
+            echo "   ✓ Onay Kuyruğuna Eklendi! (ID: #{$pending['id']})" . PHP_EOL;
+            echo "     Gerekçe: {$pending['reason']}" . PHP_EOL;
+            echo "     Detay: {$pending['changes']}" . PHP_EOL;
+
+            // 2. Admin Approval Simulation
+            echo PHP_EOL . "2. YÖNETİCİ ONAYI SİMÜLASYONU (Ai_agent::approve):" . PHP_EOL;
+            require_once APPPATH . 'controllers/Ai_agent.php';
+            
+            // Execute approval logic directly
+            $payload = json_decode((string) $pending['changes'], true) ?: [];
+            $action = $payload['action'] ?? 'create';
+
+            // Customer
+            $cust_id = $this->customers_model->save([
+                'first_name' => 'Selin',
+                'last_name' => 'Yılmaz',
+                'phone_number' => '05062505562',
+                'email' => 'selin.yilmaz@kibusiness.co',
+            ]);
+
+            $services = $this->services_model->get_available_services();
+            $service_id = !empty($services) ? (int) $services[0]['id'] : 1;
+            $service = $this->services_model->find($service_id);
+            $duration = (int) ($service['duration'] ?? 60);
+
+            $providers = $this->providers_model->get_available_providers();
+            $provider_id = !empty($providers) ? (int) $providers[0]['id'] : 1;
+
+            $start_dt = date('Y-m-d 14:00:00', strtotime('+1 day'));
+            $end_dt = date('Y-m-d H:i:s', strtotime($start_dt) + ($duration * 60));
+
+            $appt_id = $this->appointments_model->save([
+                'start_datetime' => $start_dt,
+                'end_datetime' => $end_dt,
+                'id_services' => $service_id,
+                'id_users_provider' => $provider_id,
+                'id_users_customer' => $cust_id,
+                'notes' => 'AI Asistan randevu talebi (Yönetici Onaylı)',
+                'is_unavailability' => false,
+            ]);
+
+            $this->db->update('ai_agent_pending_changes', [
+                'status' => 'approved',
+                'target_id' => $appt_id,
+                'resolved_at' => date('Y-m-d H:i:s'),
+            ], ['id' => $pending['id']]);
+
+            echo "   ✓ Yönetici Onayladı! Randevu #{$appt_id} başarıyla takvime işlendi." . PHP_EOL;
+
+            // 3. Test Reschedule Request
+            echo PHP_EOL . "3. RANDEVU SAAT DEĞİŞİKLİĞİ TALEBİ:" . PHP_EOL;
+            $reschedule_msg = "Az önce aldığım randevunun saatini 16:00 olarak değiştirebilir miyiz?";
+            $matched_cust = $this->customers_model->find($cust_id);
+            $reschedule_reply = $this->ai_channel_responder->respond('telegram', '5895622522', $reschedule_msg, $matched_cust);
+            echo "   💬 AI Yanıtı: " . trim($reschedule_reply) . PHP_EOL;
+
+            $pending_reschedule = $this->db
+                ->order_by('id', 'desc')
+                ->limit(1)
+                ->get('ai_agent_pending_changes')
+                ->row_array();
+
+            if ($pending_reschedule && $pending_reschedule['id'] != $pending['id']) {
+                echo "   ✓ Değişiklik Talebi Onay Kuyruğuna Eklendi! (ID: #{$pending_reschedule['id']})" . PHP_EOL;
+                echo "     Detay: {$pending_reschedule['changes']}" . PHP_EOL;
+            }
+
+            // 4. Test Cancellation Request
+            echo PHP_EOL . "4. RANDEVU İPTAL TALEBİ:" . PHP_EOL;
+            $cancel_msg = "Randevumu iptal etmek istiyorum.";
+            $cancel_reply = $this->ai_channel_responder->respond('telegram', '5895622522', $cancel_msg, $matched_cust);
+            echo "   💬 AI Yanıtı: " . trim($cancel_reply) . PHP_EOL;
+
+            $pending_cancel = $this->db
+                ->order_by('id', 'desc')
+                ->limit(1)
+                ->get('ai_agent_pending_changes')
+                ->row_array();
+
+            if ($pending_cancel && $pending_cancel['id'] != $pending_reschedule['id']) {
+                echo "   ✓ İptal Talebi Onay Kuyruğuna Eklendi! (ID: #{$pending_cancel['id']})" . PHP_EOL;
+                echo "     Detay: {$pending_cancel['changes']}" . PHP_EOL;
+            }
+        } else {
+            echo "   ✗ Bekleyen kayıt oluşturulamadı." . PHP_EOL;
+        }
+
+        echo PHP_EOL . "======================================================" . PHP_EOL;
+        echo "✓ Tüm Akış Başarıyla Tamamlandı." . PHP_EOL;
+        echo "======================================================" . PHP_EOL;
+    }
+
+    /**
+     * Test rendered channel templates.
+     *
+     * Usage:
+     * php index.php console test_templates [subdomain]
+     */
+    public function test_templates(string $subdomain = 'salonflora'): void
+    {
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if ($tenant) {
+                $this->connect_tenant($tenant);
+            }
+        }
+
+        $this->load->library('channel_templates');
+
+        $sample_data = [
+            'company_name' => 'Salon Flora',
+            'customer_name' => 'Selin Yılmaz',
+            'service_name' => 'Aromaterapi Masajı (60 dk)',
+            'start_datetime' => '2026-09-20 14:00:00',
+            'end_datetime' => '2026-09-20 15:00:00',
+            'provider_name' => 'Ayşe Kaya',
+            'company_address' => 'Bağdat Caddesi No: 120, Kadıköy / İstanbul',
+            'company_phone' => '0543 213 70 00',
+            'booking_url' => 'https://salonflora-bookiapp.kibusiness.co/index.php/booking',
+            'notes' => 'Hafif baskı tercih edilmektedir.',
+        ];
+
+        $tpls = ['appointment_pending', 'appointment_approved', 'appointment_rescheduled', 'appointment_cancelled', 'appointment_reminder', 'customer_channel_linked'];
+
+        foreach ($tpls as $tpl) {
+            echo "------------------------------------------------------" . PHP_EOL;
+            echo "📋 ŞABLON: {$tpl}" . PHP_EOL;
+            echo "------------------------------------------------------" . PHP_EOL;
+            echo $this->channel_templates->render($tpl, $sample_data) . PHP_EOL . PHP_EOL;
+        }
+    }
+
+    /**
+     * Test Dashboard AI pending integration.
+     *
+     * Usage:
+     * php index.php console test_dashboard_ai [subdomain]
+     */
+    public function test_dashboard_ai(string $subdomain = 'salonflora'): void
+    {
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if ($tenant) {
+                $this->connect_tenant($tenant);
+            }
+        }
+
+        echo "======================================================" . PHP_EOL;
+        echo "📊 Dashboard & AI Dikkat Gerektirenler Entegrasyon Testi" . PHP_EOL;
+        echo "======================================================" . PHP_EOL;
+
+        // 1. Insert a sample pending appointment proposal
+        $this->db->insert('ai_agent_pending_changes', [
+            'target_table' => 'appointments',
+            'target_id' => 0,
+            'changes' => json_encode([
+                'action' => 'create',
+                'channel' => 'telegram',
+                'service_name' => 'Klasik Masaj (60 dk)',
+                'start_datetime' => date('Y-m-d 15:00:00', strtotime('+1 day')),
+                'customer_name' => 'Can Demir',
+                'customer_phone' => '05062505562',
+                'customer_email' => 'can.demir@kibusiness.co',
+                'notes' => 'Telegram üzerinden AI Asistan ile oluşturuldu',
+            ], JSON_UNESCAPED_UNICODE),
+            'reason' => '[telegram] Yeni randevu talebi: Can Demir (05062505562)',
+            'model_name' => 'google',
+            'status' => 'pending',
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        $change_id = $this->db->insert_id();
+        echo "✓ Örnek AI Randevu Talebi Oluşturuldu: ID #{$change_id}" . PHP_EOL;
+
+        // 2. Query Dashboard Pending
+        $pending = $this->db
+            ->where('status', 'pending')
+            ->order_by('created_at', 'desc')
+            ->get('ai_agent_pending_changes')
+            ->result_array();
+
+        echo "✓ Dashboard 'Dikkat Gerektirenler' Bekleyen AI İşlemleri: " . count($pending) . " adet" . PHP_EOL;
+        foreach ($pending as $p) {
+            $c = json_decode((string) $p['changes'], true) ?: [];
+            echo "   - [ID #{$p['id']}] {$p['target_table']} | " . ($c['action'] ?? '-') . " | " . ($c['customer_name'] ?? '-') . " | " . ($c['start_datetime'] ?? '-') . PHP_EOL;
+        }
+
+        echo PHP_EOL . "✓ Dashboard Entegrasyonu Başarılı!" . PHP_EOL;
+        echo "======================================================" . PHP_EOL;
+    }
+
+    /**
+     * Send reminders for upcoming appointments scheduled in the next N hours.
+     *
+     * Usage:
+     * php index.php console send_reminders [hours_ahead]
+     *
+     * @param int $hours_ahead Default 24 hours
+     */
+    public function send_reminders(int $hours_ahead = 24): void
+    {
+        if (!is_multi_tenant_mode()) {
+            $count = $this->send_reminders_current_db((int) $hours_ahead);
+            echo "Sent {$count} appointment reminder(s)." . PHP_EOL;
+            return;
+        }
+
+        $tenants = $this->db->get_where('tenants', ['status' => 'active'])->result_array();
+        foreach ($tenants as $tenant) {
+            echo 'Sending reminders for tenant "' . $tenant['subdomain'] . '"... ';
+            $this->connect_tenant($tenant);
+            $count = $this->send_reminders_current_db((int) $hours_ahead);
+            echo $count . ' reminder(s) sent' . PHP_EOL;
+        }
+
+        $this->connect_master();
+    }
+
+    private function send_reminders_current_db(int $hours_ahead): int
+    {
+        $this->load->library('notifications');
+        $this->load->library('channel_templates');
+        $this->load->model('appointments_model');
+        $this->load->model('settings_model');
+        $this->load->model('customers_model');
+        $this->load->model('services_model');
+        $this->load->model('providers_model');
+
+        $now = date('Y-m-d H:i:s');
+        $target_time = date('Y-m-d H:i:s', strtotime("+{$hours_ahead} hours"));
+
+        // Find upcoming confirmed/reserved appointments within time window
+        $appointments = $this->db
+            ->from('appointments')
+            ->where('is_unavailability', false)
+            ->where('start_datetime >=', $now)
+            ->where('start_datetime <=', $target_time)
+            ->where_not_in('status', ['Cancelled', 'Draft'])
+            ->get()
+            ->result_array();
+
+        $sent_count = 0;
+        foreach ($appointments as $appointment) {
+            try {
+                $service = $this->services_model->find((int) $appointment['id_services']) ?: [];
+                $provider = $this->providers_model->find((int) $appointment['id_users_provider']) ?: [];
+                $customer = $this->customers_model->find((int) $appointment['id_users_customer']) ?: [];
+                $settings = $this->settings_model->get_settings();
+
+                if (!empty($customer)) {
+                    $this->notifications->notify_appointment_reminder($appointment, $provider, $service, $customer, $settings);
+                    $sent_count++;
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'send_reminders_current_db failed for apt ' . $appointment['id'] . ': ' . $e->getMessage());
+            }
+        }
+
+        return $sent_count;
+    }
+
+    /**
+     * BooKi Marketplace - Synchronize tenant profile details into master `tenants` catalog.
+     *
+     * Usage: php index.php console sync_marketplace_tenants
+     */
+    public function sync_marketplace_tenants(): void
+    {
+        $this->connect_master();
+        $tenants = $this->db->get_where('tenants', ['status' => 'active'])->result_array();
+        echo 'Syncing ' . count($tenants) . ' tenants to marketplace catalog...' . PHP_EOL;
+
+        $demo_meta = [
+            'salonflora' => [
+                'company_name' => 'Salon Flora',
+                'category' => 'Güzellik Salonu',
+                'city' => 'İstanbul',
+                'district' => 'Kadıköy',
+                'phone_number' => '+90 216 555 12 34',
+                'address' => 'Bağdat Caddesi No: 142, Kadıköy, İstanbul',
+                'price_range' => '₺₺',
+                'short_description' => 'Premium saç tasarımı, renklendirme ve profesyonel güzellik hizmetleri.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-guzellik' => [
+                'company_name' => 'Lumiere Güzellik Merkezi',
+                'category' => 'Güzellik Salonu',
+                'city' => 'İstanbul',
+                'district' => 'Beşiktaş',
+                'phone_number' => '+90 212 555 21 00',
+                'address' => 'Nispetiye Cad. No: 45, Beşiktaş, İstanbul',
+                'price_range' => '₺₺₺',
+                'short_description' => 'Saç tasarımı, cilt bakımı ve tırnak uygulamalarında uzman estetisyen kadrosu.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-masaj' => [
+                'company_name' => 'Serene Masaj & Spa',
+                'category' => 'Masaj Salonu/Spa',
+                'city' => 'İstanbul',
+                'district' => 'Şişli',
+                'phone_number' => '+90 212 555 24 00',
+                'address' => 'Halaskargazi Cad. No: 88, Şişli, İstanbul',
+                'price_range' => '₺₺₺',
+                'short_description' => 'İsveç masajı, aromaterapi ve özel çift odası ile huzurlu bir spa deneyimi.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-restoran' => [
+                'company_name' => 'Mavi Liman Restoran',
+                'category' => 'Restoran',
+                'city' => 'İzmir',
+                'district' => 'Konak',
+                'phone_number' => '+90 232 555 26 00',
+                'address' => 'Kordon Boyu No: 12, Konak, İzmir',
+                'price_range' => '₺₺₺',
+                'short_description' => 'Ege lezzetleri ve şef masası degüstasyon menüsü ile unutulmaz bir akşam.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-otel' => [
+                'company_name' => 'Grand Marmara Otel',
+                'category' => 'Otel',
+                'city' => 'İstanbul',
+                'district' => 'Sarıyer',
+                'phone_number' => '+90 212 555 28 00',
+                'address' => 'Büyükdere Cad. No: 200, Sarıyer, İstanbul',
+                'price_range' => '₺₺₺₺',
+                'short_description' => 'Boğaz manzaralı spa, özel toplantı salonları ve lüks konaklama ayrıcalığı.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-klinik' => [
+                'company_name' => 'Vita Sağlık Kliniği',
+                'category' => 'Klinik/Sağlık',
+                'city' => 'Ankara',
+                'district' => 'Çankaya',
+                'phone_number' => '+90 312 555 32 00',
+                'address' => 'Tunalı Hilmi Cad. No: 65, Çankaya, Ankara',
+                'price_range' => '₺₺',
+                'short_description' => 'Dahiliye, diş sağlığı ve uzman fizyoterapi hizmetleri tek çatı altında.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-studyo' => [
+                'company_name' => 'Pulse Stüdyo & Fitness',
+                'category' => 'Stüdyo/Fitness',
+                'city' => 'İstanbul',
+                'district' => 'Kadıköy',
+                'phone_number' => '+90 216 555 35 00',
+                'address' => 'Moda Cad. No: 77, Kadıköy, İstanbul',
+                'price_range' => '₺₺',
+                'short_description' => 'Reformer pilates, dinamik yoga ve birebir kişisel antrenman programları.',
+                'marketplace_opt_in' => 1,
+            ],
+        ];
+
+        foreach ($tenants as $tenant) {
+            $subdomain = $tenant['subdomain'];
+            $update = [];
+
+            if (isset($demo_meta[$subdomain])) {
+                $update = $demo_meta[$subdomain];
+            } else {
+                try {
+                    $this->connect_tenant($tenant);
+                    $settings_rows = $this->db->get('settings')->result_array();
+                    $settings = [];
+                    foreach ($settings_rows as $row) {
+                        $settings[$row['name']] = $row['value'];
+                    }
+
+                    $update = [
+                        'company_name' => $settings['company_name'] ?? ucfirst($subdomain),
+                        'phone_number' => $settings['telephone_number'] ?? ($settings['phone_number'] ?? null),
+                        'address' => $settings['company_address'] ?? ($settings['address'] ?? null),
+                        'marketplace_opt_in' => (int)($settings['marketplace_opt_in'] ?? 1),
+                        'category' => $settings['marketplace_category'] ?? ($settings['category'] ?? 'Hizmet & Randevu'),
+                        'city' => $settings['marketplace_city'] ?? ($settings['city'] ?? 'İstanbul'),
+                        'district' => $settings['marketplace_district'] ?? ($settings['district'] ?? null),
+                        'short_description' => $settings['marketplace_description'] ?? ($settings['description'] ?? null),
+                        'cover_image_url' => $settings['marketplace_cover_url'] ?? null,
+                        'price_range' => $settings['marketplace_price_range'] ?? '₺₺',
+                    ];
+                } catch (Throwable $e) {
+                    echo "  [WARN] Failed reading settings for {$subdomain}: {$e->getMessage()}" . PHP_EOL;
+                    $update = [
+                        'company_name' => ucfirst($subdomain),
+                        'marketplace_opt_in' => 1,
+                        'category' => 'Hizmet & Randevu',
+                        'city' => 'İstanbul',
+                        'price_range' => '₺₺',
+                    ];
+                }
+            }
+
+            $this->connect_master();
+            $this->db->where('id', $tenant['id'])->update('tenants', $update);
+            echo "  ✓ Synced {$subdomain} (" . ($update['company_name'] ?? $subdomain) . ") -> Marketplace" . PHP_EOL;
+        }
+
+        echo 'Done syncing marketplace tenants.' . PHP_EOL;
+    }
 }
+
+

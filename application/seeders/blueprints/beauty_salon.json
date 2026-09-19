@@ -1,0 +1,267 @@
+{
+  "industry": {
+    "code": "beauty_salon",
+    "name": "Güzellik Salonu",
+    "icon": "✨",
+    "service_type": "hybrid",
+    "description": "Cilt bakımı, lazer epilasyon, kalıcı makyaj, bölgesel incelme ve profesyonel güzellik uygulamaları için komple salon yönetim paketi."
+  },
+  "terminology": {
+    "customer_label": "Danışan",
+    "provider_label": "Uzman Estetisyen",
+    "appointment_label": "Seans / Randevu",
+    "station_label": "Kabin / Cihaz",
+    "service_label": "Bakım / İşlem"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "packages",
+    "memberships",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "inventory",
+    "reviews",
+    "marketing",
+    "loyalty",
+    "staff_commissions"
+  ],
+  "default_settings": {
+    "business_type": "beauty",
+    "slot_interval": 15,
+    "future_booking_limit": 60,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 10,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Cilt Bakımı & Yenileme",
+      "description": "Medikal cilt bakımı, hydrafacial ve yenileme protokolleri"
+    },
+    {
+      "name": "Lazer Epilasyon & İğneli",
+      "description": "Buz lazer, diode ve iğneli epilasyon seansları"
+    },
+    {
+      "name": "Makyaj & Kaş / Kirpik",
+      "description": "Kalıcı makyaj, microblading, ipek kirpik ve laminasyon"
+    },
+    {
+      "name": "Bölgesel İncelme & Vücut",
+      "description": "G5 masajı, lenf drenaj ve kavitasyon uygulamaları"
+    }
+  ],
+  "services": [
+    {
+      "name": "Medikal Klasik Cilt Bakımı",
+      "category": "Cilt Bakımı & Yenileme",
+      "duration": 60,
+      "price": 850.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#ec4899",
+      "description": "Derin gözenek temizliği, buhar, ozon, komedon temizliği ve nem maskesi."
+    },
+    {
+      "name": "Hydrafacial Cilt Yenileme",
+      "category": "Cilt Bakımı & Yenileme",
+      "duration": 50,
+      "price": 1400.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#d946ef",
+      "description": "Vorteks teknolojisi ile derinlemesine soyma, temizleme, nemlendirme ve antioksidan koruma."
+    },
+    {
+      "name": "Karbon Peeling (Q-Switch Lazer)",
+      "category": "Cilt Bakımı & Yenileme",
+      "duration": 40,
+      "price": 1100.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#a855f7",
+      "description": "Gözenek sıkılaştırma, leke açma ve cilt parlatma protokolü."
+    },
+    {
+      "name": "Tüm Vücut Buz Lazer Seansı",
+      "category": "Lazer Epilasyon & İğneli",
+      "duration": 75,
+      "price": 2400.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#3b82f6",
+      "description": "Yeni nesil 3 dalga boylu acısız buz başlıklı tüm vücut lazer uygulaması."
+    },
+    {
+      "name": "Yarım Bacak & Genital Lazer",
+      "category": "Lazer Epilasyon & İğneli",
+      "duration": 45,
+      "price": 1200.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#0ea5e9",
+      "description": "Hızlı ve konforlu bölgesel epilasyon seansı."
+    },
+    {
+      "name": "İpek Kirpik (Volume / Mega)",
+      "category": "Makyaj & Kaş / Kirpik",
+      "duration": 90,
+      "price": 1300.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#f59e0b",
+      "description": "Hafif vizon kirpiklerle kişiye özel hacimli bakış tasarımı."
+    },
+    {
+      "name": "Kaş Laminasyonu & Vitamin",
+      "category": "Makyaj & Kaş / Kirpik",
+      "duration": 45,
+      "price": 650.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#eab308",
+      "description": "Kaş yönünü düzeltme, keratin & vitamin botox dolgusu."
+    },
+    {
+      "name": "Microblading 3D Kıl Tekniği",
+      "category": "Makyaj & Kaş / Kirpik",
+      "duration": 120,
+      "price": 3200.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#84cc16",
+      "description": "Altın oran kaş ölçümü ve organik pigmentlerle kalıcı kıl efekti."
+    },
+    {
+      "name": "G5 Masajı & Selülit Protokolü",
+      "category": "Bölgesel İncelme & Vücut",
+      "duration": 45,
+      "price": 750.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#10b981",
+      "description": "Ritmik masaj dalgalarıyla kan dolaşımını hızlandırma ve selülit giderme."
+    },
+    {
+      "name": "Lenf Drenaj & Pressoterapi",
+      "category": "Bölgesel İncelme & Vücut",
+      "duration": 40,
+      "price": 500.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#06b6d4",
+      "description": "Ödem atıcı, toksin temizleyici hava basınçlı lenfatik masaj."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Kabin 1 - Medikal Cilt Bakımı",
+      "notes": "Hydrafacial cihazı, vapozon buhar ünitesi, cilt analiz kamerası"
+    },
+    {
+      "name": "Kabin 2 - Buz Lazer Epilasyon",
+      "notes": "Soprano Titanium 3 dalga boylu lazer sistemi"
+    },
+    {
+      "name": "Kabin 3 - Bölgesel İncelme & Vücut",
+      "notes": "G5 masaj cihazı, lenf drenaj tulumu ve kavitasyon"
+    },
+    {
+      "name": "Kabin 4 - Kalıcı Makyaj & Kaş/Kirpik",
+      "notes": "Özel aydınlatmalı ergonomik sedye, sterilizasyon ünitesi"
+    }
+  ],
+  "demo": {
+    "admin": {
+      "first_name": "Ece",
+      "last_name": "Yılmaz",
+      "email": "demo-beauty_salon-admin@kibusiness.co",
+      "phone_number": "05432137000",
+      "notes": "Güzellik Salonu Yönetici Hesabı"
+    },
+    "providers": [
+      {
+        "first_name": "Elif",
+        "last_name": "Kaya",
+        "email": "demo-beauty_salon-uzman1@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Uzman Estetisyen & Cilt Bakımı",
+        "commission_type": "percentage",
+        "commission_value": 25.0,
+        "services": ["Medikal Klasik Cilt Bakımı", "Hydrafacial Cilt Yenileme", "Karbon Peeling (Q-Switch Lazer)"],
+        "stations": ["Kabin 1 - Medikal Cilt Bakımı"]
+      },
+      {
+        "first_name": "Zeynep",
+        "last_name": "Demir",
+        "email": "demo-beauty_salon-uzman2@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Lazer Epilasyon & İncelme Uzmanı",
+        "commission_type": "percentage",
+        "commission_value": 20.0,
+        "services": ["Tüm Vücut Buz Lazer Seansı", "Yarım Bacak & Genital Lazer", "G5 Masajı & Selülit Protokolü", "Lenf Drenaj & Pressoterapi"],
+        "stations": ["Kabin 2 - Buz Lazer Epilasyon", "Kabin 3 - Bölgesel İncelme & Vücut"]
+      },
+      {
+        "first_name": "Merve",
+        "last_name": "Çelik",
+        "email": "demo-beauty_salon-uzman3@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Kalıcı Makyaj & İpek Kirpik Uzmanı",
+        "commission_type": "percentage",
+        "commission_value": 30.0,
+        "services": ["İpek Kirpik (Volume / Mega)", "Kaş Laminasyonu & Vitamin", "Microblading 3D Kıl Tekniği"],
+        "stations": ["Kabin 4 - Kalıcı Makyaj & Kaş/Kirpik"]
+      },
+      {
+        "first_name": "Ayşe",
+        "last_name": "Öztürk",
+        "email": "demo-beauty_salon-uzman4@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Senior Estetisyen & Vücut Bakımı",
+        "commission_type": "percentage",
+        "commission_value": 25.0,
+        "services": ["Medikal Klasik Cilt Bakımı", "Hydrafacial Cilt Yenileme", "G5 Masajı & Selülit Protokolü", "Lenf Drenaj & Pressoterapi"],
+        "stations": ["Kabin 1 - Medikal Cilt Bakımı", "Kabin 3 - Bölgesel İncelme & Vücut"]
+      }
+    ],
+    "customers": [
+      { "first_name": "Seda", "last_name": "Arslan", "email": "demo-beauty_salon-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Hassas cilt, hydrafacial sevdalısı" },
+      { "first_name": "Gül", "last_name": "Koç", "email": "demo-beauty_salon-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "8 seanslık buz lazer paket müşterisi" },
+      { "first_name": "Nihan", "last_name": "Şahin", "email": "demo-beauty_salon-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Gelin adayı, komple bakım paketi" },
+      { "first_name": "Dilan", "last_name": "Aydın", "email": "demo-beauty_salon-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Düzenli G5 seansı alıyor" },
+      { "first_name": "Burcu", "last_name": "Erdoğan", "email": "demo-beauty_salon-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Microblading rötuş randevusu" },
+      { "first_name": "Pınar", "last_name": "Polat", "email": "demo-beauty_salon-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "İpek kirpik 3 haftalık bakım" },
+      { "first_name": "Ceren", "last_name": "Kılıç", "email": "demo-beauty_salon-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Akne protokolü uygulanıyor" },
+      { "first_name": "İrem", "last_name": "Korkmaz", "email": "demo-beauty_salon-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Lazer 4. seans" },
+      { "first_name": "Hande", "last_name": "Yıldız", "email": "demo-beauty_salon-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kaş laminasyonu & lifting" },
+      { "first_name": "Melis", "last_name": "Aksoy", "email": "demo-beauty_salon-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "VIP Gold üyelik sahibi" }
+    ],
+    "appointments": [
+      { "day_offset": -3, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Hydrafacial Cilt Yenileme", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -3, "time": "14:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Tüm Vücut Buz Lazer Seansı", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -2, "time": "11:30", "provider_idx": 2, "customer_idx": 4, "service_name": "Microblading 3D Kıl Tekniği", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": -2, "time": "15:00", "provider_idx": 3, "customer_idx": 3, "service_name": "G5 Masajı & Selülit Protokolü", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
+      { "day_offset": -1, "time": "09:30", "provider_idx": 0, "customer_idx": 6, "service_name": "Medikal Klasik Cilt Bakımı", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -1, "time": "13:00", "provider_idx": 1, "customer_idx": 7, "service_name": "Yarım Bacak & Genital Lazer", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -1, "time": "16:30", "provider_idx": 2, "customer_idx": 5, "service_name": "İpek Kirpik (Volume / Mega)", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "10:00", "provider_idx": 0, "customer_idx": 2, "service_name": "Hydrafacial Cilt Yenileme", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "11:30", "provider_idx": 1, "customer_idx": 9, "service_name": "Tüm Vücut Buz Lazer Seansı", "station_idx": 1, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": 0, "time": "14:00", "provider_idx": 2, "customer_idx": 8, "service_name": "Kaş Laminasyonu & Vitamin", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 0, "time": "16:00", "provider_idx": 3, "customer_idx": 3, "service_name": "Lenf Drenaj & Pressoterapi", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "10:30", "provider_idx": 0, "customer_idx": 0, "service_name": "Karbon Peeling (Q-Switch Lazer)", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "13:30", "provider_idx": 1, "customer_idx": 1, "service_name": "Yarım Bacak & Genital Lazer", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 1, "time": "15:00", "provider_idx": 2, "customer_idx": 5, "service_name": "İpek Kirpik (Volume / Mega)", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 2, "time": "11:00", "provider_idx": 3, "customer_idx": 6, "service_name": "Hydrafacial Cilt Yenileme", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "iban" },
+      { "day_offset": 2, "time": "14:30", "provider_idx": 0, "customer_idx": 4, "service_name": "Medikal Klasik Cilt Bakımı", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 3, "time": "10:00", "provider_idx": 1, "customer_idx": 7, "service_name": "Tüm Vücut Buz Lazer Seansı", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 3, "time": "15:30", "provider_idx": 2, "customer_idx": 8, "service_name": "Microblading 3D Kıl Tekniği", "station_idx": 3, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
+    ]
+  }
+}
+

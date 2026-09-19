@@ -1,0 +1,223 @@
+{
+  "industry": {
+    "code": "pt_training",
+    "name": "PT Antrenman & Kişisel Koçluk",
+    "icon": "🏋️",
+    "service_type": "duration",
+    "description": "Birebir personal trainer, fonksiyonel antrenman, vücut geliştirme, postür analizi ve sporcu beslenmesi takip sistemi."
+  },
+  "terminology": {
+    "customer_label": "Sporcu / Danışan",
+    "provider_label": "Personal Trainer (PT)",
+    "appointment_label": "Antrenman / Seans",
+    "station_label": "Antrenman Alanı / Stüdyo",
+    "service_label": "Ders / Program"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "packages",
+    "memberships",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "reviews",
+    "marketing",
+    "loyalty",
+    "staff_commissions"
+  ],
+  "default_settings": {
+    "business_type": "fitness",
+    "slot_interval": 60,
+    "future_booking_limit": 30,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 10,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Birebir PT Seansları",
+      "description": "Birebir eğitmen eşliğinde kuvvet, hipertrofi ve kondisyon antrenmanı"
+    },
+    {
+      "name": "Ölçüm & Değerlendirme",
+      "description": "Postür analizi, InBody vücut kompozisyonu ve performans testleri"
+    },
+    {
+      "name": "Düet & Küçük Grup PT",
+      "description": "2 veya 3 kişilik özel partner antrenmanları"
+    },
+    {
+      "name": "Beslenme & Koçluk",
+      "description": "Makro planlama, sporcu beslenmesi ve online takip"
+    }
+  ],
+  "services": [
+    {
+      "name": "Birebir PT Seansı (60 Dk)",
+      "category": "Birebir PT Seansları",
+      "duration": 60,
+      "price": 850.00,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#ef4444",
+      "description": "Hedefe yönelik (kilo verme, kas kazanımı, güç) birebir 60 dakikalık koçluk."
+    },
+    {
+      "name": "Fonksiyonel & HIIT Antrenmanı",
+      "category": "Birebir PT Seansları",
+      "duration": 50,
+      "price": 800.00,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#f97316",
+      "description": "Metabolik hızlandırıcı, çeviklik ve dayanıklılık odaklı yüksek yoğunluklu seans."
+    },
+    {
+      "name": "Kuvvet & Hipertrofi Koçluğu",
+      "category": "Birebir PT Seansları",
+      "duration": 60,
+      "price": 900.00,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#dc2626",
+      "description": "Serbest ağırlıklar ve makinelerle doğru formda kuvvet artışı çalışması."
+    },
+    {
+      "name": "Postür & Hareket Analizi (İlk Seans)",
+      "category": "Ölçüm & Değerlendirme",
+      "duration": 45,
+      "price": 600.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#3b82f6",
+      "description": "FMS hareket taraması, eklem hareket açıklığı ve omurga postür tespiti."
+    },
+    {
+      "name": "InBody Vücut Analizi & Ölçüm",
+      "category": "Ölçüm & Değerlendirme",
+      "duration": 20,
+      "price": 300.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#2563eb",
+      "description": "Yağ, kas, su oranı, bazal metabolizma hızı ve çevre ölçümleri."
+    },
+    {
+      "name": "Düet PT (2 Kişilik Özel Seans)",
+      "category": "Düet & Küçük Grup PT",
+      "duration": 60,
+      "price": 1200.00,
+      "slot_interval": 60,
+      "attendants_number": 2,
+      "color": "#8b5cf6",
+      "description": "Partneriniz veya arkadaşınızla birlikte 1 antrenör eşliğinde antrenman."
+    },
+    {
+      "name": "Sporcu Beslenmesi & Makro Planlama",
+      "category": "Beslenme & Koçluk",
+      "duration": 45,
+      "price": 750.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#10b981",
+      "description": "Antrenman programına entegre kalori ve makro besin planı."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Serbest Ağırlık Alanı (Rack 1)",
+      "notes": "Squat rack, olimpik bar, dambıl seti, ayarlanabilir sehpa"
+    },
+    {
+      "name": "Fonksiyonel & Cross Alanı",
+      "notes": "Kettlebell, kızak, sağlık topları, halat, plyometric kutular"
+    },
+    {
+      "name": "Kardiyo & Kondisyon Alanı",
+      "notes": "Koşu bandı, air bike, kürek ergometresi, SkiErg"
+    },
+    {
+      "name": "Ölçüm & Değerlendirme Odası",
+      "notes": "InBody 770 analiz cihazı, postür cetveli, kaliper"
+    }
+  ],
+  "demo": {
+    "admin": {
+      "first_name": "Kaan",
+      "last_name": "Yılmaz",
+      "email": "demo-pt_training-admin@kibusiness.co",
+      "phone_number": "05432137000",
+      "notes": "PT Stüdyo Kurucusu & Baş Antrenör"
+    },
+    "providers": [
+      {
+        "first_name": "Baran",
+        "last_name": "Aktaş",
+        "email": "demo-pt_training-uzman1@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Kuvvet Antrenörü & Hipertrofi Koçu",
+        "commission_type": "percentage",
+        "commission_value": 40.0,
+        "services": ["Birebir PT Seansı (60 Dk)", "Kuvvet & Hipertrofi Koçluğu", "Düet PT (2 Kişilik Özel Seans)"],
+        "stations": ["Serbest Ağırlık Alanı (Rack 1)"]
+      },
+      {
+        "first_name": "Selin",
+        "last_name": "Doğan",
+        "email": "demo-pt_training-uzman2@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Fonksiyonel Antrenör & Postür Uzmanı",
+        "commission_type": "percentage",
+        "commission_value": 40.0,
+        "services": ["Birebir PT Seansı (60 Dk)", "Fonksiyonel & HIIT Antrenmanı", "Postür & Hareket Analizi (İlk Seans)", "Düet PT (2 Kişilik Özel Seans)"],
+        "stations": ["Fonksiyonel & Cross Alanı", "Kardiyo & Kondisyon Alanı"]
+      },
+      {
+        "first_name": "Can",
+        "last_name": "Erdoğan",
+        "email": "demo-pt_training-uzman3@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Sporcu Diyetisyeni & Performans Koçu",
+        "commission_type": "percentage",
+        "commission_value": 35.0,
+        "services": ["InBody Vücut Analizi & Ölçüm", "Sporcu Beslenmesi & Makro Planlama", "Birebir PT Seansı (60 Dk)"],
+        "stations": ["Ölçüm & Değerlendirme Odası"]
+      }
+    ],
+    "customers": [
+      { "first_name": "Emre", "last_name": "Tunç", "email": "demo-pt_training-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Haftada 3 gün kuvvet çalışıyor, 20 seanslık paket" },
+      { "first_name": "Zehra", "last_name": "Koçak", "email": "demo-pt_training-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kilo verme ve fonksiyonel antrenman" },
+      { "first_name": "Onur", "last_name": "Şimşek", "email": "demo-pt_training-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Hipertrofi ve beslenme takibi" },
+      { "first_name": "Damla", "last_name": "Erdem", "email": "demo-pt_training-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Postür düzeltme (skolyoz başlangıcı)" },
+      { "first_name": "Arda", "last_name": "Güler", "email": "demo-pt_training-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Futbol kondisyon desteği" },
+      { "first_name": "Buse", "last_name": "Acar", "email": "demo-pt_training-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Arkadaşıyla düet PT alıyor" },
+      { "first_name": "Serhat", "last_name": "Kaya", "email": "demo-pt_training-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Sabah 08:00 seansı tercih eder" },
+      { "first_name": "Naz", "last_name": "Çetin", "email": "demo-pt_training-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "HIIT antrenmanı müdavimi" },
+      { "first_name": "Uğur", "last_name": "Polat", "email": "demo-pt_training-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Maraton hazırlık koçluğu" },
+      { "first_name": "Esra", "last_name": "Kılınç", "email": "demo-pt_training-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Doğum sonrası forma dönüş" }
+    ],
+    "appointments": [
+      { "day_offset": -3, "time": "09:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Birebir PT Seansı (60 Dk)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -3, "time": "14:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Fonksiyonel & HIIT Antrenmanı", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -2, "time": "10:00", "provider_idx": 2, "customer_idx": 2, "service_name": "InBody Vücut Analizi & Ölçüm", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": -2, "time": "11:00", "provider_idx": 0, "customer_idx": 2, "service_name": "Kuvvet & Hipertrofi Koçluğu", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -1, "time": "15:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Postür & Hareket Analizi (İlk Seans)", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
+      { "day_offset": -1, "time": "18:00", "provider_idx": 0, "customer_idx": 4, "service_name": "Birebir PT Seansı (60 Dk)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": 0, "time": "09:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Birebir PT Seansı (60 Dk)", "station_idx": 0, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": 0, "time": "11:00", "provider_idx": 1, "customer_idx": 7, "service_name": "Fonksiyonel & HIIT Antrenmanı", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "14:00", "provider_idx": 2, "customer_idx": 2, "service_name": "Sporcu Beslenmesi & Makro Planlama", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 0, "time": "17:00", "provider_idx": 0, "customer_idx": 6, "service_name": "Kuvvet & Hipertrofi Koçluğu", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "10:00", "provider_idx": 1, "customer_idx": 5, "service_name": "Düet PT (2 Kişilik Özel Seans)", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "14:00", "provider_idx": 0, "customer_idx": 8, "service_name": "Birebir PT Seansı (60 Dk)", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 1, "time": "16:00", "provider_idx": 1, "customer_idx": 9, "service_name": "Fonksiyonel & HIIT Antrenmanı", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 2, "time": "09:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Birebir PT Seansı (60 Dk)", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 2, "time": "15:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Birebir PT Seansı (60 Dk)", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 3, "time": "11:00", "provider_idx": 0, "customer_idx": 6, "service_name": "Kuvvet & Hipertrofi Koçluğu", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "iban" }
+    ]
+  }
+}
+

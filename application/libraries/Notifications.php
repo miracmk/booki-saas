@@ -336,6 +336,14 @@ class Notifications
             }
         }
 
+        // BooKi: Ensure 'email' is always active if recipient has an email address
+        // and email notifications are not explicitly disabled, so appointment confirmations
+        // and critical updates are never dropped.
+        $email_allowed = (bool) ($messaging_settings['email_notifications_enabled'] ?? true);
+        if ($email_allowed && !empty($user['email']) && !in_array('email', $active, true)) {
+            $active[] = 'email';
+        }
+
         return $active;
     }
 
@@ -1251,6 +1259,75 @@ class Notifications
         } catch (Throwable $e) {
             log_message('error', 'Notifications::handle_queued_appointment_saved_email() exception: ' . $e->getMessage());
             log_message('error', $e->getTraceAsString());
+        }
+    }
+
+    /**
+     * Send upcoming appointment reminders to customer across active channels.
+     *
+     * @param array $appointment
+     * @param array $provider
+     * @param array $service
+     * @param array $customer
+     * @param array $settings
+     * @return void
+     */
+    public function notify_appointment_reminder(
+        array $appointment,
+        array $provider,
+        array $service,
+        array $customer,
+        array $settings
+    ): void {
+        try {
+            $customer_channels = $this->customer_channels($customer, $settings);
+            if (empty($customer_channels)) {
+                return;
+            }
+
+            // 1. Email reminder if enabled & customer has email address
+            if (in_array('email', $customer_channels, true) && !empty($customer['email'])) {
+                try {
+                    $this->CI->load->library('email_messages');
+                    $this->CI->email_messages->send_appointment_saved(
+                        $appointment,
+                        $provider,
+                        $service,
+                        $customer,
+                        $settings,
+                        lang('appointment_details_changed') ?: 'Randevu Hatırlatması',
+                        'Yaklaşan randevunuzu hatırlatmak isteriz.',
+                        site_url('booking'),
+                        $customer['email'],
+                        '',
+                        $customer['timezone'] ?? null,
+                        'customer'
+                    );
+                } catch (Throwable $e) {
+                    $this->log_exception($e, 'appointment-reminder email to customer', $appointment['id'] ?? null);
+                }
+            }
+
+            // 2. Multi-channel messaging (SMS, WhatsApp, Telegram) via template
+            $this->CI->load->library('channel_templates');
+            $text = $this->CI->channel_templates->render('appointment_reminder', [
+                'company_name' => $settings['company_name'] ?? setting('company_name'),
+                'customer_name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')),
+                'service_name' => $service['name'] ?? '',
+                'start_datetime' => $appointment['start_datetime'] ?? '',
+                'end_datetime' => $appointment['end_datetime'] ?? '',
+                'provider_name' => trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')),
+                'company_address' => $settings['company_address'] ?? setting('company_address'),
+                'company_phone' => $settings['company_phone'] ?? setting('company_phone'),
+                'booking_url' => site_url('booking'),
+                'notes' => $appointment['notes'] ?? '',
+            ]);
+
+            if ($text !== '') {
+                $this->dispatch_customer_channels($customer, $text);
+            }
+        } catch (Throwable $e) {
+            $this->log_exception($e, 'appointment-reminder dispatch', $appointment['id'] ?? null);
         }
     }
 }

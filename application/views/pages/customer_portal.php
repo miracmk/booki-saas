@@ -2,14 +2,14 @@
 <html lang="tr">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e(setting('company_name') ?: 'BooKi') ?> — Müşteri Portalı</title>
     <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/fontawesome/css/all.min.css') ?>">
     <style>
         :root {
-            --primary-color: #2563eb;
-            --primary-light: #eff6ff;
+            --primary-color: <?= setting('company_color') ?: '#35A768' ?>;
+            --primary-light: #eaf6ef;
         }
         body {
             background-color: #f8fafc;
@@ -25,10 +25,10 @@
             z-index: 1020;
         }
         .hero-appointment-card {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, <?= setting('company_color') ?: '#35A768' ?> 0%, #1e293b 100%);
             color: #ffffff;
             border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(53, 167, 104, 0.3);
         }
         .portal-card {
             background: #ffffff;

@@ -1,0 +1,247 @@
+{
+  "industry": {
+    "code": "barber",
+    "name": "Kuaför & Saç Tasarım",
+    "icon": "✂️",
+    "service_type": "duration",
+    "description": "Erkek berberi, kadın kuaförü ve saç tasarım merkezleri için randevu, stilist takvimi, koltuk yönetimi ve prim takip paketi."
+  },
+  "terminology": {
+    "customer_label": "Müşteri",
+    "provider_label": "Stilist / Kuaför",
+    "appointment_label": "Randevu",
+    "station_label": "Koltuk / Yıkama Ünitesi",
+    "service_label": "Hizmet"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "packages",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "inventory",
+    "reviews",
+    "marketing",
+    "loyalty",
+    "staff_commissions"
+  ],
+  "default_settings": {
+    "business_type": "beauty",
+    "slot_interval": 15,
+    "future_booking_limit": 30,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 10,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Kesim & Şekillendirme",
+      "description": "Erkek ve kadın saç kesimi, çocuk kesimi, fön ve şekillendirme"
+    },
+    {
+      "name": "Sakal & Bakım",
+      "description": "Sakal tıraşı, sakal tasarımı, buhar ve cilt bakımı"
+    },
+    {
+      "name": "Renklendirme & Boya",
+      "description": "Dip boya, ombre, balyaj, röfle ve gri kamufle"
+    },
+    {
+      "name": "Saç Bakım & Onarım",
+      "description": "Keratin botox, brezilya fönü ve saç mezoterapisi"
+    }
+  ],
+  "services": [
+    {
+      "name": "Erkek Saç Kesimi & Yıkama",
+      "category": "Kesim & Şekillendirme",
+      "duration": 30,
+      "price": 350.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#3b82f6",
+      "description": "Yıkama, saç analizi, makas & makine kesimi ve şekillendirici uygulama."
+    },
+    {
+      "name": "Sakal Tasarımı & Sıcak Havlu",
+      "category": "Sakal & Bakım",
+      "duration": 25,
+      "price": 250.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#1d4ed8",
+      "description": "Ustura sakal tıraşı, sıcak havlu kompresi, buhar ve sakal yağı masajı."
+    },
+    {
+      "name": "Saç + Sakal Full Bakım",
+      "category": "Kesim & Şekillendirme",
+      "duration": 50,
+      "price": 550.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#2563eb",
+      "description": "Komple saç kesimi, sakal tıraşı, yüz maskesi ve kulak/burun ağdası."
+    },
+    {
+      "name": "Kadın Saç Kesimi & Tasarım",
+      "category": "Kesim & Şekillendirme",
+      "duration": 45,
+      "price": 600.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#ec4899",
+      "description": "Yüz tipine uygun kişiye özel kesim, yıkama ve fön."
+    },
+    {
+      "name": "Profesyonel Fön & Şekillendirme",
+      "category": "Kesim & Şekillendirme",
+      "duration": 30,
+      "price": 250.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#db2777",
+      "description": "Kırık fön, düz fön veya maşa dalgası."
+    },
+    {
+      "name": "Dip Boya & Yıkama",
+      "category": "Renklendirme & Boya",
+      "duration": 60,
+      "price": 850.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#a855f7",
+      "description": "Doğal ve parlak renk pigmentleriyle dip tazeleme."
+    },
+    {
+      "name": "Balyaj / Ombre / Brushlight",
+      "category": "Renklendirme & Boya",
+      "duration": 150,
+      "price": 2800.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#7c3aed",
+      "description": "Açma, tonlama, boyama ve cila işlemleri dahil komple renk değişimi."
+    },
+    {
+      "name": "Keratin Bakım & Botox",
+      "category": "Saç Bakım & Onarım",
+      "duration": 90,
+      "price": 1600.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#10b981",
+      "description": "Yıpranmış saç tellerini onaran, elektriklenmeyi önleyen yoğun keratin yüklemesi."
+    },
+    {
+      "name": "Brezilya Fönü (Kalıcı Düzleştirme)",
+      "category": "Saç Bakım & Onarım",
+      "duration": 120,
+      "price": 2200.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#059669",
+      "description": "4-6 ay kalıcı pürüzsüzlük ve ipeksi parlaklık."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Koltuk 1 - Master Barber",
+      "notes": "Erkek bölümü ana kesim koltuğu, buhar makinesi"
+    },
+    {
+      "name": "Koltuk 2 - Erkek Stilist",
+      "notes": "Erkek kesim & sakal tasarımı"
+    },
+    {
+      "name": "Koltuk 3 - Kadın Tasarım",
+      "notes": "Kadın kesim, fön ve maşa ünitesi"
+    },
+    {
+      "name": "Koltuk 4 - Renklendirme & Boya",
+      "notes": "Geniş ayna, boya arabası, klimatron ısıtıcı"
+    },
+    {
+      "name": "Yıkama Ünitesi 1 & 2",
+      "notes": "Masajlı ergonomik yıkama koltukları"
+    }
+  ],
+  "demo": {
+    "admin": {
+      "first_name": "Serkan",
+      "last_name": "Yıldırım",
+      "email": "demo-barber-admin@kibusiness.co",
+      "phone_number": "05432137000",
+      "notes": "Kuaför & Berber Salon Sahibi"
+    },
+    "providers": [
+      {
+        "first_name": "Murat",
+        "last_name": "Avcı",
+        "email": "demo-barber-uzman1@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Master Barber & Sakal Tasarım",
+        "commission_type": "percentage",
+        "commission_value": 35.0,
+        "services": ["Erkek Saç Kesimi & Yıkama", "Sakal Tasarımı & Sıcak Havlu", "Saç + Sakal Full Bakım"],
+        "stations": ["Koltuk 1 - Master Barber", "Yıkama Ünitesi 1 & 2"]
+      },
+      {
+        "first_name": "Derya",
+        "last_name": "Özkan",
+        "email": "demo-barber-uzman2@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Colorist & Kadın Stilist",
+        "commission_type": "percentage",
+        "commission_value": 30.0,
+        "services": ["Kadın Saç Kesimi & Tasarım", "Profesyonel Fön & Şekillendirme", "Dip Boya & Yıkama", "Balyaj / Ombre / Brushlight", "Keratin Bakım & Botox"],
+        "stations": ["Koltuk 3 - Kadın Tasarım", "Koltuk 4 - Renklendirme & Boya"]
+      },
+      {
+        "first_name": "Emre",
+        "last_name": "Yıldız",
+        "email": "demo-barber-uzman3@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Unisex Stilist & Saç Onarım",
+        "commission_type": "percentage",
+        "commission_value": 30.0,
+        "services": ["Erkek Saç Kesimi & Yıkama", "Kadın Saç Kesimi & Tasarım", "Profesyonel Fön & Şekillendirme", "Keratin Bakım & Botox", "Brezilya Fönü (Kalıcı Düzleştirme)"],
+        "stations": ["Koltuk 2 - Erkek Stilist", "Koltuk 3 - Kadın Tasarım"]
+      }
+    ],
+    "customers": [
+      { "first_name": "Ali", "last_name": "Korkmaz", "email": "demo-barber-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Haftalık sakal tıraşı abonesi" },
+      { "first_name": "Fatma", "last_name": "Demir", "email": "demo-barber-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Ombre ve keratin bakım müdavimi" },
+      { "first_name": "Ahmet", "last_name": "Şen", "email": "demo-barber-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Klasik kesim tercih eder" },
+      { "first_name": "Hüseyin", "last_name": "Çetin", "email": "demo-barber-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Saç + sakal full bakım" },
+      { "first_name": "Ayşegül", "last_name": "Kara", "email": "demo-barber-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kırık fön ve dip boya" },
+      { "first_name": "Mehmet", "last_name": "Doğan", "email": "demo-barber-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Fade kesim & sakal" },
+      { "first_name": "Ebru", "last_name": "Yılmaz", "email": "demo-barber-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Brezilya fönü randevusu" },
+      { "first_name": "Burak", "last_name": "Arslan", "email": "demo-barber-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Damat tıraşı planlanıyor" },
+      { "first_name": "Sibel", "last_name": "Öz", "email": "demo-barber-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Balyaj yenileme" },
+      { "first_name": "Kemal", "last_name": "Aydın", "email": "demo-barber-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Öğle arası hızlı kesim" }
+    ],
+    "appointments": [
+      { "day_offset": -3, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Saç + Sakal Full Bakım", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": -3, "time": "13:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Balyaj / Ombre / Brushlight", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -2, "time": "11:00", "provider_idx": 2, "customer_idx": 6, "service_name": "Keratin Bakım & Botox", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -2, "time": "15:00", "provider_idx": 0, "customer_idx": 2, "service_name": "Erkek Saç Kesimi & Yıkama", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": -1, "time": "10:30", "provider_idx": 1, "customer_idx": 4, "service_name": "Dip Boya & Yıkama", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -1, "time": "14:00", "provider_idx": 0, "customer_idx": 3, "service_name": "Sakal Tasarımı & Sıcak Havlu", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": 0, "time": "10:00", "provider_idx": 0, "customer_idx": 5, "service_name": "Saç + Sakal Full Bakım", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "11:30", "provider_idx": 1, "customer_idx": 8, "service_name": "Kadın Saç Kesimi & Tasarım", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "14:00", "provider_idx": 2, "customer_idx": 7, "service_name": "Erkek Saç Kesimi & Yıkama", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 0, "time": "16:00", "provider_idx": 1, "customer_idx": 4, "service_name": "Profesyonel Fön & Şekillendirme", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 1, "time": "10:00", "provider_idx": 0, "customer_idx": 9, "service_name": "Erkek Saç Kesimi & Yıkama", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "13:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Brezilya Fönü (Kalıcı Düzleştirme)", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "16:30", "provider_idx": 2, "customer_idx": 3, "service_name": "Sakal Tasarımı & Sıcak Havlu", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 2, "time": "11:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Saç + Sakal Full Bakım", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 2, "time": "15:00", "provider_idx": 1, "customer_idx": 8, "service_name": "Balyaj / Ombre / Brushlight", "station_idx": 3, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" },
+      { "day_offset": 3, "time": "14:00", "provider_idx": 2, "customer_idx": 6, "service_name": "Keratin Bakım & Botox", "station_idx": 2, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" }
+    ]
+  }
+}
+

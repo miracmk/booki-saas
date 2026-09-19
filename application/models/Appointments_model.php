@@ -925,6 +925,10 @@ class Appointments_model extends EA_Model
             }
         }
 
+        // Cancelled or draft appointments do not conflict with active bookings
+        $this->db->where('is_unavailability', false);
+        $this->db->where_not_in('status', ['Cancelled', 'Draft']);
+
         // Check for overlapping appointments:
         // An overlap occurs when:  (existing_start < new_end) AND (existing_end > new_start)
 

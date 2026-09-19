@@ -62,41 +62,45 @@ class Netgsm_sms_gateway implements Sms_gateway_interface
             return ['success' => false, 'provider_message_id' => null, 'error' => 'not_configured'];
         }
 
+        // Clean phone number: remove all non-digits
+        $clean_phone = preg_replace('/[^\d]/', '', $to_phone);
+        // Netgsm expects 10 digits (5xxxxxxxxx) or 12 digits (905xxxxxxxxx)
+        if (str_starts_with($clean_phone, '0') && strlen($clean_phone) === 11) {
+            $clean_phone = substr($clean_phone, 1);
+        }
+
         try {
             $client = new Client();
 
-            // Netgsm send endpoint (simple GET/POST with basic auth or params)
-            $response = $client->get('https://api.netgsm.com.tr/sms/send/get', [
-                'query' => [
-                    'username' => $this->username,
+            // Netgsm POST endpoint with standard parameters: usercode, password, gsmno, message, msgheader
+            $response = $client->post('https://api.netgsm.com.tr/sms/send/post', [
+                'form_params' => [
+                    'usercode' => $this->username,
                     'password' => $this->password,
-                    'to' => $to_phone,
+                    'gsmno' => $clean_phone,
                     'message' => $message,
-                    'header' => $this->header ?: 'No-Header',
-                    'lang' => '1', // 1 = Turkish (UTF-8), 0 = English
+                    'msgheader' => $this->header ?: 'No-Header',
+                    'dil' => 'TR',
                 ],
                 'timeout' => 10,
             ]);
 
-            $body = (string) $response->getBody();
-            $parts = explode(':', $body);
+            $body = trim((string) $response->getBody());
 
-            // Netgsm responds with "result_code:message_id" or error code
-            // 00 = success, other codes are errors
-            if (isset($parts[0]) && $parts[0] === '00' && isset($parts[1])) {
+            // Netgsm responds with "00 <bulkid>" or "00:<bulkid>" on success
+            if (str_starts_with($body, '00')) {
+                $id_part = trim(ltrim(substr($body, 2), ': '));
                 return [
                     'success' => true,
-                    'provider_message_id' => trim($parts[1]),
+                    'provider_message_id' => $id_part ?: 'ok',
                     'error' => null,
                 ];
             }
 
-            $error_code = trim($parts[0] ?? 'unknown');
-
             return [
                 'success' => false,
                 'provider_message_id' => null,
-                'error' => 'netgsm_error_' . $error_code,
+                'error' => 'netgsm_error_' . $body,
             ];
         } catch (GuzzleException|Throwable $e) {
             log_message('error', 'Netgsm_sms_gateway::send - ' . $e->getMessage());

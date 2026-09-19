@@ -74,6 +74,11 @@ class Dashboard extends EA_Controller
             'user_id' => $user_id,
             'role_slug' => $role_slug,
             'today' => $today,
+            'csrf_token' => $this->security->get_csrf_hash(),
+            'routes' => [
+                'ai_approve' => site_url('ai_agent/approve'),
+                'ai_reject' => site_url('ai_agent/reject'),
+            ],
         ]);
 
         $this->load->view('pages/dashboard');
@@ -148,6 +153,18 @@ class Dashboard extends EA_Controller
 
         $occupancy_pct = $available_minutes > 0 ? round(min($booked_minutes / $available_minutes, 1) * 100, 1) : null;
 
+        // AI Agent pending approval requests
+        $ai_pending_items = [];
+        if ($this->db->table_exists('ai_agent_pending_changes')) {
+            $ai_pending_items = $this->db
+                ->where('status', 'pending')
+                ->order_by('created_at', 'desc')
+                ->limit(10)
+                ->get('ai_agent_pending_changes')
+                ->result_array();
+        }
+        $ai_pending_count = count($ai_pending_items);
+
         return [
             'appointment_count' => count($today_appointments),
             'appointments' => array_map(static function (array $row): array {
@@ -167,6 +184,8 @@ class Dashboard extends EA_Controller
             'active_sessions_count' => $active_sessions_count,
             'waiting_count' => $waiting_count,
             'occupancy_pct' => $occupancy_pct,
+            'ai_pending_count' => $ai_pending_count,
+            'ai_pending_items' => $ai_pending_items,
         ];
     }
 

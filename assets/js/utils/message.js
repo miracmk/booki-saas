@@ -162,8 +162,20 @@ window.App.Utils.Message = (function () {
         ]);
     }
 
+    function toast(message, type = 'success', duration = 3500) {
+        if (window.App && window.App.Utils && window.App.Utils.Toast) {
+            window.App.Utils.Toast.show(message, type, duration);
+        } else {
+            show(type.toUpperCase(), message);
+        }
+    }
+
     return {
         show,
         confirmNotifyOptions,
+        toast,
+        success: (msg, dur) => toast(msg, 'success', dur),
+        error: (msg, dur) => toast(msg, 'error', dur),
+        info: (msg, dur) => toast(msg, 'info', dur),
     };
 })();

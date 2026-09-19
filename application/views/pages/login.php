@@ -131,7 +131,7 @@ $login_company_logo = vars('company_logo') ?: asset_url('assets/img/logo.png');
 <script src="<?= asset_url('assets/js/pages/login.js') ?>"></script>
 <script>
     // BooKi (2026-08-26) - prefill the username when arriving from the multi-tenant
-    // portal (reservationapp.kibusiness.co), which already identified this user's own tenant.
+    // portal (bookiapp.kibusiness.co), which already identified this user's own tenant.
     (function () {
         const params = new URLSearchParams(window.location.search);
         const prefill = params.get('u');

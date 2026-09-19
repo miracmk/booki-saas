@@ -279,7 +279,7 @@ class Automation_engine
         $t = tenant_context();
 
         if (is_multi_tenant_mode()) {
-            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
             $subdomain = $t['subdomain'] ?? '';
 
             return 'https://' . ($subdomain !== '' ? $subdomain . '-' : '') . $app_domain . '/r/' . $short_code;

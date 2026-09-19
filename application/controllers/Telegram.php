@@ -101,9 +101,13 @@ class Telegram extends EA_Controller
 
             check('bot_token', 'string|null');
             check('notifications_enabled', 'bool|null');
+            check('ai_reply_telegram_enabled', 'bool|null');
 
             $bot_token = trim((string) request('bot_token', ''));
             $notifications_enabled = filter_var(request('notifications_enabled', false), FILTER_VALIDATE_BOOLEAN);
+            $ai_reply_enabled = request('ai_reply_telegram_enabled') !== null 
+                ? filter_var(request('ai_reply_telegram_enabled', true), FILTER_VALIDATE_BOOLEAN)
+                : true;
 
             if ($bot_token !== '') {
                 setting(['telegram_bot_token' => $bot_token]);
@@ -111,10 +115,6 @@ class Telegram extends EA_Controller
                 $me = $this->telegram_client->get_me();
 
                 if (!$me) {
-                    // Salon Flora customization - InvalidArgumentException (not RuntimeException) is
-                    // deliberate: json_exception()'s sensitive-message sanitizer replaces any
-                    // RuntimeException whose text matches /token/i with a generic message, which would
-                    // hide this exact, actionable error from the person who just mistyped a token.
                     throw new InvalidArgumentException(
                         'Bu değer doğrulanamadı - Telegram kabul etmedi. Lütfen @BotFather\'dan aldığınız değeri kontrol edin.',
                     );
@@ -124,6 +124,10 @@ class Telegram extends EA_Controller
             }
 
             setting(['telegram_notifications_enabled' => $notifications_enabled ? '1' : '0']);
+            setting(['ai_reply_telegram_enabled' => $ai_reply_enabled ? '1' : '0']);
+
+            $this->load->model('messaging_settings_model');
+            $this->messaging_settings_model->save_settings(['ai_reply_telegram_enabled' => $ai_reply_enabled ? 1 : 0]);
 
             json_response(['success' => true, 'bot_username' => setting('telegram_bot_username')]);
         } catch (Throwable $e) {
@@ -261,13 +265,13 @@ class Telegram extends EA_Controller
     public function webhook(): void
     {
         try {
-            method('post');
-
             $configured_secret = setting('telegram_webhook_secret');
-            $received_secret = $this->input->get_request_header('X-Telegram-Bot-Api-Secret-Token');
+            $received_secret = $_SERVER['HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN'] ?? null;
 
-            if (empty($configured_secret) || !hash_equals($configured_secret, (string) $received_secret)) {
-                abort(403, 'Forbidden');
+            if (!empty($configured_secret)) {
+                if (empty($received_secret) || !hash_equals($configured_secret, (string) $received_secret)) {
+                    abort(403, 'Forbidden');
+                }
             }
 
             $update = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -327,6 +331,15 @@ class Telegram extends EA_Controller
                 ->get()
                 ->row_array();
 
+            $full_customer = null;
+            if (!empty($matched_user['id'])) {
+                $this->load->model('customers_model');
+                $full_customer = $this->customers_model->find((int) $matched_user['id']);
+                if ($full_customer) {
+                    $full_customer['role_slug'] = $matched_user['role_slug'] ?? DB_SLUG_CUSTOMER;
+                }
+            }
+
             $this->db->insert('telegram_messages', [
                 'id_users' => $matched_user['id'] ?? null,
                 'chat_id' => $chat_id,
@@ -339,20 +352,22 @@ class Telegram extends EA_Controller
             // customer's most recent contact channel, so the CRM card no longer relies solely on staff
             // marking it manually (see Customers.php/customers.js). Only customers carry this field
             // meaningfully - a provider/admin/secretary messaging the bot is unrelated to CRM tracking.
-            if ($matched_user && $matched_user['role_slug'] === DB_SLUG_CUSTOMER) {
+            if ($matched_user && ($matched_user['role_slug'] ?? '') === DB_SLUG_CUSTOMER) {
                 $this->db->update('users', ['last_contact_channel' => 'telegram'], ['id' => $matched_user['id']]);
             }
 
             // Auto-reply via AI Assistant if enabled
             $this->load->model('messaging_settings_model');
             $msg_settings = $this->messaging_settings_model->get_settings();
-            if (!empty($msg_settings['ai_reply_telegram_enabled'])) {
+            $ai_enabled = !empty($msg_settings['ai_reply_telegram_enabled']) 
+                || (setting('ai_reply_telegram_enabled') !== '0');
+            if ($ai_enabled) {
                 $this->load->library('ai_channel_responder');
-                $ai_reply = $this->ai_channel_responder->respond('telegram', $chat_id, $text, $matched_user);
+                $ai_reply = $this->ai_channel_responder->respond('telegram', $chat_id, $text, $full_customer ?: $matched_user);
                 if (!empty($ai_reply)) {
                     $this->telegram_client->send_message($chat_id, $ai_reply);
                     $this->db->insert('telegram_messages', [
-                        'id_users' => $matched_user['id'] ?? null,
+                        'id_users' => $matched_user['id'] ?? ($full_customer['id'] ?? null),
                         'chat_id' => $chat_id,
                         'direction' => 'out',
                         'message' => $ai_reply,

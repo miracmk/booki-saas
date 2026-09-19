@@ -1,0 +1,233 @@
+{
+  "industry": {
+    "code": "dentist",
+    "name": "Diş Hekimi & Ağız Diş Sağlığı",
+    "icon": "🦷",
+    "service_type": "hybrid",
+    "description": "Diş poliklinikleri, implantoloji, ortodonti, estetik diş hekimliği ve panoramik röntgen odaları için ünit ve hekim randevu sistemi."
+  },
+  "terminology": {
+    "customer_label": "Hasta",
+    "provider_label": "Diş Hekimi (Dt.)",
+    "appointment_label": "Randevu / Tedavi",
+    "station_label": "Diş Üniti / Röntgen",
+    "service_label": "Tedavi / İşlem"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "packages",
+    "invoices",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "inventory",
+    "reviews",
+    "marketing",
+    "staff_commissions"
+  ],
+  "default_settings": {
+    "business_type": "clinic",
+    "slot_interval": 30,
+    "future_booking_limit": 60,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 10,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Genel Muayene & Koruyucu Diş",
+      "description": "Detaylı ağız içi muayene, diş taşı temizliği ve panoramik röntgen"
+    },
+    {
+      "name": "Restoratif & Endodonti",
+      "description": "Kompozit dolgu, estetik ön diş dolgusu ve kanal tedavisi"
+    },
+    {
+      "name": "Cerrahi & İmplantoloji",
+      "description": "Diş çekimi, 20'lik diş cerrahisi ve dental implant uygulaması"
+    },
+    {
+      "name": "Estetik Diş & Ortodonti",
+      "description": "Lazerle diş beyazlatma, zirkonyum kaplama ve şeffaf plak kontrolü"
+    }
+  ],
+  "services": [
+    {
+      "name": "Detaylı Diş Muayenesi & Teşhis",
+      "category": "Genel Muayene & Koruyucu Diş",
+      "duration": 30,
+      "price": 500.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#0ea5e9",
+      "description": "Ağız içi kamera ile muayene, diş eti ölçümü ve tedavi planlaması."
+    },
+    {
+      "name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+      "category": "Genel Muayene & Koruyucu Diş",
+      "duration": 40,
+      "price": 900.00,
+      "slot_interval": 20,
+      "attendants_number": 1,
+      "color": "#0284c7",
+      "description": "Diş taşlarının temizlenmesi, leke arındırma ve florürlü cila uygulaması."
+    },
+    {
+      "name": "Estetik Kompozit Dolgu (Tek Diş)",
+      "category": "Restoratif & Endodonti",
+      "duration": 45,
+      "price": 1200.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#3b82f6",
+      "description": "Çürük temizliği, nano-hibrit kompozit dolgu ve anatomik cila."
+    },
+    {
+      "name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+      "category": "Restoratif & Endodonti",
+      "duration": 60,
+      "price": 2800.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#1d4ed8",
+      "description": "Döner aletlerle kök kanalı şekillendirme, dezenfeksiyon ve dolum."
+    },
+    {
+      "name": "Dental İmplant Cerrahisi (Tek Üye)",
+      "category": "Cerrahi & İmplantoloji",
+      "duration": 60,
+      "price": 14000.00,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#8b5cf6",
+      "description": "Titanyum implant yerleşimi ve primer stabilizasyon dikişi."
+    },
+    {
+      "name": "Cerrahi 20'lik Yaş Diş Çekimi",
+      "category": "Cerrahi & İmplantoloji",
+      "duration": 45,
+      "price": 2500.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#7c3aed",
+      "description": "Gömülü veya yarı gömülü 20 yaş dişinin kemik cerrahisiyle çekimi."
+    },
+    {
+      "name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)",
+      "category": "Estetik Diş & Ortodonti",
+      "duration": 60,
+      "price": 3800.00,
+      "slot_interval": 30,
+      "attendants_number": 1,
+      "color": "#ec4899",
+      "description": "Lazer/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma."
+    },
+    {
+      "name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
+      "category": "Estetik Diş & Ortodonti",
+      "duration": 25,
+      "price": 750.00,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#10b981",
+      "description": "Dijital ortodonti plak uyumu kontrolü ve yeni plak setlerinin teslimi."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Diş Üniti 1 (Genel & Cerrahi)",
+      "notes": "Adec 500 ünit, cerrahi mikromotor, kavitron, LED reflektör"
+    },
+    {
+      "name": "Diş Üniti 2 (Estetik & Endodonti)",
+      "notes": "Endomotor, apeks bulucu, polimerizasyon cihazı, RVG sensör"
+    },
+    {
+      "name": "Diş Üniti 3 (Ortodonti & Muayene)",
+      "notes": "Ortodontik el aletleri kiti, ağız içi tarayıcı (3Shape Trios)"
+    },
+    {
+      "name": "Dijital Röntgen & Tomografi Odası",
+      "notes": "Kurşun kaplı oda, 3D dental tomografi ve panoramik röntgen"
+    }
+  ],
+  "demo": {
+    "admin": {
+      "first_name": "Dt. Ali Serdar",
+      "last_name": "Yılmaz",
+      "email": "demo-dentist-admin@kibusiness.co",
+      "phone_number": "05432137000",
+      "notes": "Poliklinik Kurucu Başhekimi"
+    },
+    "providers": [
+      {
+        "first_name": "Dt. Ali Serdar",
+        "last_name": "Yılmaz",
+        "email": "demo-dentist-uzman1@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Ağız, Diş ve Çene Cerrahisi / İmplantoloji",
+        "commission_type": "percentage",
+        "commission_value": 45.0,
+        "services": ["Detaylı Diş Muayenesi & Teşhis", "Dental İmplant Cerrahisi (Tek Üye)", "Cerrahi 20'lik Yaş Diş Çekimi"],
+        "stations": ["Diş Üniti 1 (Genel & Cerrahi)"]
+      },
+      {
+        "first_name": "Dt. Sema",
+        "last_name": "Karaca",
+        "email": "demo-dentist-uzman2@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Estetik Diş Hekimliği & Endodonti",
+        "commission_type": "percentage",
+        "commission_value": 45.0,
+        "services": ["Detaylı Diş Muayenesi & Teşhis", "Ultrasonik Diş Taşı Temizliği & Polisaj", "Estetik Kompozit Dolgu (Tek Diş)", "Kanal Tedavisi (Tek Kök / Çok Kök)", "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)"],
+        "stations": ["Diş Üniti 2 (Estetik & Endodonti)"]
+      },
+      {
+        "first_name": "Dt. Burak",
+        "last_name": "Özdemir",
+        "email": "demo-dentist-uzman3@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Ortodonti & Şeffaf Plak Uzmanı",
+        "commission_type": "percentage",
+        "commission_value": 45.0,
+        "services": ["Detaylı Diş Muayenesi & Teşhis", "Şeffaf Plak (Invisalign) Kontrol Seansı"],
+        "stations": ["Diş Üniti 3 (Ortodonti & Muayene)"]
+      }
+    ],
+    "customers": [
+      { "first_name": "Cengiz", "last_name": "Başaran", "email": "demo-dentist-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "İmplant cerrahisi planlaması yapıldı" },
+      { "first_name": "Melek", "last_name": "Duman", "email": "demo-dentist-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kanal tedavisi ve dolgu hastası" },
+      { "first_name": "Haydar", "last_name": "Tekin", "email": "demo-dentist-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "20'lik diş ağrısı var" },
+      { "first_name": "Züleyha", "last_name": "Koçak", "email": "demo-dentist-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Diş beyazlatma randevusu" },
+      { "first_name": "Necati", "last_name": "Güler", "email": "demo-dentist-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Yıllık diş taşı temizliği" },
+      { "first_name": "Sabiha", "last_name": "Erdoğan", "email": "demo-dentist-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Şeffaf plak 4. set kontrolü" },
+      { "first_name": "Turgut", "last_name": "Aksoy", "email": "demo-dentist-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Ön diş kırık estetik dolgu" },
+      { "first_name": "Vildan", "last_name": "Çevik", "email": "demo-dentist-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "İmplant dikiş alma ve kontrol" },
+      { "first_name": "Engin", "last_name": "Bayram", "email": "demo-dentist-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kanal tedavisi 2. seans" },
+      { "first_name": "Nesrin", "last_name": "Uysal", "email": "demo-dentist-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Genel kontrol & panoramik röntgen" }
+    ],
+    "appointments": [
+      { "day_offset": -3, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Dental İmplant Cerrahisi (Tek Üye)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": -3, "time": "14:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -2, "time": "11:00", "provider_idx": 2, "customer_idx": 5, "service_name": "Şeffaf Plak (Invisalign) Kontrol Seansı", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
+      { "day_offset": -2, "time": "15:00", "provider_idx": 1, "customer_idx": 4, "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": -1, "time": "10:30", "provider_idx": 0, "customer_idx": 2, "service_name": "Cerrahi 20'lik Yaş Diş Çekimi", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
+      { "day_offset": -1, "time": "14:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": 0, "time": "09:30", "provider_idx": 1, "customer_idx": 6, "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "station_idx": 1, "status": "confirmed", "payment_status": "collected", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "11:30", "provider_idx": 0, "customer_idx": 7, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 0, "time": "14:00", "provider_idx": 1, "customer_idx": 8, "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 0, "time": "16:00", "provider_idx": 2, "customer_idx": 9, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 2, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
+      { "day_offset": 1, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 1, "time": "13:30", "provider_idx": 1, "customer_idx": 4, "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 1, "time": "15:00", "provider_idx": 2, "customer_idx": 5, "service_name": "Şeffaf Plak (Invisalign) Kontrol Seansı", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
+      { "day_offset": 2, "time": "11:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
+      { "day_offset": 2, "time": "14:30", "provider_idx": 0, "customer_idx": 2, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "iban" },
+      { "day_offset": 3, "time": "10:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
+    ]
+  }
+}
+

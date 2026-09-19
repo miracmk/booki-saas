@@ -110,11 +110,19 @@ class Whatsapp_bridge
             return ['success' => false, 'message_id' => null, 'error' => 'not_configured'];
         }
 
+        // Normalize Turkish and international numbers to E.164 (without +)
+        $clean_to = preg_replace('/[^\d]/', '', $to);
+        if (str_starts_with($clean_to, '0') && strlen($clean_to) === 11) {
+            $clean_to = '9' . $clean_to;
+        } elseif (strlen($clean_to) === 10 && str_starts_with($clean_to, '5')) {
+            $clean_to = '90' . $clean_to;
+        }
+
         $result = $this->request('POST', '/v1/send', [
             'tenant' => $tenant,
-            'to' => $to,
+            'to' => $clean_to,
             'text' => $text,
-        ]);
+        ], 7);
 
         if ($result !== null && !empty($result['success']) && !empty($result['message_id'])) {
             return ['success' => true, 'message_id' => $result['message_id'], 'error' => null];

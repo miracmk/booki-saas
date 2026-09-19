@@ -11,7 +11,7 @@
  * ---------------------------------------------------------------------------- */
 
 /**
- * SaaS super-admin login (reservationadmin.kibusiness.co) - Ki Software's own staff, credentials in
+ * SaaS super-admin login (admin-bookiapp.kibusiness.co) - Ki Software's own staff, credentials in
  * the master `master_admins` table, completely separate from any tenant's users. Every controller in
  * this "Superadmin*" family is let through EA_Controller::resolve_tenant()'s host check while staying
  * on the master DB - see that method's docblock. Uses its OWN session key ('superadmin_id') rather

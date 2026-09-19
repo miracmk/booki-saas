@@ -139,7 +139,11 @@ class Instagram extends EA_Controller
             $signature_header = $this->input->get_request_header('X-Hub-Signature-256')
                 ?? ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? null);
 
-            if (!empty($app_secret) && !empty($signature_header)) {
+            if (!empty($app_secret)) {
+                if (empty($signature_header)) {
+                    log_message('error', 'Instagram::webhook_receive - Missing X-Hub-Signature-256');
+                    abort(403, 'Missing Meta signature');
+                }
                 $expected = 'sha256=' . hash_hmac('sha256', $raw_input, $app_secret);
                 if (!hash_equals($expected, (string) $signature_header)) {
                     log_message('error', 'Instagram::webhook_receive - Invalid X-Hub-Signature-256');
@@ -185,7 +189,9 @@ class Instagram extends EA_Controller
                     }
 
                     // Automated AI Assistant reply if enabled
-                    if (!empty($settings['ai_reply_instagram_enabled'])) {
+                    $ai_enabled = !empty($settings['ai_reply_instagram_enabled']) 
+                        || (setting('ai_reply_instagram_enabled') !== '0');
+                    if ($ai_enabled) {
                         $this->load->library('ai_channel_responder');
                         $ai_reply = $this->ai_channel_responder->respond('instagram', $sender_id, $body, $matched_user);
 

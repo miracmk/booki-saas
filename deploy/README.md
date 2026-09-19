@@ -1,28 +1,28 @@
-# Ki Reservation
+# BooKi
 
-> **Ki Reservation** — Çok-kiracılı (multi-tenant) randevu/salon yönetim SaaS platformu.
-> Güzellik/masaj salonlarına satılır. Self-hosted, Docker tabanlı.
+> **BooKi** — Çok-kiracılı (multi-tenant) randevu/salon ve işletme yönetim SaaS platformu.
+> Sektörel modülleri ve AI entegrasyonuyla self-hosted / Docker tabanlı modern çözüm.
 
 ## 📍 Kimlik
 
 | Alan | Değer |
 |------|-------|
-| **Ürün adı** | Ki Reservation |
+| **Ürün adı** | BooKi |
 | **Sahibi** | Miraç Murat KILINÇ |
 | **GitHub** | `ki-reservation-saas` (private, main) |
 | **Lokal (kaynak)** | `/opt/ki-ecosystem/ki-reservation-src/` |
 | **Lokal (deploy)** | `/opt/ki-ecosystem/ki-reservation/` |
 | **Disk** | ~150 MB+ |
 | **Durum** | 🟢 CANLI |
-| **URL** | `https://reservationapp.kibusiness.co` |
+| **URL** | `https://bookiapp.kibusiness.co` |
 
 ## 🌐 Domain Şeması
 
 | Rol | Domain | Durum |
 |-----|--------|-------|
-| Uygulama websitesi (vitrin) | `reservations.kibusiness.co` | ✅ HTTP 200 |
-| Uygulama girişi / app | `reservationapp.kibusiness.co` | ✅ HTTP 200 |
-| Superadmin panel | `reservationsadmin.kibusiness.co` | ✅ Mevcut (DNS güncellenebilir) |
+| Pazarlama / Marketplace | `booki.kibusiness.co` | ✅ HTTP 200 |
+| Kiracı Portalı / Uygulama | `bookiapp.kibusiness.co` / `{subdomain}-bookiapp.kibusiness.co` | ✅ HTTP 200 |
+| Superadmin Panel | `admin-bookiapp.kibusiness.co` | ✅ HTTP 200 |
 
 ## 🏗️ Mimari
 
@@ -244,11 +244,11 @@ docker compose up -d --build
 ## ✅ Next Actions
 
 1. [x] Analiz tamamlandı — proje dosyaları yazıldı
-2. [x] `reservationadmin.kibusiness.co` doğru çalışıyor — DNS ve env var (`SUPERADMIN_DOMAIN`) zaten uyumlu, ek işlem gerekmedi
+2. [x] `admin-bookiapp.kibusiness.co` doğru çalışıyor — DNS ve env var (`SUPERADMIN_DOMAIN`) zaten uyumlu
 3. [x] Dalga 3 — Faz 3.1 Communication Hub, 3.2 Automation Engine, 3.3 Marketing, 3.4 Review Engine, 3.5 WhatsApp dual-mode, 3.6 Analytics/BI — hepsi canlıda
 4. [ ] QR cihaz eşleştirme + gerçek mesaj gönderim testi (telefon + WhatsApp hesabı gerekir — kullanıcı kendi yapacak)
 5. [ ] Meta Business API resmi onboarding (gerçek uygulama kimlikleri gerekir — kullanıcı kendi yapacak)
-6. [ ] Platform fallback SMTP kimlik bilgilerini gir (`reservationadmin.kibusiness.co/superadmin_settings`) — kullanıcı kendi girecek
+6. [ ] Platform fallback SMTP ve AI API kimlik bilgilerini gir (`admin-bookiapp.kibusiness.co/superadmin_settings`) — kullanıcı kendi girecek
 7. [ ] Faz 3.6 Analytics view'ini tasarım turunda iyileştir (şu an ham JSON)
 8. [ ] Dalga 4 — Marketplace Olgunlaştırma başlat
 9. [x] Command Center Dashboard (yeni landing sayfası) + 13 renk temalı görsel katman — canlıda, henüz commit edilmedi

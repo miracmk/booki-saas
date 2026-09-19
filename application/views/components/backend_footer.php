@@ -6,7 +6,7 @@
  */
 $hide_brand = plan_allows('white_label') && setting('white_label_enabled') == 1;
 ?>
-<div id="footer" class="d-lg-flex justify-content-lg-start align-items-lg-center p-2 text-center text-lg-left mt-auto bg-body border-top" style="font-size: 11px;">
+<footer id="footer" role="contentinfo" class="d-lg-flex justify-content-lg-start align-items-lg-center p-2 text-center text-lg-left mt-auto bg-body border-top" style="font-size: 11px;">
     <div class="mb-3 me-lg-5 mb-lg-0">
         &copy; <?= date('Y') ?> <?= e(setting('company_name', 'BooKi') ?: 'BooKi') ?>
     </div>
@@ -44,4 +44,4 @@ $hide_brand = plan_allows('white_label') && setting('white_label_enabled') == 1;
         <a href="https://kisoftware.com" target="_blank" class="text-muted">Powered by BooKi (Ki Software License)</a>
     </div>
     <?php endif; ?>
-</div>
+</footer>

@@ -209,6 +209,12 @@ class Appointments extends EA_Controller
 
             $this->appointments_model->optional($appointment, $this->optional_appointment_fields);
 
+            if (empty($appointment['is_unavailability']) && !empty($appointment['id_users_provider'])) {
+                if ($this->appointments_model->has_provider_conflict((int) $appointment['id_users_provider'], $appointment['start_datetime'], $appointment['end_datetime'])) {
+                    throw new RuntimeException('Bu saatte sağlayıcının başka bir randevusu bulunmaktadır.', 409);
+                }
+            }
+
             $appointment_id = $this->appointments_model->save($appointment);
 
             $appointment = $this->appointments_model->find($appointment_id);
@@ -290,6 +296,16 @@ class Appointments extends EA_Controller
             $this->appointments_model->only($appointment, $this->allowed_appointment_fields);
 
             $this->appointments_model->optional($appointment, $this->optional_appointment_fields);
+
+            if (empty($appointment['is_unavailability']) && !empty($appointment['id_users_provider'])) {
+                $exclude_id = !empty($appointment['id']) ? (int) $appointment['id'] : null;
+                $start_dt = $appointment['start_datetime'] ?? null;
+                $end_dt = $appointment['end_datetime'] ?? null;
+
+                if ($start_dt && $end_dt && $this->appointments_model->has_provider_conflict((int) $appointment['id_users_provider'], $start_dt, $end_dt, $exclude_id)) {
+                    throw new RuntimeException('Bu saatte sağlayıcının başka bir randevusu bulunmaktadır.', 409);
+                }
+            }
 
             $appointment_id = $this->appointments_model->save($appointment);
 

@@ -484,7 +484,12 @@ export async function sendMessage(tenant, to, text) {
         return { success: false, error: 'no_connected_session' };
     }
 
-    const digits = String(to || '').replace(/^\+/, '').replace(/\D/g, '');
+    let digits = String(to || '').replace(/^\+/, '').replace(/\D/g, '');
+    if (digits.startsWith('0') && digits.length === 11) {
+        digits = '9' + digits;
+    } else if (digits.length === 10 && digits.startsWith('5')) {
+        digits = '90' + digits;
+    }
 
     if (digits.length < 8) {
         return { success: false, error: 'invalid_number' };

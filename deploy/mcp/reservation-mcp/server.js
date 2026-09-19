@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, timingSafeEqual } from 'node:crypto';
 import http from 'node:http';
 
 const PORT = Number(process.env.PORT || 8765);
@@ -349,7 +349,11 @@ async function startHttp() {
     if (MCP_SERVER_TOKEN) {
       const authHeader = req.headers['authorization'] || '';
       const match = authHeader.match(/^Bearer\s+(.+)$/i);
-      if (!match || match[1] !== MCP_SERVER_TOKEN) {
+      const token = match ? match[1] : '';
+      const bufA = Buffer.from(token);
+      const bufB = Buffer.from(MCP_SERVER_TOKEN);
+      const isValid = bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+      if (!isValid) {
         log('warn', 'Unauthorized MCP HTTP request', { ip: req.socket.remoteAddress });
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Unauthorized: Invalid or missing MCP server token' }));

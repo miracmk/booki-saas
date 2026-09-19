@@ -479,3 +479,46 @@ li.language:hover {
 .cc-window {
   z-index: 999 !important;
 }
+
+/* WCAG 2.2 AA ACCESSIBILITY & TOUCH TARGET SIZES
+   ------------------------------------------------------------------------- */
+.form-check.form-switch {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.form-check.form-switch .form-check-input {
+  min-width: 44px;
+  min-height: 24px;
+  cursor: pointer;
+}
+.form-check.form-switch .form-check-label {
+  cursor: pointer;
+  padding-left: 0.5rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--bs-primary) !important;
+  outline-offset: 2px !important;
+}
+
+@media (max-width: 767.98px) {
+  body .ui-datepicker td a,
+  body .ui-datepicker td span {
+    width: 38px !important;
+    height: 38px !important;
+    line-height: 38px !important;
+  }
+  .flatpickr-day {
+    min-height: 40px !important;
+    line-height: 40px !important;
+  }
+  #select-language,
+  .backend-link {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.5rem 1rem !important;
+  }
+}

@@ -257,13 +257,13 @@ class Products_model extends EA_Model
                 $this->db->where('stock_quantity >=', abs($delta));
             }
             $delta_int = (int)$delta;
-            $this->db->set('stock_quantity', "stock_quantity + ({$delta_int})", false);
+            $this->db->set('stock_quantity', "COALESCE(stock_quantity, 0) + ({$delta_int})", false);
             $this->db->set('updated_at', date('Y-m-d H:i:s'));
             $this->db->update('products');
 
-            if ($delta < 0 && $this->db->affected_rows() === 0) {
+            if ($this->db->affected_rows() === 0) {
                 $this->db->trans_rollback();
-                throw new InvalidArgumentException('Insufficient stock for product ID ' . $product_id);
+                throw new InvalidArgumentException('Insufficient stock or product not found: ' . $product_id);
             }
 
             // Record the movement

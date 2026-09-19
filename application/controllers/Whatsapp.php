@@ -206,7 +206,11 @@ class Whatsapp extends EA_Controller
             $signature_header = $this->input->get_request_header('X-Hub-Signature-256')
                 ?? ($_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? null);
 
-            if (!empty($app_secret) && !empty($signature_header)) {
+            if (!empty($app_secret)) {
+                if (empty($signature_header)) {
+                    log_message('error', 'Whatsapp::webhook_receive - Missing X-Hub-Signature-256');
+                    abort(403, 'Missing Meta signature');
+                }
                 $expected = 'sha256=' . hash_hmac('sha256', $raw_input, $app_secret);
                 if (!hash_equals($expected, (string) $signature_header)) {
                     log_message('error', 'Whatsapp::webhook_receive - Invalid X-Hub-Signature-256');
@@ -253,7 +257,9 @@ class Whatsapp extends EA_Controller
             }
 
             // Auto-reply via AI Assistant if enabled
-            if (!empty($settings['ai_reply_whatsapp_enabled'])) {
+            $ai_enabled = !empty($settings['ai_reply_whatsapp_enabled']) 
+                || (setting('ai_reply_whatsapp_enabled') !== '0');
+            if ($ai_enabled) {
                 $this->load->library('ai_channel_responder');
                 $ai_reply = $this->ai_channel_responder->respond('whatsapp', $wa_id, $body, $matched_user);
                 if (!empty($ai_reply)) {
@@ -675,11 +681,13 @@ class Whatsapp extends EA_Controller
             }
 
             // Auto-reply via AI Assistant if enabled
-            if (!empty($settings['ai_reply_whatsapp_enabled'])) {
+            $ai_enabled = !empty($settings['ai_reply_whatsapp_enabled']) 
+                || (setting('ai_reply_whatsapp_enabled') !== '0');
+            if ($ai_enabled) {
                 $this->load->library('ai_channel_responder');
                 $ai_reply = $this->ai_channel_responder->respond('whatsapp', $from, $body, $matched_user);
                 if (!empty($ai_reply)) {
-                    $mode = $settings['whatsapp_mode'] ?? 'official';
+                    $mode = $settings['whatsapp_mode'] ?? 'unofficial';
                     $this->send_whatsapp($from, $ai_reply, $mode);
                     $this->whatsapp_messages_model->save([
                         'id_users' => $matched_user['id'] ?? null,

@@ -68,7 +68,7 @@ class Loyalty_points_model extends EA_Model
             // Update the customer's balance
             $this->db->query(
                 'UPDATE ' . $this->db->dbprefix('users') .
-                ' SET loyalty_points_balance = loyalty_points_balance + ' . intval($points) .
+                ' SET loyalty_points_balance = COALESCE(loyalty_points_balance, 0) + ' . intval($points) .
                 ' WHERE id = ' . intval($customer_id),
             );
 
@@ -126,8 +126,8 @@ class Loyalty_points_model extends EA_Model
             // Atomically decrement the customer's balance ensuring it doesn't go below zero
             $this->db->query(
                 'UPDATE ' . $this->db->dbprefix('users') .
-                ' SET loyalty_points_balance = loyalty_points_balance - ? ' .
-                ' WHERE id = ? AND loyalty_points_balance >= ?',
+                ' SET loyalty_points_balance = COALESCE(loyalty_points_balance, 0) - ? ' .
+                ' WHERE id = ? AND COALESCE(loyalty_points_balance, 0) >= ?',
                 [(int)$points, (int)$customer_id, (int)$points]
             );
 

@@ -654,6 +654,13 @@ App.Pages.Customers = (function () {
      * @param {Boolean} show Optional (false), if true then the selected record will be displayed on the form.
      */
     function filter(keyword, selectId = null, show = false) {
+        $filterCustomers.find('.results').html(
+            '<div class="text-center py-4 text-muted">' +
+            '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>' +
+            '<span>' + (lang('loading') || 'Yükleniyor...') + '</span>' +
+            '</div>'
+        );
+
         App.Http.Customers.search(keyword, filterLimit).then((response) => {
             filterResults = response;
 
@@ -664,11 +671,45 @@ App.Pages.Customers = (function () {
             });
 
             if (!response.length) {
-                $filterCustomers.find('.results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
-                    }),
-                );
+                if (keyword) {
+                    $filterCustomers.find('.results').append(
+                        $('<div/>', {
+                            'class': 'text-center py-4 text-muted',
+                            'html': [
+                                $('<i/>', {'class': 'fas fa-search fa-2x opacity-50 mb-2 d-block'}),
+                                $('<p/>', {'class': 'mb-2 small', 'text': lang('no_records_found') || 'Aramanızla eşleşen müşteri bulunamadı.'}),
+                                $('<button/>', {
+                                    'type': 'button',
+                                    'class': 'btn btn-sm btn-outline-secondary',
+                                    'html': '<i class="fas fa-times me-1"></i>Filtreyi Temizle',
+                                    'click': () => {
+                                        $filterCustomers.find('.key').val('');
+                                        App.Pages.Customers.filter('');
+                                    }
+                                })
+                            ]
+                        })
+                    );
+                } else {
+                    $filterCustomers.find('.results').append(
+                        $('<div/>', {
+                            'class': 'text-center py-4 text-muted',
+                            'html': [
+                                $('<i/>', {'class': 'fas fa-users fa-3x text-primary opacity-50 mb-3 d-block'}),
+                                $('<h6/>', {'class': 'fw-semibold text-dark mb-1', 'text': 'Henüz kayıtlı müşteri yok'}),
+                                $('<p/>', {'class': 'small text-muted mb-3', 'text': 'Yeni randevu oluşturulduğunda veya müşteri eklediğinizde burada listelenir.'}),
+                                $('<button/>', {
+                                    'type': 'button',
+                                    'class': 'btn btn-sm btn-primary',
+                                    'html': '<i class="fas fa-user-plus me-1"></i>Yeni Müşteri Ekle',
+                                    'click': () => {
+                                        $('#add-customer').trigger('click');
+                                    }
+                                })
+                            ]
+                        })
+                    );
+                }
             } else if (response.length === filterLimit) {
                 $('<button/>', {
                     'type': 'button',
@@ -684,6 +725,22 @@ App.Pages.Customers = (function () {
             if (selectId) {
                 App.Pages.Customers.select(selectId, show);
             }
+        }).catch((err) => {
+            $filterCustomers.find('.results').html(
+                $('<div/>', {
+                    'class': 'text-center py-4 text-danger',
+                    'html': [
+                        $('<i/>', {'class': 'fas fa-exclamation-triangle fa-2x mb-2 d-block'}),
+                        $('<p/>', {'class': 'small mb-2', 'text': 'Müşteriler yüklenirken bir hata oluştu.'}),
+                        $('<button/>', {
+                            'type': 'button',
+                            'class': 'btn btn-sm btn-outline-danger',
+                            'html': '<i class="fas fa-sync-alt me-1"></i>Tekrar Dene',
+                            'click': () => App.Pages.Customers.filter(keyword, selectId, show)
+                        })
+                    ]
+                })
+            );
         });
     }
 

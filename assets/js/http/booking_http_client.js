@@ -42,7 +42,14 @@ App.Http.Booking = (function () {
      * @param {String} selectedDate The selected date of the available hours we need.
      */
     function getAvailableHours(selectedDate) {
-        $availableHours.empty();
+        $availableHours.html(`
+            <div class="d-flex flex-column gap-2 py-2">
+                <div class="placeholder-glow"><span class="placeholder col-12 rounded py-3 bg-secondary bg-opacity-10 d-block"></span></div>
+                <div class="placeholder-glow"><span class="placeholder col-12 rounded py-3 bg-secondary bg-opacity-10 d-block"></span></div>
+                <div class="placeholder-glow"><span class="placeholder col-12 rounded py-3 bg-secondary bg-opacity-10 d-block"></span></div>
+                <div class="placeholder-glow"><span class="placeholder col-12 rounded py-3 bg-secondary bg-opacity-10 d-block"></span></div>
+            </div>
+        `);
 
         // Find the selected service duration (it is going to be send within the "data" object).
         const serviceId = $selectService.val();
@@ -74,77 +81,100 @@ App.Http.Booking = (function () {
             appointment_id: appointmentId,
         };
 
-        $.post(url, data).done((response) => {
-            $availableHours.empty();
+        $.post(url, data)
+            .done((response) => {
+                $availableHours.empty();
 
-            // The response contains the available hours for the selected provider and service. Fill the available
-            // hours div with response data.
-            if (response.length > 0) {
-                let providerId = $selectProvider.val();
+                // The response contains the available hours for the selected provider and service. Fill the available
+                // hours div with response data.
+                if (response.length > 0) {
+                    let providerId = $selectProvider.val();
 
-                if (providerId === 'any-provider') {
-                    for (const availableProvider of vars('available_providers')) {
-                        if (availableProvider.services.indexOf(Number(serviceId)) !== -1) {
-                            providerId = availableProvider.id; // Use first available provider.
-                            break;
+                    if (providerId === 'any-provider') {
+                        for (const availableProvider of vars('available_providers')) {
+                            if (availableProvider.services.indexOf(Number(serviceId)) !== -1) {
+                                providerId = availableProvider.id; // Use first available provider.
+                                break;
+                            }
                         }
                     }
-                }
 
-                const provider = vars('available_providers').find(
-                    (availableProvider) => Number(providerId) === Number(availableProvider.id),
-                );
+                    const provider = vars('available_providers').find(
+                        (availableProvider) => Number(providerId) === Number(availableProvider.id),
+                    );
 
-                if (!provider) {
-                    throw new Error('Could not find provider.');
-                }
-
-                const providerTimezone = provider.timezone;
-                const selectedTimezone = $('#select-timezone').val();
-                const timeFormat = vars('time_format') === 'regular' ? 'h:mm a' : 'HH:mm';
-
-                response.forEach((availableHour) => {
-                    const availableHourMoment = moment
-                        .tz(selectedDate + ' ' + availableHour + ':00', providerTimezone)
-                        .tz(selectedTimezone);
-
-                    if (availableHourMoment.format('YYYY-MM-DD') !== selectedDate) {
-                        return; // Due to the selected timezone the available hour belongs to another date.
+                    if (!provider) {
+                        throw new Error('Could not find provider.');
                     }
 
-                    $availableHours.append(
-                        $('<button/>', {
-                            'class': 'btn btn-outline-secondary w-100 shadow-none available-hour',
-                            'data': {
-                                'value': availableHour,
-                            },
-                            'text': availableHourMoment.format(timeFormat),
-                        }),
-                    );
-                });
+                    const providerTimezone = provider.timezone;
+                    const selectedTimezone = $('#select-timezone').val();
+                    const timeFormat = vars('time_format') === 'regular' ? 'h:mm a' : 'HH:mm';
 
-                if (App.Pages.Booking.manageMode) {
-                    // Set the appointment's start time as the default selection.
-                    $('.available-hour')
-                        .removeClass('selected-hour')
-                        .filter(
-                            (index, availableHourEl) =>
-                                $(availableHourEl).text() ===
-                                moment(vars('appointment_data').start_datetime).format(timeFormat),
-                        )
-                        .addClass('selected-hour');
-                } else {
-                    // Set the first available hour as the default selection.
-                    $('.available-hour:eq(0)').addClass('selected-hour');
+                    response.forEach((availableHour) => {
+                        const availableHourMoment = moment
+                            .tz(selectedDate + ' ' + availableHour + ':00', providerTimezone)
+                            .tz(selectedTimezone);
+
+                        if (availableHourMoment.format('YYYY-MM-DD') !== selectedDate) {
+                            return; // Due to the selected timezone the available hour belongs to another date.
+                        }
+
+                        $availableHours.append(
+                            $('<button/>', {
+                                'class': 'btn btn-outline-secondary w-100 shadow-none available-hour',
+                                'data': {
+                                    'value': availableHour,
+                                },
+                                'text': availableHourMoment.format(timeFormat),
+                            }),
+                        );
+                    });
+
+                    if (App.Pages.Booking.manageMode) {
+                        // Set the appointment's start time as the default selection.
+                        $('.available-hour')
+                            .removeClass('selected-hour')
+                            .filter(
+                                (index, availableHourEl) =>
+                                    $(availableHourEl).text() ===
+                                    moment(vars('appointment_data').start_datetime).format(timeFormat),
+                            )
+                            .addClass('selected-hour');
+                    } else {
+                        // Set the first available hour as the default selection.
+                        $('.available-hour:eq(0)').addClass('selected-hour');
+                    }
+
+                    App.Pages.Booking.updateConfirmFrame();
                 }
 
-                App.Pages.Booking.updateConfirmFrame();
-            }
-
-            if (!$availableHours.find('.available-hour').length) {
-                $availableHours.text(lang('no_available_hours'));
-            }
-        });
+                if (!$availableHours.find('.available-hour').length) {
+                    $availableHours.html(`
+                        <div class="text-center py-4 px-2">
+                            <div class="rounded-circle bg-light d-inline-flex p-3 text-muted mb-2">
+                                <i class="far fa-calendar-times fa-2x text-secondary opacity-50"></i>
+                            </div>
+                            <div class="fw-semibold text-dark mb-1">${lang('no_available_hours') || 'Müsait saat bulunamadı.'}</div>
+                            <p class="small text-muted mb-0">Lütfen takvimden başka bir gün veya uzman seçmeyi deneyin.</p>
+                        </div>
+                    `);
+                }
+            })
+            .fail(() => {
+                $availableHours.html(`
+                    <div class="text-center py-4 px-2">
+                        <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex p-3 text-danger mb-2">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                        <div class="fw-semibold text-danger mb-2">Saatler yüklenirken bir sorun oluştu.</div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-retry-hours">
+                            <i class="fas fa-redo me-1"></i> Tekrar Dene
+                        </button>
+                    </div>
+                `);
+                $('#btn-retry-hours').on('click', () => getAvailableHours(selectedDate));
+            });
     }
 
     /**

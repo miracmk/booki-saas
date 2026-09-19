@@ -80,7 +80,37 @@ App.Pages.Reviews = (function () {
     }
 
     if (rows.length === 0) {
-      $tbody.html('<tr><td colspan="8" class="text-center text-muted py-5"><div class="py-3"><i class="fas fa-comments text-muted opacity-25 fa-3x d-block mb-3"></i><p class="mb-0 fw-medium">Bu filtrelere uygun yorum bulunmuyor.</p></div></td></tr>');
+      if (selectedProvider || selectedStation) {
+        $tbody.html(
+          '<tr><td colspan="8" class="text-center text-muted py-5">' +
+          '<div class="py-3">' +
+          '<i class="fas fa-filter fa-3x text-muted opacity-25 d-block mb-3"></i>' +
+          '<h6 class="fw-semibold text-dark mb-1">Seçilen filtrelere uygun yorum bulunmuyor</h6>' +
+          '<p class="small text-muted mb-3">Farklı bir uzman veya istasyon seçerek filtreleri sıfırlayabilirsiniz.</p>' +
+          '<button class="btn btn-sm btn-outline-secondary" onclick="$(\'#review-filter-provider, #review-filter-station\').val(\'\').trigger(\'change\')">' +
+          '<i class="fas fa-times me-1"></i>Filtreleri Sıfırla' +
+          '</button>' +
+          '</div></td></tr>'
+        );
+      } else {
+        const tabMessages = {
+          requested: 'Henüz gönderilmiş değerlendirme talebi yok',
+          pending: 'Şu anda onay veya red bekleyen yeni bir değerlendirme bulunmuyor',
+          published: 'Henüz yayınlanmış bir müşteri değerlendirmesi yok',
+          rejected: 'Reddedilmiş bir değerlendirme bulunmuyor'
+        };
+        $tbody.html(
+          '<tr><td colspan="8" class="text-center text-muted py-5">' +
+          '<div class="py-3">' +
+          '<i class="fas fa-star fa-3x text-warning opacity-50 d-block mb-3"></i>' +
+          '<h6 class="fw-semibold text-dark mb-1">' + (tabMessages[status] || 'Değerlendirme bulunmuyor') + '</h6>' +
+          '<p class="small text-muted mb-3">Tamamlanan randevulardan sonra müşterilere otomatik olarak değerlendirme bağlantısı gönderilir.</p>' +
+          '<a href="' + App.Utils.Url.siteUrl('calendar') + '" class="btn btn-sm btn-primary">' +
+          '<i class="fas fa-calendar-check me-1"></i>Randevuları Görüntüle' +
+          '</a>' +
+          '</div></td></tr>'
+        );
+      }
       return;
     }
 

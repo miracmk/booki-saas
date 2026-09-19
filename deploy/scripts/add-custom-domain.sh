@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ki Reservation - firma kendi domain/subdomain'ini bağladığında (SaaS "custom domain" özelliği)
+# BooKi - firma kendi domain/subdomain'ini bağladığında (SaaS "custom domain" özelliği)
 # otomatik Let's Encrypt HTTP-01 sertifikası alıp NPM'e ekleyen ve tenant kaydını güncelleyen script.
 #
 # Kullanım: ./add-custom-domain.sh <subdomain> <custom_domain>
@@ -7,7 +7,7 @@
 #   custom_domain  - firmanın bağladığı domain/subdomain (örn. "rezervasyon.salonflora.tr")
 #
 # Önkoşul: firma kendi DNS'inde custom_domain'i bu sunucunun IP'sine (A kaydı) veya
-# reservationapp.kibusiness.co'ya (CNAME) yönlendirmiş olmalı - script bunu doğrular, DNS henüz
+# bookiapp.kibusiness.co'ya (CNAME) yönlendirmiş olmalı - script bunu doğrular, DNS henüz
 # yayılmamışsa hata verip çıkar (yeniden çalıştırılabilir, veri kaybı riski yok).
 
 set -euo pipefail
@@ -26,7 +26,7 @@ RESOLVED_IP="$(dig +short "$CUSTOM_DOMAIN" @1.1.1.1 | tail -1)"
 
 if [[ "$RESOLVED_IP" != "$SERVER_IP" ]]; then
     echo "HATA: $CUSTOM_DOMAIN şu an $SERVER_IP'ye değil, '$RESOLVED_IP'ye çözümleniyor." >&2
-    echo "Firmanın DNS'inde A kaydını $SERVER_IP'ye (veya CNAME'ini reservationapp.kibusiness.co'ya) yönlendirmesi gerekiyor." >&2
+    echo "Firmanın DNS'inde A kaydını $SERVER_IP'ye (veya CNAME'ini bookiapp.kibusiness.co'ya) yönlendirmesi gerekiyor." >&2
     exit 1
 fi
 

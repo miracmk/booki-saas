@@ -26,6 +26,11 @@ class Restaurant extends EA_Controller
             return;
         }
 
+        if (session('role_slug') === DB_SLUG_CUSTOMER) {
+            redirect('customer_portal');
+            return;
+        }
+
         $tables = $this->restaurant_model->get_tables_with_status();
         $today_reservations = $this->restaurant_model->get_reservations(date('Y-m-d'));
         $waitlist = $this->db->table_exists('waitlist') ? $this->db->get('waitlist', 20)->result_array() : [];
@@ -249,6 +254,14 @@ class Restaurant extends EA_Controller
                 ->set_status_header(401)
                 ->set_content_type('application/json')
                 ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+            exit;
+        }
+
+        if (session('role_slug') === DB_SLUG_CUSTOMER) {
+            $this->output
+                ->set_status_header(403)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Forbidden']));
             exit;
         }
     }

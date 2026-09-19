@@ -157,7 +157,28 @@ if (!function_exists('json_exception')) {
 
         $status_code = (int) $e->getCode();
         if ($status_code < 400 || $status_code > 599) {
-            $status_code = ($e instanceof InvalidArgumentException) ? 422 : 500;
+            $raw_msg = $e->getMessage();
+            if ($e instanceof InvalidArgumentException) {
+                if (preg_match('/(not found|bulunamad[ıi]|does not exist)/ui', $raw_msg)) {
+                    $status_code = 404;
+                } else {
+                    $status_code = 422;
+                }
+            } elseif ($e instanceof RuntimeException) {
+                if (preg_match('/(permission|yetki|unauthorized|forbidden|access denied)/ui', $raw_msg)) {
+                    $status_code = 403;
+                } elseif (preg_match('/(too many attempts|[çc]ok fazla deneme|rate limit)/ui', $raw_msg)) {
+                    $status_code = 429;
+                } elseif (preg_match('/(conflict|[çc]ak[ıi][şs]ma|already exists|zaten mevcut|zaten bekleyen)/ui', $raw_msg)) {
+                    $status_code = 409;
+                } elseif (preg_match('/(not found|bulunamad[ıi]|does not exist)/ui', $raw_msg)) {
+                    $status_code = 404;
+                } else {
+                    $status_code = 500;
+                }
+            } else {
+                $status_code = 500;
+            }
         }
 
         json_response($response, $status_code);

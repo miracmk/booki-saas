@@ -161,11 +161,11 @@ class EA_Controller extends CI_Controller
 
         $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
         $host = preg_replace('/:\d+$/', '', $host); // strip a port, if present
-        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
-        $superadmin_domain = getenv('SUPERADMIN_DOMAIN') ?: 'reservationadmin.kibusiness.co';
-        $marketplace_domain = getenv('MARKETPLACE_DOMAIN') ?: 'reservation.kibusiness.co';
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+        $superadmin_domain = getenv('SUPERADMIN_DOMAIN') ?: 'admin-bookiapp.kibusiness.co';
+        $marketplace_domain = getenv('MARKETPLACE_DOMAIN') ?: 'booki.kibusiness.co';
 
-        // BooKi (2026-08-26) - SaaS admin panel (reservationadmin.kibusiness.co): a completely
+        // BooKi (2026-08-26) - SaaS admin panel (admin-bookiapp.kibusiness.co): a completely
         // separate host from any tenant, never resolves to one - stays on the master DB for its whole
         // "Superadmin*" controller family (see SuperadminAuth.php's docblock). Any other controller
         // reached on this host 404s, same principle as Portal.php's bare-app-domain exception below.

@@ -97,10 +97,29 @@ class Checkin extends EA_Controller
     }
 
     /**
+     * Ensure staff member (admin, provider, secretary) is authenticated.
+     */
+    protected function ensure_staff_authenticated(): void
+    {
+        $user_id = $this->session->userdata('user_id');
+        $role_slug = $this->session->userdata('role_slug');
+
+        if (!$user_id || $role_slug === DB_SLUG_CUSTOMER) {
+            $this->output
+                ->set_status_header(401)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+            exit;
+        }
+    }
+
+    /**
      * Process Check-in (AJAX).
      */
     public function do_checkin(): void
     {
+        $this->ensure_staff_authenticated();
+
         $params = [
             'id_users_customer' => $this->input->post('id_users_customer') ?: null,
             'phone' => $this->input->post('phone') ?: null,
@@ -130,6 +149,8 @@ class Checkin extends EA_Controller
      */
     public function do_checkout(): void
     {
+        $this->ensure_staff_authenticated();
+
         $checkin_id = (int) $this->input->post('checkin_id');
 
         try {
@@ -146,10 +167,12 @@ class Checkin extends EA_Controller
     }
 
     /**
-     * Live Occupancy JSON polling endpoint.
+     * Live Occupancy JSON polling endpoint (Staff only).
      */
     public function live_status(): void
     {
+        $this->ensure_staff_authenticated();
+
         $occupancy = $this->checkin_model->get_live_occupancy();
         $this->output
             ->set_content_type('application/json')

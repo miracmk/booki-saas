@@ -379,6 +379,7 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                     <div class="collapse" id="sidebar-account-collapse">
                         <ul class="nav flex-column ps-4">
                             <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
+                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('onboarding') ?>"><i class="fas fa-magic me-2"></i>Sektör Şablonları & Sihirbaz</a></li>
                                 <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('general_settings') ?>"><i class="fas fa-cogs me-2"></i><?= lang('settings') ?></a></li>
                                 <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('audit_log') ?>"><i class="fas fa-clipboard-list me-2"></i>Denetim Kayıtları</a></li>
                                 <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('data_requests') ?>"><i class="fas fa-shield-alt me-2"></i>Veri Talepleri (KVKK)</a></li>

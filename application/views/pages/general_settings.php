@@ -276,6 +276,80 @@
                             </div>
                         </div>
 
+                        <!-- Marketplace & Keşif Profili (BooKi Marketplace) -->
+                        <div class="row mb-5">
+                            <div class="col-12">
+                                <div class="card border-primary border-opacity-25 bg-light p-4 rounded-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                        <h5 class="mb-0 fw-bold text-dark">
+                                            <i class="fas fa-store text-primary me-2"></i>BooKi Pazar Yeri & Keşif Profili
+                                        </h5>
+                                        <span class="badge bg-primary">SEO & GEO Entegre</span>
+                                    </div>
+                                    <p class="text-muted small mb-4">
+                                        İşletmenizin BooKi Pazar Yeri'nde (Marketplace) listelenmesini sağlayarak Google ve Yapay Zeka (Gemini, ChatGPT, Perplexity) aramalarında yeni müşteriler kazanın.
+                                    </p>
+
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="marketplace-opt-in" data-field="marketplace_opt_in">
+                                        <label class="form-check-label fw-semibold" for="marketplace-opt-in">
+                                            İşletmemi BooKi Pazar Yerinde Yayınla & Keşfe Aç
+                                        </label>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="marketplace-category">Pazar Yeri Kategorisi</label>
+                                            <select id="marketplace-category" class="form-select" data-field="marketplace_category">
+                                                <option value="">Seçiniz</option>
+                                                <option value="Kuaför & Saç">Kuaför & Saç Tasarım</option>
+                                                <option value="Güzellik & Bakım">Güzellik Salonu & Cilt Bakımı</option>
+                                                <option value="Spa & Masaj">Spa, Hamam & Masaj</option>
+                                                <option value="Klinik & Sağlık">Klinik, Diş & Sağlık</option>
+                                                <option value="Tırnak & Estetik">Tırnak & Kalıcı Makyaj</option>
+                                                <option value="Fitness & Spor">Fitness, Pilates & PT</option>
+                                                <option value="Diyetisyen">Diyetisyen & Beslenme</option>
+                                                <option value="Pet Kuaför">Pet Kuaför & Bakım</option>
+                                                <option value="Dövme & Piercing">Dövme & Piercing</option>
+                                                <option value="Diğer Hizmetler">Diğer Hizmetler</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="marketplace-price-range">Fiyat Segmenti</label>
+                                            <select id="marketplace-price-range" class="form-select" data-field="marketplace_price_range">
+                                                <option value="₺">₺ (Ekonomik / Uygun)</option>
+                                                <option value="₺₺" selected>₺₺ (Standart / Ortalama)</option>
+                                                <option value="₺₺₺">₺₺₺ (Premium / Seçkin)</option>
+                                                <option value="₺₺₺₺">₺₺₺₺ (Lüks / VIP)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="marketplace-city">Şehir</label>
+                                            <input type="text" id="marketplace-city" class="form-control" data-field="marketplace_city" placeholder="Örn: İstanbul, Ankara, İzmir">
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="marketplace-district">İlçe / Bölge</label>
+                                            <input type="text" id="marketplace-district" class="form-control" data-field="marketplace_district" placeholder="Örn: Kadıköy, Beşiktaş, Çankaya">
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label" for="marketplace-cover-image">Kapak Görseli URL'si</label>
+                                            <input type="url" id="marketplace-cover-image" class="form-control" data-field="marketplace_cover_image_url" placeholder="https://example.com/salon-foto.jpg">
+                                            <small class="text-muted">Pazar yeri kartlarında ve işletme profilinde görünecek yüksek kaliteli fotoğraf bağlantısı.</small>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label class="form-label" for="marketplace-short-desc">Kısa Tanıtım Yazısı (SEO & AI İçin)</label>
+                                            <textarea id="marketplace-short-desc" class="form-control" data-field="marketplace_short_description" rows="3" placeholder="İşletmenizin sunduğu özel deneyimi ve uzmanlık alanlarını kısaca açıklayın..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </fieldset>
                 </form>
             </div>

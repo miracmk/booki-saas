@@ -141,6 +141,62 @@ $status_badge = [
                     <h3 class="h6 mb-0 fw-bold">Dikkat Gerektirenler</h3>
                 </div>
                 <div id="dash-attention" class="list-group list-group-flush">
+                    <?php if (!empty($summary['ai_pending_items'])): ?>
+                        <div class="list-group-item bg-light-subtle py-2 d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold text-primary"><i class="fas fa-robot me-1"></i> AI Asistan — Onay Bekleyen İşlemler (<span id="dash-ai-count"><?= (int) $summary['ai_pending_count'] ?></span>)</span>
+                            <a href="<?= site_url('ai_agent') ?>" class="small text-decoration-none">Tümünü Gör →</a>
+                        </div>
+                        <?php foreach ($summary['ai_pending_items'] as $item): ?>
+                            <?php 
+                                $changes = json_decode((string) $item['changes'], true) ?: []; 
+                                $is_appt = ($item['target_table'] === 'appointments');
+                                $action = $changes['action'] ?? ($is_appt ? 'create' : 'update');
+                            ?>
+                            <div class="list-group-item py-3 dash-ai-item" id="dash-ai-item-<?= (int) $item['id'] ?>" data-id="<?= (int) $item['id'] ?>">
+                                <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <?php if ($is_appt && $action === 'create'): ?>
+                                            <span class="badge bg-primary text-white"><i class="fas fa-calendar-plus me-1"></i> Yeni Randevu</span>
+                                        <?php elseif ($is_appt && $action === 'cancel'): ?>
+                                            <span class="badge bg-danger text-white"><i class="fas fa-calendar-xmark me-1"></i> İptal Talebi</span>
+                                        <?php elseif ($is_appt && $action === 'reschedule'): ?>
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-calendar-days me-1"></i> Saat Değişikliği</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-info text-dark"><i class="fas fa-user-pen me-1"></i> Profil Güncelleme</span>
+                                        <?php endif; ?>
+                                        <strong class="small"><?= e($changes['customer_name'] ?? 'Müşteri #' . (int) $item['target_id']) ?></strong>
+                                        <?php if (!empty($changes['customer_phone'])): ?>
+                                            <span class="text-muted small">(<?= e($changes['customer_phone']) ?>)</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <small class="text-muted"><?= date('H:i, d.m.Y', strtotime($item['created_at'])) ?></small>
+                                </div>
+
+                                <div class="small mb-2 ps-1">
+                                    <?php if ($is_appt && $action === 'create'): ?>
+                                        <div><strong>Hizmet:</strong> <?= e($changes['service_name'] ?? 'Belirtilmedi') ?> · <strong>Tarih:</strong> <span class="text-primary fw-bold"><?= e($changes['start_datetime'] ?? '-') ?></span></div>
+                                    <?php elseif ($is_appt && $action === 'reschedule'): ?>
+                                        <div><strong>Randevu #<?= (int) ($item['target_id'] ?: ($changes['appointment_id'] ?? 0)) ?></strong> · <strong>Yeni Tarih:</strong> <span class="text-success fw-bold"><?= e($changes['new_start_datetime'] ?? '-') ?></span></div>
+                                    <?php elseif ($is_appt && $action === 'cancel'): ?>
+                                        <div class="text-danger">Randevu #<?= (int) ($item['target_id'] ?: ($changes['appointment_id'] ?? 0)) ?> için iptal talebi</div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($item['reason'])): ?>
+                                        <div class="text-muted fst-italic mt-1">"<?= e($item['reason']) ?>"</div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-success dash-ai-approve" data-id="<?= (int) $item['id'] ?>" data-busy-label="İşleniyor...">
+                                        <i class="fas fa-check me-1"></i> Onayla & Takvime İşle
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger dash-ai-reject" data-id="<?= (int) $item['id'] ?>" data-busy-label="...">
+                                        <i class="fas fa-times me-1"></i> Reddet
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+
                     <?php if ($summary['payment_missing_count'] > 0): ?>
                         <a href="<?= site_url('calendar') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3">
                             <i class="fas fa-circle text-danger" style="font-size:8px"></i>
@@ -162,7 +218,7 @@ $status_badge = [
                         </a>
                     <?php endif; ?>
                     <div id="dash-attention-overdue"></div>
-                    <?php if ($summary['payment_missing_count'] === 0 && $summary['waiting_count'] === 0): ?>
+                    <?php if ($summary['payment_missing_count'] === 0 && $summary['waiting_count'] === 0 && empty($summary['ai_pending_count'])): ?>
                         <div class="list-group-item text-muted small py-4 text-center" id="dash-attention-empty">Şu an dikkat gerektiren bir konu yok.</div>
                     <?php endif; ?>
                 </div>

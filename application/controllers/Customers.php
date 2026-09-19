@@ -285,6 +285,43 @@ class Customers extends EA_Controller
                 $secretary_provider_ids = $this->secretaries_model->find($user_id)['providers'];
             }
 
+            // Batch eager-load appointments and dependencies to eliminate N+1 queries
+            $customer_ids = array_values(array_filter(array_map('intval', array_column($customers, 'id'))));
+            $appointments_by_customer = [];
+
+            if (!empty($customer_ids)) {
+                $all_appointments = $this->db
+                    ->where_in('id_users_customer', $customer_ids)
+                    ->order_by('start_datetime', 'DESC')
+                    ->get('appointments')
+                    ->result_array();
+
+                $service_ids = array_values(array_unique(array_filter(array_column($all_appointments, 'id_services'))));
+                $services_map = [];
+                if (!empty($service_ids)) {
+                    $services = $this->db->where_in('id', $service_ids)->get('services')->result_array();
+                    foreach ($services as $s) {
+                        $services_map[$s['id']] = $s;
+                    }
+                }
+
+                $provider_ids = array_values(array_unique(array_filter(array_column($all_appointments, 'id_users_provider'))));
+                $providers_map = [];
+                if (!empty($provider_ids)) {
+                    $providers = $this->db->where_in('id', $provider_ids)->get('users')->result_array();
+                    foreach ($providers as $p) {
+                        $providers_map[$p['id']] = $p;
+                    }
+                }
+
+                foreach ($all_appointments as $appt) {
+                    $c_id = (int) $appt['id_users_customer'];
+                    $appt['service'] = $services_map[$appt['id_services']] ?? null;
+                    $appt['provider'] = $providers_map[$appt['id_users_provider']] ?? null;
+                    $appointments_by_customer[$c_id][] = $appt;
+                }
+            }
+
             foreach ($customers as $index => &$customer) {
                 if (!$this->permissions->has_customer_access($user_id, $customer['id'])) {
                     unset($customers[$index]);
@@ -292,7 +329,7 @@ class Customers extends EA_Controller
                     continue;
                 }
 
-                $appointments = $this->appointments_model->get(['id_users_customer' => $customer['id']]);
+                $appointments = $appointments_by_customer[$customer['id']] ?? [];
 
                 // If the current user is a provider, only include their own appointments.
                 if ($role_slug === DB_SLUG_PROVIDER) {
@@ -312,13 +349,7 @@ class Customers extends EA_Controller
                     $appointments = array_values($appointments);
                 }
 
-                foreach ($appointments as &$appointment) {
-                    $this->appointments_model->load($appointment, ['service', 'provider']);
-                }
-
-                // Salon Flora customization - see the class docblock. filter_customer_for_role() strips every
-                // field except id/first_name for providers, so the appointments list (built above) is re-attached
-                // afterwards rather than lost.
+                // Salon Flora customization - filter_customer_for_role() strips private fields for providers
                 $customer = $this->appointments_model->filter_customer_for_role($customer, $role_slug);
                 $customer['appointments'] = $appointments;
                 $customer['notification_preferences'] = $this->user_notification_preferences_model->get((int) $customer['id']);

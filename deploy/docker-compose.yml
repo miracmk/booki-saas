@@ -63,7 +63,7 @@ services:
       AI_AGENT_MODEL: ${AI_AGENT_MODEL:-openrouter/free}
       # JS/CSS cache-busting token (see application/config/app.php) - bump on every deploy that
       # changes a JS/CSS file.
-      ASSET_VERSION: "prod-20260918-001"
+      ASSET_VERSION: "prod-20260919-001"
     volumes:
       - /opt/ki-ecosystem/ki-reservation/files:/var/www/html/storage
     networks:

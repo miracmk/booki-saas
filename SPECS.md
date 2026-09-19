@@ -151,7 +151,7 @@ BooKi is **SaaS-only** — there is no self-hosted distribution
 and no offline license-key mechanism. Entitlement (plan, trial, license
 expiry) is tracked per tenant in the master database (`tenants.plan` /
 `trial_ends_at` / `license_expires_at`) and managed from the superadmin
-panel (`reservationadmin.kibusiness.co`); `EA_Controller::resolve_tenant()`
+panel (`admin-bookiapp.kibusiness.co`); `EA_Controller::resolve_tenant()`
 enforces it. A self-hosted RS256-signed-JWT licensing system existed
 briefly (2026-08-24 to 2026-09-11) and was removed - it was a leftover
 self-hosted-product concept that never had a key-issuing tool and

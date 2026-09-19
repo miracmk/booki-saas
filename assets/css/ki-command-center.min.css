@@ -242,7 +242,7 @@ nav#header .btn-link.text-white {
 }
 .kcc-swatch {
     flex: 1;
-    height: 36px;
+    min-height: 44px;
     border-radius: 10px;
     cursor: pointer;
     border: 2px solid transparent;
@@ -272,8 +272,8 @@ nav#header .btn-link.text-white {
     text-align: center;
 }
 .kcc-custom-pal input[type="color"] {
-    width: 40px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border: 1px solid var(--kcc-line);
     border-radius: 8px;
     padding: 2px;
@@ -301,14 +301,55 @@ nav#header .btn-link.text-white {
     border-radius: 14px;
     box-shadow: var(--kcc-shadow);
 }
-#calendar-toolbar .btn-light {
-    background: var(--kcc-surface);
-    border: 1px solid var(--kcc-line);
-    color: var(--kcc-text);
+#calendar-toolbar [hidden],
+#calendar-actions [hidden],
+#enable-sync[hidden],
+#sync-button-group[hidden] {
+    display: none !important;
 }
-#calendar-toolbar .btn-light:hover, #calendar-toolbar .btn-light:focus {
-    background: var(--kcc-bg);
-    color: var(--kcc-text);
+#calendar-toolbar .btn-light,
+#calendar-toolbar .btn-outline-secondary {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #1e293b !important;
+    font-weight: 500;
+}
+#calendar-toolbar .btn-light:hover,
+#calendar-toolbar .btn-light:focus,
+#calendar-toolbar .btn-outline-secondary:hover,
+#calendar-toolbar .btn-outline-secondary:focus {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+}
+#calendar-toolbar .btn-light i,
+#calendar-toolbar .btn-light svg,
+#calendar-toolbar .btn-outline-secondary i,
+#calendar-toolbar .btn-outline-secondary svg {
+    color: #475569;
+    transition: color .15s ease;
+}
+#calendar-toolbar .btn-light:hover i,
+#calendar-toolbar .btn-light:hover svg,
+#calendar-toolbar .btn-outline-secondary:hover i,
+#calendar-toolbar .btn-outline-secondary:hover svg {
+    color: var(--bs-primary) !important;
+}
+#calendar-toolbar #reload-appointments i,
+#calendar-toolbar #reload-appointments svg {
+    color: #3b82f6 !important;
+}
+#calendar-toolbar a[href*="calendar?view="] i,
+#calendar-toolbar a[href*="calendar?view="] svg {
+    color: #6366f1 !important;
+}
+#calendar-toolbar .fa-stopwatch,
+#calendar-toolbar svg.fa-stopwatch {
+    color: #0ea5e9 !important;
+}
+#calendar-toolbar .fa-filter,
+#calendar-toolbar svg.fa-filter {
+    color: var(--bs-primary) !important;
 }
 
 #calendar-shell {
@@ -316,82 +357,231 @@ nav#header .btn-link.text-white {
     border: 1px solid var(--kcc-line);
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: var(--kcc-shadow);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 #calendar-page #calendar {
     margin-bottom: 0;
 }
 
 #calendar {
-    --fc-border-color: var(--kcc-line);
-    --fc-neutral-bg-color: var(--kcc-bg);
-    --fc-page-bg-color: var(--kcc-surface);
-    --fc-now-indicator-color: var(--bs-primary);
-    --fc-today-bg-color: rgba(var(--bs-primary-rgb), .04);
+    --fc-border-color: #f1f5f9;
+    --fc-neutral-bg-color: #f8fafc;
+    --fc-page-bg-color: #ffffff;
+    --fc-now-indicator-color: #ef4444;
+    --fc-today-bg-color: rgba(var(--bs-primary-rgb), .03);
 }
 
-#calendar .fc-header .fc-button.btn-primary,
-#calendar .fc-header .fc-button.btn-primary:hover,
-#calendar .fc-header .fc-button.btn-primary:focus {
-    background-image: linear-gradient(135deg, var(--bs-primary) 0%, var(--kcc-accent-violet) 100%) !important;
+/* Modernized FullCalendar Header Toolbar */
+#calendar .fc-header-toolbar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--kcc-surface);
+    border-bottom: 1px solid var(--kcc-line);
+    margin-bottom: 0 !important;
+}
+#calendar .fc-toolbar-title {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: var(--kcc-text) !important;
+    letter-spacing: -0.01em;
+}
+#calendar .fc-button {
+    background: var(--kcc-surface) !important;
+    border: 1px solid var(--kcc-line) !important;
+    color: var(--kcc-text) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    padding: 6px 14px !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: all .15s ease !important;
+}
+#calendar .fc-button:hover {
+    background: var(--kcc-bg) !important;
+    border-color: var(--kcc-line-strong, #cbd5e1) !important;
+    color: var(--bs-primary) !important;
+}
+#calendar .fc-button-primary:not(:disabled).fc-button-active,
+#calendar .fc-button-primary:not(:disabled):active,
+#calendar .fc-button.fc-button-active {
+    background: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb), .3) !important;
+}
+#calendar .fc-button-group {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+#calendar .fc-button-group > .fc-button {
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+#calendar .fc-button-group > .fc-button:first-child {
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+}
+#calendar .fc-button-group > .fc-button:last-child {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+#calendar .fc-today-button {
+    border-radius: 8px !important;
+    margin-left: 6px !important;
+    font-weight: 600 !important;
 }
 
-/* Events: soft cards with a color accent bar instead of solid flat fills. */
-#calendar .fc-event {
-    border: none;
-    border-left: 3px solid var(--bs-primary);
-    border-radius: 10px;
-    background-color: rgba(var(--bs-primary-rgb), .12);
-    color: var(--kcc-text);
-    box-shadow: var(--kcc-shadow);
-    padding: 4px 8px;
-    font-size: 12.5px;
-    transition: transform .15s ease, box-shadow .15s ease;
+/* Time Grid Slot & Line Styles */
+#calendar .fc-timegrid-slot {
+    height: 28px !important;
 }
-#calendar .fc-event:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--kcc-shadow-lg);
+#calendar .fc-timegrid-slot-lane {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.7) !important;
+}
+#calendar .fc-timegrid-slot-minor {
+    border-bottom: 1px dashed rgba(226, 232, 240, 0.4) !important;
+}
+#calendar .fc-timegrid-slot-label-cushion {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #64748b !important;
+    padding-right: 8px !important;
+}
+#calendar .fc-timegrid-axis {
+    border-right: 1px solid #e2e8f0 !important;
+    background: #fafafa !important;
+}
+#calendar .fc-col-header-cell {
+    background: #fafafa !important;
+    padding: 10px 4px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+#calendar .fc-col-header-cell-cushion {
+    color: #334155 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    text-transform: capitalize !important;
+}
+#calendar .fc-day-today .fc-col-header-cell-cushion {
+    color: var(--bs-primary) !important;
+    font-weight: 700 !important;
+}
+#calendar .fc-day-today {
+    background-color: rgba(var(--bs-primary-rgb), 0.02) !important;
+}
+
+/* All-Day Slot Styling */
+#calendar .fc-timegrid-allday {
+    background: #f8fafc !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+#calendar .fc-timegrid-allday .fc-timegrid-axis-cushion {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: #64748b !important;
+}
+
+/* Current Time Indicator */
+#calendar .fc-timegrid-now-indicator-line {
+    border-color: #ef4444 !important;
+    border-width: 2px !important;
+    z-index: 5 !important;
+}
+#calendar .fc-timegrid-now-indicator-arrow {
+    border-color: #ef4444 !important;
+    border-width: 5px 0 5px 6px !important;
+}
+
+/* Background events for non-working hours and plan boundaries: subtle tint, NO harsh stripes */
+#calendar-page #calendar .fc-timegrid .fc-bg-event,
+#calendar-page #calendar .fc-timegrid-col-bg .fc-unavailability,
+#calendar-page #calendar .fc-unavailability.fc-bg-event,
+#calendar .fc-bg-event.fc-unavailability {
+    background: rgba(241, 245, 249, 0.6) !important;
+    background-image: none !important;
+    border: none !important;
+    opacity: 0.8 !important;
+}
+/* Break periods background - soft amber tint, NO harsh stripes */
+#calendar-page #calendar .fc-unavailability.fc-break.fc-bg-event,
+#calendar-page #calendar .fc-bg-event.fc-break {
+    background: rgba(254, 243, 199, 0.45) !important;
+    background-image: none !important;
+    border-left: 3px solid rgba(245, 158, 11, 0.5) !important;
+    opacity: 0.9 !important;
+}
+
+/* Events: modern soft cards with an accent bar and clear typography */
+#calendar .fc-timegrid-event {
+    border-radius: 8px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-left: 3.5px solid var(--bs-primary) !important;
+    background-color: #ffffff !important;
+    padding: 3px 6px !important;
+    transition: transform .15s ease, box-shadow .15s ease !important;
+}
+#calendar .fc-timegrid-event:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12) !important;
+    z-index: 20 !important;
 }
 #calendar-page .fc-event-time {
-    font-weight: 600;
-    font-size: 11.5px;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+    color: #475569 !important;
+    margin-bottom: 1px;
 }
 #calendar-page .fc-event-title {
-    font-weight: 500;
-    font-size: 11.5px;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    color: #0f172a !important;
+    line-height: 1.35;
 }
 #calendar .fc-daygrid-day:hover, #calendar .fc-timegrid-col:hover {
     background: rgba(var(--bs-primary-rgb), .02);
 }
 
-/* Unavailability/break/custom blocks: flat repeating-gradient textures instead
- * of the old JPG images (each stays visually distinct by angle/tint so staff
- * keep the same at-a-glance signal). */
-#calendar-page #calendar .fc-unavailability {
-    background-image: repeating-linear-gradient(45deg, var(--kcc-line), var(--kcc-line) 6px, var(--kcc-bg) 6px, var(--kcc-bg) 12px);
-    background-blend-mode: normal;
-    border-radius: 8px;
-    border-left: 3px solid var(--kcc-muted);
-    font-weight: 600;
-    color: var(--kcc-text);
-    border-top: 1px solid var(--kcc-line);
-    border-right: 1px solid var(--kcc-line);
-    border-bottom: 1px solid var(--kcc-line);
+/* Foreground unavailabilities (custom blocks created by user) */
+#calendar-page #calendar .fc-event:not(.fc-bg-event).fc-unavailability {
+    background: #f1f5f9 !important;
+    background-image: none !important;
+    border: 1px solid #cbd5e1 !important;
+    border-left: 3.5px solid #64748b !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    padding: 3px 6px !important;
 }
-#calendar-page #calendar .fc-unavailability.fc-blocked-period {
-    background-image: none;
-    text-shadow: none;
+#calendar-page #calendar .fc-event:not(.fc-bg-event).fc-blocked-period {
+    background: rgba(239, 68, 68, 0.08) !important;
+    border: 1px solid rgba(239, 68, 68, 0.25) !important;
+    border-left: 3.5px solid #ef4444 !important;
+    color: #b91c1c !important;
+    border-radius: 8px !important;
 }
-#calendar-page #calendar .fc-break {
-    background-image: repeating-linear-gradient(135deg, rgba(var(--bs-warning-rgb), .18), rgba(var(--bs-warning-rgb), .18) 6px, var(--kcc-bg) 6px, var(--kcc-bg) 12px);
-    border-left: 3px solid var(--bs-warning);
+#calendar-page #calendar .fc-event:not(.fc-bg-event).fc-working-plan-exception {
+    background: rgba(14, 165, 233, 0.08) !important;
+    border: 1px solid rgba(14, 165, 233, 0.25) !important;
+    border-left: 3.5px solid #0ea5e9 !important;
+    color: #0369a1 !important;
+    border-radius: 8px !important;
 }
-#calendar-page #calendar .fc-custom {
-    background-image: repeating-linear-gradient(90deg, rgba(var(--bs-info-rgb), .18), rgba(var(--bs-info-rgb), .18) 6px, var(--kcc-bg) 6px, var(--kcc-bg) 12px);
-    border-left: 3px solid var(--bs-info);
+#calendar-page #calendar .fc-event:not(.fc-bg-event).fc-break {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-left: 3.5px solid #f59e0b !important;
+    color: #92400e !important;
+    border-radius: 8px !important;
 }
-#calendar .fc-unavailability {
-    background: var(--kcc-bg);
+#calendar-page #calendar .fc-event:not(.fc-bg-event).fc-custom {
+    border-left: 3.5px solid var(--bs-info) !important;
 }
 
 /* Table/board view: same soft-card language as the default FullCalendar view. */
@@ -447,29 +637,35 @@ nav#header .btn-link.text-white {
 }
 
 /* ----------------------------------------------------------------------------
- * 2026-09-12 - "İlk Müsaitlik" strip (Dalga 4 UI modernization plan, item 2).
- * One compact pill per room/provider - see next_availability_widget.js.
+ * "İlk Müsaitlik" strip - Modern card layout with responsive horizontal chips
  * ---------------------------------------------------------------------------- */
+.kcc-availability-card {
+    background: var(--kcc-surface);
+    border: 1px solid var(--kcc-line);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
 .kcc-availability-pill {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 5px 12px;
-    border-radius: 20px;
-    background: var(--kcc-surface);
+    border-radius: 10px;
+    background: #f8fafc;
     border: 1px solid var(--kcc-line);
-    box-shadow: var(--kcc-shadow);
-    font-size: 12.5px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    font-size: 12px;
     white-space: nowrap;
     flex: 0 0 auto;
-    min-width: 148px;
+    min-width: 140px;
+    transition: all .15s ease;
 }
-/* 2026-09-17 fix - the row used to be a bare `d-flex flex-wrap`, which let a
- * narrow mount (the calendar toolbar in particular) wrap every pill onto its
- * own line, reading as a vertical stack instead of the intended horizontal
- * strip. Force one row, scroll horizontally instead of wrapping; the fixed
- * pill min-width above also keeps a single remaining pill (e.g. after
- * filtering to one provider) from stretching to fill the row's width. */
+.kcc-availability-pill:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
 .kcc-availability-row {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -477,10 +673,6 @@ nav#header .btn-link.text-white {
     padding-bottom: 2px;
     scrollbar-width: thin;
 }
-/* Two always-present labeled sections per pill ("Terapist: X", "Oda: Y"),
- * followed by the time/duration or "Müsaitlik yok" - user feedback asked for
- * both fields to stay visible/labeled regardless of availability, not just
- * silently dropped when there's no room to show. */
 .kcc-availability-field {
     display: inline-flex;
     align-items: baseline;
@@ -492,36 +684,40 @@ nav#header .btn-link.text-white {
 .kcc-availability-field-label {
     font-size: 9.5px;
     text-transform: uppercase;
-    letter-spacing: .03em;
-    color: var(--kcc-muted);
+    letter-spacing: .04em;
+    font-weight: 700;
+    color: #64748b;
 }
 .kcc-availability-field-value {
     font-weight: 600;
-    color: var(--kcc-text);
+    color: #1e293b;
 }
 .kcc-availability-time {
-    color: var(--kcc-muted);
+    font-weight: 600;
+    font-size: 11.5px;
+    color: #475569;
 }
 .kcc-availability-window {
-    padding: 1px 8px;
-    border-radius: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
     font-size: 11px;
     font-weight: 600;
 }
 .kcc-availability-pill-now {
-    border-color: rgba(var(--bs-primary-rgb), .35);
+    border-color: rgba(34, 197, 94, 0.4);
+    background: rgba(34, 197, 94, 0.06);
 }
 .kcc-availability-pill-now .kcc-availability-time {
-    color: var(--bs-primary);
+    color: #16a34a;
     font-weight: 700;
 }
 .kcc-availability-pill-ok .kcc-availability-window {
-    background: rgba(var(--bs-success-rgb), .15);
-    color: var(--bs-success);
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
 }
 .kcc-availability-pill-tight .kcc-availability-window {
-    background: rgba(var(--bs-warning-rgb), .18);
-    color: var(--bs-warning-text-emphasis, var(--bs-warning));
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
 }
 .kcc-availability-pill-none {
     opacity: .6;
@@ -533,7 +729,7 @@ nav#header .btn-link.text-white {
     margin-top: 10px;
 }
 .kcc-availability-group-label {
-    font-size: 10.5px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: .04em;
     color: var(--kcc-muted);

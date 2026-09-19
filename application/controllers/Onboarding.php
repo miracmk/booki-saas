@@ -1,23 +1,10 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
-/* ----------------------------------------------------------------------------
- * BooKi - Online Appointment Scheduler
- *
- * @package     KiReservation
- * @author      Ki Software
- * @copyright   Copyright (c) Ki Software
- * @license     Proprietary - see LICENSE file
- * @link        https://kisoftware.com
- * ---------------------------------------------------------------------------- */
-
 /**
- * Onboarding controller - multi-tenant SaaS only.
+ * Onboarding & Industry Setup Controller.
  *
- * A freshly created tenant's `settings` table has no company profile data yet (tenant_create() only
- * seeds the generic EasyAppointments defaults). EA_Controller::enforce_onboarding() redirects the
- * tenant's admin here on their first login (whenever the 'onboarding_completed' setting is missing/
- * not '1') to collect it before they reach the calendar. Standalone deployments (e.g. Salon Flora's
- * own production) never hit this - tenant_context() is null there.
+ * Provides a smart interactive onboarding wizard for selecting an industry vertical,
+ * toggling sector-specific modules, previewing service structures, and seeding full demo datasets.
  */
 class Onboarding extends EA_Controller
 {
@@ -25,119 +12,129 @@ class Onboarding extends EA_Controller
     {
         parent::__construct();
 
-        // NOTE: NOT is_multi_tenant_mode() - by this point resolve_tenant() has already swapped
-        // $this->db to the tenant's own database (no `tenants` table there), so that check would
-        // always read false. tenant_context() being set is the correct "in a tenant request" signal.
-        if (!tenant_context()) {
-            abort(404, 'Not Found');
-        }
-
-        if (!session('user_id') || session('role_slug') !== 'admin') {
-            // Constructor-level redirect - the router still invokes index()/save() afterwards unless
-            // execution is explicitly stopped here (redirect() only sends the header, unlike abort()).
-            redirect('login');
-            exit();
-        }
+        $this->load->library('accounts');
+        $this->load->library('blueprint_service');
+        $this->load->model('settings_model');
+        $this->load->helper('general');
     }
 
     /**
-     * Render the onboarding form.
+     * Display the modern onboarding wizard page.
      */
     public function index(): void
     {
         method('get');
 
-        if (setting('onboarding_completed') === '1') {
-            redirect('dashboard');
+        $user_id = session('user_id');
+
+        if (!$user_id) {
+            redirect('login');
             return;
         }
 
+        if (cannot('view', PRIV_SYSTEM_SETTINGS)) {
+            abort(403, 'Bu sayfaya erişim yetkiniz bulunmamaktadır.');
+            return;
+        }
+
+        $blueprints = $this->blueprint_service->get_all_blueprints();
+        $current_industry = setting('industry_code') ?: 'general';
+        $current_terminology = setting('industry_custom_terminology');
+        if ($current_terminology && is_string($current_terminology)) {
+            $current_terminology = json_decode($current_terminology, true);
+        }
+
+        $view_data = [
+            'blueprints' => $blueprints,
+            'current_industry' => $current_industry,
+            'current_terminology' => $current_terminology,
+            'company_name' => setting('company_name') ?: 'BooKi İşletmem',
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
+        ];
+
         html_vars([
-            'page_title' => lang('onboarding_title'),
-            'company_name' => setting('company_name'),
-            'company_address' => setting('company_address'),
-            'company_phone' => setting('company_phone'),
-            'business_type' => setting('business_type'),
-            'social_instagram' => setting('social_instagram'),
-            'social_telegram' => setting('social_telegram'),
-            'social_facebook' => setting('social_facebook'),
-            'social_website' => setting('social_website'),
+            'page_title' => 'Sektörel Kurulum & Modüler Blueprint Sihirbazı',
+            'active_menu' => PRIV_SYSTEM_SETTINGS,
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
         ]);
 
-        script_vars([
-            'company_working_plan' => setting('company_working_plan'),
-        ]);
-
-        $this->load->view('pages/onboarding');
+        $this->load->view('pages/onboarding', $view_data);
     }
 
     /**
-     * Save the submitted onboarding data and mark the tenant as onboarded.
+     * Return list of blueprints in JSON format.
      */
-    public function save(): void
+    public function get_blueprints(): void
+    {
+        try {
+            method('get');
+            $blueprints = $this->blueprint_service->get_all_blueprints();
+            json_response($blueprints);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Return single blueprint details with full preview data.
+     */
+    public function get_blueprint_details(string $code = ''): void
+    {
+        try {
+            method('get');
+            if (empty($code)) {
+                $code = (string) $this->input->get('code');
+            }
+
+            $blueprint = $this->blueprint_service->get_blueprint($code);
+            if (!$blueprint) {
+                throw new InvalidArgumentException("Sektör blueprint'i bulunamadı: {$code}");
+            }
+
+            json_response($blueprint);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Apply the selected blueprint and optionally seed demo data.
+     */
+    public function apply(): void
     {
         try {
             method('post');
 
-            check('company_name', 'string');
-            check('business_type', 'string|null');
-            check('company_address', 'string|null');
-            check('company_phone', 'string|null');
-            check('social_instagram', 'string|null');
-            check('social_telegram', 'string|null');
-            check('social_facebook', 'string|null');
-            check('social_website', 'string|null');
-            check('working_start', 'string|null');
-            check('working_end', 'string|null');
-            check('closed_days', 'array|null');
-
-            $company_name = trim((string) request('company_name'));
-
-            if ($company_name === '') {
-                throw new InvalidArgumentException(lang('field_required'));
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
+                throw new RuntimeException('Bu işlem için yönetici yetkisi gerekmektedir.');
             }
 
-            setting([
-                'company_name' => $company_name,
-                'business_type' => trim((string) request('business_type')),
-                'company_address' => trim((string) request('company_address')),
-                'company_phone' => trim((string) request('company_phone')),
-                'social_instagram' => trim((string) request('social_instagram')),
-                'social_telegram' => trim((string) request('social_telegram')),
-                'social_facebook' => trim((string) request('social_facebook')),
-                'social_website' => trim((string) request('social_website')),
-                'company_working_plan' => $this->build_working_plan(
-                    (string) request('working_start', '09:00'),
-                    (string) request('working_end', '18:00'),
-                    (array) request('closed_days', []),
-                ),
-                'onboarding_completed' => '1',
+            $industry_code = (string) $this->input->post('industry_code');
+            $seed_demo = $this->input->post('seed_demo') === '1' || $this->input->post('seed_demo') === 'true' || $this->input->post('seed_demo') === true;
+            $company_name = trim((string) $this->input->post('company_name'));
+
+            if (empty($industry_code)) {
+                throw new InvalidArgumentException('Lütfen bir sektör seçiniz.');
+            }
+
+            $options = [];
+            if (!empty($company_name)) {
+                $options['company_name'] = $company_name;
+            }
+
+            $result = $this->blueprint_service->apply_blueprint($industry_code, $seed_demo, $options);
+
+            json_response([
+                'success' => true,
+                'message' => "{$result['industry']} şablonu ve modülleri başarıyla uygulandı!",
+                'result' => $result,
+                'redirect_url' => site_url('calendar'),
             ]);
-
-            audit_log('onboarding.completed', 'settings', tenant_context()['id'] ?? null);
-
-            json_response(['success' => true]);
         } catch (Throwable $e) {
-            json_exception($e);
+            json_response([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
         }
-    }
-
-    /**
-     * Build a company_working_plan JSON value (same shape the base schema seeds) from the
-     * onboarding wizard's simplified "one start/end time + which days are closed" inputs.
-     */
-    private function build_working_plan(string $start, string $end, array $closed_days): string
-    {
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-
-        $plan = [];
-
-        foreach ($days as $day) {
-            $plan[$day] = in_array($day, $closed_days, true)
-                ? null
-                : ['start' => $start, 'end' => $end, 'breaks' => []];
-        }
-
-        return json_encode($plan);
     }
 }

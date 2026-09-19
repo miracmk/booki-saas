@@ -113,7 +113,7 @@ class Portal extends EA_Controller
                 }
 
                 if (!empty($match)) {
-                    $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'reservationapp.kibusiness.co';
+                    $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
                     $host = $tenant['custom_domain'] ?: ($tenant['subdomain'] . '-' . $app_domain);
 
                     // Constant-time-ish: always do the same amount of work whether found early or late

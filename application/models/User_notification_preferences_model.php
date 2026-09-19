@@ -67,8 +67,9 @@ class User_notification_preferences_model extends EA_Model
         $preferences = $this->get((int) ($user['id'] ?? 0));
 
         if ($preferences['mode'] !== 'custom') {
-            $configured = $settings['default_notification_channels'] ?? $settings['default_notification_channel'] ?? 'telegram';
-            return array_values(array_unique(array_filter(array_map('trim', explode(',', (string) $configured)))));
+            $configured = $settings['default_notification_channels'] ?? $settings['default_notification_channel'] ?? 'email';
+            $parsed = array_values(array_unique(array_filter(array_map('trim', explode(',', (string) $configured)))));
+            return !empty($parsed) ? $parsed : ['email'];
         }
 
         $channels = [];

@@ -98,6 +98,13 @@ App.Pages.DataRequests = (function () {
   }
 
   function search() {
+    $tbody.html(
+      '<tr><td colspan="7" class="text-center py-4 text-muted">' +
+      '<div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>' +
+      '<span>Yükleniyor...</span>' +
+      '</td></tr>'
+    );
+
     $.ajax({
       url: App.Utils.ajaxUrl('data_requests/search'),
       type: 'POST',
@@ -120,6 +127,13 @@ App.Pages.DataRequests = (function () {
         }
       })
       .fail(function (jqxhr) {
+        $tbody.html(
+          '<tr><td colspan="7" class="text-center py-4 text-danger">' +
+          '<i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>' +
+          '<p class="mb-2 small">KVKK veri talepleri yüklenirken bir hata oluştu.</p>' +
+          '<button class="btn btn-sm btn-outline-danger" onclick="App.Pages.DataRequests.search()"><i class="fas fa-sync-alt me-1"></i>Tekrar Dene</button>' +
+          '</td></tr>'
+        );
         App.Utils.ajaxErrorMsg(jqxhr);
       });
   }
@@ -135,6 +149,21 @@ App.Pages.DataRequests = (function () {
 
   function renderTable() {
     $tbody.empty();
+
+    if (requestData.length === 0) {
+      const hasFilter = $filterType.val() || $filterStatus.val();
+      $tbody.html(
+        '<tr><td colspan="7" class="text-center py-5">' +
+        '<div class="text-muted">' +
+        '<i class="fas fa-shield-alt fa-3x text-primary opacity-50 mb-3 d-block"></i>' +
+        '<h6 class="fw-semibold text-dark mb-1">' + (hasFilter ? 'Seçilen filtrelere uygun KVKK talebi bulunamadı' : 'Henüz bekleyen KVKK veri talebi yok') + '</h6>' +
+        '<p class="small text-muted mb-3">' + (hasFilter ? 'Filtreleri sıfırlayarak tüm talepleri görüntüleyebilirsiniz.' : 'Müşteriler veri indirme veya unutulma hakkı talep ettiğinde burada listelenir.') + '</p>' +
+        (hasFilter ? '<button class="btn btn-sm btn-outline-secondary" onclick="$(\'#filter-type, #filter-status\').val(\'\'); App.Pages.DataRequests.search();"><i class="fas fa-times me-1"></i>Filtreleri Sıfırla</button>' : '') +
+        '</div>' +
+        '</td></tr>'
+      );
+      return;
+    }
 
     requestData.forEach(function (row) {
       const typeLabel = row.request_type === 'export' ? 'Dışa Aktarma' : 'Silme';
@@ -166,10 +195,6 @@ App.Pages.DataRequests = (function () {
 
       $tbody.append($row);
     });
-
-    if (requestData.length === 0) {
-      $tbody.append('<tr><td colspan="7" class="text-center text-muted">Kayıt yok.</td></tr>');
-    }
   }
 
   function escapeHtml(text) {

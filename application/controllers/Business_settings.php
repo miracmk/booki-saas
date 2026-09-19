@@ -116,6 +116,62 @@ class Business_settings extends EA_Controller
                 $this->settings_model->save($setting);
             }
 
+            // Sync to master DB tenants table if multi-tenant context exists
+            $tenant = tenant_context();
+            if ($tenant && !empty($tenant['id'])) {
+                $master = $this->load->database('default', true);
+                if ($master && ($master->table_exists($master->dbprefix('tenants')) || $master->table_exists('tenants'))) {
+                    $master_sync = [
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ];
+
+                    if ($master->field_exists('company_name', 'tenants')) {
+                        $c_name = setting('company_name');
+                        if ($c_name !== null && $c_name !== '') {
+                            $master_sync['company_name'] = $c_name;
+                        }
+                    }
+                    if ($master->field_exists('phone_number', 'tenants')) {
+                        $c_phone = setting('company_phone') ?: setting('phone_number');
+                        if ($c_phone !== null) {
+                            $master_sync['phone_number'] = $c_phone;
+                        }
+                    }
+                    if ($master->field_exists('address', 'tenants')) {
+                        $c_addr = setting('company_address') ?: setting('address');
+                        if ($c_addr !== null) {
+                            $master_sync['address'] = $c_addr;
+                        }
+                    }
+                    if (setting('marketplace_opt_in') !== null) {
+                        $master_sync['marketplace_opt_in'] = setting('marketplace_opt_in') === '1' ? 1 : 0;
+                    }
+                    if (setting('marketplace_category') !== null) {
+                        $master_sync['category'] = setting('marketplace_category');
+                    }
+                    if (setting('marketplace_city') !== null) {
+                        $master_sync['city'] = setting('marketplace_city');
+                    }
+                    if (setting('marketplace_district') !== null) {
+                        $master_sync['district'] = setting('marketplace_district');
+                    }
+                    if (setting('marketplace_neighborhood') !== null) {
+                        $master_sync['neighborhood'] = setting('marketplace_neighborhood');
+                    }
+                    if (setting('marketplace_short_description') !== null) {
+                        $master_sync['short_description'] = setting('marketplace_short_description');
+                    }
+                    if (setting('marketplace_cover_image_url') !== null) {
+                        $master_sync['cover_image_url'] = setting('marketplace_cover_image_url');
+                    }
+                    if ($master->field_exists('price_range', 'tenants') && setting('marketplace_price_range') !== null) {
+                        $master_sync['price_range'] = setting('marketplace_price_range');
+                    }
+
+                    $master->where('id', (int) $tenant['id'])->update('tenants', $master_sync);
+                }
+            }
+
             response();
         } catch (Throwable $e) {
             json_exception($e);

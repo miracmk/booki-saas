@@ -81,7 +81,7 @@ class Data_transfer extends EA_Controller
 
         $payload = [
             'exported_at' => date('c'),
-            'format' => 'ki_reservation_export_v1',
+            'format' => 'booki_export_v1',
             'categories' => $categories,
             'services' => $services,
             'stations' => $stations,
@@ -90,7 +90,7 @@ class Data_transfer extends EA_Controller
             'appointments' => $appointments,
         ];
 
-        $filename = 'ki-reservation-export-' . date('Y-m-d') . '.json';
+        $filename = 'booki-export-' . date('Y-m-d') . '.json';
 
         $this->output
             ->set_content_type('application/json')
@@ -344,7 +344,8 @@ class Data_transfer extends EA_Controller
         $content = file_get_contents($_FILES['file']['tmp_name']);
         $payload = json_decode($content, true);
 
-        if (!is_array($payload) || ($payload['format'] ?? null) !== 'ki_reservation_export_v1') {
+        $format = $payload['format'] ?? null;
+        if (!is_array($payload) || !in_array($format, ['booki_export_v1', 'ki_reservation_export_v1'], true)) {
             throw new InvalidArgumentException('Geçersiz dosya formatı - bu BooKi dışa aktarma dosyası değil.');
         }
 

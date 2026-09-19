@@ -110,22 +110,59 @@ App.Pages.AiAgent = (function () {
                 changes = {};
             }
 
-            const rows = Object.keys(changes)
-                .map((field) => '<li><strong>' + escapeHtml(field) + ':</strong> ' + escapeHtml(changes[field]) + '</li>')
-                .join('');
+            const isAppt = (change.target_table === 'appointments');
+            const action = changes.action || (isAppt ? 'create' : 'update');
+
+            let badgeHtml = '<span class="badge bg-info text-dark"><i class="fas fa-user-pen me-1"></i> Profil Güncelleme</span>';
+            if (isAppt && action === 'create') {
+                badgeHtml = '<span class="badge bg-primary text-white"><i class="fas fa-calendar-plus me-1"></i> Yeni Randevu</span>';
+            } else if (isAppt && action === 'cancel') {
+                badgeHtml = '<span class="badge bg-danger text-white"><i class="fas fa-calendar-xmark me-1"></i> İptal Talebi</span>';
+            } else if (isAppt && action === 'reschedule') {
+                badgeHtml = '<span class="badge bg-warning text-dark"><i class="fas fa-calendar-days me-1"></i> Saat Değişikliği</span>';
+            }
+
+            let bodyHtml = '';
+            if (isAppt && action === 'create') {
+                bodyHtml = '<div class="small mb-2">' +
+                    '<div><strong>Müşteri:</strong> ' + escapeHtml(changes.customer_name || 'Misafir') + ' (' + escapeHtml(changes.customer_phone || '-') + ')</div>' +
+                    '<div><strong>Hizmet:</strong> ' + escapeHtml(changes.service_name || 'Belirtilmedi') + '</div>' +
+                    '<div><strong>Tarih & Saat:</strong> <span class="text-primary fw-bold">' + escapeHtml(changes.start_datetime || '-') + '</span></div>' +
+                    (changes.notes ? '<div><strong>Not:</strong> ' + escapeHtml(changes.notes) + '</div>' : '') +
+                '</div>';
+            } else if (isAppt && action === 'cancel') {
+                bodyHtml = '<div class="small mb-2">' +
+                    '<div><strong>Randevu ID:</strong> #' + escapeHtml(change.target_id || changes.appointment_id || 0) + '</div>' +
+                    '<div class="text-danger">Müşteri randevunun iptal edilmesini talep ediyor.</div>' +
+                '</div>';
+            } else if (isAppt && action === 'reschedule') {
+                bodyHtml = '<div class="small mb-2">' +
+                    '<div><strong>Randevu ID:</strong> #' + escapeHtml(change.target_id || changes.appointment_id || 0) + '</div>' +
+                    '<div><strong>Yeni Tarih:</strong> <span class="text-success fw-bold">' + escapeHtml(changes.new_start_datetime || '-') + '</span></div>' +
+                '</div>';
+            } else {
+                const rows = Object.keys(changes)
+                    .filter((f) => f !== 'action')
+                    .map((field) => '<li><strong>' + escapeHtml(field) + ':</strong> ' + escapeHtml(changes[field]) + '</li>')
+                    .join('');
+                bodyHtml = '<div class="small text-muted mb-1">Müşteri #' + escapeHtml(change.target_id) + '</div>' +
+                    '<ul class="mb-1 ps-3 small">' + rows + '</ul>';
+            }
 
             const reason = change.reason
-                ? '<div class="small text-muted fst-italic mb-2">"' + escapeHtml(change.reason) + '"</div>'
+                ? '<div class="small text-muted fst-italic mb-2 p-1 bg-white rounded border">"' + escapeHtml(change.reason) + '"</div>'
                 : '';
 
             $list.append(
-                '<div class="ai-agent-pending-item border rounded p-2 mb-2" data-id="' + change.id + '">' +
-                    '<div class="small text-muted mb-1">Müşteri #' + escapeHtml(change.target_id) + '</div>' +
-                    '<ul class="mb-1 ps-3">' + rows + '</ul>' +
+                '<div class="ai-agent-pending-item border rounded p-3 mb-3 bg-light" data-id="' + change.id + '">' +
+                    '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                        badgeHtml +
+                    '</div>' +
+                    bodyHtml +
                     reason +
                     '<div class="d-flex gap-2">' +
-                        '<button type="button" class="btn btn-sm btn-success ai-agent-approve">Onayla</button>' +
-                        '<button type="button" class="btn btn-sm btn-outline-danger ai-agent-reject">Reddet</button>' +
+                        '<button type="button" class="btn btn-sm btn-success ai-agent-approve flex-grow-1"><i class="fas fa-check me-1"></i> Onayla & İşle</button>' +
+                        '<button type="button" class="btn btn-sm btn-outline-danger ai-agent-reject"><i class="fas fa-times me-1"></i> Reddet</button>' +
                     '</div>' +
                 '</div>',
             );
