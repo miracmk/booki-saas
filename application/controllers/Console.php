@@ -139,6 +139,99 @@ class Console extends EA_Controller
     }
 
     /**
+     * Apply industry blueprints to all existing tenants (or a specific tenant).
+     *
+     * Usage:
+     * php index.php console tenant_apply_blueprints
+     * php index.php console tenant_apply_blueprints <subdomain> <industry_code>
+     *
+     * @param string $target_subdomain Optional specific tenant subdomain
+     * @param string $specific_blueprint Optional specific blueprint code
+     */
+    public function tenant_apply_blueprints(string $target_subdomain = '', string $specific_blueprint = ''): void
+    {
+        $this->load->library('blueprint_service');
+
+        if (!is_multi_tenant_mode()) {
+            $code = !empty($specific_blueprint) ? $specific_blueprint : 'beauty_salon';
+            echo 'Single-tenant mode: applying blueprint "' . $code . '"... ';
+            $result = $this->blueprint_service->apply_blueprint($code, false);
+            echo 'OK (' . json_encode($result) . ')' . PHP_EOL;
+            return;
+        }
+
+        $query = ['status' => 'active'];
+        if (!empty($target_subdomain)) {
+            $query['subdomain'] = strtolower(trim($target_subdomain));
+        }
+
+        $tenants = $this->db->get_where('tenants', $query)->result_array();
+
+        if (empty($tenants)) {
+            echo 'No matching active tenants found.' . PHP_EOL;
+            return;
+        }
+
+        foreach ($tenants as $tenant) {
+            $subdomain = $tenant['subdomain'];
+            echo 'Applying blueprint to tenant "' . $subdomain . '"... ';
+
+            $code = $specific_blueprint;
+            if (empty($code)) {
+                $code = $tenant['business_type'] ?? '';
+            }
+
+            if (empty($code) || $code === 'general') {
+                $text = strtolower($subdomain . ' ' . ($tenant['company_name'] ?? ''));
+                if (preg_match('/(barber|kuafor|kuaför|berber)/ui', $text)) {
+                    $code = 'barber';
+                } elseif (preg_match('/(masaj|massage|spa)/ui', $text)) {
+                    $code = 'massage_spa';
+                } elseif (preg_match('/(restoran|restaurant|cafe|kafe|bistro)/ui', $text)) {
+                    $code = 'restaurant';
+                } elseif (preg_match('/(otel|hotel|resort)/ui', $text)) {
+                    $code = 'hotel';
+                } elseif (preg_match('/(dis|dent|dental|diş)/ui', $text)) {
+                    $code = 'dentist';
+                } elseif (preg_match('/(klinik|clinic|doctor|doktor)/ui', $text)) {
+                    $code = 'doctor_clinic';
+                } elseif (preg_match('/(pilates|studyo|stüdyo|studio|yoga)/ui', $text)) {
+                    $code = 'pilates_studio';
+                } elseif (preg_match('/(pt|trainer|personal)/ui', $text)) {
+                    $code = 'pt_training';
+                } elseif (preg_match('/(gym|fitness|spor)/ui', $text)) {
+                    $code = 'gym';
+                } elseif (preg_match('/(oto|car|wash|yikama|yıkama)/ui', $text)) {
+                    $code = 'car_wash';
+                } elseif (preg_match('/(tirnak|tırnak|nail)/ui', $text)) {
+                    $code = 'nail_studio';
+                } else {
+                    $code = 'beauty_salon';
+                }
+            }
+
+            try {
+                $this->connect_tenant($tenant);
+                $seed_demo = strpos($subdomain, 'demo-') === 0 && $this->db->count_all('appointments') === 0;
+                $res = $this->blueprint_service->apply_blueprint($code, $seed_demo);
+                echo 'OK [' . $code . '] (' . $res['services_created'] . ' services, ' . $res['stations_created'] . ' stations)' . PHP_EOL;
+
+                $this->connect_master();
+                $this->db->update('tenants', [
+                    'business_type' => $code,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ], ['id' => $tenant['id']]);
+            } catch (Throwable $e) {
+                echo 'FAILED: ' . $e->getMessage() . PHP_EOL;
+                $this->connect_master();
+            }
+        }
+
+        $this->connect_master();
+        echo 'Tenant blueprint synchronization complete.' . PHP_EOL;
+    }
+
+    /**
      * BooKi (2026-08-26) - create the master DB schema (`tenants`, `tenant_migration_log`).
      * Run this ONCE, against a deployment whose 'default' connection points at the intended master
      * DB, before provisioning any tenant with tenant_create(). Separate from the regular
@@ -3848,5 +3941,144 @@ class Console extends EA_Controller
 
         return $sent_count;
     }
+
+    /**
+     * BooKi Marketplace - Synchronize tenant profile details into master `tenants` catalog.
+     *
+     * Usage: php index.php console sync_marketplace_tenants
+     */
+    public function sync_marketplace_tenants(): void
+    {
+        $this->connect_master();
+        $tenants = $this->db->get_where('tenants', ['status' => 'active'])->result_array();
+        echo 'Syncing ' . count($tenants) . ' tenants to marketplace catalog...' . PHP_EOL;
+
+        $demo_meta = [
+            'salonflora' => [
+                'company_name' => 'Salon Flora',
+                'category' => 'Güzellik Salonu',
+                'city' => 'İstanbul',
+                'district' => 'Kadıköy',
+                'phone_number' => '+90 216 555 12 34',
+                'address' => 'Bağdat Caddesi No: 142, Kadıköy, İstanbul',
+                'price_range' => '₺₺',
+                'short_description' => 'Premium saç tasarımı, renklendirme ve profesyonel güzellik hizmetleri.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-guzellik' => [
+                'company_name' => 'Lumiere Güzellik Merkezi',
+                'category' => 'Güzellik Salonu',
+                'city' => 'İstanbul',
+                'district' => 'Beşiktaş',
+                'phone_number' => '+90 212 555 21 00',
+                'address' => 'Nispetiye Cad. No: 45, Beşiktaş, İstanbul',
+                'price_range' => '₺₺₺',
+                'short_description' => 'Saç tasarımı, cilt bakımı ve tırnak uygulamalarında uzman estetisyen kadrosu.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-masaj' => [
+                'company_name' => 'Serene Masaj & Spa',
+                'category' => 'Masaj Salonu/Spa',
+                'city' => 'İstanbul',
+                'district' => 'Şişli',
+                'phone_number' => '+90 212 555 24 00',
+                'address' => 'Halaskargazi Cad. No: 88, Şişli, İstanbul',
+                'price_range' => '₺₺₺',
+                'short_description' => 'İsveç masajı, aromaterapi ve özel çift odası ile huzurlu bir spa deneyimi.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-restoran' => [
+                'company_name' => 'Mavi Liman Restoran',
+                'category' => 'Restoran',
+                'city' => 'İzmir',
+                'district' => 'Konak',
+                'phone_number' => '+90 232 555 26 00',
+                'address' => 'Kordon Boyu No: 12, Konak, İzmir',
+                'price_range' => '₺₺₺',
+                'short_description' => 'Ege lezzetleri ve şef masası degüstasyon menüsü ile unutulmaz bir akşam.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-otel' => [
+                'company_name' => 'Grand Marmara Otel',
+                'category' => 'Otel',
+                'city' => 'İstanbul',
+                'district' => 'Sarıyer',
+                'phone_number' => '+90 212 555 28 00',
+                'address' => 'Büyükdere Cad. No: 200, Sarıyer, İstanbul',
+                'price_range' => '₺₺₺₺',
+                'short_description' => 'Boğaz manzaralı spa, özel toplantı salonları ve lüks konaklama ayrıcalığı.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-klinik' => [
+                'company_name' => 'Vita Sağlık Kliniği',
+                'category' => 'Klinik/Sağlık',
+                'city' => 'Ankara',
+                'district' => 'Çankaya',
+                'phone_number' => '+90 312 555 32 00',
+                'address' => 'Tunalı Hilmi Cad. No: 65, Çankaya, Ankara',
+                'price_range' => '₺₺',
+                'short_description' => 'Dahiliye, diş sağlığı ve uzman fizyoterapi hizmetleri tek çatı altında.',
+                'marketplace_opt_in' => 1,
+            ],
+            'demo-studyo' => [
+                'company_name' => 'Pulse Stüdyo & Fitness',
+                'category' => 'Stüdyo/Fitness',
+                'city' => 'İstanbul',
+                'district' => 'Kadıköy',
+                'phone_number' => '+90 216 555 35 00',
+                'address' => 'Moda Cad. No: 77, Kadıköy, İstanbul',
+                'price_range' => '₺₺',
+                'short_description' => 'Reformer pilates, dinamik yoga ve birebir kişisel antrenman programları.',
+                'marketplace_opt_in' => 1,
+            ],
+        ];
+
+        foreach ($tenants as $tenant) {
+            $subdomain = $tenant['subdomain'];
+            $update = [];
+
+            if (isset($demo_meta[$subdomain])) {
+                $update = $demo_meta[$subdomain];
+            } else {
+                try {
+                    $this->connect_tenant($tenant);
+                    $settings_rows = $this->db->get('settings')->result_array();
+                    $settings = [];
+                    foreach ($settings_rows as $row) {
+                        $settings[$row['name']] = $row['value'];
+                    }
+
+                    $update = [
+                        'company_name' => $settings['company_name'] ?? ucfirst($subdomain),
+                        'phone_number' => $settings['telephone_number'] ?? ($settings['phone_number'] ?? null),
+                        'address' => $settings['company_address'] ?? ($settings['address'] ?? null),
+                        'marketplace_opt_in' => (int)($settings['marketplace_opt_in'] ?? 1),
+                        'category' => $settings['marketplace_category'] ?? ($settings['category'] ?? 'Hizmet & Randevu'),
+                        'city' => $settings['marketplace_city'] ?? ($settings['city'] ?? 'İstanbul'),
+                        'district' => $settings['marketplace_district'] ?? ($settings['district'] ?? null),
+                        'short_description' => $settings['marketplace_description'] ?? ($settings['description'] ?? null),
+                        'cover_image_url' => $settings['marketplace_cover_url'] ?? null,
+                        'price_range' => $settings['marketplace_price_range'] ?? '₺₺',
+                    ];
+                } catch (Throwable $e) {
+                    echo "  [WARN] Failed reading settings for {$subdomain}: {$e->getMessage()}" . PHP_EOL;
+                    $update = [
+                        'company_name' => ucfirst($subdomain),
+                        'marketplace_opt_in' => 1,
+                        'category' => 'Hizmet & Randevu',
+                        'city' => 'İstanbul',
+                        'price_range' => '₺₺',
+                    ];
+                }
+            }
+
+            $this->connect_master();
+            $this->db->where('id', $tenant['id'])->update('tenants', $update);
+            echo "  ✓ Synced {$subdomain} (" . ($update['company_name'] ?? $subdomain) . ") -> Marketplace" . PHP_EOL;
+        }
+
+        echo 'Done syncing marketplace tenants.' . PHP_EOL;
+    }
 }
+
 
