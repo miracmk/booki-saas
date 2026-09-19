@@ -26,11 +26,8 @@ $status_badge = [
                     <span class="me-1"><?= $summary['industry_info']['icon'] ?? '✨' ?></span>
                     <?= e($summary['industry_config']['badge'] ?? ($summary['industry_info']['name'] ?? 'İşletme')) ?>
                 </span>
-                <a href="<?= site_url('industry_settings') ?>" class="btn btn-outline-secondary btn-sm py-0 px-2" style="font-size: 11px;" title="Sektör ve Modülleri Özelleştir">
-                    <i class="fas fa-sliders-h me-1"></i>Sektör Ayarları
-                </a>
             </div>
-            <p class="text-muted mb-0">Bugün <?= e(setting('company_name') ?: 'işletmeniz') ?> için olan bitene sektörel genel bakış.</p>
+            <p class="text-muted mb-0">Bugün <?= e(setting('company_name') ?: 'işletmeniz') ?> için olan bitene genel bakış.</p>
         </div>
         <div class="text-muted small"><?= e($today_label ?? vars('today_label')) ?></div>
     </div>
