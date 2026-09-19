@@ -223,7 +223,7 @@ class Customers extends EA_Controller
     /**
      * Get 360 Degree Customer CRM Context & Chronological Timeline.
      */
-    public function get_360(): void
+    public function get_360($customer_id = null): void
     {
         try {
             method('get');
@@ -232,7 +232,7 @@ class Customers extends EA_Controller
                 abort(403, 'Forbidden');
             }
 
-            $customer_id = (int) $this->input->get('customer_id');
+            $customer_id = (int) ($customer_id ?: $this->input->get('customer_id'));
             if ($customer_id <= 0) {
                 throw new InvalidArgumentException('Invalid customer ID');
             }
