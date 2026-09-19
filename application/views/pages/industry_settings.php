@@ -211,7 +211,16 @@
 <?php section('scripts'); ?>
 <script>
 $(function() {
-    var csrfToken = '<?= $this->security->get_csrf_hash() ?>';
+    function getCsrfToken() {
+        var match = document.cookie.match(new RegExp('(^|;\\s*)csrf_cookie=([^;]+)'));
+        if (match && match[2]) {
+            return decodeURIComponent(match[2]);
+        }
+        if (typeof window.vars === 'function' && window.vars('csrf_token')) {
+            return window.vars('csrf_token');
+        }
+        return '<?= e($csrf_token ?? (vars("csrf_token") ?: "")) ?>';
+    }
 
     // Industry card selection handler
     $('.industry-card').on('click', function() {
@@ -254,6 +263,7 @@ $(function() {
         var btn = $('#btn-save-industry, #btn-save-industry-bottom');
         btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Kaydediliyor...');
 
+        var currentToken = getCsrfToken();
         var postData = {
             industry_code: $('#selected_industry_code').val(),
             terminology: {
@@ -265,7 +275,7 @@ $(function() {
             },
             modules: {},
             import_templates: $('#import_templates').is(':checked') ? 1 : 0,
-            csrf_token: csrfToken
+            csrf_token: currentToken
         };
 
         $('.module-checkbox').each(function() {
@@ -279,6 +289,10 @@ $(function() {
             url: '<?= site_url("industry_settings/save") ?>',
             type: 'POST',
             data: postData,
+            headers: {
+                'X-CSRF-Token': currentToken,
+                'X-CSRF': currentToken
+            },
             dataType: 'json',
             success: function(res) {
                 if (res.success) {
@@ -307,3 +321,4 @@ $(function() {
 });
 </script>
 <?php end_section('scripts'); ?>
+

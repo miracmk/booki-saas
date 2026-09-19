@@ -86,18 +86,27 @@ class Industry_settings extends EA_Controller
             'reviews' => ['name' => 'Müşteri Değerlendirmeleri', 'icon' => 'fas fa-star', 'desc' => 'Otomatik memnuniyet anketleri ve itibar puanı', 'core' => false],
         ];
 
+        $csrf_hash = $this->security->get_csrf_hash();
+
         $view_data = [
-            'all_blueprints' => $all_blueprints,
+            'all_blueprints' => $all_blueprints ?: [],
             'active_industry' => $active_industry,
             'current_terminology' => $current_terminology,
             'current_features' => $current_features,
             'available_modules' => $available_modules,
+            'csrf_token' => $csrf_hash,
         ];
+
+        script_vars([
+            'csrf_token' => $csrf_hash,
+            'active_industry' => $active_industry,
+        ]);
 
         html_vars([
             'page_title' => 'Sektör & Modül Yapılandırması',
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'csrf_token' => $csrf_hash,
         ]);
 
         $this->load->view('pages/industry_settings', $view_data);
@@ -214,14 +223,8 @@ class Industry_settings extends EA_Controller
                 $settings_to_update['currency_symbol'] = $bp['default_settings']['currency_symbol'];
             }
 
-            foreach ($settings_to_update as $name => $val) {
-                $exists = $this->db->get_where('settings', ['name' => $name])->row_array();
-                if ($exists) {
-                    $this->db->update('settings', ['value' => $val], ['name' => $name]);
-                } else {
-                    $this->db->insert('settings', ['name' => $name, 'value' => $val]);
-                }
-            }
+            // 3. Save to settings table
+            setting($settings_to_update);
 
             // 4. Optionally import sample categories & services if requested
             $import_templates = $this->input->post('import_templates') === '1' || $this->input->post('import_templates') === 'true';
@@ -231,14 +234,18 @@ class Industry_settings extends EA_Controller
             }
 
             // 5. Sync to master database tenants table if in multi-tenant environment
-            $tenant = tenant_context();
+            $tenant = function_exists('tenant_context') ? tenant_context() : null;
             if ($tenant && !empty($tenant['id'])) {
-                $master = $this->load->database('default', true);
-                if ($master && ($master->table_exists($master->dbprefix('tenants')) || $master->table_exists('tenants'))) {
-                    $master->where('id', (int) $tenant['id'])->update('tenants', [
-                        'category' => $bp['industry']['name'] ?? $industry_code,
-                        'updated_at' => date('Y-m-d H:i:s'),
-                    ]);
+                try {
+                    $master = $this->load->database('default', true);
+                    if ($master && ($master->table_exists($master->dbprefix('tenants')) || $master->table_exists('tenants'))) {
+                        $master->where('id', (int) $tenant['id'])->update('tenants', [
+                            'category' => $bp['industry']['name'] ?? $industry_code,
+                            'updated_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    }
+                } catch (Throwable $ignore) {
+                    log_message('error', 'Master tenant sync notice: ' . $ignore->getMessage());
                 }
             }
 
@@ -257,3 +264,4 @@ class Industry_settings extends EA_Controller
         }
     }
 }
+

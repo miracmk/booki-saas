@@ -163,6 +163,8 @@ class Dashboard extends EA_Controller
                 ->get('ai_agent_pending_changes')
                 ->result_array();
         }
+        $ai_pending_count = count($ai_pending_items);
+
         // Sektöre özel modül istatistikleri
         $open_adisyons_count = 0;
         if ($this->db->table_exists('adisyons')) {
