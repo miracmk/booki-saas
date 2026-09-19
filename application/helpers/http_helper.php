@@ -258,8 +258,14 @@ if (!function_exists('method')) {
         $CI = &get_instance();
 
         $current_method = $CI->input->method();
+        $curr = strtolower((string) $current_method);
+        $exp = strtolower($expected_method);
 
-        if (strtoupper($current_method) !== strtoupper($expected_method)) {
+        if ($curr === 'head' && $exp === 'get') {
+            return;
+        }
+
+        if ($curr !== $exp) {
             throw new RuntimeException("Method not allowed. Expected {$expected_method}, got {$current_method}.");
         }
     }

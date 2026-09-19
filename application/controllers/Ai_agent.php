@@ -33,6 +33,12 @@ class Ai_agent extends EA_Controller
     {
         method('get');
 
+        $user_id = session('user_id');
+        if (!$user_id) {
+            redirect('login');
+            return;
+        }
+
         if (cannot('view', PRIV_AI_AGENT)) {
             abort(403, 'Forbidden');
         }

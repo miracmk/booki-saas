@@ -330,6 +330,12 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                                 Müşteri Yorumları
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="<?= site_url('marketplace') ?>" target="_blank" class="nav-link text-white">
+                                <i class="fas fa-store me-2 text-warning"></i>
+                                Marketplace Vitrini
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>
@@ -386,6 +392,7 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                             <?php endif; ?>
                             <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('account') ?>"><i class="fas fa-user me-2"></i><?= lang('account') ?></a></li>
                             <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('booking') ?>" target="_blank"><i class="fas fa-external-link me-2"></i>Müşteri Randevu Sayfası</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('marketplace') ?>" target="_blank"><i class="fas fa-store me-2 text-warning"></i>Pazar Yeri Keşif Vitrini</a></li>
                             <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('logout') ?>"><i class="fas fa-sign-out me-2"></i><?= lang('log_out') ?></a></li>
                         </ul>
                     </div>

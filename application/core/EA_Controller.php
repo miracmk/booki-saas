@@ -177,17 +177,16 @@ class EA_Controller extends CI_Controller
             abort(404, 'Not Found');
         }
 
-        // BooKi (2026-08-27) - Marketplace discovery portal (reservation.kibusiness.co): reads
-        // from the master DB's `tenants` and `reviews` tables. Same host/controller exception pattern as
-        // superadmin above - never tenant-resolves, stays on master DB.
-        if ($host === $marketplace_domain) {
-            if (
-                strtolower((string) $this->router->class) === 'marketplace'
-                || strtolower((string) $this->router->class) === 'landing'
-            ) {
-                return;
-            }
+        // BooKi - Marketplace discovery portal: reads
+        // from the master DB's `tenants` and `reviews` tables. Stays on master DB for any host.
+        if (
+            strtolower((string) $this->router->class) === 'marketplace'
+            || strtolower((string) $this->router->class) === 'landing'
+        ) {
+            return;
+        }
 
+        if ($host === $marketplace_domain) {
             abort(404, 'Not Found');
         }
 

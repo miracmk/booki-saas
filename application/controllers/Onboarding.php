@@ -15,7 +15,6 @@ class Onboarding extends EA_Controller
         $this->load->library('accounts');
         $this->load->library('blueprint_service');
         $this->load->model('settings_model');
-        $this->load->helper('general');
     }
 
     /**

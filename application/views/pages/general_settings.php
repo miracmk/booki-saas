@@ -284,7 +284,10 @@
                                         <h5 class="mb-0 fw-bold text-dark">
                                             <i class="fas fa-store text-primary me-2"></i>BooKi Pazar Yeri & Keşif Profili
                                         </h5>
-                                        <span class="badge bg-primary">SEO & GEO Entegre</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <a href="<?= site_url('marketplace') ?>" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt me-1"></i>Pazar Yerinde Görüntüle</a>
+                                            <span class="badge bg-primary">SEO & GEO Entegre</span>
+                                        </div>
                                     </div>
                                     <p class="text-muted small mb-4">
                                         İşletmenizin BooKi Pazar Yeri'nde (Marketplace) listelenmesini sağlayarak Google ve Yapay Zeka (Gemini, ChatGPT, Perplexity) aramalarında yeni müşteriler kazanın.

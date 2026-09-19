@@ -95,7 +95,7 @@ class Ai_agent_client
                 'description' => 'İşletmenin sunduğu tüm aktif hizmetleri (ad, süre dakika, fiyat, para birimi) listeler.',
                 'parameters' => [
                     'type' => 'object',
-                    'properties' => new stdClass(),
+                    'properties' => [],
                 ],
             ],
         ],
@@ -106,7 +106,7 @@ class Ai_agent_client
                 'description' => 'İşletmedeki uzmanları / çalışan personeli (ad, soyad, e-posta, telefon) listeler.',
                 'parameters' => [
                     'type' => 'object',
-                    'properties' => new stdClass(),
+                    'properties' => [],
                 ],
             ],
         ],
