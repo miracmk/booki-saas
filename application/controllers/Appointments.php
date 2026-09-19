@@ -35,6 +35,9 @@ class Appointments extends EA_Controller
         'id_users_provider',
         'id_users_customer',
         'id_services',
+        'consumables_cost',
+        'gross_profit',
+        'consumables_deducted',
     ];
 
     public array $optional_appointment_fields = [
@@ -428,6 +431,128 @@ class Appointments extends EA_Controller
 
         if ($role_slug === DB_SLUG_PROVIDER && $user_id !== $provider_id) {
             abort(403, 'Forbidden');
+        }
+    }
+
+    /**
+     * Get consumables for an appointment session.
+     */
+    public function get_consumables(int $appointment_id): void
+    {
+        try {
+            method('get');
+
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->load->model('inventory_consumables_model');
+            $items = $this->inventory_consumables_model->get_appointment_consumables($appointment_id, true);
+            $costs = $this->inventory_consumables_model->recalculate_appointment_costs($appointment_id);
+
+            $appt = $this->appointments_model->find($appointment_id);
+
+            json_response([
+                'success' => true,
+                'items' => $items,
+                'consumables_cost' => $costs['consumables_cost'],
+                'gross_profit' => $costs['gross_profit'],
+                'consumables_deducted' => (int) ($appt['consumables_deducted'] ?? 0),
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Save an appointment consumable (extra or adjusted item).
+     */
+    public function save_consumable(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $this->load->model('inventory_consumables_model');
+
+            $id = $this->inventory_consumables_model->save_appointment_consumable($data);
+            $costs = $this->inventory_consumables_model->recalculate_appointment_costs((int) $data['id_appointments']);
+
+            json_response([
+                'success' => true,
+                'id' => $id,
+                'consumables_cost' => $costs['consumables_cost'],
+                'gross_profit' => $costs['gross_profit'],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Delete an appointment consumable entry.
+     */
+    public function delete_consumable(int $id): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->load->model('inventory_consumables_model');
+            $this->inventory_consumables_model->delete_appointment_consumable($id);
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Explicitly deduct consumables stock for an appointment session.
+     */
+    public function deduct_consumables(int $appointment_id): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->load->model('inventory_consumables_model');
+            $this->inventory_consumables_model->deduct_for_appointment($appointment_id);
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Revert deducted consumables stock for an appointment session.
+     */
+    public function revert_consumables(int $appointment_id): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->load->model('inventory_consumables_model');
+            $this->inventory_consumables_model->revert_for_appointment($appointment_id);
+
+            json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
         }
     }
 }

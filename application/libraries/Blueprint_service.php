@@ -213,6 +213,66 @@ class Blueprint_service
             }
         }
 
+        // 5b. Create Consumable Products & Service Recipes (Sarf Malzemeleri ve Reçeteler)
+        $product_map = [];
+        if (!empty($blueprint['consumables']) && $this->CI->db->table_exists('products')) {
+            $result['consumables_created'] = 0;
+            foreach ($blueprint['consumables'] as $csm) {
+                $existing_prod = $this->CI->db->get_where('products', ['name' => $csm['name']])->row_array();
+                $prod_data = [
+                    'name' => $csm['name'],
+                    'sku' => $csm['sku'] ?? null,
+                    'cost_price' => (float) ($csm['cost_price'] ?? 0.00),
+                    'sale_price' => (float) ($csm['sale_price'] ?? 0.00),
+                    'stock_quantity' => (float) ($csm['stock_quantity'] ?? 100),
+                    'low_stock_threshold' => (int) ($csm['low_stock_threshold'] ?? 10),
+                    'unit' => $csm['unit'] ?? 'adet',
+                    'is_consumable' => 1,
+                    'is_active' => 1,
+                ];
+                if ($existing_prod) {
+                    $prod_data['updated_at'] = date('Y-m-d H:i:s');
+                    $this->CI->db->update('products', $prod_data, ['id' => $existing_prod['id']]);
+                    $product_map[$csm['name']] = (int) $existing_prod['id'];
+                } else {
+                    $prod_data['created_at'] = date('Y-m-d H:i:s');
+                    $this->CI->db->insert('products', $prod_data);
+                    $product_map[$csm['name']] = $this->CI->db->insert_id();
+                    $result['consumables_created']++;
+                }
+            }
+        }
+
+        if (!empty($blueprint['service_consumable_recipes']) && $this->CI->db->table_exists('service_consumables')) {
+            $result['recipes_created'] = 0;
+            foreach ($blueprint['service_consumable_recipes'] as $recipe) {
+                $srv_name = $recipe['service_name'];
+                $prod_name = $recipe['product_name'];
+                if (isset($service_map[$srv_name]) && isset($product_map[$prod_name])) {
+                    $s_id = $service_map[$srv_name];
+                    $p_id = $product_map[$prod_name];
+                    $exists_rec = $this->CI->db->get_where('service_consumables', [
+                        'id_services' => $s_id,
+                        'id_products' => $p_id,
+                    ])->row_array();
+                    $rec_data = [
+                        'id_services' => $s_id,
+                        'id_products' => $p_id,
+                        'quantity_used' => (float) ($recipe['quantity_used'] ?? 1.00),
+                        'unit' => $recipe['unit'] ?? 'adet',
+                        'notes' => $recipe['notes'] ?? 'Standart Reçete',
+                    ];
+                    if ($exists_rec) {
+                        $this->CI->db->update('service_consumables', $rec_data, ['id' => $exists_rec['id']]);
+                    } else {
+                        $rec_data['created_at'] = date('Y-m-d H:i:s');
+                        $this->CI->db->insert('service_consumables', $rec_data);
+                        $result['recipes_created']++;
+                    }
+                }
+            }
+        }
+
         // 6. Seed Demo Data (Admin, Providers, Customers, Appointments)
         if ($seed_demo && !empty($blueprint['demo'])) {
             $demo_ids = $this->seed_demo_data($code, $blueprint, $service_map, $station_map);

@@ -231,14 +231,32 @@
                                 <tr>
                                     <th>Ürün / Malzeme</th>
                                     <th>Kullanılan Miktar</th>
+                                    <th>Birim Maliyet</th>
+                                    <th>Toplam Maliyet</th>
                                     <th>Mevcut Stok</th>
                                     <th class="text-end">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="text-muted text-center py-3"><td colspan="4">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>
+                                <tr class="text-muted text-center py-3"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light border-top py-2" id="service-consumables-summary" style="display:none;">
+                    <div class="row text-center g-2">
+                        <div class="col-4">
+                            <small class="text-muted d-block" style="font-size:11px;">Toplam Sarf Maliyeti</small>
+                            <span class="fw-bold text-danger" id="summary-total-cost">₺0.00</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block" style="font-size:11px;">Hizmet Satış Fiyatı</small>
+                            <span class="fw-bold text-dark" id="summary-service-price">₺0.00</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block" style="font-size:11px;">Tahmini Brüt Kâr (Marj)</small>
+                            <span class="fw-bold text-success" id="summary-gross-profit">₺0.00 (%0)</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -297,8 +315,8 @@
                     <select class="form-select" id="consumable-product-select">
                         <option value="">-- Ürün Seçin --</option>
                         <?php foreach (vars('products') ?? [] as $prod): ?>
-                            <option value="<?= $prod['id'] ?>" data-stock="<?= $prod['stock_quantity'] ?? 0 ?>" data-unit="<?= e($prod['unit'] ?? 'adet') ?>">
-                                <?= e($prod['name']) ?> (Stok: <?= $prod['stock_quantity'] ?? 0 ?> <?= e($prod['unit'] ?? 'adet') ?>)
+                            <option value="<?= $prod['id'] ?>" data-stock="<?= $prod['stock_quantity'] ?? 0 ?>" data-unit="<?= e($prod['unit'] ?? 'adet') ?>" data-cost="<?= (float) ($prod['cost_price'] ?? 0) ?>">
+                                <?= e($prod['name']) ?> (Stok: <?= $prod['stock_quantity'] ?? 0 ?> <?= e($prod['unit'] ?? 'adet') ?> - Maliyet: ₺<?= number_format((float)($prod['cost_price'] ?? 0), 2) ?>)
                             </option>
                         <?php endforeach; ?>
                     </select>

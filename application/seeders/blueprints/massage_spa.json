@@ -176,6 +176,26 @@
       "notes": "Mermer göbek taşı, 2 kurna, kurna başı kese alanı"
     }
   ],
+  "consumables": [
+    { "name": "Tek Kullanımlık Sedye Havlusu & Çarşafı", "sku": "SARF-SPA-01", "cost_price": 5.00, "sale_price": 0.00, "stock_quantity": 250, "low_stock_threshold": 30, "unit": "adet" },
+    { "name": "Organik Lavanta & Okaliptüs Masaj Yağı", "sku": "SARF-SPA-02", "cost_price": 0.70, "sale_price": 0.00, "stock_quantity": 4000, "low_stock_threshold": 400, "unit": "ml" },
+    { "name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "sku": "SARF-SPA-03", "cost_price": 6.00, "sale_price": 0.00, "stock_quantity": 200, "low_stock_threshold": 25, "unit": "set" },
+    { "name": "Doğal İpek Hamam Kesesi (Tek Kullanımlık)", "sku": "SARF-SPA-04", "cost_price": 12.00, "sale_price": 0.00, "stock_quantity": 150, "low_stock_threshold": 20, "unit": "adet" },
+    { "name": "Organik Zeytinyağlı Hamam Köpük Sabunu", "sku": "SARF-SPA-05", "cost_price": 0.15, "sale_price": 0.00, "stock_quantity": 2000, "low_stock_threshold": 200, "unit": "gr" }
+  ],
+  "service_consumable_recipes": [
+    { "service_name": "Aromaterapi Masajı (60 Dk)", "product_name": "Tek Kullanımlık Sedye Havlusu & Çarşafı", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye çarşafı" },
+    { "service_name": "Aromaterapi Masajı (60 Dk)", "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "quantity_used": 1.0, "unit": "set", "notes": "Hijyen seti" },
+    { "service_name": "Aromaterapi Masajı (60 Dk)", "product_name": "Organik Lavanta & Okaliptüs Masaj Yağı", "quantity_used": 50.0, "unit": "ml", "notes": "50ml aromaterapi yağı" },
+
+    { "service_name": "Klasik İsveç Masajı (50 Dk)", "product_name": "Tek Kullanımlık Sedye Havlusu & Çarşafı", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye çarşafı" },
+    { "service_name": "Klasik İsveç Masajı (50 Dk)", "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "quantity_used": 1.0, "unit": "set", "notes": "Hijyen seti" },
+    { "service_name": "Klasik İsveç Masajı (50 Dk)", "product_name": "Organik Lavanta & Okaliptüs Masaj Yağı", "quantity_used": 40.0, "unit": "ml", "notes": "40ml masaj yağı" },
+
+    { "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)", "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "quantity_used": 1.0, "unit": "set", "notes": "Hamam terlik seti" },
+    { "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)", "product_name": "Doğal İpek Hamam Kesesi (Tek Kullanımlık)", "quantity_used": 1.0, "unit": "adet", "notes": "Kişiye özel kese" },
+    { "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)", "product_name": "Organik Zeytinyağlı Hamam Köpük Sabunu", "quantity_used": 100.0, "unit": "gr", "notes": "100gr köpük sabunu" }
+  ],
   "demo": {
     "admin": {
       "first_name": "Deniz",

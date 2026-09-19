@@ -60,6 +60,9 @@ class Calendar extends EA_Controller
         'station_assigned_manually', // Salon Flora customization - set server-side above, never trust the client for this
         'custom_duration_minutes', // Salon Flora customization - booking-time duration override (admin/secretary only)
         'price_override', // Salon Flora customization - booking-time fixed price override (admin/secretary only)
+        'consumables_cost',
+        'gross_profit',
+        'consumables_deducted',
     ];
 
     public array $optional_appointment_fields = [
@@ -280,6 +283,13 @@ class Calendar extends EA_Controller
                 ['value' => 'cash', 'label' => 'Nakit'],
             ],
             'can_manage_payment' => $role_slug !== DB_SLUG_PROVIDER,
+            'consumable_products' => $this->db->table_exists('products')
+                ? $this->db->select('id, name, sku, COALESCE(cost_price, 0) as cost_price, COALESCE(unit, "adet") as unit, stock_quantity')
+                    ->where('is_active', 1)
+                    ->order_by('name', 'ASC')
+                    ->get('products')
+                    ->result_array()
+                : [],
         ]);
 
         html_vars([

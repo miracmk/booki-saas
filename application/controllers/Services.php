@@ -334,7 +334,11 @@ class Services extends EA_Controller
         try {
             method('get');
             $recipes = $this->inventory_consumables_model->get_recipes_for_service($service_id);
-            json_response($recipes);
+            $summary = $this->inventory_consumables_model->get_service_recipe_summary($service_id);
+            json_response([
+                'recipes' => $recipes,
+                'summary' => $summary,
+            ]);
         } catch (Throwable $e) {
             json_exception($e);
         }

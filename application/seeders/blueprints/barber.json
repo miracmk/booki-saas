@@ -169,6 +169,38 @@
       "notes": "Masajlı ergonomik yıkama koltukları"
     }
   ],
+  "consumables": [
+    { "name": "Tek Kullanımlık Kesim & Boya Önlüğü", "sku": "SARF-BRB-01", "cost_price": 2.20, "sale_price": 0.00, "stock_quantity": 400, "low_stock_threshold": 40, "unit": "adet" },
+    { "name": "Tek Kullanımlık Boyun Bandı (Boyunluk)", "sku": "SARF-BRB-02", "cost_price": 0.35, "sale_price": 0.00, "stock_quantity": 800, "low_stock_threshold": 80, "unit": "adet" },
+    { "name": "Tek Kullanımlık Nitril Boya Eldiveni", "sku": "SARF-BRB-03", "cost_price": 1.20, "sale_price": 0.00, "stock_quantity": 500, "low_stock_threshold": 50, "unit": "çift" },
+    { "name": "Tek Kullanımlık Non-Woven Havlu (Büyük)", "sku": "SARF-BRB-04", "cost_price": 2.80, "sale_price": 0.00, "stock_quantity": 300, "low_stock_threshold": 30, "unit": "adet" },
+    { "name": "Profesyonel Saç Boyası (Tüp 60ml)", "sku": "SARF-BRB-05", "cost_price": 65.00, "sale_price": 0.00, "stock_quantity": 80, "low_stock_threshold": 10, "unit": "tüp" },
+    { "name": "Oksidan Krem Losyon (20/30 Vol)", "sku": "SARF-BRB-06", "cost_price": 0.20, "sale_price": 0.00, "stock_quantity": 3000, "low_stock_threshold": 300, "unit": "ml" },
+    { "name": "Toz Saç Açıcı (Bleach Powder)", "sku": "SARF-BRB-07", "cost_price": 0.45, "sale_price": 0.00, "stock_quantity": 2000, "low_stock_threshold": 200, "unit": "gr" },
+    { "name": "Tıraş Bıçağı (Jilet Tek Kullanımlık)", "sku": "SARF-BRB-08", "cost_price": 0.75, "sale_price": 0.00, "stock_quantity": 500, "low_stock_threshold": 50, "unit": "adet" }
+  ],
+  "service_consumable_recipes": [
+    { "service_name": "Erkek Saç Kesimi & Yıkama", "product_name": "Tek Kullanımlık Kesim & Boya Önlüğü", "quantity_used": 1.0, "unit": "adet", "notes": "Kesim önlüğü" },
+    { "service_name": "Erkek Saç Kesimi & Yıkama", "product_name": "Tek Kullanımlık Boyun Bandı (Boyunluk)", "quantity_used": 1.0, "unit": "adet", "notes": "Boyun koruma bandı" },
+    { "service_name": "Erkek Saç Kesimi & Yıkama", "product_name": "Tek Kullanımlık Non-Woven Havlu (Büyük)", "quantity_used": 1.0, "unit": "adet", "notes": "Yıkama havlusu" },
+
+    { "service_name": "Sakal Tasarımı & Sıcak Havlu", "product_name": "Tek Kullanımlık Kesim & Boya Önlüğü", "quantity_used": 1.0, "unit": "adet", "notes": "Tıraş önlüğü" },
+    { "service_name": "Sakal Tasarımı & Sıcak Havlu", "product_name": "Tıraş Bıçağı (Jilet Tek Kullanımlık)", "quantity_used": 1.0, "unit": "adet", "notes": "Kişiye özel ustura jileti" },
+    { "service_name": "Sakal Tasarımı & Sıcak Havlu", "product_name": "Tek Kullanımlık Non-Woven Havlu (Büyük)", "quantity_used": 1.0, "unit": "adet", "notes": "Sıcak kompres havlusu" },
+
+    { "service_name": "Dip Boya & Yıkama", "product_name": "Tek Kullanımlık Kesim & Boya Önlüğü", "quantity_used": 1.0, "unit": "adet", "notes": "Boya pelerini" },
+    { "service_name": "Dip Boya & Yıkama", "product_name": "Tek Kullanımlık Nitril Boya Eldiveni", "quantity_used": 1.0, "unit": "çift", "notes": "Stilist boya eldiveni" },
+    { "service_name": "Dip Boya & Yıkama", "product_name": "Profesyonel Saç Boyası (Tüp 60ml)", "quantity_used": 1.0, "unit": "tüp", "notes": "1 tüp dip boya" },
+    { "service_name": "Dip Boya & Yıkama", "product_name": "Oksidan Krem Losyon (20/30 Vol)", "quantity_used": 60.0, "unit": "ml", "notes": "60ml oksidan" },
+    { "service_name": "Dip Boya & Yıkama", "product_name": "Tek Kullanımlık Non-Woven Havlu (Büyük)", "quantity_used": 1.0, "unit": "adet", "notes": "Boya durulama havlusu" },
+
+    { "service_name": "Balyaj / Ombre / Brushlight", "product_name": "Tek Kullanımlık Kesim & Boya Önlüğü", "quantity_used": 1.0, "unit": "adet", "notes": "Boya pelerini" },
+    { "service_name": "Balyaj / Ombre / Brushlight", "product_name": "Tek Kullanımlık Nitril Boya Eldiveni", "quantity_used": 2.0, "unit": "çift", "notes": "Açma ve boyama eldivenleri" },
+    { "service_name": "Balyaj / Ombre / Brushlight", "product_name": "Toz Saç Açıcı (Bleach Powder)", "quantity_used": 80.0, "unit": "gr", "notes": "80gr açıcı toz" },
+    { "service_name": "Balyaj / Ombre / Brushlight", "product_name": "Oksidan Krem Losyon (20/30 Vol)", "quantity_used": 120.0, "unit": "ml", "notes": "120ml oksidan" },
+    { "service_name": "Balyaj / Ombre / Brushlight", "product_name": "Profesyonel Saç Boyası (Tüp 60ml)", "quantity_used": 1.0, "unit": "tüp", "notes": "1 tüp cila/tonlama boyası" },
+    { "service_name": "Balyaj / Ombre / Brushlight", "product_name": "Tek Kullanımlık Non-Woven Havlu (Büyük)", "quantity_used": 2.0, "unit": "adet", "notes": "Yıkama ve cila havluları" }
+  ],
   "demo": {
     "admin": {
       "first_name": "Serkan",

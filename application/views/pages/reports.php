@@ -210,6 +210,62 @@
                         </div>
                     </div>
                 <?php endif; ?>
+
+                <div class="col-12 col-lg-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold"><i class="fas fa-boxes-stacked text-warning me-2"></i> Sarf Malzeme & Seans Kârlılık Analizi</h6>
+                            <span class="badge bg-light text-muted border">Birim Seans Reçete & Stok Sarfiyatı</span>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div id="analytics-consumables-kpis" class="row g-3 mb-4"></div>
+                            <div class="row g-3">
+                                <div class="col-12 col-lg-6">
+                                    <h6 class="fw-semibold text-secondary small text-uppercase mb-2">
+                                        <i class="fas fa-layer-group me-1"></i> En Çok Tüketilen Sarf Malzemeleri
+                                    </h6>
+                                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                        <table class="table table-borderless table-hover mb-0 align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="rounded-start">Malzeme / Ürün</th>
+                                                    <th>Toplam Miktar</th>
+                                                    <th>Seans</th>
+                                                    <th class="rounded-end text-end">Toplam Harcama</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="analytics-consumables-table">
+                                                <tr><td colspan="4" class="text-muted text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i> Veriler hazırlanıyor...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-lg-6">
+                                    <h6 class="fw-semibold text-secondary small text-uppercase mb-2">
+                                        <i class="fas fa-chart-pie me-1"></i> Hizmet Bazında Seans Kârlılığı
+                                    </h6>
+                                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                        <table class="table table-borderless table-hover mb-0 align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="rounded-start">Hizmet Adı</th>
+                                                    <th>Seans</th>
+                                                    <th>Ciro</th>
+                                                    <th>Sarf Maliyeti</th>
+                                                    <th>Brüt Kâr</th>
+                                                    <th class="rounded-end text-end">Kâr Marjı</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="analytics-services-profit-table">
+                                                <tr><td colspan="6" class="text-muted text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i> Veriler hazırlanıyor...</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -293,6 +349,43 @@
             $('#analytics-retention-table').html(rows || '<tr><td colspan="4" class="text-muted text-center py-4">Veri yok.</td></tr>');
         }
 
+        function renderConsumablesReport(data) {
+            if (!data) return;
+            const spend = Number(data.total_consumable_spend || 0);
+            const revenue = Number(data.total_revenue || 0);
+            const profit = Number(data.total_gross_profit || 0);
+            const margin = Number(data.overall_margin_percent || 0);
+
+            $('#analytics-consumables-kpis').html(
+                kpi('Toplam Sarf Gideri', '<span class="text-danger">₺' + spend.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span>') +
+                kpi('Seans Hasılatı', '₺' + revenue.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2})) +
+                kpi('Toplam Brüt Kâr', '<span class="text-success">₺' + profit.toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</span>') +
+                kpi('Ort. Brüt Marj', '<span class="badge bg-success rounded-pill px-3 fs-6">%' + margin + '</span>')
+            );
+
+            const prodRows = (data.consumed_products || []).map((p) =>
+                '<tr>' +
+                '<td class="fw-medium text-dark">' + $('<div>').text(p.product_name || 'Ürün #' + p.id_products).html() + '</td>' +
+                '<td><span class="badge bg-light text-dark border">' + p.total_quantity + ' ' + (p.unit || 'adet') + '</span></td>' +
+                '<td><span class="badge bg-light text-secondary border">' + p.session_count + ' seans</span></td>' +
+                '<td class="text-end fw-semibold text-danger">₺' + Number(p.total_spend || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                '</tr>'
+            ).join('');
+            $('#analytics-consumables-table').html(prodRows || '<tr><td colspan="4" class="text-muted text-center py-4">Bu dönemde sarfiyat kaydı yok.</td></tr>');
+
+            const svsRows = (data.service_profitability || []).map((s) =>
+                '<tr>' +
+                '<td class="fw-medium text-dark">' + $('<div>').text(s.service_name).html() + '</td>' +
+                '<td><span class="badge bg-primary rounded-pill">' + s.total_appointments + '</span></td>' +
+                '<td>₺' + Number(s.total_revenue || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                '<td class="text-danger">₺' + Number(s.total_consumables_cost || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                '<td class="fw-semibold text-success">₺' + Number(s.total_gross_profit || 0).toLocaleString('tr-TR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                '<td class="text-end">' + getProgressBar(s.margin_percent) + '</td>' +
+                '</tr>'
+            ).join('');
+            $('#analytics-services-profit-table').html(svsRows || '<tr><td colspan="6" class="text-muted text-center py-4">Bu dönemde seans verisi yok.</td></tr>');
+        }
+
         // Set default date range: last 30 days
         const today = new Date();
         const thirtyDaysAgo = new Date(today);
@@ -328,6 +421,11 @@
                     date_from: dateFrom,
                     date_to: dateTo,
                     group_by: groupBy
+                }),
+                $.post('<?= site_url("reports/get_consumables_report") ?>', {
+                    csrf_token: token,
+                    date_from: dateFrom,
+                    date_to: dateTo
                 })
             ];
 
@@ -345,9 +443,10 @@
             <?php endif; ?>
 
             Promise.all(requests.map(req => req.promise ? req.promise() : req))
-                .then(([revenueData, utilizationData, retentionData]) => {
+                .then(([revenueData, utilizationData, consumablesData, retentionData]) => {
                     renderRevenue(revenueData);
                     renderUtilization(utilizationData);
+                    renderConsumablesReport(consumablesData);
                     <?php if (session('role_slug') !== DB_SLUG_PROVIDER): ?>
                         if (retentionData) {
                             renderRetention(retentionData);
@@ -366,3 +465,4 @@
 </script>
 
 <?php end_section('scripts'); ?>
+

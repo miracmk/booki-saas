@@ -644,4 +644,30 @@ class Reports extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Get consumables and session profit margin report.
+     */
+    public function get_consumables_report(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('view', PRIV_REPORTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $date_from = request('date_from') ?: date('Y-m-01');
+            $date_to = request('date_to') ?: date('Y-m-d 23:59:59');
+            $service_id = request('service_id') ? (int) request('service_id') : null;
+
+            $this->load->model('inventory_consumables_model');
+            $report = $this->inventory_consumables_model->get_consumables_report($date_from, $date_to, $service_id);
+
+            json_response($report);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }
+

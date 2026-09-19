@@ -164,6 +164,39 @@
       "notes": "Santrifüj cihazı, EKG monitörü, kan alma koltuğu"
     }
   ],
+  "consumables": [
+    { "name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "sku": "SARF-DOC-01", "cost_price": 3.50, "sale_price": 0.00, "stock_quantity": 300, "low_stock_threshold": 30, "unit": "adet" },
+    { "name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "sku": "SARF-DOC-02", "cost_price": 1.50, "sale_price": 0.00, "stock_quantity": 500, "low_stock_threshold": 50, "unit": "çift" },
+    { "name": "Ahşap Dil Basacağı (Abeslang)", "sku": "SARF-DOC-03", "cost_price": 0.30, "sale_price": 0.00, "stock_quantity": 600, "low_stock_threshold": 50, "unit": "adet" },
+    { "name": "Alkol Bazlı El & Cilt Antiseptiği (100ml)", "sku": "SARF-DOC-04", "cost_price": 12.00, "sale_price": 0.00, "stock_quantity": 100, "low_stock_threshold": 15, "unit": "adet" },
+    { "name": "Steril Gaz Kompres / Bez & Flaster Pedi", "sku": "SARF-DOC-05", "cost_price": 1.20, "sale_price": 0.00, "stock_quantity": 400, "low_stock_threshold": 40, "unit": "paket" },
+    { "name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)", "sku": "SARF-DOC-06", "cost_price": 4.50, "sale_price": 0.00, "stock_quantity": 250, "low_stock_threshold": 30, "unit": "adet" },
+    { "name": "Tek Kullanımlık PRP Santrifüj Tüpü & Kiti", "sku": "SARF-DOC-07", "cost_price": 180.00, "sale_price": 0.00, "stock_quantity": 40, "low_stock_threshold": 10, "unit": "kit" },
+    { "name": "Steril Cerrahi Sütur İpi & Dikiş Kiti", "sku": "SARF-DOC-08", "cost_price": 35.00, "sale_price": 0.00, "stock_quantity": 50, "low_stock_threshold": 10, "unit": "kit" }
+  ],
+  "service_consumable_recipes": [
+    { "service_name": "Uzman Doktor İlk Muayenesi", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Muayene masası örtüsü" },
+    { "service_name": "Uzman Doktor İlk Muayenesi", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim muayene eldiveni" },
+    { "service_name": "Uzman Doktor İlk Muayenesi", "product_name": "Ahşap Dil Basacağı (Abeslang)", "quantity_used": 1.0, "unit": "adet", "notes": "Boğaz muayenesi" },
+
+    { "service_name": "Kontrol Muayenesi (10 Gün İçi)", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Muayene masası örtüsü" },
+    { "service_name": "Kontrol Muayenesi (10 Gün İçi)", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim muayene eldiveni" },
+
+    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Cerrahi masa örtüsü" },
+    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 2.0, "unit": "çift", "notes": "Hekim ve hemşire eldiveni" },
+    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Steril Cerrahi Sütur İpi & Dikiş Kiti", "quantity_used": 1.0, "unit": "kit", "notes": "Steril dikiş kiti" },
+    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Steril Gaz Kompres / Bez & Flaster Pedi", "quantity_used": 2.0, "unit": "paket", "notes": "Pansuman kapama pedi" },
+
+    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Koltuk örtüsü" },
+    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim eldiveni" },
+    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)", "quantity_used": 3.0, "unit": "adet", "notes": "Mikro enjeksiyon uçları" },
+    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Steril Gaz Kompres / Bez & Flaster Pedi", "quantity_used": 1.0, "unit": "paket", "notes": "Buz kompres ve temizleme" },
+
+    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Koltuk örtüsü" },
+    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 2.0, "unit": "çift", "notes": "Kan alma ve uygulama eldiveni" },
+    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Tek Kullanımlık PRP Santrifüj Tüpü & Kiti", "quantity_used": 1.0, "unit": "kit", "notes": "PRP santrifüj tüpü" },
+    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)", "quantity_used": 2.0, "unit": "adet", "notes": "Mezoterapi enjektörü" }
+  ],
   "demo": {
     "admin": {
       "first_name": "Dr. Mehmet",

@@ -253,6 +253,7 @@ App.Pages.Services = (function () {
                 return;
             }
             const data = {
+                csrf_token: vars('csrf_token'),
                 id_services: Number(serviceId),
                 name: name,
                 duration_minutes: Number($('#addon-duration-input').val() || 0),
@@ -262,8 +263,7 @@ App.Pages.Services = (function () {
             $.ajax({
                 url: App.Utils.Url.siteUrl('services/save_addon'),
                 type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
+                data: data,
                 success: () => {
                     $('#modal-addon-form').modal('hide');
                     loadAddons(serviceId);
@@ -278,7 +278,9 @@ App.Pages.Services = (function () {
             const addonId = $(this).data('id');
             const serviceId = $id.val();
             if (!confirm('Bu ek hizmeti silmek istediğinize emin misiniz?')) return;
-            $.post(App.Utils.Url.siteUrl('services/delete_addon/' + addonId), () => {
+            $.post(App.Utils.Url.siteUrl('services/delete_addon/' + addonId), {
+                csrf_token: vars('csrf_token'),
+            }, () => {
                 loadAddons(serviceId);
                 App.Layouts.Backend.displayNotification('Ek hizmet silindi.');
             });
@@ -307,6 +309,7 @@ App.Pages.Services = (function () {
                 return;
             }
             const data = {
+                csrf_token: vars('csrf_token'),
                 id_services: Number(serviceId),
                 id_products: Number(productId),
                 quantity_used: qty,
@@ -314,8 +317,7 @@ App.Pages.Services = (function () {
             $.ajax({
                 url: App.Utils.Url.siteUrl('services/save_consumable'),
                 type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
+                data: data,
                 success: () => {
                     $('#modal-consumable-form').modal('hide');
                     loadConsumables(serviceId);
@@ -330,7 +332,9 @@ App.Pages.Services = (function () {
             const recId = $(this).data('id');
             const serviceId = $id.val();
             if (!confirm('Bu sarf malzemeyi reçeteden çıkarmak istediğinize emin misiniz?')) return;
-            $.post(App.Utils.Url.siteUrl('services/delete_consumable/' + recId), () => {
+            $.post(App.Utils.Url.siteUrl('services/delete_consumable/' + recId), {
+                csrf_token: vars('csrf_token'),
+            }, () => {
                 loadConsumables(serviceId);
                 App.Layouts.Backend.displayNotification('Sarf malzeme reçeteden çıkarıldı.');
             });
@@ -428,6 +432,12 @@ App.Pages.Services = (function () {
         $('#service-providers input:checkbox').prop('disabled', true).prop('checked', false);
         $('#select-all-providers, #select-none-providers').prop('disabled', true);
         $('#service-providers a').remove();
+
+        // Reset Addons & Consumables
+        $('#service-addons-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="4">Ek hizmet bulunamadı.</td></tr>');
+        $('#service-consumables-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
+        $('#service-consumables-summary').hide();
+        $('#btn-add-addon-modal, #btn-add-consumable-modal').prop('disabled', true);
 
         App.Components.ColorSelection.disable($color);
     }
@@ -536,23 +546,34 @@ App.Pages.Services = (function () {
      */
     function loadConsumables(serviceId) {
         const $tbody = $('#service-consumables-table tbody');
-        $tbody.html('<tr class="text-muted text-center py-2"><td colspan="4"><i class="fas fa-spinner fa-spin me-2"></i>Yükleniyor...</td></tr>');
+        const $summary = $('#service-consumables-summary');
+        $tbody.html('<tr class="text-muted text-center py-2"><td colspan="6"><i class="fas fa-spinner fa-spin me-2"></i>Yükleniyor...</td></tr>');
 
         $.get(App.Utils.Url.siteUrl('services/get_consumables/' + serviceId))
-            .done((recipes) => {
+            .done((response) => {
                 $tbody.empty();
+                const recipes = Array.isArray(response) ? response : (response.recipes || []);
+                const summary = response && response.summary ? response.summary : null;
+
                 if (!recipes || !recipes.length) {
-                    $tbody.html('<tr class="text-muted text-center py-2"><td colspan="4">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
+                    $tbody.html('<tr class="text-muted text-center py-2"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
+                    $summary.hide();
                     return;
                 }
                 recipes.forEach((rec) => {
+                    const unitCost = Number(rec.cost || 0);
+                    const totalCost = Number(rec.line_total_cost || (rec.quantity_used * unitCost) || 0);
+                    const unit = escapeHtml(rec.product_unit || 'adet');
+
                     const tr = `
                         <tr>
                             <td class="fw-semibold text-dark">${escapeHtml(rec.product_name || 'Ürün #' + rec.id_products)}</td>
-                            <td><span class="badge bg-light text-dark border">${rec.quantity_used}</span></td>
-                            <td><span class="badge ${Number(rec.stock_quantity) > 0 ? 'bg-success' : 'bg-danger'}">${rec.stock_quantity || 0}</span></td>
+                            <td><span class="badge bg-light text-dark border">${rec.quantity_used} ${unit}</span></td>
+                            <td class="text-muted">₺${unitCost.toFixed(2)}</td>
+                            <td class="fw-semibold text-danger">₺${totalCost.toFixed(2)}</td>
+                            <td><span class="badge ${Number(rec.stock_quantity) > 0 ? 'bg-success' : 'bg-danger'}">${rec.stock_quantity || 0} ${unit}</span></td>
                             <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete-consumable" data-id="${rec.id}">
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-delete-consumable" data-id="${rec.id}" title="Reçeteden Çıkar">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </td>
@@ -560,9 +581,21 @@ App.Pages.Services = (function () {
                     `;
                     $tbody.append(tr);
                 });
+
+                if (summary && summary.total_consumable_cost !== undefined) {
+                    $('#summary-total-cost').text('₺' + Number(summary.total_consumable_cost || 0).toFixed(2));
+                    $('#summary-service-price').text('₺' + Number(summary.service_price || 0).toFixed(2));
+                    const profit = Number(summary.gross_profit || 0).toFixed(2);
+                    const margin = Number(summary.gross_margin_percent || 0).toFixed(1);
+                    $('#summary-gross-profit').text(`₺${profit} (%${margin})`);
+                    $summary.show();
+                } else {
+                    $summary.hide();
+                }
             })
             .fail(() => {
-                $tbody.html('<tr class="text-danger text-center py-2"><td colspan="4">Sarf reçetesi yüklenemedi.</td></tr>');
+                $tbody.html('<tr class="text-danger text-center py-2"><td colspan="6">Sarf reçetesi yüklenemedi.</td></tr>');
+                $summary.hide();
             });
     }
 

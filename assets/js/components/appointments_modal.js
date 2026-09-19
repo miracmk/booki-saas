@@ -83,6 +83,21 @@ App.Components.AppointmentsModal = (function () {
     const $cancelSessionStartButton = $('#salonflora-cancel-session-start');
     const $cancelSessionEndButton = $('#salonflora-cancel-session-end');
 
+    // Session Consumables tracking elements
+    const $consumablesPanel = $('#appointment-consumables-section');
+    const $consumablesTbody = $('#appointment-consumables-tbody');
+    const $consumablesCostDisplay = $('#appt-consumables-cost-display');
+    const $grossProfitDisplay = $('#appt-gross-profit-display');
+    const $grossMarginBadge = $('#appt-gross-margin-badge');
+    const $consumablesStatusBadge = $('#appt-consumables-status-badge');
+    const $btnAddConsumableModal = $('#btn-add-session-consumable-modal');
+    const $modalAddConsumable = $('#modal-appointment-consumable-add');
+    const $extraConsumableSelect = $('#appt-extra-consumable-select');
+    const $extraConsumableQty = $('#appt-extra-consumable-qty');
+    const $extraConsumableUnit = $('#appt-extra-consumable-unit');
+    const $extraConsumableNotes = $('#appt-extra-consumable-notes');
+    const $btnSaveConsumableSubmit = $('#btn-save-appt-consumable-submit');
+
     const moment = window.moment;
 
     // Salon Flora customization - the full data object of the appointment currently open in the modal (as last
@@ -1136,6 +1151,8 @@ App.Components.AppointmentsModal = (function () {
         $('#customer-context-banner').addClass('d-none');
         $('#addons-checkbox-list').empty();
         $('#service-addons-selector').addClass('d-none');
+        $consumablesPanel.addClass('d-none');
+        $consumablesTbody.empty();
         updateLiveSummary();
 
         // Salon Flora customization - BUG FIX: $selectService.trigger('change') above re-populates the provider
@@ -1289,6 +1306,10 @@ App.Components.AppointmentsModal = (function () {
         if (appointment.customer) {
             displayCustomerContext(appointment.customer);
         }
+
+        // Load and display session consumables & costs
+        loadAppointmentConsumables(appointment.id);
+
         updateLiveSummary();
     }
 
@@ -1646,6 +1667,207 @@ App.Components.AppointmentsModal = (function () {
             loadServiceAddons($(this).val());
             updateLiveSummary();
         });
+
+        // ---------------------------------------------------------------------
+        // Session Consumables (Sarf Malzeme) Event Handlers & Functions
+        // ---------------------------------------------------------------------
+
+        $btnAddConsumableModal.on('click', () => {
+            const products = vars('consumable_products') || [];
+            $extraConsumableSelect.empty().append('<option value="">-- Ürün Seçin --</option>');
+            products.forEach(p => {
+                const stockLabel = p.stock_quantity !== undefined ? ` (Stok: ${p.stock_quantity})` : '';
+                $extraConsumableSelect.append(
+                    $('<option></option>')
+                        .val(p.id)
+                        .text(p.name + stockLabel)
+                        .attr('data-unit', p.unit || 'adet')
+                        .attr('data-cost', p.cost_price || 0)
+                );
+            });
+            $extraConsumableQty.val('1.00');
+            $extraConsumableUnit.val('adet');
+            $extraConsumableNotes.val('');
+            $modalAddConsumable.modal('show');
+        });
+
+        $extraConsumableSelect.on('change', function () {
+            const $opt = $(this).find(':selected');
+            const unit = $opt.attr('data-unit') || 'adet';
+            $extraConsumableUnit.val(unit);
+        });
+
+        $btnSaveConsumableSubmit.on('click', () => {
+            const apptId = $appointmentId.val();
+            const prodId = $extraConsumableSelect.val();
+            const qty = parseFloat($extraConsumableQty.val());
+
+            if (!apptId || !prodId || isNaN(qty) || qty <= 0) {
+                alert('Lütfen geçerli bir ürün ve miktar girin.');
+                return;
+            }
+
+            const unit = $extraConsumableUnit.val();
+            const notes = $extraConsumableNotes.val();
+            const $opt = $extraConsumableSelect.find(':selected');
+            const unitCost = parseFloat($opt.attr('data-cost') || 0);
+
+            $btnSaveConsumableSubmit.prop('disabled', true);
+
+            $.ajax({
+                url: App.Utils.Url.siteUrl('appointments/save_consumable'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id_appointments: apptId,
+                    id_products: prodId,
+                    quantity_used: qty,
+                    unit: unit,
+                    unit_cost: unitCost,
+                    is_extra: 1,
+                    notes: notes,
+                }),
+                success: () => {
+                    $modalAddConsumable.modal('hide');
+                    loadAppointmentConsumables(apptId);
+                },
+                error: (xhr) => {
+                    alert('Sarfiyat kaydedilemedi: ' + (xhr.responseJSON?.message || 'Sunucu hatası'));
+                },
+                complete: () => {
+                    $btnSaveConsumableSubmit.prop('disabled', false);
+                }
+            });
+        });
+
+        // Inline quantity update in consumables table
+        $consumablesTbody.on('change', '.appt-consumable-qty-inline', function () {
+            const rowId = $(this).attr('data-id');
+            const newQty = parseFloat($(this).val());
+            const apptId = $appointmentId.val();
+
+            if (!rowId || isNaN(newQty) || newQty <= 0) {
+                return;
+            }
+
+            $.ajax({
+                url: App.Utils.Url.siteUrl('appointments/save_consumable'),
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id: rowId,
+                    id_appointments: apptId,
+                    quantity_used: newQty,
+                }),
+                success: () => {
+                    loadAppointmentConsumables(apptId);
+                }
+            });
+        });
+
+        // Delete consumable
+        $consumablesTbody.on('click', '.btn-delete-appt-consumable', function () {
+            const rowId = $(this).attr('data-id');
+            const apptId = $appointmentId.val();
+
+            if (!confirm('Bu sarf malzemeyi seans listesinden çıkarmak istediğinize emin misiniz?')) {
+                return;
+            }
+
+            $.post(App.Utils.Url.siteUrl('appointments/delete_consumable/' + rowId), () => {
+                loadAppointmentConsumables(apptId);
+            });
+        });
+    }
+
+    /**
+     * Load and render consumables for an appointment.
+     */
+    function loadAppointmentConsumables(appointmentId) {
+        if (!appointmentId) {
+            $consumablesPanel.addClass('d-none');
+            return;
+        }
+
+        $consumablesPanel.removeClass('d-none');
+        $consumablesTbody.html('<tr class="text-muted text-center py-2"><td colspan="6" class="small"><i class="fas fa-spinner fa-spin me-1"></i>Sarfiyatlar yükleniyor...</td></tr>');
+
+        $.get(App.Utils.Url.siteUrl('appointments/get_consumables/' + appointmentId))
+            .done((res) => {
+                if (!res || !res.success) {
+                    $consumablesTbody.html('<tr class="text-muted text-center py-2"><td colspan="6" class="small">Sarfiyat yüklenemedi.</td></tr>');
+                    return;
+                }
+
+                renderAppointmentConsumables(res.items || [], res.consumables_cost || 0, res.gross_profit || 0, res.consumables_deducted || 0);
+            })
+            .fail(() => {
+                $consumablesTbody.html('<tr class="text-muted text-center py-2"><td colspan="6" class="small text-danger">Bağlantı hatası.</td></tr>');
+            });
+    }
+
+    /**
+     * Render appointment consumables table and cost summary.
+     */
+    function renderAppointmentConsumables(items, consumablesCost, grossProfit, isDeducted) {
+        if (!items || items.length === 0) {
+            $consumablesTbody.html('<tr class="text-muted text-center py-2"><td colspan="6" class="small">Bu seans için reçete veya sarf malzeme kaydı bulunmuyor.</td></tr>');
+        } else {
+            let html = '';
+            items.forEach((it) => {
+                const extraBadge = it.is_extra ? '<span class="badge bg-warning-subtle text-dark border border-warning ms-1" style="font-size:10px;">Ekstra</span>' : '<span class="badge bg-light text-muted border ms-1" style="font-size:10px;">Standart</span>';
+                const lineTotal = Number(it.total_cost || 0).toFixed(2);
+                const unitCost = Number(it.unit_cost || 0).toFixed(2);
+                const qty = Number(it.quantity_used || 0);
+
+                html += `
+                    <tr data-id="${it.id}">
+                        <td>
+                            <strong class="text-dark">${App.Utils.Escape.html(it.product_name || 'Ürün #' + it.id_products)}</strong>
+                            ${extraBadge}
+                            ${it.notes ? `<small class="text-muted d-block" style="font-size:11px;">${App.Utils.Escape.html(it.notes)}</small>` : ''}
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" min="0.01" class="form-control form-control-sm appt-consumable-qty-inline" 
+                                   value="${qty}" data-id="${it.id}" style="width: 75px; height: 26px; padding: 2px 6px; font-size: 12px;" ${isDeducted ? 'disabled' : ''}>
+                        </td>
+                        <td class="text-muted small">${App.Utils.Escape.html(it.unit || 'adet')}</td>
+                        <td class="text-muted small">${unitCost} ₺</td>
+                        <td class="fw-semibold text-dark">${lineTotal} ₺</td>
+                        <td class="text-end">
+                            ${!isDeducted ? `
+                                <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1 btn-delete-appt-consumable" data-id="${it.id}" title="Kaldır">
+                                    <i class="fas fa-trash-alt" style="font-size: 11px;"></i>
+                                </button>
+                            ` : '<span class="text-success small" title="Stoktan düşüldü"><i class="fas fa-check-circle"></i></span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+            $consumablesTbody.html(html);
+        }
+
+        // Summary updates
+        $consumablesCostDisplay.text(Number(consumablesCost).toFixed(2) + ' ₺');
+        $grossProfitDisplay.text(Number(grossProfit).toFixed(2) + ' ₺');
+
+        const servicePrice = Number(currentAppointmentData?.service?.price || currentAppointmentData?.price_override || 0);
+        const marginPct = servicePrice > 0 ? Math.round((grossProfit / servicePrice) * 100) : 0;
+        $grossMarginBadge.text('%' + marginPct + ' Kâr');
+
+        if (isDeducted) {
+            $consumablesStatusBadge
+                .removeClass('bg-secondary bg-warning')
+                .addClass('bg-success')
+                .html('<i class="fas fa-check-circle me-1"></i>Stoktan Düşüldü');
+            $btnAddConsumableModal.prop('disabled', true);
+        } else {
+            $consumablesStatusBadge
+                .removeClass('bg-success')
+                .addClass('bg-secondary')
+                .text('Randevu tamamlandığında stoktan düşer');
+            $btnAddConsumableModal.prop('disabled', false);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', initialize);

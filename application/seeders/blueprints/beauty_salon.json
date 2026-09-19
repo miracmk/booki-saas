@@ -176,6 +176,36 @@
       "notes": "Özel aydınlatmalı ergonomik sedye, sterilizasyon ünitesi"
     }
   ],
+  "consumables": [
+    { "name": "Tek Kullanımlık Sedye Örtüsü (Lastikli)", "sku": "SARF-BS-01", "cost_price": 4.00, "sale_price": 0.00, "stock_quantity": 300, "low_stock_threshold": 30, "unit": "adet" },
+    { "name": "Tek Kullanımlık Cilt Bakım Boneleri", "sku": "SARF-BS-02", "cost_price": 0.40, "sale_price": 0.00, "stock_quantity": 600, "low_stock_threshold": 60, "unit": "adet" },
+    { "name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)", "sku": "SARF-BS-03", "cost_price": 1.40, "sale_price": 0.00, "stock_quantity": 500, "low_stock_threshold": 50, "unit": "çift" },
+    { "name": "Ultrasonik Soğutucu Lazer Jeli (5000ml)", "sku": "SARF-BS-04", "cost_price": 0.05, "sale_price": 0.00, "stock_quantity": 10000, "low_stock_threshold": 1000, "unit": "ml" },
+    { "name": "Tek Kullanımlık Ahşap Spatula", "sku": "SARF-BS-05", "cost_price": 0.20, "sale_price": 0.00, "stock_quantity": 800, "low_stock_threshold": 80, "unit": "adet" },
+    { "name": "Hydrafacial Solüsyon Seti (S1/S2/S3)", "sku": "SARF-BS-06", "cost_price": 1.20, "sale_price": 0.00, "stock_quantity": 1500, "low_stock_threshold": 150, "unit": "ml" },
+    { "name": "Tek Kullanımlık Göz Koruma Pedi & Gözlük Kılıfı", "sku": "SARF-BS-07", "cost_price": 1.50, "sale_price": 0.00, "stock_quantity": 300, "low_stock_threshold": 30, "unit": "çift" },
+    { "name": "G5 Termo Selülit Masaj Yağı", "sku": "SARF-BS-08", "cost_price": 0.60, "sale_price": 0.00, "stock_quantity": 3000, "low_stock_threshold": 300, "unit": "ml" }
+  ],
+  "service_consumable_recipes": [
+    { "service_name": "Hydrafacial Medikal Cilt Bakımı", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lastikli)", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye örtüsü" },
+    { "service_name": "Hydrafacial Medikal Cilt Bakımı", "product_name": "Tek Kullanımlık Cilt Bakım Boneleri", "quantity_used": 1.0, "unit": "adet", "notes": "Müşteri saç bonesi" },
+    { "service_name": "Hydrafacial Medikal Cilt Bakımı", "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)", "quantity_used": 1.0, "unit": "çift", "notes": "Estetisyen eldiveni" },
+    { "service_name": "Hydrafacial Medikal Cilt Bakımı", "product_name": "Hydrafacial Solüsyon Seti (S1/S2/S3)", "quantity_used": 40.0, "unit": "ml", "notes": "40ml solüsyon tüketimi" },
+
+    { "service_name": "Klasik Derin Cilt Temizliği", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lastikli)", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye örtüsü" },
+    { "service_name": "Klasik Derin Cilt Temizliği", "product_name": "Tek Kullanımlık Cilt Bakım Boneleri", "quantity_used": 1.0, "unit": "adet", "notes": "Saç bonesi" },
+    { "service_name": "Klasik Derin Cilt Temizliği", "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)", "quantity_used": 1.0, "unit": "çift", "notes": "Estetisyen eldiveni" },
+
+    { "service_name": "Tüm Vücut Buz Lazer Epilasyon (Kadın)", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lastikli)", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye koruma örtüsü" },
+    { "service_name": "Tüm Vücut Buz Lazer Epilasyon (Kadın)", "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)", "quantity_used": 1.0, "unit": "çift", "notes": "Uygulama eldiveni" },
+    { "service_name": "Tüm Vücut Buz Lazer Epilasyon (Kadın)", "product_name": "Ultrasonik Soğutucu Lazer Jeli (5000ml)", "quantity_used": 250.0, "unit": "ml", "notes": "250ml ultrason lazer jeli" },
+    { "service_name": "Tüm Vücut Buz Lazer Epilasyon (Kadın)", "product_name": "Tek Kullanımlık Ahşap Spatula", "quantity_used": 3.0, "unit": "adet", "notes": "Jel sürme spatulaları" },
+    { "service_name": "Tüm Vücut Buz Lazer Epilasyon (Kadın)", "product_name": "Tek Kullanımlık Göz Koruma Pedi & Gözlük Kılıfı", "quantity_used": 1.0, "unit": "çift", "notes": "Lazer koruma pedi" },
+
+    { "service_name": "G5 Masajı & Selülit Protokolü", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lastikli)", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye koruma örtüsü" },
+    { "service_name": "G5 Masajı & Selülit Protokolü", "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)", "quantity_used": 1.0, "unit": "çift", "notes": "Uygulayıcı eldiveni" },
+    { "service_name": "G5 Masajı & Selülit Protokolü", "product_name": "G5 Termo Selülit Masaj Yağı", "quantity_used": 50.0, "unit": "ml", "notes": "50ml termal masaj yağı" }
+  ],
   "demo": {
     "admin": {
       "first_name": "Ece",

@@ -249,6 +249,52 @@
                                             </div>
                                         </div>
 
+                                        <!-- Seans Sarfiyatı & Malzeme Kullanımı (Session Consumables & Cost Accounting) -->
+                                        <div class="mb-4 salonflora-consumables-panel d-none" id="appointment-consumables-section">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label fw-bold text-dark mb-0">
+                                                    <i class="fas fa-boxes-stacked text-warning me-1"></i>Seans Sarfiyatı & Malzeme Maliyeti
+                                                </label>
+                                                <button type="button" class="btn btn-outline-warning btn-sm" id="btn-add-session-consumable-modal">
+                                                    <i class="fas fa-plus me-1"></i>Ekstra Sarfiyat Ekle
+                                                </button>
+                                            </div>
+                                            <div class="border rounded p-3 bg-light">
+                                                <div class="table-responsive mb-2">
+                                                    <table class="table table-sm table-hover align-middle mb-0" id="appointment-consumables-table">
+                                                        <thead class="table-light">
+                                                            <tr class="small text-muted">
+                                                                <th>Malzeme / Ürün</th>
+                                                                <th style="width: 85px;">Miktar</th>
+                                                                <th>Birim</th>
+                                                                <th>Birim Maliyet</th>
+                                                                <th>Toplam</th>
+                                                                <th style="width: 45px;" class="text-end">İşlem</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="appointment-consumables-tbody">
+                                                            <tr class="text-muted text-center py-2"><td colspan="6" class="small">Sarfiyat listesi yükleniyor...</td></tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <!-- Summary Footer -->
+                                                <div class="d-flex flex-wrap justify-content-between align-items-center pt-2 border-top small gap-2">
+                                                    <div>
+                                                        <span class="text-muted">Toplam Sarf Maliyeti:</span>
+                                                        <strong class="text-danger ms-1" id="appt-consumables-cost-display">0.00 ₺</strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-muted">Seans Brüt Kârı:</span>
+                                                        <strong class="text-success ms-1" id="appt-gross-profit-display">0.00 ₺</strong>
+                                                        <span class="badge bg-success-subtle text-success ms-1" id="appt-gross-margin-badge">%0</span>
+                                                    </div>
+                                                    <div id="appt-stock-deduction-badge-container">
+                                                        <span class="badge bg-secondary" id="appt-consumables-status-badge">Randevu tamamlandığında stoktan düşer</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Tahsilat Paneli -->
                                         <div class="mb-4 salonflora-payment-panel d-none">
                                             <label class="form-label fw-bold text-dark">
@@ -449,6 +495,48 @@
                 <button id="save-appointment" class="btn btn-primary px-4 fw-semibold">
                     <i class="fas fa-check-circle me-2"></i>
                     <?= lang('save') ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Seansa Ekstra Sarf Malzeme Ekle -->
+<div class="modal fade" id="modal-appointment-consumable-add" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header py-2 bg-light border-bottom">
+                <h6 class="modal-title fw-bold mb-0 text-dark">
+                    <i class="fas fa-boxes-stacked text-warning me-1"></i>Ekstra Sarfiyat Ekle
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="mb-2">
+                    <label class="form-label small fw-bold mb-1">Sarf Malzemesi *</label>
+                    <select class="form-select form-select-sm" id="appt-extra-consumable-select">
+                        <option value="">-- Ürün Seçin --</option>
+                    </select>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-7">
+                        <label class="form-label small fw-bold mb-1">Harcanan Miktar *</label>
+                        <input type="number" step="0.01" min="0.01" class="form-control form-control-sm" id="appt-extra-consumable-qty" value="1.00">
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label small fw-bold mb-1">Birim</label>
+                        <input type="text" class="form-control form-control-sm bg-light" id="appt-extra-consumable-unit" value="adet" readonly>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small mb-1">Açıklama / Not</label>
+                    <input type="text" class="form-control form-control-sm" id="appt-extra-consumable-notes" placeholder="Örn: 1 tüp ekstra boya, ilave enjektör">
+                </div>
+            </div>
+            <div class="modal-footer py-2 bg-light border-top">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-sm btn-warning fw-semibold" id="btn-save-appt-consumable-submit">
+                    <i class="fas fa-plus me-1"></i>Seansa Ekle
                 </button>
             </div>
         </div>

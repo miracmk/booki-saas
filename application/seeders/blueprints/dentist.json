@@ -155,6 +155,42 @@
       "notes": "Kurşun kaplı oda, 3D dental tomografi ve panoramik röntgen"
     }
   ],
+  "consumables": [
+    { "name": "Nitril Muayene Eldiveni (Mavisi)", "sku": "SARF-DNT-01", "cost_price": 1.50, "sale_price": 0.00, "stock_quantity": 500, "low_stock_threshold": 50, "unit": "çift" },
+    { "name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "sku": "SARF-DNT-02", "cost_price": 0.80, "sale_price": 0.00, "stock_quantity": 400, "low_stock_threshold": 40, "unit": "adet" },
+    { "name": "Tek Kullanımlık Plastik Bardak", "sku": "SARF-DNT-03", "cost_price": 0.25, "sale_price": 0.00, "stock_quantity": 1000, "low_stock_threshold": 100, "unit": "adet" },
+    { "name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "sku": "SARF-DNT-04", "cost_price": 0.60, "sale_price": 0.00, "stock_quantity": 600, "low_stock_threshold": 60, "unit": "adet" },
+    { "name": "Dental Lokal Anestezi Ampulü (Artikain)", "sku": "SARF-DNT-05", "cost_price": 15.00, "sale_price": 0.00, "stock_quantity": 150, "low_stock_threshold": 20, "unit": "ampul" },
+    { "name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)", "sku": "SARF-DNT-06", "cost_price": 120.00, "sale_price": 0.00, "stock_quantity": 30, "low_stock_threshold": 5, "unit": "tüp" },
+    { "name": "Otoklav Sterilizasyon Poşeti & İndikatör", "sku": "SARF-DNT-07", "cost_price": 2.00, "sale_price": 0.00, "stock_quantity": 350, "low_stock_threshold": 40, "unit": "adet" },
+    { "name": "Polisaj Pastası & Florürlü Cila Pedi", "sku": "SARF-DNT-08", "cost_price": 8.00, "sale_price": 0.00, "stock_quantity": 100, "low_stock_threshold": 15, "unit": "adet" }
+  ],
+  "service_consumable_recipes": [
+    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim muayene eldiveni" },
+    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta koruma önlüğü" },
+    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Tek Kullanımlık Plastik Bardak", "quantity_used": 1.0, "unit": "adet", "notes": "Ağız çalkalama bardağı" },
+    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 1.0, "unit": "adet", "notes": "Tükürük emici aspiratör ucu" },
+    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör", "quantity_used": 1.0, "unit": "adet", "notes": "Ayna-sond steril seti" },
+
+    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim eldiveni" },
+    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta önlüğü" },
+    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Tek Kullanımlık Plastik Bardak", "quantity_used": 2.0, "unit": "adet", "notes": "Çalkalama bardağı" },
+    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 1.0, "unit": "adet", "notes": "Aspiratör ucu" },
+    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Polisaj Pastası & Florürlü Cila Pedi", "quantity_used": 1.0, "unit": "adet", "notes": "Polisaj cila kiti" },
+
+    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim eldiveni" },
+    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta önlüğü" },
+    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Dental Lokal Anestezi Ampulü (Artikain)", "quantity_used": 1.0, "unit": "ampul", "notes": "Lokal anestezi" },
+    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 1.0, "unit": "adet", "notes": "Aspiratör ucu" },
+    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)", "quantity_used": 0.2, "unit": "tüp", "notes": "0.2 tüp dolgu materyali" },
+    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör", "quantity_used": 1.0, "unit": "adet", "notes": "El aletleri poşeti" },
+
+    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 2.0, "unit": "çift", "notes": "Hekim ve asistan eldiveni" },
+    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta önlüğü" },
+    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Dental Lokal Anestezi Ampulü (Artikain)", "quantity_used": 2.0, "unit": "ampul", "notes": "Çift doz anestezi" },
+    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 2.0, "unit": "adet", "notes": "Kök kanalı ve cerrahi aspiratör" },
+    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör", "quantity_used": 2.0, "unit": "adet", "notes": "Kanal aletleri poşeti" }
+  ],
   "demo": {
     "admin": {
       "first_name": "Dt. Ali Serdar",

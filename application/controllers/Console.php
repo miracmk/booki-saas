@@ -4079,6 +4079,435 @@ class Console extends EA_Controller
 
         echo 'Done syncing marketplace tenants.' . PHP_EOL;
     }
+
+    /**
+     * End-to-End Test Suite for Consumables, Service Recipes, Session Costing & Profit Margins.
+     *
+     * Tests all affected files:
+     * - Migration 154 schema
+     * - Blueprint catalogs & service recipes
+     * - Inventory_consumables_model
+     * - Appointments_model hooks (auto-population, auto-deduction, reversal)
+     * - Idempotency
+     * - Reporting & unit economics analytics
+     *
+     * Usage: php index.php console fix_movement_type
+     */
+    public function fix_movement_type(): void
+    {
+        $tenants = $this->db->get('tenants')->result_array();
+        foreach ($tenants as $t) {
+            $this->connect_tenant($t);
+            $this->db->query("ALTER TABLE `{$this->db->dbprefix}stock_movements` MODIFY COLUMN `movement_type` VARCHAR(32) NOT NULL");
+            echo "Fixed {$t['db_name']}: movement_type → VARCHAR(32)" . PHP_EOL;
+        }
+        echo "Done." . PHP_EOL;
+    }
+
+    /**
+     *
+     * Usage: php index.php console test_consumables_e2e [subdomain]
+     */
+    public function test_consumables_e2e(string $subdomain = ''): void
+    {
+        echo PHP_EOL . "================================================================================" . PHP_EOL;
+        echo "🧪 BooKi E2E Test: Seans Sarfiyat Reçetesi, Otomatik Stok Düşümü & Kârlılık" . PHP_EOL;
+        echo "================================================================================" . PHP_EOL;
+
+        $passed = 0;
+        $failed = 0;
+
+        $assert = function (bool $condition, string $message) use (&$passed, &$failed) {
+            if ($condition) {
+                echo "  ✓ [PASS] {$message}" . PHP_EOL;
+                $passed++;
+            } else {
+                echo "  ✗ [FAIL] {$message}" . PHP_EOL;
+                $failed++;
+            }
+        };
+
+        // 1. Establish Tenant Context
+        if (is_multi_tenant_mode()) {
+            $query = ['status' => 'active'];
+            if (!empty($subdomain)) {
+                $query['subdomain'] = strtolower(trim($subdomain));
+            }
+            $tenant = $this->db->get_where('tenants', $query)->row_array();
+            if (!$tenant) {
+                echo "✗ No active tenant found for testing!" . PHP_EOL;
+                return;
+            }
+            $subdomain = $tenant['subdomain'];
+            $this->connect_tenant($tenant);
+            echo "🏢 Kiracı Bağlamı: {$subdomain} (DB: {$tenant['db_name']})" . PHP_EOL . PHP_EOL;
+        } else {
+            echo "🏢 Single-Tenant / Standalone Modu" . PHP_EOL . PHP_EOL;
+        }
+
+        $this->load->model('inventory_consumables_model');
+        $this->load->model('appointments_model');
+        $this->load->model('services_model');
+
+        try {
+            // =====================================================================
+            // TEST 1: Schema Integrity Check (Migration 154)
+            // =====================================================================
+            echo "--- Test 1: Veritabanı Şeması & Migration 154 Kontrolleri ---" . PHP_EOL;
+            $prod_fields = $this->db->list_fields('products');
+            $assert(in_array('unit', $prod_fields, true), 'products tablosunda "unit" sütunu mevcut');
+            $assert(in_array('is_consumable', $prod_fields, true), 'products tablosunda "is_consumable" sütunu mevcut');
+            $assert(in_array('cost_price', $prod_fields, true), 'products tablosunda "cost_price" sütunu mevcut');
+
+            $appt_fields = $this->db->list_fields('appointments');
+            $assert(in_array('consumables_cost', $appt_fields, true), 'appointments tablosunda "consumables_cost" sütunu mevcut');
+            $assert(in_array('gross_profit', $appt_fields, true), 'appointments tablosunda "gross_profit" sütunu mevcut');
+            $assert(in_array('consumables_deducted', $appt_fields, true), 'appointments tablosunda "consumables_deducted" sütunu mevcut');
+
+            $assert($this->db->table_exists('appointment_consumables'), 'appointment_consumables tablosu mevcut');
+            $ac_fields = $this->db->list_fields('appointment_consumables');
+            $assert(in_array('quantity_used', $ac_fields, true), 'appointment_consumables tablosunda "quantity_used" sütunu mevcut');
+            $assert(in_array('total_cost', $ac_fields, true), 'appointment_consumables tablosunda "total_cost" sütunu mevcut');
+            $assert(in_array('is_extra', $ac_fields, true), 'appointment_consumables tablosunda "is_extra" sütunu mevcut');
+
+            $sm_fields = $this->db->list_fields('stock_movements');
+            $assert(in_array('quantity', $sm_fields, true), 'stock_movements tablosunda "quantity" sütunu mevcut');
+            $assert(in_array('unit_cost', $sm_fields, true), 'stock_movements tablosunda "unit_cost" sütunu mevcut');
+
+            // =====================================================================
+            // TEST 2: Industry Blueprint JSON Presets
+            // =====================================================================
+            echo PHP_EOL . "--- Test 2: Sektörel Blueprint Reçete & Sarf Katalogları ---" . PHP_EOL;
+            $blueprints = ['dentist', 'doctor_clinic', 'barber', 'beauty_salon', 'massage_spa'];
+            foreach ($blueprints as $bp) {
+                $file = APPPATH . 'seeders/blueprints/' . $bp . '.json';
+                $assert(file_exists($file), "Blueprint dosyası mevcut: {$bp}.json");
+                $json = json_decode(file_get_contents($file), true);
+                $has_consumables = !empty($json['consumables']);
+                $has_recipes = !empty($json['service_consumable_recipes']);
+                $assert($has_consumables, "{$bp}.json içinde sarf malzeme kataloğu tanımlı (" . count($json['consumables'] ?? []) . " ürün)");
+                $assert($has_recipes, "{$bp}.json içinde hizmet sarfiyat reçeteleri tanımlı (" . count($json['service_consumable_recipes'] ?? []) . " kural)");
+            }
+
+            // =====================================================================
+            // TEST 3: Create Test Products & Service with Recipe
+            // =====================================================================
+            echo PHP_EOL . "--- Test 3: Test Hizmeti & Reçete (BOM) Oluşturma ---" . PHP_EOL;
+
+            // Create 2 consumable products
+            $now = date('Y-m-d H:i:s');
+            $this->db->insert('products', [
+                'name' => 'E2E Nitril Eldiven (Test)',
+                'sku' => 'E2E-GLOVE-' . time(),
+                'cost_price' => 10.00,
+                'sale_price' => 0.00,
+                'stock_quantity' => 100.00,
+                'low_stock_threshold' => 10.00,
+                'unit' => 'çift',
+                'is_consumable' => 1,
+                'is_active' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $prod1_id = (int) $this->db->insert_id();
+
+            $this->db->insert('products', [
+                'name' => 'E2E Hijyen Örtüsü (Test)',
+                'sku' => 'E2E-SHEET-' . time(),
+                'cost_price' => 25.00,
+                'sale_price' => 0.00,
+                'stock_quantity' => 50.00,
+                'low_stock_threshold' => 5.00,
+                'unit' => 'adet',
+                'is_consumable' => 1,
+                'is_active' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $prod2_id = (int) $this->db->insert_id();
+
+            // Create 1 extra product (e.g. special serum/anesthetic)
+            $this->db->insert('products', [
+                'name' => 'E2E Özel Bakım Serumu (Test)',
+                'sku' => 'E2E-SERUM-' . time(),
+                'cost_price' => 50.00,
+                'sale_price' => 0.00,
+                'stock_quantity' => 30.00,
+                'low_stock_threshold' => 5.00,
+                'unit' => 'ampul',
+                'is_consumable' => 1,
+                'is_active' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $prod_extra_id = (int) $this->db->insert_id();
+
+            // Create Test Service (Price = 500.00 TL)
+            $this->db->insert('services', [
+                'name' => 'E2E Test Tedavi Seansı',
+                'duration' => 45,
+                'price' => 500.00,
+                'currency' => '₺',
+                'description' => 'E2E Test Service with consumables',
+            ]);
+            $service_id = (int) $this->db->insert_id();
+
+            // Add recipe rules:
+            // Prod 1 (Glove): 2 çift @ 10 TL = 20 TL
+            // Prod 2 (Sheet): 1 adet @ 25 TL = 25 TL
+            // Total Recipe Consumable Cost = 45.00 TL
+            // Expected Gross Profit = 500 - 45 = 455.00 TL (Margin: 91.0%)
+            $this->db->insert('service_consumables', [
+                'id_services' => $service_id,
+                'id_products' => $prod1_id,
+                'quantity_used' => 2.00,
+                'unit' => 'çift',
+                'created_at' => $now,
+            ]);
+            $this->db->insert('service_consumables', [
+                'id_services' => $service_id,
+                'id_products' => $prod2_id,
+                'quantity_used' => 1.00,
+                'unit' => 'adet',
+                'created_at' => $now,
+            ]);
+
+            $recipes = $this->inventory_consumables_model->get_recipes_for_service($service_id);
+            $assert(count($recipes) === 2, 'Hizmete 2 adet sarfiyat reçete kuralı başarıyla eklendi');
+
+            $summary = $this->inventory_consumables_model->get_service_recipe_summary($service_id);
+            $assert((float) $summary['total_consumable_cost'] === 45.00, 'Reçete toplam sarf maliyeti doğru hesaplandı: ₺45.00');
+            $assert((float) $summary['gross_profit'] === 455.00, 'Reçete brüt kâr doğru hesaplandı: ₺455.00');
+            $assert((float) $summary['gross_margin_percent'] === 91.0, 'Reçete brüt kâr marjı doğru hesaplandı: %91.0');
+
+            // =====================================================================
+            // TEST 4: Appointment Creation & Auto-Population from Recipe
+            // =====================================================================
+            echo PHP_EOL . "--- Test 4: Randevu Oluşturma & Reçeteden Otomatik Sarf Doldurma ---" . PHP_EOL;
+
+            // Ensure valid provider user ID and customer user ID exist
+            $provider_user = $this->db
+                ->select('users.id')
+                ->from('users')
+                ->join('roles', 'roles.id = users.id_roles', 'inner')
+                ->where('roles.slug', DB_SLUG_PROVIDER)
+                ->get()
+                ->row_array();
+            $provider_id = (int) ($provider_user['id'] ?? 1);
+
+            $customer_user = $this->db
+                ->select('users.id')
+                ->from('users')
+                ->join('roles', 'roles.id = users.id_roles', 'inner')
+                ->where('roles.slug', DB_SLUG_CUSTOMER)
+                ->get()
+                ->row_array();
+            $customer_id = (int) ($customer_user['id'] ?? 1);
+
+            $start = date('Y-m-d H:i:s', strtotime('+1 day 10:00:00'));
+            $end = date('Y-m-d H:i:s', strtotime('+1 day 10:45:00'));
+
+            $appt_data = [
+                'start_datetime' => $start,
+                'end_datetime' => $end,
+                'status' => 'Reserved',
+                'is_unavailability' => 0,
+                'id_users_provider' => $provider_id,
+                'id_users_customer' => $customer_id,
+                'id_services' => $service_id,
+                'notes' => 'E2E Test Appointment',
+            ];
+            $appt_id = (int) $this->appointments_model->save($appt_data);
+            $assert($appt_id > 0, "Randevu başarıyla oluşturuldu (ID: {$appt_id})");
+
+            $appt = $this->appointments_model->find($appt_id);
+            $assert((float) $appt['consumables_cost'] === 45.00, 'Randevu sarf maliyeti reçeteden otomatik hesaplandı: ₺45.00');
+            $assert((float) $appt['gross_profit'] === 455.00, 'Randevu brüt kârı otomatik hesaplandı: ₺455.00');
+            $assert((int) $appt['consumables_deducted'] === 0, 'Randevu henüz rezerve iken stoktan düşülmedi (consumables_deducted = 0)');
+
+            $appt_consumables = $this->inventory_consumables_model->get_appointment_consumables($appt_id);
+            $assert(count($appt_consumables) === 2, 'appointment_consumables tablosuna 2 reçete kalemi otomatik kopyalandı');
+
+            // =====================================================================
+            // TEST 5: Session Consumable Customization (Extra items & quantity edits)
+            // =====================================================================
+            echo PHP_EOL . "--- Test 5: Seans İçi Özel Sarfiyat (Ekstra Malzeme & Miktar Güncelleme) ---" . PHP_EOL;
+
+            // Add extra item (Serum @ 50 TL)
+            $extra_rec_id = $this->inventory_consumables_model->save_appointment_consumable([
+                'id_appointments' => $appt_id,
+                'id_products' => $prod_extra_id,
+                'quantity_used' => 1.00,
+                'unit' => 'ampul',
+                'unit_cost' => 50.00,
+                'is_extra' => 1,
+                'notes' => 'E2E Ekstra Serum Uygulaması',
+            ]);
+            $assert($extra_rec_id > 0, "Seansa ekstra sarf malzeme başarıyla eklendi (ID: {$extra_rec_id})");
+
+            // Update Glove quantity from 2 to 3 (+10 TL)
+            $glove_item = null;
+            foreach ($appt_consumables as $ac) {
+                if ((int) $ac['id_products'] === $prod1_id) {
+                    $glove_item = $ac;
+                    break;
+                }
+            }
+            $this->inventory_consumables_model->save_appointment_consumable([
+                'id' => $glove_item['id'],
+                'id_appointments' => $appt_id,
+                'id_products' => $prod1_id,
+                'quantity_used' => 3.00, // 3 * 10 = 30 TL
+                'unit' => 'çift',
+                'unit_cost' => 10.00,
+                'is_extra' => 0,
+            ]);
+
+            // Expected new cost: (3 * 10) + (1 * 25) + (1 * 50) = 30 + 25 + 50 = 105.00 TL
+            // Expected gross profit: 500 - 105 = 395.00 TL
+            $appt = $this->appointments_model->find($appt_id);
+            $assert((float) $appt['consumables_cost'] === 105.00, 'Seans sarfiyat güncellemesi sonrası maliyet doğru güncellendi: ₺105.00');
+            $assert((float) $appt['gross_profit'] === 395.00, 'Seans sarfiyat güncellemesi sonrası brüt kâr doğru güncellendi: ₺395.00');
+
+            // =====================================================================
+            // TEST 6: Auto-Deduction upon Completion (Status -> 'Tamamlandı')
+            // =====================================================================
+            echo PHP_EOL . "--- Test 6: Seans Tamamlama & Otomatik Stok Düşümü ---" . PHP_EOL;
+
+            $p1_before = (float) $this->db->get_where('products', ['id' => $prod1_id])->row('stock_quantity');
+            $p2_before = (float) $this->db->get_where('products', ['id' => $prod2_id])->row('stock_quantity');
+            $pe_before = (float) $this->db->get_where('products', ['id' => $prod_extra_id])->row('stock_quantity');
+
+            $appt = $this->appointments_model->find($appt_id);
+            $appt['status'] = 'Tamamlandı';
+            $this->appointments_model->save($appt);
+
+            $appt = $this->appointments_model->find($appt_id);
+            $assert((int) $appt['consumables_deducted'] === 1, 'Randevu tamamlandığında consumables_deducted = 1 oldu');
+
+            $p1_after = (float) $this->db->get_where('products', ['id' => $prod1_id])->row('stock_quantity');
+            $p2_after = (float) $this->db->get_where('products', ['id' => $prod2_id])->row('stock_quantity');
+            $pe_after = (float) $this->db->get_where('products', ['id' => $prod_extra_id])->row('stock_quantity');
+
+            $assert($p1_after === ($p1_before - 3.00), "Eldiven stoğu 3 birim düştü: {$p1_before} -> {$p1_after}");
+            $assert($p2_after === ($p2_before - 1.00), "Örtü stoğu 1 birim düştü: {$p2_before} -> {$p2_after}");
+            $assert($pe_after === ($pe_before - 1.00), "Ekstra serum stoğu 1 birim düştü: {$pe_before} -> {$pe_after}");
+
+            $movements = $this->db->get_where('stock_movements', ['id_appointments' => $appt_id])->result_array();
+            $assert(count($movements) === 3, 'stock_movements tablosuna 3 adet sarfiyat hareketi kaydedildi');
+            foreach ($movements as $m) {
+                $assert($m['movement_type'] === 'service_consumption', 'Haraket tipi "service_consumption" olarak kaydedildi');
+                $assert((float) $m['quantity'] < 0, 'Stok düşüm miktarı negatif olarak kaydedildi: ' . $m['quantity']);
+            }
+
+            // =====================================================================
+            // TEST 7: Idempotency Verification (Repeated Updates)
+            // =====================================================================
+            echo PHP_EOL . "--- Test 7: Idempotency (Mükerrer Stok Düşümü Engeli) ---" . PHP_EOL;
+
+            $appt = $this->appointments_model->find($appt_id);
+            $appt['notes'] = 'E2E Updated Notes';
+            $this->appointments_model->save($appt);
+
+            $p1_idemp = (float) $this->db->get_where('products', ['id' => $prod1_id])->row('stock_quantity');
+            $assert($p1_idemp === $p1_after, 'Randevu tekrar kaydedildiğinde stok ikinci kez DÜŞMEDİ (İdempotency sağlandı)');
+
+            $movements_count = $this->db->where('id_appointments', $appt_id)->count_all_results('stock_movements');
+            $assert($movements_count === 3, 'stock_movements tablosunda mükerrer kayıt oluşmadı');
+
+            // =====================================================================
+            // TEST 8: Cancellation & Compensating Stock Reversal
+            // =====================================================================
+            echo PHP_EOL . "--- Test 8: İptal Durumunda Otomatik Stok İadesi (Reversal) ---" . PHP_EOL;
+
+            $appt = $this->appointments_model->find($appt_id);
+            $appt['status'] = 'Cancelled';
+            $this->appointments_model->save($appt);
+
+            $appt = $this->appointments_model->find($appt_id);
+            $assert((int) $appt['consumables_deducted'] === 0, 'Randevu iptal edildiğinde consumables_deducted = 0 olarak sıfırlandı');
+
+            $p1_rev = (float) $this->db->get_where('products', ['id' => $prod1_id])->row('stock_quantity');
+            $p2_rev = (float) $this->db->get_where('products', ['id' => $prod2_id])->row('stock_quantity');
+            $pe_rev = (float) $this->db->get_where('products', ['id' => $prod_extra_id])->row('stock_quantity');
+
+            $assert($p1_rev === $p1_before, "Eldiven stoğu eski haline iade edildi ({$p1_rev})");
+            $assert($p2_rev === $p2_before, "Örtü stoğu eski haline iade edildi ({$p2_rev})");
+            $assert($pe_rev === $pe_before, "Serum stoğu eski haline iade edildi ({$pe_rev})");
+
+            $rev_movements = $this->db->get_where('stock_movements', [
+                'id_appointments' => $appt_id,
+                'movement_type' => 'adjustment',
+            ])->result_array();
+            $assert(count($rev_movements) === 3, 'stock_movements tablosuna 3 adet "adjustment" dengeleme kaydı eklendi');
+
+            // =====================================================================
+            // TEST 9: Consumables & Session Margins Analytics Report
+            // =====================================================================
+            echo PHP_EOL . "--- Test 9: Raporlama & Birim Seans Kârlılık Analitiği ---" . PHP_EOL;
+
+            // Re-complete the appointment so it reflects in the report
+            $appt = $this->appointments_model->find($appt_id);
+            $appt['status'] = 'Tamamlandı';
+            $this->appointments_model->save($appt);
+
+            $start_date = date('Y-m-d 00:00:00', strtotime('-1 day'));
+            $end_date = date('Y-m-d 23:59:59', strtotime('+2 days'));
+
+            $report = $this->inventory_consumables_model->get_consumables_report($start_date, $end_date, $service_id);
+
+            $assert(!empty($report), 'Sarfiyat ve kârlılık analitik raporu başarıyla üretildi');
+            $assert((float) $report['total_consumable_spend'] >= 105.00, 'Raporda toplam sarf harcaması doğru yansıdı: ₺' . $report['total_consumable_spend']);
+            $assert((float) $report['total_revenue'] >= 500.00, 'Raporda seans hasılatı doğru yansıdı: ₺' . $report['total_revenue']);
+            $assert((float) $report['total_gross_profit'] >= 395.00, 'Raporda brüt kâr doğru yansıdı: ₺' . $report['total_gross_profit']);
+            $assert((float) $report['overall_margin_percent'] > 0, 'Raporda genel brüt marj yüzdesi doğru hesaplandı: %' . $report['overall_margin_percent']);
+
+            // Check consumed products breakdown
+            $found_prod1 = false;
+            foreach ($report['consumed_products'] as $cp) {
+                if ((int) $cp['id_products'] === $prod1_id) {
+                    $found_prod1 = true;
+                    $assert((float) $cp['total_quantity'] === 3.00, 'Malzeme kırılımında eldiven tüketimi 3 adet olarak raporlandı');
+                    $assert((float) $cp['total_spend'] === 30.00, 'Malzeme kırılımında eldiven maliyeti ₺30.00 olarak raporlandı');
+                    break;
+                }
+            }
+            $assert($found_prod1, 'Tüketilen malzemeler listesinde test ürünü yer alıyor');
+
+            // =====================================================================
+            // TEST 10: Clean Up Test Artifacts
+            // =====================================================================
+            echo PHP_EOL . "--- Test 10: Test Kayıtlarının Temizlenmesi ---" . PHP_EOL;
+            $this->db->delete('appointment_consumables', ['id_appointments' => $appt_id]);
+            $this->db->delete('stock_movements', ['id_appointments' => $appt_id]);
+            $this->db->delete('appointments', ['id' => $appt_id]);
+            $this->db->delete('service_consumables', ['id_services' => $service_id]);
+            $this->db->delete('services', ['id' => $service_id]);
+            $this->db->delete('products', ['id' => $prod1_id]);
+            $this->db->delete('products', ['id' => $prod2_id]);
+            $this->db->delete('products', ['id' => $prod_extra_id]);
+
+            $assert(true, 'Geçici test kayıtları veritabanından temizlendi');
+
+        } catch (Throwable $e) {
+            echo PHP_EOL . "💥 EXCEPTION: " . $e->getMessage() . PHP_EOL;
+            echo $e->getTraceAsString() . PHP_EOL;
+            $failed++;
+        }
+
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+
+        echo PHP_EOL . "================================================================================" . PHP_EOL;
+        echo "TEST SONUCU: {$passed} BAŞARILI, {$failed} BAŞARISIZ" . PHP_EOL;
+        echo "================================================================================" . PHP_EOL;
+
+        if ($failed > 0) {
+            throw new RuntimeException("E2E Testi {$failed} hata ile sonuçlandı.");
+        }
+    }
 }
+
 
 

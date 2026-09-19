@@ -26,6 +26,9 @@ class Appointments_model extends EA_Model
         'id_users_provider' => 'integer',
         'id_users_customer' => 'integer',
         'id_services' => 'integer',
+        'consumables_cost' => 'float',
+        'gross_profit' => 'float',
+        'consumables_deducted' => 'integer',
     ];
 
     /**
@@ -299,7 +302,19 @@ class Appointments_model extends EA_Model
             throw new RuntimeException('Could not insert appointment.');
         }
 
-        return $this->db->insert_id();
+        $appointment_id = $this->db->insert_id();
+
+        // Auto-populate consumables recipe for this appointment
+        if (!empty($appointment['id_services'])) {
+            try {
+                $this->load->model('inventory_consumables_model');
+                $this->inventory_consumables_model->populate_appointment_consumables_from_recipe($appointment_id, (int) $appointment['id_services']);
+            } catch (Throwable $e) {
+                log_message('error', 'Consumables pre-populate error: ' . $e->getMessage());
+            }
+        }
+
+        return $appointment_id;
     }
 
     /**
@@ -367,6 +382,39 @@ class Appointments_model extends EA_Model
                         ]);
                     }
                 }
+            }
+        }
+
+        // Auto-deduct or revert consumables based on status change
+        $new_status = $appointment['status'] ?? ($old['status'] ?? '');
+        $old_status = $old['status'] ?? '';
+
+        $completed_statuses = ['closed', 'tamamlandı', 'completed', 'attended'];
+        $cancelled_statuses = ['cancelled', 'iptal'];
+
+        $is_old_completed = in_array(mb_strtolower($old_status, 'UTF-8'), $completed_statuses, true);
+        $is_new_completed = in_array(mb_strtolower($new_status, 'UTF-8'), $completed_statuses, true);
+        $is_new_cancelled = in_array(mb_strtolower($new_status, 'UTF-8'), $cancelled_statuses, true);
+
+        if (!$is_old_completed && $is_new_completed && empty($old['consumables_deducted'])) {
+            try {
+                $this->load->model('inventory_consumables_model');
+                $this->inventory_consumables_model->deduct_for_appointment((int) $appointment['id']);
+            } catch (Throwable $e) {
+                if (is_cli()) {
+                    echo PHP_EOL . "  [DEDUCT ERROR]: " . $e->getMessage() . PHP_EOL . $e->getTraceAsString() . PHP_EOL;
+                }
+                log_message('error', 'Consumables deduction error: ' . $e->getMessage());
+            }
+        } elseif ($is_new_cancelled && !empty($old['consumables_deducted'])) {
+            try {
+                $this->load->model('inventory_consumables_model');
+                $this->inventory_consumables_model->revert_for_appointment((int) $appointment['id']);
+            } catch (Throwable $e) {
+                if (is_cli()) {
+                    echo PHP_EOL . "  [REVERT ERROR]: " . $e->getMessage() . PHP_EOL . $e->getTraceAsString() . PHP_EOL;
+                }
+                log_message('error', 'Consumables revert error: ' . $e->getMessage());
             }
         }
 
