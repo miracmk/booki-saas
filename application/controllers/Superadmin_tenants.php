@@ -196,7 +196,7 @@ class Superadmin_tenants extends EA_Controller
             'stage_definitions' => Leads_model::STAGES,
             'active_tab' => $active_tab,
             'platform_settings' => [
-                'zadarma_api_key' => master_setting('zadarma_api_key') ?? 'a79256819256392e2336',
+                'zadarma_api_key' => master_setting('zadarma_api_key') ?? 'ceba11321113fd2628a1',
                 'zadarma_api_secret_set' => !empty(master_setting('zadarma_api_secret')),
                 'zadarma_sip_login' => master_setting('zadarma_sip_login') ?? '',
                 'zadarma_sip_server' => master_setting('zadarma_sip_server') ?? 'sip.zadarma.com',

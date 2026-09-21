@@ -11,12 +11,12 @@ class Zadarma_client
     public function __construct() { $this->CI = &get_instance(); }
     public function api_key(): string {
         $k = getenv('ZADARMA_API_KEY') ?: '';
-        if ($k === '') { $k = (string)(master_setting('zadarma_api_key') ?: 'a79256819256392e2336'); }
+        if ($k === '') { $k = (string)(master_setting('zadarma_api_key') ?: 'ceba11321113fd2628a1'); }
         return trim($k);
     }
     public function api_secret(): string {
         $s = getenv('ZADARMA_API_SECRET') ?: '';
-        if ($s === '') { $s = (string)(master_setting('zadarma_api_secret') ?: 'd52e13a9f59d0a68851b'); }
+        if ($s === '') { $s = (string)(master_setting('zadarma_api_secret') ?: '7fc7705128bd1c8ef754'); }
         return trim($s);
     }
     public function sip_login(): string {
@@ -39,15 +39,17 @@ class Zadarma_client
         return $this->api_key() !== '' && $this->api_secret() !== '' && $this->sip_login() !== '';
     }
     public function signature(string $method, array $params): string {
+        // Resmi SDK (zadarma/user-api-v1 lib/Client.php) ile birebir ayni:
+        // ksort -> http_build_query(RFC1738) -> base64(hash_hmac('sha1', method+query+md5(query), secret))
         ksort($params);
-        $query = http_build_query($params);
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC1738);
         $md5 = md5($query);
         $data = $method . $query . $md5;
-        $hex = hash_hmac('sha1', $data, $this->api_secret());
-        return base64_encode(pack('H*', $hex));
+        return base64_encode(hash_hmac('sha1', $data, $this->api_secret()));
     }
     public function call(string $method, array $params = [], string $http = 'GET'): array {
         $key = $this->api_key();
+        $params['format'] = 'json'; // Resmi SDK her istige format parametresi ekler (imzaya dahil)
         $sig = $this->signature($method, $params);
         $url = self::API_BASE . $method;
         $headers = ['Authorization: ' . $key . ':' . $sig];

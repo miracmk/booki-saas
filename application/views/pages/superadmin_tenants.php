@@ -1862,11 +1862,11 @@
 
                             <div class="form-group">
                                 <label>Zadarma API Key</label>
-                                <input type="text" id="ps_zadarma_api_key" class="form-control" value="<?= e($ps['zadarma_api_key'] ?? '') ?>" placeholder="a79256819256392e2336">
+                                <input type="text" id="ps_zadarma_api_key" class="form-control" value="<?= e($ps['zadarma_api_key'] ?? '') ?>" placeholder="ceba11321113fd2628a1">
                             </div>
                             <div class="form-group">
                                 <label>Zadarma API Secret</label>
-                                <input type="password" id="ps_zadarma_api_secret" class="form-control" placeholder="<?= !empty($ps['zadarma_api_secret_set']) ? '•••••••••••••••• (Kayıtlı ✓)' : 'd52e13a9f59d0a68851b' ?>">
+                                <input type="password" id="ps_zadarma_api_secret" class="form-control" placeholder="<?= !empty($ps['zadarma_api_secret_set']) ? '•••••••••••••••• (Kayıtlı ✓)' : '7fc7705128bd1c8ef754' ?>">
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
