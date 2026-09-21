@@ -175,6 +175,12 @@ class EA_Controller extends CI_Controller
                 return;
             }
 
+            // Zadarma webhook istisnası - Zadarma sunucusu webhook'u master DB bağlamında
+            // çağırır (lead_activities master'da); admin host'ta da ulaşılabilir olmalı.
+            if (strtolower((string) $this->router->class) === 'zadarma') {
+                return;
+            }
+
             abort(404, 'Not Found');
         }
 
@@ -184,6 +190,7 @@ class EA_Controller extends CI_Controller
             strtolower((string) $this->router->class) === 'marketplace'
             || strtolower((string) $this->router->class) === 'landing'
             || strtolower((string) $this->router->class) === 'customer_onboarding'
+            || strtolower((string) $this->router->class) === 'zadarma'
         ) {
             return;
         }
