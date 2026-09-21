@@ -7,8 +7,7 @@
     <meta name="theme-color" content="#35495E">
     <title><?= e(vars('page_title')) ?> - BooKi</title>
 
-    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/ext/bootstrap/css/bootstrap.min.css') ?>">
-    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/ext/fontawesome/css/all.min.css') ?>">
+    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
     <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/ki-command-center.min.css') ?>">
 
     <style>
@@ -304,8 +303,11 @@
         </div>
     </div>
 
-    <script src="<?= asset_url('assets/ext/jquery/jquery.min.js') ?>"></script>
-    <script src="<?= asset_url('assets/ext/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
+    <script src="<?= asset_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
+    <script src="<?= asset_url('assets/vendor/@popperjs-core/popper.min.js') ?>"></script>
+    <script src="<?= asset_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
+    <script src="<?= asset_url('assets/vendor/@fortawesome-fontawesome-free/fontawesome.min.js') ?>"></script>
+    <script src="<?= asset_url('assets/vendor/@fortawesome-fontawesome-free/solid.min.js') ?>"></script>
     <script>
         const baseUrl = '<?= site_url() ?>';
         let currentSelectedCode = 'beauty_salon';

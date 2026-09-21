@@ -63,6 +63,8 @@ class Messaging_settings_model extends EA_Model
                 'ai_reply_telegram_enabled' => 0,
                 'ai_reply_instagram_enabled' => 0,
                 'instagram_webhook_verify_token' => null,
+                'reminder_notifications_enabled' => 1,
+                'reminder_hours_ahead' => 24,
             ];
         } else {
             // Decrypt sensitive fields
@@ -81,6 +83,9 @@ class Messaging_settings_model extends EA_Model
                 : ($row['instagram_webhook_verify_token'] ?? null);
             $row['smtp_user'] = sf_pii_decrypt($row['smtp_user']);
             $row['smtp_pass'] = sf_pii_decrypt($row['smtp_pass']);
+
+            $row['reminder_notifications_enabled'] = isset($row['reminder_notifications_enabled']) ? (int) $row['reminder_notifications_enabled'] : 1;
+            $row['reminder_hours_ahead'] = isset($row['reminder_hours_ahead']) ? (int) $row['reminder_hours_ahead'] : 24;
         }
 
         // The admin can always override these per tenant, but ship our own
@@ -122,7 +127,8 @@ class Messaging_settings_model extends EA_Model
             'whatsapp_unofficial_consent_at', 'whatsapp_bridge_url', 'smtp_host', 'smtp_port',
             'smtp_crypto', 'smtp_from_name', 'smtp_from_address', 'default_notification_channel',
             'default_notification_channels',
-            'ai_reply_whatsapp_enabled', 'ai_reply_telegram_enabled', 'ai_reply_instagram_enabled'];
+            'ai_reply_whatsapp_enabled', 'ai_reply_telegram_enabled', 'ai_reply_instagram_enabled',
+            'reminder_notifications_enabled', 'reminder_hours_ahead'];
         $encrypted_fields = ['netgsm_username', 'netgsm_password', 'whatsapp_phone_number_id',
             'whatsapp_access_token', 'whatsapp_waba_id', 'whatsapp_webhook_verify_token',
             'whatsapp_bridge_secret', 'call_api_key', 'telegram_bot_token', 'instagram_access_token',

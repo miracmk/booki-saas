@@ -3,11 +3,17 @@
 /* ----------------------------------------------------------------------------
  * BooKi - AI Asistan admin controller (Dalga 4, 2026-09-12).
  *
- * Thin controller: conversation state lives in the PHP session, all the
- * actual chat/tool-calling logic is in Ai_agent_client. This file is only
- * responsible for auth/permission gating, the pending-change approval
- * workflow (the one place customer data actually gets mutated), and
- * rendering the page.
+ * Conversation lifecycle is SESSION-BASED and PER-CUSTOMER (id_users): the
+ * active conversation lives in the PHP session (fast, private to the logged-
+ * in user's session). After self::IDLE_TIMEOUT_SECONDS of inactivity ONLY
+ * this user's open conversation is "closed": it is archived as its OWN row in
+ * ai_agent_conversations (with a per-conversation summary) and its raw
+ * messages go to ai_agent_messages (migration 155). Each turn injects the
+ * summaries of this user's most recent closed conversations as long-term
+ * memory - never a single global blob. Tool-calling logic is in
+ * Ai_agent_client. This file is only responsible for auth/permission gating,
+ * the pending-change approval workflow (the one place customer data actually
+ * gets mutated), and rendering the page.
  *
  * @package Controllers
  */
@@ -15,7 +21,14 @@ class Ai_agent extends EA_Controller
 {
     private const SESSION_KEY = 'ai_agent_history';
 
-    private const MAX_HISTORY_MESSAGES = 20;
+    /** Session key holding the unix timestamp of the last chat() request. */
+    private const SESSION_LAST_ACTIVITY = 'ai_agent_last_activity';
+
+    /** 5 dk hareketsizlik → aktif konuşma kapanır, özetlenip DB'ye yazılır. */
+    private const IDLE_TIMEOUT_SECONDS = 300;
+
+    /** Aktif (session) konuşmanın mesaj tavanı; aşılırsa konuşma kapatılıp yenisi başlar. */
+    private const MAX_SESSION_MESSAGES = 40;
 
     public function __construct()
     {
@@ -43,10 +56,21 @@ class Ai_agent extends EA_Controller
             abort(403, 'Forbidden');
         }
 
+        // The active conversation lives in the PHP session (see class docblock):
+        // render it as-is. Closed/archived conversations live in the DB and are
+        // injected into the model as rolling summaries, not rendered here.
+        $visible = [];
+        foreach ($this->session->userdata(self::SESSION_KEY) ?: [] as $msg) {
+            if (($msg['role'] ?? '') === 'tool' || empty($msg['content'])) {
+                continue;
+            }
+            $visible[] = ['role' => $msg['role'], 'content' => $msg['content']];
+        }
+
         html_vars([
             'page_title' => 'AI Asistan',
             'active_menu' => PRIV_AI_AGENT,
-            'history' => $this->session->userdata(self::SESSION_KEY) ?: [],
+            'history' => $visible,
             'pending' => $this->get_pending_changes(),
         ]);
 
@@ -65,9 +89,14 @@ class Ai_agent extends EA_Controller
 
     /**
      * Send one user message, run the tool-calling loop, return the assistant's reply.
-     * Conversation history is kept server-side in the PHP session (not DB - see
-     * migration 137 doc comment) so a page refresh doesn't lose context, but it's
-     * not shared across devices/staff and is capped to avoid unbounded growth.
+     *
+     * Lifecycle: the ACTIVE conversation lives in the PHP session. On every
+     * request the idle timer is checked - if the user was inactive for more
+     * than self::IDLE_TIMEOUT_SECONDS, ONLY this user's open conversation is
+     * closed (archived into its own ai_agent_conversations row + summarized)
+     * and this message starts a fresh one. Long-term memory is per-customer:
+     * the summaries of this user's most recent closed conversations (capped,
+     * NOT the whole history in one blob) are injected into every turn.
      */
     public function chat(): void
     {
@@ -85,10 +114,26 @@ class Ai_agent extends EA_Controller
                 throw new InvalidArgumentException('Mesaj boş olamaz.');
             }
 
+            $user_id = (int) session('user_id');
+
+            // ── 5 dk hareketsizlik kontrolü: SADECE bu kullanıcının açık
+            //    konuşmasını kapat (diğer kullanıcılar etkilenmez).
+            $last_activity = (int) ($this->session->userdata(self::SESSION_LAST_ACTIVITY) ?: 0);
+            if ($last_activity > 0 && (time() - $last_activity) > self::IDLE_TIMEOUT_SECONDS) {
+                $this->close_conversation($user_id);
+            }
+
+            // Long-term memory: per-customer, recent closed-conversation summaries.
+            $this->load->model('ai_agent_conversations_model');
+            $summaries = $this->ai_agent_conversations_model->get_recent_summaries($user_id);
+            $summary = trim(implode("\n\n---\n\n", array_reverse($summaries)));
+
+            // Active conversation from the PHP session (never client-supplied;
+            // the session is the only source of truth for the open thread).
             $history = $this->session->userdata(self::SESSION_KEY) ?: [];
             $history[] = ['role' => 'user', 'content' => $user_message];
 
-            $result = $this->ai_agent_client->chat($history);
+            $result = $this->ai_agent_client->chat($history, $summary !== '' ? $summary : null);
 
             if (!empty($result['turn_messages'])) {
                 foreach ($result['turn_messages'] as $tm) {
@@ -98,12 +143,15 @@ class Ai_agent extends EA_Controller
                 $history[] = ['role' => 'assistant', 'content' => $result['reply']];
             }
 
-            // Cap history length (keep it recent, not endless).
-            if (count($history) > 30) {
-                $history = array_slice($history, -30);
+            if (count($history) > self::MAX_SESSION_MESSAGES) {
+                // Keep the session thread bounded: archive+summarize the FULL
+                // conversation now and let the next message start fresh.
+                $this->session->set_userdata(self::SESSION_KEY, $history);
+                $this->close_conversation($user_id);
+            } else {
+                $this->session->set_userdata(self::SESSION_KEY, $history);
+                $this->session->set_userdata(self::SESSION_LAST_ACTIVITY, time());
             }
-
-            $this->session->set_userdata(self::SESSION_KEY, $history);
 
             json_response([
                 'success' => true,
@@ -116,7 +164,41 @@ class Ai_agent extends EA_Controller
     }
 
     /**
-     * Clear the conversation (start fresh) without touching pending changes.
+     * Close THIS user's active (session) conversation: archive its raw messages
+     * under its OWN new ai_agent_conversations row and store a per-conversation
+     * summary on it, then clear the session scratchpad so the next message
+     * starts a fresh conversation. Memory assembly (which summaries to inject)
+     * happens per-turn in chat() via get_recent_summaries().
+     */
+    private function close_conversation(int $user_id): void
+    {
+        $history = $this->session->userdata(self::SESSION_KEY) ?: [];
+        $this->session->unset_userdata(self::SESSION_KEY);
+        $this->session->unset_userdata(self::SESSION_LAST_ACTIVITY);
+
+        if (empty($history)) {
+            return;
+        }
+
+        $this->load->model('ai_agent_conversations_model');
+
+        // 1. A dedicated row per closed conversation (per-customer archive).
+        $conversation_id = $this->ai_agent_conversations_model->create($user_id);
+
+        // 2. Archive the raw closed conversation (audit trail; tool pairs stay intact).
+        $this->ai_agent_conversations_model->append_messages($conversation_id, $history);
+
+        // 3. Store THIS conversation's own summary on its row (LLM-compressed
+        //    with a deterministic fallback, see summarize_history()).
+        $summary = $this->ai_agent_client->summarize_history($history);
+        $this->ai_agent_conversations_model->update_summary($conversation_id, $summary);
+    }
+
+    /**
+     * "Sohbeti sıfırla" — closes THIS user's active session conversation
+     * (archived into its own DB row + per-conversation summary, so nothing is
+     * lost) and lets the next message start a fresh thread. Pending changes
+     * are untouched.
      */
     public function reset(): void
     {
@@ -127,7 +209,7 @@ class Ai_agent extends EA_Controller
                 throw new RuntimeException('You do not have the required permissions for this task.');
             }
 
-            $this->session->unset_userdata(self::SESSION_KEY);
+            $this->close_conversation((int) session('user_id'));
 
             json_response(['success' => true]);
         } catch (Throwable $e) {
@@ -277,9 +359,28 @@ class Ai_agent extends EA_Controller
                         'changes' => json_encode($payload, JSON_UNESCAPED_UNICODE),
                     ], ['id' => $id]);
 
+                    $notif_customer_name = !empty($payload['customer_name']) ? $payload['customer_name'] : ($customer ? trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) : 'Değerli Misafirimiz');
+                    $notif_service_name = !empty($payload['service_name']) ? $payload['service_name'] : ($service ? $service['name'] : 'Hizmet');
+                    $notif_start_datetime = $start_datetime;
+                    $notif_end_datetime = $end_datetime;
+                    $provider = $provider_id ? $this->providers_model->find((int) $provider_id) : null;
+                    $notif_provider_name = $provider ? trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')) : 'Uzman Personelimiz';
+
                 } elseif ($action === 'cancel') {
                     $appointment_id = (int) ($change['target_id'] ?: ($payload['appointment_id'] ?? 0));
                     if ($appointment_id) {
+                        $appt = $this->appointments_model->find($appointment_id);
+                        if ($appt) {
+                            $customer = $this->customers_model->find((int) $appt['id_users_customer']);
+                            $service = $this->services_model->find((int) $appt['id_services']);
+                            $provider = $this->providers_model->find((int) $appt['id_users_provider']);
+
+                            $notif_customer_name = !empty($payload['customer_name']) ? $payload['customer_name'] : ($customer ? trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) : 'Değerli Misafirimiz');
+                            $notif_service_name = !empty($payload['service_name']) ? $payload['service_name'] : ($service ? $service['name'] : 'Hizmet');
+                            $notif_start_datetime = !empty($payload['start_datetime']) ? $payload['start_datetime'] : $appt['start_datetime'];
+                            $notif_end_datetime = !empty($payload['end_datetime']) ? $payload['end_datetime'] : $appt['end_datetime'];
+                            $notif_provider_name = $provider ? trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')) : 'Uzman Personelimiz';
+                        }
                         $this->appointments_model->delete($appointment_id);
                     }
                 } elseif ($action === 'reschedule') {
@@ -292,6 +393,9 @@ class Ai_agent extends EA_Controller
                             $duration = !empty($service['duration']) ? (int) $service['duration'] : 60;
                             $new_end = date('Y-m-d H:i:s', strtotime($new_start) + ($duration * 60));
 
+                            $customer = $this->customers_model->find((int) $appt['id_users_customer']);
+                            $provider = $this->providers_model->find(!empty($payload['new_provider_id']) ? (int) $payload['new_provider_id'] : (int) $appt['id_users_provider']);
+
                             $appt['start_datetime'] = $new_start;
                             $appt['end_datetime'] = $new_end;
                             if (!empty($payload['new_provider_id'])) {
@@ -302,6 +406,12 @@ class Ai_agent extends EA_Controller
                             }
 
                             $this->appointments_model->save($appt);
+
+                            $notif_customer_name = !empty($payload['customer_name']) ? $payload['customer_name'] : ($customer ? trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) : 'Değerli Misafirimiz');
+                            $notif_service_name = !empty($payload['service_name']) ? $payload['service_name'] : ($service ? $service['name'] : 'Hizmet');
+                            $notif_start_datetime = $new_start;
+                            $notif_end_datetime = $new_end;
+                            $notif_provider_name = $provider ? trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')) : 'Uzman Personelimiz';
                         }
                     }
                 }
@@ -320,21 +430,55 @@ class Ai_agent extends EA_Controller
                         };
 
                         if ($template_key) {
-                            $p_id = $provider_id ?? ($appt['id_users_provider'] ?? 0);
-                            $provider = $p_id ? $this->providers_model->find((int) $p_id) : null;
-                            $p_name = $provider ? trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? '')) : 'Uzman Personelimiz';
-
                             $msg_text = $this->channel_templates->render($template_key, [
-                                'customer_name' => $payload['customer_name'] ?? ($customer['first_name'] ?? 'Değerli Misafirimiz'),
-                                'service_name' => $payload['service_name'] ?? ($service['name'] ?? 'Hizmet'),
-                                'start_datetime' => $payload['start_datetime'] ?? ($payload['new_start_datetime'] ?? ($appt['start_datetime'] ?? null)),
-                                'end_datetime' => $payload['end_datetime'] ?? ($new_end ?? ($appt['end_datetime'] ?? null)),
-                                'provider_name' => $p_name,
+                                'customer_name' => $notif_customer_name ?? 'Değerli Misafirimiz',
+                                'service_name' => $notif_service_name ?? 'Hizmet',
+                                'start_datetime' => $notif_start_datetime ?? null,
+                                'end_datetime' => $notif_end_datetime ?? null,
+                                'provider_name' => $notif_provider_name ?? 'Uzman Personelimiz',
                             ]);
 
                             if ($channel === 'telegram') {
                                 $this->load->library('telegram_client');
                                 $this->telegram_client->send_message($sender_id, $msg_text);
+                            } elseif ($channel === 'whatsapp') {
+                                $this->load->model('messaging_settings_model');
+                                $m_settings = $this->messaging_settings_model->get_settings();
+                                $mode = $m_settings['whatsapp_mode'] ?? 'official';
+                                if ($mode === 'unofficial') {
+                                    $this->load->library('whatsapp_bridge');
+                                    $bridge = new Whatsapp_bridge($m_settings['whatsapp_bridge_url'], $m_settings['whatsapp_bridge_secret']);
+                                    $tenant_sub = function_exists('tenant_context') ? (tenant_context()['subdomain'] ?? 'default') : 'default';
+                                    $bridge->send($tenant_sub, $sender_id, $msg_text);
+                                } else {
+                                    $this->load->library('whatsapp_client');
+                                    $this->whatsapp_client->send_message($sender_id, $msg_text);
+                                }
+                            } elseif ($channel === 'instagram') {
+                                $this->load->model('messaging_settings_model');
+                                $m_settings = $this->messaging_settings_model->get_settings();
+                                $access_token = $m_settings['instagram_access_token'] ?? null;
+                                $page_id = $m_settings['instagram_account_id'] ?? 'me';
+                                if (!empty($access_token)) {
+                                    $url = "https://graph.facebook.com/v20.0/{$page_id}/messages";
+                                    $ch = curl_init();
+                                    curl_setopt_array($ch, [
+                                        CURLOPT_URL => $url,
+                                        CURLOPT_POST => true,
+                                        CURLOPT_POSTFIELDS => json_encode([
+                                            'recipient' => ['id' => $sender_id],
+                                            'message' => ['text' => $msg_text],
+                                        ]),
+                                        CURLOPT_RETURNTRANSFER => true,
+                                        CURLOPT_TIMEOUT => 15,
+                                        CURLOPT_HTTPHEADER => [
+                                            'Authorization: Bearer ' . $access_token,
+                                            'Content-Type: application/json',
+                                        ],
+                                    ]);
+                                    curl_exec($ch);
+                                    curl_close($ch);
+                                }
                             }
                         }
                     }

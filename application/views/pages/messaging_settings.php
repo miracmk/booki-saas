@@ -46,6 +46,63 @@ $settings = vars('settings') ?? [];
                 </div>
             </div>
 
+            <!-- Randevu Hatırlatmaları (Reminders) -->
+            <div class="card mb-4 border-primary shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="fw-light mb-0"><i class="fas fa-bell me-2"></i>Otomatik Randevu Hatırlatmaları</h5>
+                    <span class="badge bg-light text-primary fw-bold">Kritik Özellik</span>
+                </div>
+                <div class="card-body">
+                    <p class="form-text text-muted mb-3">
+                        Yaklaşan randevular için müşterilere otomatik hatırlatma mesajı gönderilmesini sağlar. Hatırlatmalar müşterinin tercih ettiği kanallara (WhatsApp, Telegram, SMS, E-posta) otomatik olarak dağıtılır.
+                    </p>
+
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" id="reminder-notifications-enabled" class="form-check-input" <?= !empty($settings['reminder_notifications_enabled']) ? 'checked' : '' ?>>
+                        <label class="form-check-label fw-semibold" for="reminder-notifications-enabled">
+                            Otomatik Hatırlatmalar Aktif
+                        </label>
+                    </div>
+
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label mb-0" for="reminder-hours-ahead">
+                                <i class="fas fa-clock me-1 text-muted"></i> Randevudan Ne Kadar Önce Gönderilsin?
+                            </label>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="reminder-hours-ahead" class="form-select">
+                                <?php
+                                $hours = (int) ($settings['reminder_hours_ahead'] ?? 24);
+                                $options = [
+                                    2 => '2 Saat Önce',
+                                    4 => '4 Saat Önce',
+                                    6 => '6 Saat Önce',
+                                    12 => '12 Saat Önce',
+                                    24 => '24 Saat Önce (1 Gün)',
+                                    48 => '48 Saat Önce (2 Gün)',
+                                ];
+                                foreach ($options as $h => $label): ?>
+                                    <option value="<?= $h ?>" <?= $hours === $h ? 'selected' : '' ?>><?= $label ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 small mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Hatırlatma şablonu (şirket adı, randevu saati, hizmet ve personel adı ile rezervasyon linki) <strong>Şablonlar &gt; Randevu Hatırlatması</strong> üzerinden özelleştirilebilir.
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 pt-2 border-top">
+                        <button type="button" id="btn-run-reminders" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-paper-plane me-1"></i> Hatırlatmaları Şimdi Çalıştır (Manuel Test)
+                        </button>
+                        <span id="reminder-run-status" class="small text-muted ms-2"></span>
+                    </div>
+                </div>
+            </div>
+
             <div class="card mb-4">
                 <div class="card-header"><h5 class="fw-light mb-0">Entegrasyonlar</h5></div>
                 <div class="card-body">
@@ -459,6 +516,8 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
         smtp_pass: document.getElementById('smtp-pass').value || null,
         smtp_from_name: document.getElementById('smtp-from-name').value || null,
         smtp_from_address: document.getElementById('smtp-from-address').value || null,
+        reminder_notifications_enabled: document.getElementById('reminder-notifications-enabled') ? document.getElementById('reminder-notifications-enabled').checked : false,
+        reminder_hours_ahead: document.getElementById('reminder-hours-ahead') ? parseInt(document.getElementById('reminder-hours-ahead').value) : 24,
         default_notification_channels: Array.from(document.querySelectorAll('.default-notification-channel:checked')).map((input) => input.value),
         // BooKi (2026-09-11 fix) - config.php has csrf_protection=true, so a POST without
         // this field was always rejected before reaching the controller (matches the http_client.js
@@ -473,6 +532,28 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
         }
     }).fail(function(xhr) {
         alert('Hata: ' + (xhr.responseJSON?.error || 'Bilinmeyen hata'));
+    });
+});
+
+// Run reminders manually
+$('#btn-run-reminders').on('click', function() {
+    const $btn = $(this);
+    const $status = $('#reminder-run-status');
+    $btn.prop('disabled', true);
+    $status.text('Hatırlatmalar kontrol ediliyor...');
+
+    $.post('<?= base_url('messaging_settings/run_reminders') ?>', {
+        csrf_token: '<?= e(vars('csrf_token')) ?>'
+    }, function(response) {
+        $btn.prop('disabled', false);
+        if (response.success) {
+            $status.html('<span class="text-success"><i class="fas fa-check-circle"></i> ' + response.message + '</span>');
+        } else {
+            $status.html('<span class="text-danger">' + (response.error || 'İşlem başarısız') + '</span>');
+        }
+    }).fail(function(xhr) {
+        $btn.prop('disabled', false);
+        $status.html('<span class="text-danger">Hata: ' + (xhr.responseJSON?.message || xhr.responseJSON?.error || 'Bilinmeyen hata') + '</span>');
     });
 });
 </script>

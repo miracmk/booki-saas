@@ -719,7 +719,14 @@ class Whatsapp extends EA_Controller
             return null;
         }
 
-        $user = $this->db->from('users')->where('whatsapp_wa_id', $wa_id)->limit(1)->get()->row_array();
+        $user = $this->db
+            ->select('users.*, roles.slug AS role_slug')
+            ->from('users')
+            ->join('roles', 'roles.id = users.id_roles', 'left')
+            ->where('users.whatsapp_wa_id', $wa_id)
+            ->limit(1)
+            ->get()
+            ->row_array();
 
         if ($user) {
             return $user;
@@ -727,13 +734,40 @@ class Whatsapp extends EA_Controller
 
         $normalized = preg_replace('/\D+/', '', $wa_id);
 
-        if ($normalized === '' || $normalized === $wa_id) {
-            return null;
+        if ($normalized !== '' && $normalized !== $wa_id) {
+            $user = $this->db
+                ->select('users.*, roles.slug AS role_slug')
+                ->from('users')
+                ->join('roles', 'roles.id = users.id_roles', 'left')
+                ->where('users.whatsapp_wa_id', $normalized)
+                ->limit(1)
+                ->get()
+                ->row_array();
+
+            if ($user) {
+                return $user;
+            }
         }
 
-        $user = $this->db->from('users')->where('whatsapp_wa_id', $normalized)->limit(1)->get()->row_array();
+        // Fallback: match by phone_number (last 10 digits) if whatsapp_wa_id was not previously linked
+        if ($normalized !== '' && strlen($normalized) >= 10) {
+            $last10 = substr($normalized, -10);
+            $user = $this->db
+                ->select('users.*, roles.slug AS role_slug')
+                ->from('users')
+                ->join('roles', 'roles.id = users.id_roles', 'left')
+                ->like('users.phone_number', $last10)
+                ->limit(1)
+                ->get()
+                ->row_array();
 
-        return $user ?: null;
+            if ($user) {
+                $this->db->update('users', ['whatsapp_wa_id' => $wa_id], ['id' => $user['id']]);
+                return $user;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -671,4 +671,33 @@ $lang['totp_enabled_message'] = 'İki faktörlü doğrulama aktif.';
 $lang['totp_help_text'] = 'Hesabınıza ekstra bir güvenlik katmanı ekleyin - girişte şifrenize ek olarak telefonunuzdaki bir kod istenir.';
 $lang['cancel'] = 'İptal';
 $lang['close'] = 'Kapat';
+
+// Packages & Products translations
+$lang['manage_product'] = 'Ürünü Yönet';
+$lang['sku'] = 'Barkod / SKU';
+$lang['sale_price'] = 'Satış Fiyatı';
+$lang['cost_price'] = 'Maliyet Fiyatı';
+$lang['stock_quantity'] = 'Stok Adedi';
+$lang['low_stock_threshold'] = 'Kritik Stok Uyarısı';
+$lang['is_active'] = 'Aktif';
+$lang['in_stock'] = 'Stokta';
+$lang['low_stock'] = 'Kritik Stok';
+$lang['out_of_stock'] = 'Tükendi';
+$lang['product_created'] = 'Ürün başarıyla oluşturuldu.';
+$lang['product_updated'] = 'Ürün başarıyla güncellendi.';
+$lang['product_deleted'] = 'Ürün başarıyla silindi.';
+
+$lang['total_sessions'] = 'Toplam Seans';
+$lang['used_sessions'] = 'Kullanılan Seans';
+$lang['expires'] = 'Son Geçerlilik';
+$lang['expires_at'] = 'Son Geçerlilik Tarihi';
+$lang['manage_package'] = 'Paketi Yönet';
+$lang['exhausted'] = 'Tükendi';
+$lang['cancelled'] = 'İptal Edildi';
+$lang['confirm_delete'] = 'Bu kaydı silmek istediğinize emin misiniz?';
+$lang['unit_price'] = 'Birim Fiyat';
+$lang['package_created'] = 'Paket başarıyla oluşturuldu.';
+$lang['package_updated'] = 'Paket başarıyla güncellendi.';
+$lang['package_deleted'] = 'Paket başarıyla silindi.';
+$lang['no_expiry'] = 'Süresiz';
 // End

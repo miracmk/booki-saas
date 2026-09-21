@@ -3,10 +3,9 @@
 <?php section('content'); ?>
 
 <?php
-// Salon Flora customization - whitelabeling: use the tenant's own logo/name (General Settings) when
-// set, falling back to the platform default.
+// BooKi - whitelabeling: use the tenant's own logo when white-label is active, falling back to the platform default.
 $login_company_name = vars('company_name') ?: 'BooKi';
-$login_company_logo = vars('company_logo') ?: asset_url('assets/img/logo.png');
+$login_company_logo = white_label_logo();
 ?>
 
 <div class="text-center mb-4">

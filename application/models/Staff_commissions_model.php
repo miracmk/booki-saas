@@ -44,17 +44,21 @@ class Staff_commissions_model extends EA_Model
                 // Check provider-service specific commission if table exists
                 if ($this->db->table_exists('provider_service_commissions')) {
                     $spec = $this->db->get_where('provider_service_commissions', [
-                        'id_users_provider' => $staff_id,
+                        'id_users' => $staff_id,
                         'id_services' => $item['id_services'],
                     ])->row_array();
                     if ($spec) {
-                        $commission_rate = (float) $spec['commission_rate'];
+                        $commission_rate = (float) ($spec['commission_value'] ?? 0.00);
                     }
                 }
                 // Fallback to provider general commission rate
                 if ($commission_rate <= 0) {
-                    $provider = $this->db->get_where('user_settings', ['id_users' => $staff_id])->row_array();
-                    $commission_rate = (float) ($provider['commission_rate'] ?? 15.00);
+                    if ($this->db->field_exists('commission_rate', 'user_settings')) {
+                        $provider = $this->db->get_where('user_settings', ['id_users' => $staff_id])->row_array();
+                        $commission_rate = (float) ($provider['commission_rate'] ?? 15.00);
+                    } else {
+                        $commission_rate = 15.00;
+                    }
                 }
             } elseif ($item['item_type'] === 'product') {
                 $commission_rate = 10.00; // default 10% on retail products

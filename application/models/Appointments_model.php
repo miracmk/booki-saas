@@ -330,7 +330,18 @@ class Appointments_model extends EA_Model
     {
         // Get old status to detect transition to 'closed'
         $old = $this->db->get_where('appointments', ['id' => $appointment['id']])->row_array();
-        
+
+        // If appointment time changed (rescheduled), reset reminder status so customer gets notified for new time
+        if (
+            $old &&
+            !empty($appointment['start_datetime']) &&
+            !empty($old['start_datetime']) &&
+            $appointment['start_datetime'] !== $old['start_datetime']
+        ) {
+            $appointment['is_reminder_sent'] = 0;
+            $appointment['reminder_sent_at'] = null;
+        }
+
         $appointment['update_datetime'] = date('Y-m-d H:i:s');
 
         if (!$this->db->update('appointments', $appointment, ['id' => $appointment['id']])) {
@@ -338,7 +349,11 @@ class Appointments_model extends EA_Model
         }
         
         // Faz 43/44 Marketplace Commission
-        if ($old && ($old['status'] !== 'closed') && (isset($appointment['status']) && $appointment['status'] === 'closed')) {
+        $completed_statuses = ['closed', 'tamamlandı', 'completed', 'attended'];
+        $old_is_completed = in_array(mb_strtolower($old['status'] ?? '', 'UTF-8'), $completed_statuses, true);
+        $new_is_completed = in_array(mb_strtolower($appointment['status'] ?? '', 'UTF-8'), $completed_statuses, true);
+
+        if ($old && !$old_is_completed && $new_is_completed) {
             $notes = $appointment['notes'] ?? $old['notes'] ?? '';
             if (strpos($notes, '[Pazar Yeri]') !== false) {
                 $service = $this->db->get_where('services', ['id' => $old['id_services']])->row_array();
@@ -349,8 +364,10 @@ class Appointments_model extends EA_Model
                     $tenant = tenant_context();
                     
                     if ($tenant && $amount > 0 && $master_db->table_exists('master_settings')) {
-                        $rate_row = $master_db->get_where('master_settings', ['name' => 'marketplace_commission_rate'])->row_array();
-                        $rate = $rate_row ? (float) $rate_row['value'] : 5.0;
+                        $sector_key = $tenant['business_type'] ?? ($tenant['category'] ?? null);
+                        $rate = function_exists('get_sector_commission_rate')
+                            ? get_sector_commission_rate($sector_key)
+                            : 5.0;
                         $commission = $amount * ($rate / 100);
                         
                         // Update wallet

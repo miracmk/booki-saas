@@ -207,6 +207,11 @@ class Checkin_model extends EA_Model
         }
 
         $cust_name = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')) ?: 'Değerli Müşterimiz';
+        $safe_customer = [
+            'id' => (int) $customer_id,
+            'first_name' => (string) ($customer['first_name'] ?? ''),
+            'last_name' => (string) ($customer['last_name'] ?? ''),
+        ];
 
         // Check active inside status
         $active_log = $this->db
@@ -221,7 +226,7 @@ class Checkin_model extends EA_Model
             if (!$active_log) {
                 return [
                     'status' => 'not_inside',
-                    'customer' => $customer,
+                    'customer' => $safe_customer,
                     'message' => "Sayın {$cust_name}, şu an aktif bir giriş kaydınız bulunmuyor.",
                 ];
             }
@@ -230,7 +235,7 @@ class Checkin_model extends EA_Model
                 'status' => 'success',
                 'action' => 'checkout',
                 'checkin_id' => $active_log['id'],
-                'customer' => $customer,
+                'customer' => $safe_customer,
                 'duration_minutes' => $checkout_res['duration_minutes'],
                 'exit_time' => $checkout_res['exit_time'],
                 'message' => "✓ Güle güle Sayın {$cust_name}! İçeride geçirilen süre: {$checkout_res['duration_minutes']} dakika. İyi günler dileriz.",
@@ -245,7 +250,7 @@ class Checkin_model extends EA_Model
                     'status' => 'already_inside',
                     'action' => 'checkin',
                     'checkin_id' => (int) $active_log['id'],
-                    'customer' => $customer,
+                    'customer' => $safe_customer,
                     'entry_time' => $entry_time,
                     'message' => "Sayın {$cust_name}, zaten içeridesiniz (Giriş: {$entry_time}).",
                 ];
@@ -257,18 +262,19 @@ class Checkin_model extends EA_Model
                 'checkin_method' => $method,
             ]);
             $checkin_res['action'] = 'checkin';
+            $checkin_res['customer'] = $safe_customer;
             $checkin_res['message'] = "✓ Hoş geldiniz Sayın {$cust_name}! Girişiniz başarıyla yapıldı.";
             return $checkin_res;
         }
 
-        // 3. AUTO Mode (Toggle: If inside -> check out; If outside -> check in)
+        // 3. AUTO (Toggle) Mode
         if ($active_log) {
             $checkout_res = $this->check_out((int) $active_log['id']);
             return [
                 'status' => 'success',
                 'action' => 'checkout',
                 'checkin_id' => $active_log['id'],
-                'customer' => $customer,
+                'customer' => $safe_customer,
                 'duration_minutes' => $checkout_res['duration_minutes'],
                 'exit_time' => $checkout_res['exit_time'],
                 'message' => "✓ Güle güle Sayın {$cust_name}! Çıkışınız yapıldı (Süre: {$checkout_res['duration_minutes']} dk).",
@@ -281,6 +287,7 @@ class Checkin_model extends EA_Model
                 'checkin_method' => $method,
             ]);
             $checkin_res['action'] = 'checkin';
+            $checkin_res['customer'] = $safe_customer;
             $checkin_res['message'] = "✓ Hoş geldiniz Sayın {$cust_name}! Girişiniz başarıyla yapıldı.";
             return $checkin_res;
         }

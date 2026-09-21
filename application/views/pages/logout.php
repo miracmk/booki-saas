@@ -3,8 +3,8 @@
 <?php section('content'); ?>
 
 <div class="text-center mb-4">
-    <img src="<?= asset_url('assets/img/logo.png') ?>" 
-        alt="BooKi" class="shadow mb-3" width="72" height="72">
+    <img src="<?= e(white_label_logo()) ?>" 
+        alt="<?= e(vars('company_name') ?: 'BooKi') ?>" class="shadow mb-3" width="72" height="72">
     <h4 class="text-primary fw-semibold mb-1"><?= lang('log_out') ?></h4>
     <p class=" small mb-0"><?= lang('logout_success') ?></p>
 </div>

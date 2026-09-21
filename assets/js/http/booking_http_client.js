@@ -208,10 +208,13 @@ App.Http.Booking = (function () {
         }
 
         const formData = JSON.parse($('input[name="post_data"]').val());
+        const urlParams = new URLSearchParams(window.location.search);
+        const refParam = urlParams.get('ref') || $('input[name="ref"]').val() || '';
 
         const data = {
             csrf_token: vars('csrf_token'),
             post_data: formData,
+            ref: refParam,
         };
 
         if ($captchaText.length > 0) {

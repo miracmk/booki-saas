@@ -64,7 +64,7 @@ class Landing extends EA_Controller
             ->get('tenants')
             ->result_array();
 
-        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookie-app.kibusiness.co';
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
 
         html_vars([
             'page_title' => 'BooKi — Online Randevu ve Salon Yönetim Sistemi',
@@ -74,5 +74,41 @@ class Landing extends EA_Controller
         ]);
 
         $this->load->view('pages/landing_home');
+    }
+
+    /**
+     * Render the Google OAuth and KVKK/GDPR compliant Privacy Policy.
+     */
+    public function privacy(): void
+    {
+        method('get');
+
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+
+        html_vars([
+            'page_title' => 'BooKi — Privacy Policy / Gizlilik Politikası',
+            'app_domain' => $app_domain,
+            'portal_url' => 'https://' . $app_domain . '/',
+        ]);
+
+        $this->load->view('pages/privacy_policy');
+    }
+
+    /**
+     * Render the Terms of Service.
+     */
+    public function terms(): void
+    {
+        method('get');
+
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+
+        html_vars([
+            'page_title' => 'BooKi — Terms of Service / Kullanım Şartları',
+            'app_domain' => $app_domain,
+            'portal_url' => 'https://' . $app_domain . '/',
+        ]);
+
+        $this->load->view('pages/terms_of_service');
     }
 }

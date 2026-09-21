@@ -834,16 +834,84 @@ class Google extends EA_Controller
         require_plan_feature('google_calendar');
 
         // Generate and store OAuth state parameter to prevent CSRF
-        $oauth_state = bin2hex(random_bytes(32));
+        $csrf_token = bin2hex(random_bytes(32));
+
+        // In multi-tenant mode, package signed state with tenant origin for central relay
+        $oauth_state = build_google_oauth_state($csrf_token, 'google/oauth_callback');
 
         // Store the provider id and state for use on the callback function.
         session([
             'oauth_provider_id' => $provider_id,
-            'oauth_state' => $oauth_state,
+            'oauth_state' => $csrf_token,
         ]);
 
         // Redirect browser to google user content page.
         header('Location: ' . $this->google_sync->get_auth_url($oauth_state));
+    }
+
+    /**
+     * BooKi (2026-09-19) - Central OAuth relay for multi-tenant SaaS.
+     * Google redirects to the platform's central callback (https://bookiapp.kibusiness.co/google/oauth_callback).
+     * This method verifies the signed state, checks that the destination host is a legitimate active tenant,
+     * and bounces the browser to the tenant's own origin with the auth code intact.
+     */
+    private function relay_to_tenant_callback(): void
+    {
+        $state_raw = (string) request('state');
+        if (empty($state_raw)) {
+            show_error('Geçersiz veya eksik OAuth state parametresi.', 400);
+            return;
+        }
+
+        $payload = verify_google_oauth_state($state_raw);
+        if ($payload === null) {
+            show_error('OAuth güvenlik doğrulaması başarısız oldu (imza geçersiz veya süre doldu).', 403);
+            return;
+        }
+
+        $target_host = strtolower(trim((string) ($payload['host'] ?? '')));
+        $target_route = ltrim((string) ($payload['target'] ?? 'google/oauth_callback'), '/');
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+
+        // Validate destination host against active tenants in master DB to prevent open redirect
+        $master_db = $this->load->database('default', true);
+        $is_valid = false;
+
+        if ($target_host !== '' && $target_host !== $app_domain) {
+            $app_domain_pattern = preg_quote($app_domain, '/');
+            if (preg_match('/^([a-z0-9-]+)[-\.]' . $app_domain_pattern . '$/', $target_host, $matches)) {
+                $subdomain = $matches[1];
+                $tenant = $master_db->get_where('tenants', ['subdomain' => $subdomain, 'status' => 'active'])->row_array();
+                if ($tenant) {
+                    $is_valid = true;
+                }
+            } else {
+                $tenant = $master_db->get_where('tenants', ['custom_domain' => $target_host, 'status' => 'active'])->row_array();
+                if ($tenant) {
+                    $is_valid = true;
+                }
+            }
+        }
+
+        if (!$is_valid) {
+            show_error('Geçersiz veya aktif olmayan kiracı hedefi.', 400);
+            return;
+        }
+
+        $query_params = [];
+        if (request('code') !== null) {
+            $query_params['code'] = request('code');
+        }
+        if (request('state') !== null) {
+            $query_params['state'] = request('state');
+        }
+        if (request('error') !== null) {
+            $query_params['error'] = request('error');
+        }
+
+        $dest_url = 'https://' . $target_host . '/' . $target_route . (!empty($query_params) ? '?' . http_build_query($query_params) : '');
+        header('Location: ' . $dest_url);
+        exit();
     }
 
     /**
@@ -862,16 +930,32 @@ class Google extends EA_Controller
      */
     public function oauth_callback(): void
     {
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+        $current_host = preg_replace('/:\d+$/', '', strtolower((string) ($_SERVER['HTTP_HOST'] ?? '')));
+
+        // Central relay: when the callback lands on the bare platform app domain,
+        // unpack the cryptographic state, verify the tenant, and bounce the browser to the tenant's own origin.
+        if ($current_host === $app_domain && is_multi_tenant_mode()) {
+            $this->relay_to_tenant_callback();
+            return;
+        }
+
         if (!session('user_id')) {
             abort(403, 'Forbidden');
         }
 
         // Verify OAuth state to prevent CSRF attacks. If state is absent (e.g. a stale redirect
         // from before CSRF protection was added) or mismatched, abort gracefully.
-        $returned_state = request('state');
+        $returned_state = (string) request('state');
         $stored_state = session('oauth_state');
 
-        if (empty($returned_state) || empty($stored_state) || !hash_equals($stored_state, $returned_state)) {
+        $csrf_to_verify = $returned_state;
+        $unpacked = verify_google_oauth_state($returned_state);
+        if ($unpacked !== null && !empty($unpacked['csrf'])) {
+            $csrf_to_verify = $unpacked['csrf'];
+        }
+
+        if (empty($csrf_to_verify) || empty($stored_state) || !hash_equals($stored_state, $csrf_to_verify)) {
             session(['oauth_state' => null]);
             show_error('Security validation failed. Please try the Google Calendar sync again.', 403);
 

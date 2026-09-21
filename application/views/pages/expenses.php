@@ -47,14 +47,14 @@
                 <table class="table table-hover align-middle mb-0" id="expenses-table">
                     <thead class="table-light small text-muted">
                         <tr>
-                            <th class="ps-3">TARİH</th>
-                            <th>KATEGORİ</th>
-                            <th>GİDER BAŞLIĞI</th>
-                            <th>TEDARİKÇİ / FİRMA</th>
-                            <th>ÖDEME ŞEKLİ</th>
-                            <th>DURUM</th>
-                            <th class="text-end">TUTAR</th>
-                            <th class="text-end pe-3">İŞLEM</th>
+                            <th class="ps-3">Tarih</th>
+                            <th>Kategori</th>
+                            <th>Gider Başlığı</th>
+                            <th>Tedarikçi / Firma</th>
+                            <th>Ödeme Şekli</th>
+                            <th><?= lang('status') ?></th>
+                            <th class="text-end">Tutar</th>
+                            <th class="text-end pe-3"><?= lang('actions') ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -175,11 +175,13 @@ function submitExpense() {
 
 function deleteExpense(id) {
     if (!confirm('Bu gider kaydını silmek istediğinize emin misiniz?')) return;
-    fetch('<?= site_url('expenses/delete/') ?>' + id)
+    fetch('<?= site_url('expenses/delete/') ?>' + id, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
                 window.location.reload();
+            } else {
+                alert(data.message || 'Gider silinemedi.');
             }
         });
 }

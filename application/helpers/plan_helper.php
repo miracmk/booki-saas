@@ -81,3 +81,37 @@ if (!function_exists('require_plan_feature')) {
         }
     }
 }
+
+if (!function_exists('is_white_label_active')) {
+    /**
+     * Check if white-label features are active for the current tenant.
+     * True if single-tenant mode, or if tenant's plan allows white_label and white_label_enabled is 1.
+     */
+    function is_white_label_active(): bool
+    {
+        if (!is_multi_tenant_mode()) {
+            return true;
+        }
+
+        return plan_allows('white_label') && (int) setting('white_label_enabled') === 1;
+    }
+}
+
+if (!function_exists('white_label_logo')) {
+    /**
+     * Returns the white-label custom company logo if white-label is active
+     * (plan allows it, setting is enabled, and a custom logo is uploaded).
+     * Otherwise returns BooKi's platform logo.
+     */
+    function white_label_logo(): string
+    {
+        if (is_white_label_active()) {
+            $custom_logo = setting('company_logo');
+            if (!empty($custom_logo)) {
+                return $custom_logo;
+            }
+        }
+
+        return base_url('assets/img/logo.png');
+    }
+}

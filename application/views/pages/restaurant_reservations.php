@@ -59,14 +59,14 @@
                 <table class="table table-hover align-middle mb-0" id="restaurant-res-table">
                     <thead class="table-light small text-muted">
                         <tr>
-                            <th class="ps-3">SAAT</th>
-                            <th>MİSAFİR ADI</th>
-                            <th>KİŞİ</th>
-                            <th>MASA</th>
-                            <th>DENEYİM / PAKET</th>
-                            <th>ÖZEL İSTEK / ALERJİ</th>
-                            <th>DURUM</th>
-                            <th class="text-end pe-3">İŞLEMLER</th>
+                            <th class="ps-3">Saat</th>
+                            <th>Misafir Adı</th>
+                            <th>Kişi</th>
+                            <th>Masa</th>
+                            <th>Deneyim / Paket</th>
+                            <th>Özel İstek / Alerji</th>
+                            <th><?= lang('status') ?></th>
+                            <th class="text-end pe-3"><?= lang('actions') ?></th>
                         </tr>
                     </thead>
                     <tbody>

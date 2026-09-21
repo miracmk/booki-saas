@@ -382,7 +382,7 @@ $config['sess_driver'] = 'files';
 $config['sess_cookie_name'] = 'ea_session';
 $config['sess_expiration'] = 604800; // 1 week
 $config['sess_save_path'] = __DIR__ . '/../../storage/sessions';
-$config['sess_match_ip'] = true; // Enable IP matching for better session security
+$config['sess_match_ip'] = false; // Disabled to prevent mobile session loss during IP changes
 $config['sess_time_to_update'] = 300;
 $config['sess_regenerate_destroy'] = true;
 
@@ -444,6 +444,8 @@ $config['csrf_exclude_uris'] = [
     'telegram/webhook',
     // Instagram webhook - Meta POSTs updates here with hub challenge verification
     'instagram/webhook',
+    // Zadarma webhook - Zadarma POSTs NOTIFY_* call events + zd_echo check (see Zadarma::webhook)
+    'zadarma/webhook',
     // Modern SaaS Transformation Fetch Endpoints (session authenticated via ensure_authenticated)
     'adisyons/.*',
     'restaurant/.*',

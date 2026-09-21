@@ -91,13 +91,13 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light small text-muted">
                         <tr>
-                            <th class="ps-3">MÜŞTERİ</th>
-                            <th>TELEFON</th>
-                            <th>ÜYELİK / PAKET</th>
-                            <th>GİRİŞ SAATİ</th>
-                            <th>İÇERİDEKİ SÜRE</th>
-                            <th>YÖNTEM</th>
-                            <th class="text-end pe-3">İŞLEM</th>
+                            <th class="ps-3"><?= lang('customer') ?></th>
+                            <th><?= lang('phone') ?></th>
+                            <th>Üyelik / Paket</th>
+                            <th>Giriş Saati</th>
+                            <th>İçerideki Süre</th>
+                            <th>Yöntem</th>
+                            <th class="text-end pe-3"><?= lang('actions') ?></th>
                         </tr>
                     </thead>
                     <tbody>

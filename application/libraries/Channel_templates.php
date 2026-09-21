@@ -49,10 +49,8 @@ Sayın *{customer_name}*,
 Randevunuz onaylanarak takvimimize kaydedilmiştir. Sizi ağırlamaktan mutluluk duyacağız:
 
 📌 *Hizmet:* {service_name}
-🗓 *Tarih & Saat:* {start_datetime} (Bitiş: {end_datetime})
-👤 *Uzman:* {provider_name}
-📍 *Adres:* {company_address}
-📞 *Telefon:* {company_phone}
+🗓 *Tarih & Saat:* {start_datetime}{end_time_clause}
+👤 *Uzman:* {provider_name}{address_clause}{phone_clause}
 
 Randevu detaylarınızı incelemek veya değişiklik yapmak için:
 🔗 {booking_url}
@@ -67,9 +65,8 @@ Sayın *{customer_name}*,
 Randevunuzun yeni tarih ve saat bilgisi onaylanmıştır:
 
 📌 *Hizmet:* {service_name}
-✨ *Yeni Tarih & Saat:* {start_datetime} (Bitiş: {end_datetime})
-👤 *Uzman:* {provider_name}
-📍 *Adres:* {company_address}
+✨ *Yeni Tarih & Saat:* {start_datetime}{end_time_clause}
+👤 *Uzman:* {provider_name}{address_clause}
 
 Detaylar için: {booking_url}
 Herhangi bir sorunuz olursa bize {company_phone} numarasından ulaşabilirsiniz.
@@ -95,9 +92,7 @@ Yaklaşan randevunuzu hatırlatmak isteriz:
 
 📌 *Hizmet:* {service_name}
 🗓 *Tarih & Saat:* {start_datetime}
-👤 *Uzman:* {provider_name}
-📍 *Adres:* {company_address}
-📞 *Telefon:* {company_phone}
+👤 *Uzman:* {provider_name}{address_clause}{phone_clause}
 
 Randevunuza vaktinde gelmenizi rica eder, keyifli bir deneyim dileriz! 🌸
 TPL,
@@ -132,15 +127,27 @@ TPL,
             return '';
         }
 
+        $end_time = $this->format_datetime($data['end_datetime'] ?? null, false);
+        $end_time_clause = ($end_time !== '' && $end_time !== '-') ? " (Bitiş: {$end_time})" : '';
+
+        $company_address = trim((string) ($data['company_address'] ?? (setting('company_address') ?: '')));
+        $address_clause = ($company_address !== '' && $company_address !== 'İşletme Adresi') ? "\n📍 *Adres:* {$company_address}" : '';
+
+        $company_phone = trim((string) ($data['company_phone'] ?? (setting('company_phone') ?: '')));
+        $phone_clause = $company_phone !== '' ? "\n📞 *Telefon:* {$company_phone}" : '';
+
         $replacements = [
             '{company_name}' => $data['company_name'] ?? (setting('company_name') ?: 'BooKi İşletmesi'),
             '{customer_name}' => $data['customer_name'] ?? 'Değerli Misafirimiz',
             '{service_name}' => $data['service_name'] ?? 'Hizmet',
             '{start_datetime}' => $this->format_datetime($data['start_datetime'] ?? null),
-            '{end_datetime}' => $this->format_datetime($data['end_datetime'] ?? null, false),
+            '{end_datetime}' => $end_time,
+            '{end_time_clause}' => $end_time_clause,
             '{provider_name}' => $data['provider_name'] ?? 'Belirtilmedi',
-            '{company_address}' => $data['company_address'] ?? (setting('company_address') ?: 'İşletme Adresi'),
-            '{company_phone}' => $data['company_phone'] ?? (setting('company_phone') ?: ''),
+            '{company_address}' => $company_address ?: 'İşletme Adresi',
+            '{address_clause}' => $address_clause,
+            '{company_phone}' => $company_phone,
+            '{phone_clause}' => $phone_clause,
             '{booking_url}' => $data['booking_url'] ?? site_url('booking'),
             '{notes}' => $data['notes'] ?? '',
         ];

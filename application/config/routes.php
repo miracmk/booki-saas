@@ -60,6 +60,8 @@ $portal_host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_H
 
 if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) {
     $route['default_controller'] = 'portal';
+    $route['portal'] = 'portal/index';
+    $route['portal/(:any)'] = 'portal/$1';
 }
 
 // BooKi (2026-08-26) - SaaS admin panel: admin-bookiapp.kibusiness.co has no booking page
@@ -73,24 +75,62 @@ if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'adm
 // The root of this host serves the Landing page; the discovery portal stays reachable at
 // /marketplace. See EA_Controller::resolve_tenant()'s marketplace host exception.
 $marketplace_domain = strtolower((string) (getenv('MARKETPLACE_DOMAIN') ?: 'booki.kibusiness.co'));
+$randevuburada_domain = strtolower((string) (getenv('RANDEVUBURADA_DOMAIN') ?: 'randevuburada.kibusiness.co'));
 
 if ($portal_host !== '' && $portal_host === $marketplace_domain) {
     $route['default_controller'] = 'landing';
+    $route['privacy'] = 'landing/privacy';
+    $route['terms'] = 'landing/terms';
     $route['marketplace'] = 'marketplace/index';
     $route['marketplace/business/(:any)'] = 'marketplace/business/$1';
     $route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
+    $route['marketplace/get_slots/(:any)'] = 'marketplace/get_slots/$1';
+    $route['marketplace/create_booking/(:any)'] = 'marketplace/create_booking/$1';
     $route['sitemap.xml'] = 'marketplace/sitemap';
     $route['robots.txt'] = 'marketplace/robots';
     $route['llms.txt'] = 'marketplace/llms';
 }
 
-// Global sitemap, robots and marketplace routes
+// RandevuBurada (2026-09-20) - dedicated standalone marketplace subdomain (randevuburada.kibusiness.co).
+// The root of this host serves the marketplace directly!
+if ($portal_host !== '' && $portal_host === $randevuburada_domain) {
+    $route['default_controller'] = 'marketplace';
+    $route['business/(:any)'] = 'marketplace/business/$1';
+    $route['services_preview/(:any)'] = 'marketplace/services_preview/$1';
+    $route['get_slots/(:any)'] = 'marketplace/get_slots/$1';
+    $route['create_booking/(:any)'] = 'marketplace/create_booking/$1';
+    $route['marketplace'] = 'marketplace/index';
+    $route['marketplace/business/(:any)'] = 'marketplace/business/$1';
+    $route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
+    $route['marketplace/get_slots/(:any)'] = 'marketplace/get_slots/$1';
+    $route['marketplace/create_booking/(:any)'] = 'marketplace/create_booking/$1';
+    $route['sitemap.xml'] = 'marketplace/sitemap';
+    $route['robots.txt'] = 'marketplace/robots';
+    $route['llms.txt'] = 'marketplace/llms';
+    $route['privacy'] = 'landing/privacy';
+    $route['terms'] = 'landing/terms';
+}
+
+// Global legal, sitemap, robots and marketplace routes
+$route['privacy'] = 'landing/privacy';
+$route['terms'] = 'landing/terms';
 $route['sitemap.xml'] = 'marketplace/sitemap';
 $route['robots.txt'] = 'marketplace/robots';
 $route['llms.txt'] = 'marketplace/llms';
 $route['marketplace'] = 'marketplace/index';
 $route['marketplace/business/(:any)'] = 'marketplace/business/$1';
 $route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
+$route['marketplace/get_slots/(:any)'] = 'marketplace/get_slots/$1';
+$route['marketplace/create_booking/(:any)'] = 'marketplace/create_booking/$1';
+
+// Customer Onboarding Routes
+$route['onboarding/(:any)'] = 'customer_onboarding/index/$1';
+$route['customer_onboarding'] = 'customer_onboarding/index';
+$route['customer_onboarding/(:any)'] = 'customer_onboarding/$1';
+
+// Super Admin Aliases
+$route['superadmin'] = 'superadmin_tenants/index';
+$route['superadmin_crm'] = 'superadmin_tenants/index';
 
 $route['404_override'] = '';
 
@@ -112,27 +152,16 @@ $route['translate_uri_dashes'] = false;
 |
 */
 
-header('X-Frame-Options: SAMEORIGIN');
-
-/*
-| -------------------------------------------------------------------------
-| SECURITY HEADERS
-| -------------------------------------------------------------------------
-| Additional security headers to protect against common web attacks.
-|
-*/
-
-// Prevent MIME type sniffing
-header('X-Content-Type-Options: nosniff');
-
-// Enable XSS filtering in older browsers
-header('X-XSS-Protection: 1; mode=block');
-
-// Referrer Policy - only send referrer for same-origin requests
-header('Referrer-Policy: strict-origin-when-cross-origin');
-
-// Permissions Policy - restrict browser features
-header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+if (!headers_sent()) {
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-Content-Type-Options: nosniff');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    // NOTE: keep in sync with application/hooks/security_headers.php.
+    // microphone/camera must stay `(self)` — `()` breaks getUserMedia()
+    // on the superadmin voice-call modal (Chrome: "explicitly disallowed").
+    header('Permissions-Policy: geolocation=(), microphone=(self), camera=(self)');
+}
 
 /*
 | -------------------------------------------------------------------------
@@ -308,7 +337,12 @@ $route['expenses'] = 'expenses/index';
 $route['expenses/(:any)'] = 'expenses/$1';
 $route['search'] = 'search/index';
 $route['search/(:any)'] = 'search/$1';
-$route['portal'] = 'customers/portal';
+$route['customer/portal'] = 'customer_portal/index';
+$route['customer/portal/(:any)'] = 'customer_portal/$1';
+if ($portal_host !== (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) {
+    $route['portal'] = 'customer_portal/index';
+    $route['portal/(:any)'] = 'customer_portal/$1';
+}
 
 // BooKi (2026-09-18) - Industry Blueprints & Onboarding Wizard
 $route['onboarding'] = 'onboarding/index';

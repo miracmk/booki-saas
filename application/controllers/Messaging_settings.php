@@ -132,6 +132,8 @@ class Messaging_settings extends EA_Controller
             check('smtp_from_address', 'string|null');
             check('default_notification_channel', 'string|null');
             check('default_notification_channels', 'array|null');
+            check('reminder_notifications_enabled', 'bool|null');
+            check('reminder_hours_ahead', 'integer|null');
 
             $data = [
                 'sms_gateway' => trim((string) request('sms_gateway', 'none')) ?: 'none',
@@ -193,16 +195,103 @@ class Messaging_settings extends EA_Controller
                 'smtp_pass' => trim((string) request('smtp_pass', '')) ?: null,
                 'smtp_from_name' => trim((string) request('smtp_from_name', '')) ?: null,
                 'smtp_from_address' => trim((string) request('smtp_from_address', '')) ?: null,
-                    'default_notification_channel' => null,
-                    'default_notification_channels' => implode(',', array_values(array_intersect(
-                        ['email', 'sms', 'call', 'whatsapp', 'telegram', 'instagram'],
-                        array_map('strval', (array) request('default_notification_channels', [])),
-                    ))) ?: 'email',
+                'default_notification_channel' => null,
+                'default_notification_channels' => implode(',', array_values(array_intersect(
+                    ['email', 'sms', 'call', 'whatsapp', 'telegram', 'instagram'],
+                    array_map('strval', (array) request('default_notification_channels', [])),
+                ))) ?: 'email',
+                'reminder_notifications_enabled' => filter_var(
+                    request('reminder_notifications_enabled', true),
+                    FILTER_VALIDATE_BOOLEAN,
+                ) ? 1 : 0,
+                'reminder_hours_ahead' => !empty(request('reminder_hours_ahead')) ? (int) request('reminder_hours_ahead') : 24,
             ];
 
             $this->messaging_settings_model->save_settings($data);
 
+            // Sync Telegram settings to ea_settings so legacy/core consumers stay aligned
+            $settings_sync = [
+                'telegram_notifications_enabled' => $data['telegram_notifications_enabled'] ? '1' : '0',
+                'ai_reply_telegram_enabled' => $data['ai_reply_telegram_enabled'] ? '1' : '0',
+            ];
+            if (!empty($data['telegram_bot_token'])) {
+                $settings_sync['telegram_bot_token'] = $data['telegram_bot_token'];
+            }
+            setting($settings_sync);
+
             json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Trigger appointment reminders manually from the UI for immediate test / execution.
+     */
+    public function run_reminders(): void
+    {
+        try {
+            $this->load->library('notifications');
+            $this->load->library('channel_templates');
+            $this->load->model('appointments_model');
+            $this->load->model('settings_model');
+            $this->load->model('customers_model');
+            $this->load->model('services_model');
+            $this->load->model('providers_model');
+            $this->load->model('messaging_settings_model');
+
+            $messaging_settings = $this->messaging_settings_model->get_settings();
+            $hours_ahead = (int) ($messaging_settings['reminder_hours_ahead'] ?? 24);
+            if ($hours_ahead <= 0) {
+                $hours_ahead = 24;
+            }
+
+            $now = date('Y-m-d H:i:s');
+            $target_time = date('Y-m-d H:i:s', strtotime("+{$hours_ahead} hours"));
+
+            $appointments = $this->db
+                ->from('appointments')
+                ->where('is_unavailability', false)
+                ->where('start_datetime >=', $now)
+                ->where('start_datetime <=', $target_time)
+                ->where_not_in('status', ['Cancelled', 'Draft'])
+                ->where('is_reminder_sent', 0)
+                ->get()
+                ->result_array();
+
+            $sent_count = 0;
+            $company_settings = [
+                'company_name' => setting('company_name'),
+                'company_link' => setting('company_link'),
+                'company_email' => setting('company_email'),
+                'company_color' => setting('company_color'),
+                'company_address' => setting('company_address'),
+                'company_phone' => setting('company_phone'),
+                'date_format' => setting('date_format'),
+                'time_format' => setting('time_format'),
+            ];
+
+            foreach ($appointments as $appointment) {
+                $service = $this->services_model->find((int) $appointment['id_services']) ?: [];
+                $provider = $this->providers_model->find((int) $appointment['id_users_provider']) ?: [];
+                $customer = $this->customers_model->find((int) $appointment['id_users_customer']) ?: [];
+
+                if (!empty($customer)) {
+                    $this->notifications->notify_appointment_reminder($appointment, $provider, $service, $customer, $company_settings);
+                    $this->db->where('id', (int) $appointment['id'])->update('appointments', [
+                        'is_reminder_sent' => 1,
+                        'reminder_sent_at' => date('Y-m-d H:i:s'),
+                    ]);
+                    $sent_count++;
+                }
+            }
+
+            json_response([
+                'success' => true,
+                'sent_count' => $sent_count,
+                'hours_ahead' => $hours_ahead,
+                'message' => "{$sent_count} adet randevu hatırlatması gönderildi.",
+            ]);
         } catch (Throwable $e) {
             json_exception($e);
         }

@@ -151,46 +151,95 @@ App.Pages.Packages = (function () {
   function renderTable() {
     $tbody.empty();
 
+    if (!tableRows || tableRows.length === 0) {
+      $tbody.html(
+        '<tr><td colspan="8" class="text-center text-muted py-5">' +
+        '<i class="fas fa-boxes fa-3x text-secondary opacity-50 mb-3 d-block"></i>' +
+        '<span>Henüz kayıtlı paket seans bulunmuyor.</span></td></tr>'
+      );
+      return;
+    }
+
     tableRows.forEach(function (package_) {
-      const statusBadge =
-        '<span class="badge bg-' +
-        (package_.status === 'active'
-          ? 'success'
+      const statusText =
+        package_.status === 'active'
+          ? (App.Lang.active || 'Aktif')
           : package_.status === 'exhausted'
-            ? 'warning'
-            : 'secondary') +
-        '">' +
-        package_.status +
+            ? (App.Lang.exhausted || 'Tükendi')
+            : (App.Lang.cancelled || 'İptal');
+
+      const statusClass =
+        package_.status === 'active'
+          ? 'bg-success-subtle text-success border border-success-subtle'
+          : package_.status === 'exhausted'
+            ? 'bg-warning-subtle text-warning-emphasis border border-warning-subtle'
+            : 'bg-secondary-subtle text-secondary border border-secondary-subtle';
+
+      const statusBadge =
+        '<span class="badge ' +
+        statusClass +
+        ' px-2 py-1">' +
+        statusText +
         '</span>';
 
       const expiresDate = package_.expires_at
-        ? new Date(package_.expires_at).toLocaleDateString('tr-TR')
-        : App.Lang.no_expiry;
+        ? '<span class="text-nowrap">' + new Date(package_.expires_at).toLocaleDateString('tr-TR') + '</span>'
+        : '<span class="text-muted">' + (App.Lang.no_expiry || 'Süresiz') + '</span>';
+
+      let customerName = '';
+      if (package_.customer_first_name || package_.customer_last_name) {
+        customerName = ((package_.customer_first_name || '') + ' ' + (package_.customer_last_name || '')).trim();
+      } else if (window.scriptVars && window.scriptVars.customers) {
+        const cust = window.scriptVars.customers.find(function (c) {
+          return String(c.id) === String(package_.id_users_customer);
+        });
+        if (cust) {
+          customerName = ((cust.first_name || '') + ' ' + (cust.last_name || '')).trim();
+        }
+      }
+      if (!customerName) {
+        customerName = '#' + package_.id_users_customer;
+      }
+
+      let serviceName = package_.service_name || '';
+      if (!serviceName && window.scriptVars && window.scriptVars.services) {
+        const srv = window.scriptVars.services.find(function (s) {
+          return String(s.id) === String(package_.id_services);
+        });
+        if (srv) {
+          serviceName = srv.name;
+        }
+      }
+      if (!serviceName) {
+        serviceName = '#' + package_.id_services;
+      }
 
       const $row = $(
         '<tr>' +
-          '<td>#' + package_.id + '</td>' +
-          '<td>' + package_.id_users_customer + '</td>' +
-          '<td>' + package_.id_services + '</td>' +
-          '<td>' + package_.total_sessions + '</td>' +
-          '<td>' + package_.used_sessions + '</td>' +
-          '<td>' + statusBadge + '</td>' +
+          '<td class="ps-3 fw-bold text-muted">#' + package_.id + '</td>' +
+          '<td class="fw-semibold text-dark">' + customerName + '</td>' +
+          '<td><span class="badge bg-light text-dark border">' + serviceName + '</span></td>' +
+          '<td class="text-center"><span class="fw-semibold text-primary">' + package_.total_sessions + '</span> <span class="text-muted small">Seans</span></td>' +
+          '<td class="text-center"><span class="fw-semibold">' + package_.used_sessions + '</span> <span class="text-muted small">Seans</span></td>' +
+          '<td class="text-center">' + statusBadge + '</td>' +
           '<td>' + expiresDate + '</td>' +
-          '<td>' +
-          '<button class="btn btn-sm btn-info edit-btn" data-id="' +
+          '<td class="text-end pe-3">' +
+          '<div class="btn-group btn-group-sm">' +
+          '<button class="btn btn-outline-primary edit-btn" data-id="' +
           package_.id +
           '" title="' +
-          App.Lang.edit +
+          (App.Lang.edit || 'Düzenle') +
           '">' +
           '<i class="fas fa-edit"></i>' +
-          '</button> ' +
-          '<button class="btn btn-sm btn-danger delete-btn" data-id="' +
+          '</button>' +
+          '<button class="btn btn-outline-danger delete-btn" data-id="' +
           package_.id +
           '" title="' +
-          App.Lang.delete +
+          (App.Lang.delete || 'Sil') +
           '">' +
-          '<i class="fas fa-trash"></i>' +
+          '<i class="fas fa-trash-alt"></i>' +
           '</button>' +
+          '</div>' +
           '</td>' +
           '</tr>'
       );

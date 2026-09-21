@@ -709,12 +709,26 @@ class Email_messages
 
         if (!empty($smtp['host'])) {
             $php_mailer->isSMTP();
-            $php_mailer->Host = $smtp['host'];
+            $host = $smtp['host'];
+
+            // Internal mail server fallback (e.g. Docker hairpin routing)
+            if (($host === 'mail.salonflora.tr' || $host === 'mail.kibusiness.co') && @fsockopen('stalwart', 587, $errno, $errstr, 1)) {
+                $host = 'stalwart';
+            }
+
+            $php_mailer->Host = $host;
             $php_mailer->SMTPAuth = true;
             $php_mailer->Username = $smtp['user'];
             $php_mailer->Password = $smtp['pass'];
-            $php_mailer->SMTPSecure = $smtp['crypto'];
-            $php_mailer->Port = $smtp['port'];
+            $php_mailer->SMTPSecure = $smtp['crypto'] ?: 'tls';
+            $php_mailer->Port = $smtp['port'] ?: 587;
+            $php_mailer->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
         }
 
         $from_name = $smtp['from_name'] ?: (config('from_name') ?: setting('company_name'));

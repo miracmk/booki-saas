@@ -44,13 +44,54 @@ class Ai_channel_responder
         [
             'type' => 'function',
             'function' => [
+                'name' => 'get_providers',
+                'description' => 'İşletmedeki uzmanları / terapistleri / çalışan personeli listeler. SADECE müşteri açıkça uzmanları sorduğunda (örn: "kimler var?", "uzmanlarınız kimler?", "masajı kim yapacak?") çağrılmalıdır. Müşteri sormadıkça çağrılmamalıdır.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [],
+                ],
+            ],
+        ],
+        [
+            'type' => 'function',
+            'function' => [
+                'name' => 'get_services',
+                'description' => 'İşletmenin sunduğu tüm aktif hizmetleri (ad, süre dakika, fiyat) listeler.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [],
+                ],
+            ],
+        ],
+        [
+            'type' => 'function',
+            'function' => [
+                'name' => 'check_availability',
+                'description' => 'İşletmenin veya belirli bir uzmanın/terapistin gerçek müsaitlik durumunu, çalışma saatlerini ve boş randevu slotlarını kontrol eder. Müşteri çalışma gün/saatlerini sorduğunda ("açık mısınız?", "çalışıyor musunuz?"), randevu talep ettiğinde veya bir terapistin müsaitliğini sorduğunda MUTLAKA ilk olarak bu aracı çağır.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'date' => ['type' => 'string', 'description' => 'Kontrol edilecek tarih (YYYY-MM-DD formatında, örn: 2026-09-19). Belirtilmezse güncel tarih kullanılır.'],
+                        'service_name' => ['type' => 'string', 'description' => 'İstenen hizmetin adı (örn: Klasik Masaj, Cilt Bakımı).'],
+                        'service_id' => ['type' => 'integer', 'description' => 'Opsiyonel hizmet ID numarası.'],
+                        'provider_name' => ['type' => 'string', 'description' => 'Müşterinin tercih ettiği uzman/terapist adı (örn: Nur Hanım, İlayda).'],
+                        'provider_id' => ['type' => 'integer', 'description' => 'Opsiyonel terapist/uzman ID numarası.'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'type' => 'function',
+            'function' => [
                 'name' => 'propose_appointment_create',
-                'description' => 'Müşterinin yeni randevu alma talebini (hizmet, tarih/saat, müşteri isim ve telefon bilgisi) yönetici onayına gönderir. Veritabanına doğrudan eklemez, yönetici onay kuyruğuna ekler.',
+                'description' => 'Müşterinin yeni randevu alma talebini (hizmet, tarih/saat, müşteri isim ve telefon bilgisi) yönetici onayına gönderir. Müşteri belirli bir uzman talep etmediyse provider_name ve provider_id boş bırakılabilir (sistem müsait olan en uygun uzmanı otomatik atayacaktır). Müşteri özellikle bir uzman talep etmediği sürece cevabınızda KESİNLİKLE uzman adı geçirmeyiniz.',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
                         'service_name' => ['type' => 'string', 'description' => 'İstenen hizmetin adı veya türü.'],
                         'service_id' => ['type' => 'integer', 'description' => 'İstenen hizmetin ID numarası (varsa).'],
+                        'provider_name' => ['type' => 'string', 'description' => 'Müşterinin tercih ettiği veya önerilen terapist/uzman adı (örn: Nur Hanım, İlayda Hanım).'],
+                        'provider_id' => ['type' => 'integer', 'description' => 'Tercih edilen terapist/uzman ID numarası (varsa).'],
                         'start_datetime' => ['type' => 'string', 'description' => 'Randevu başlangıç tarih ve saati (YYYY-AA-GG SS:DD:00 formatında, örn: 2026-09-20 14:00:00).'],
                         'customer_name' => ['type' => 'string', 'description' => 'Müşterinin adı ve soyadı.'],
                         'customer_phone' => ['type' => 'string', 'description' => 'Müşterinin telefon numarası.'],
@@ -152,10 +193,13 @@ class Ai_channel_responder
 
         $system_prompt = $this->build_system_prompt($channel, $sender_id, $matched_user);
 
-        $conversation = [
-            ['role' => 'system', 'content' => $system_prompt],
-            ['role' => 'user', 'content' => $clean_text],
-        ];
+        // Fetch recent conversation history from channel messages table to maintain multi-turn context
+        $history = $this->get_channel_history($channel, $sender_id, $clean_text, 5);
+
+        $conversation = array_merge(
+            [['role' => 'system', 'content' => $system_prompt]],
+            $history
+        );
 
         for ($i = 0; $i < self::MAX_TOOL_ITERATIONS; $i++) {
             $response = $this->CI->ai_llm_gateway->chat($conversation, [
@@ -165,6 +209,8 @@ class Ai_channel_responder
             ]);
 
             if ($response === null || empty($response['success'])) {
+                $error_detail = $response === null ? 'LLM gateway returned null (all providers failed)' : 'LLM response success=false';
+                log_message('error', "Ai_channel_responder::respond - fallback triggered at iteration {$i}: {$error_detail}. Channel={$channel}, sender={$sender_id}");
                 $company_name = setting('company_name') ?: 'İşletmemiz';
                 return "Merhaba! Mesajınız ekibimize iletildi. Randevu almak veya müsaitlik durumunu incelemek için bağlantımızı ziyaret edebilirsiniz:\n{$booking_url}";
             }
@@ -237,6 +283,80 @@ class Ai_channel_responder
     }
 
     /**
+     * Retrieve recent conversation history for this sender/channel to preserve multi-turn context.
+     *
+     * @param string $channel 'telegram' | 'whatsapp' | 'instagram'
+     * @param string $sender_id Unique chat ID, wa_id, or ig user ID
+     * @param string $current_text The current inbound message text
+     * @param int $limit Maximum number of recent turns to include
+     * @return array List of ['role' => 'user'|'assistant', 'content' => string]
+     */
+    private function get_channel_history(string $channel, string $sender_id, string $current_text, int $limit = 12): array
+    {
+        $CI = &get_instance();
+        $history = [];
+
+        try {
+            $rows = [];
+            if ($channel === 'telegram') {
+                if ($CI->db->table_exists('telegram_messages')) {
+                    $rows = $CI->db
+                        ->where('chat_id', $sender_id)
+                        ->order_by('id', 'DESC')
+                        ->limit($limit)
+                        ->get('telegram_messages')
+                        ->result_array();
+                }
+            } elseif ($channel === 'whatsapp') {
+                if ($CI->db->table_exists('whatsapp_messages')) {
+                    $rows = $CI->db
+                        ->where('wa_id', $sender_id)
+                        ->order_by('id', 'DESC')
+                        ->limit($limit)
+                        ->get('whatsapp_messages')
+                        ->result_array();
+                }
+            } elseif ($channel === 'instagram') {
+                if ($CI->db->table_exists('instagram_messages')) {
+                    $rows = $CI->db
+                        ->where('instagram_user_id', $sender_id)
+                        ->order_by('id', 'DESC')
+                        ->limit($limit)
+                        ->get('instagram_messages')
+                        ->result_array();
+                }
+            }
+
+            if (!empty($rows)) {
+                $rows = array_reverse($rows);
+                foreach ($rows as $r) {
+                    $msg = trim((string) ($r['message'] ?? ''));
+                    if ($msg === '' || $msg === '[metin olmayan mesaj]' || $msg === '[non-text message]') {
+                        continue;
+                    }
+                    if (mb_strlen($msg) > 250) {
+                        $msg = mb_substr($msg, 0, 250) . '...';
+                    }
+                    $role = (($r['direction'] ?? '') === 'out') ? 'assistant' : 'user';
+                    $history[] = [
+                        'role' => $role,
+                        'content' => $msg,
+                    ];
+                }
+            }
+        } catch (Throwable $e) {
+            log_message('error', 'Ai_channel_responder::get_channel_history - ' . $e->getMessage());
+        }
+
+        // Ensure the current user message is present at the end if history was empty or DB wasn't updated yet
+        if (empty($history) || end($history)['role'] !== 'user' || end($history)['content'] !== $current_text) {
+            $history[] = ['role' => 'user', 'content' => $current_text];
+        }
+
+        return $history;
+    }
+
+    /**
      * Build the system prompt with rich read-only business and customer context.
      */
     private function build_system_prompt(string $channel, string $sender_id, ?array $matched_user): string
@@ -264,12 +384,24 @@ class Ai_channel_responder
         // Fetch available services
         $services = $CI->services_model->get_available_services();
         $services_summary = [];
-        foreach (array_slice($services, 0, 20) as $s) {
+        foreach (array_slice($services, 0, 8) as $s) {
             $price = !empty($s['price']) ? $s['price'] . ' TL' : 'Ücretsiz / Bilgi alınız';
             $duration = !empty($s['duration']) ? $s['duration'] . ' dk' : '30 dk';
             $services_summary[] = "- [ID: {$s['id']}] {$s['name']} (Süre: {$duration}, Fiyat: {$price})";
         }
         $services_text = !empty($services_summary) ? implode("\n", $services_summary) : "Hizmet listesi için web sitemizi ziyaret ediniz.";
+
+        // Fetch available providers/therapists
+        $CI->load->model('providers_model');
+        $providers = $CI->providers_model->get_available_providers();
+        $providers_summary = [];
+        foreach ($providers as $p) {
+            $p_name = trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''));
+            if ($p_name !== '') {
+                $providers_summary[] = "- [ID: {$p['id']}] {$p_name}";
+            }
+        }
+        $providers_text = !empty($providers_summary) ? implode("\n", $providers_summary) : "Tüm uzmanlarımız hizmet vermektedir.";
 
         // Customer context
         $customer_context = "MÜŞTERİ DURUMU: Henüz sistemle eşleşmemiş misafir. Gönderici Kimliği: {$sender_id}";
@@ -324,8 +456,8 @@ CUST;
         };
 
         $recognition_instructions = $is_recognized
-            ? "Müşteri sistemimizde kayıtlıdır ({$matched_user['first_name']} {$matched_user['last_name']}). Mesajına kesinlikle ismiyle hitap ederek başla (Örn: \"Merhaba {$matched_user['first_name']} Hanım/Bey...\"). Randevuları elinin altındadır."
-            : "Müşteri bu kanaldan ({$channel_name}) henüz eşleşmemiştir. Eğer müşteri randevularını sorgulamak, değiştirmek veya yeni randevu almak isterse, sistemdeki kaydını bulabilmemiz için kibarca telefon numarasını iste (Örn: \"Size daha iyi yardımcı olabilmem ve randevularınızı görüntüleyebilmem için kayıtlı telefon numaranızı paylaşabilir misiniz?\"). Müşteri numarasını yazdığında hemen `link_customer_channel` aracını çağır.";
+            ? "Müşteri sistemimizde kayıtlıdır ({$matched_user['first_name']} {$matched_user['last_name']}). Eğer konuşma sıfırdan yeni başlıyorsa nazikçe ismiyle hitap et. Ancak devam eden bir konuşmanın ortasındaysanız (örneğin müşteri telefon numarasını ya da randevu detaylarını az önce iletmişse) tekrar 'hoş geldiniz / size nasıl yardımcı olabilirim' gibi sıfırlama ifadeleri kullanma; müşterinin önceki mesajlarında talep ettiği randevu/hizmet akışını (propose_appointment_create vb.) kesintisiz sürdür."
+            : "Müşteri bu kanaldan ({$channel_name}) henüz eşleşmemiştir. Eğer müşteri randevularını sorgulamak, değiştirmek veya yeni randevu almak isterse, sistemdeki kaydını bulabilmemiz için kibarca telefon numarasını iste (Örn: \"Size daha iyi yardımcı olabilmem ve randevularınızı görüntüleyebilmem için kayıtlı telefon numaranızı paylaşabilir misiniz?\"). Müşteri numarasını yazdığında hemen `link_customer_channel` aracını çağır ve talep ettiği randevu işlemini tamamla.";
 
         return <<<PROMPT
 Sen "{$company_name}" işletmesinin {$channel_name} üzerindeki resmi, nazik ve akıllı yapay zeka asistanısın.
@@ -342,15 +474,31 @@ GÜNCEL ZAMAN:
 MEVCUT HİZMETLER:
 {$services_text}
 
+UZMANLAR / TERAPİSTLER:
+{$providers_text}
+
 {$customer_context}
 
 MÜŞTERİ TANIMA VE KANAL EŞLEŞTİRME:
 {$recognition_instructions}
 
+TERAPİST / UZMAN ADI KULLANIMI VE MÜSAİTLİK KURALLARI (ÇOK KATI KURAL):
+1. **Uzman / Terapist Adını ASLA Kendiliğinden Geçirme:**
+   - Müşteri kendisi açıkça bir terapist/uzman adı belirtmediği VEYA uzmanları açıkça sormadığı sürece (örn: "kimler var?", "uzmanlarınız kimler?", "masajı kim yapıyor?"), yanıtlarında KESİNLİKLE hiçbir terapist veya uzman adı GEÇİRME!
+   - Müsait saatleri veya günleri sunarken de terapist isimlerini sayma (Örn: "Pazartesi günü saat 11:00, 11:15, 11:30 saatlerimiz uygundur" de, "İlayda Hanım 11:00'de müsait" DEME).
+   - Müşteriye durup dururken "tercih ettiğiniz bir uzman var mı?" diye sorma, kendiliğinden uzman tanıtımı yapma.
+2. **Müşteri Uzman Sorarsa veya Belirtirse:**
+   - YALNIZCA müşteri açıkça sorarsa (örn: "hangi uzmanlar var?", "masajı kimler yapıyor?"), sistemdeki mevcut uzmanların isimlerini sayabilirsin.
+   - Müşteri belirli bir uzman talep ederse (örn: "Nur Hanım olsun", "Nur Hanım ile randevu istiyorum"), bunu memnuniyetle onayla ve randevuyu o uzmana yaz (`provider_name` olarak ver).
+3. **Randevu Oluştururken Otomatik Uzman Atama:**
+   - Randevu talebinde müşteri bir uzman belirtmemişse, `propose_appointment_create` aracını çağırırken sistem en uygun müsait uzmanı arka planda otomatik seçecektir.
+   - Müşteriye randevu talebinin alındığını bildirirken de uzman adından ASLA bahsetme! Yalnızca hizmet adı, tarih ve saat bilgisini ilet (Örn: "Klasik Masaj (60 dk) randevu talebiniz 21 Eylül Pazartesi 11:00 için alındı. Talebiniz yönetici onayına iletilmiştir.").
+
 GÖREVLER VE İŞLEM AKIŞI (YÖNETİCİ ONAY PRENSİBİ):
 1. **YENİ RANDEVU ALMA TALEBİ:**
-   - Müşteri hizmet, tarih/saat, isim ve telefon paylaştığında `propose_appointment_create` aracını çağırarak talebi yönetici onay kuyruğuna ilet.
-   - Müşteriye yanıtında: Randevu talebinin alındığını, yönetici onayından sonra randevunun kesinleşeceğini bildir.
+   - Müşteri hizmet, tarih/saat, isim ve telefon belirttiğinde (uzman belirtilmişse uzmanıyla birlikte) `propose_appointment_create` aracını çağırarak talebi yönetici onay kuyruğuna ilet.
+   - Müşteri uzman belirtmemişse, sisteme otomatik atat ve müşteriye cevabında ASLA uzman adı geçirme.
+   - Müşteriye yanıtında: Randevu talebinin (hizmet, tarih ve saat; yalnızca müşteri özellikle talep ettiyse uzmanıyla) alındığını, yönetici onayından sonra randevunun kesinleşeceğini bildir.
 
 2. **RANDEVU DEĞİŞTİRME / SAAT GÜNCELLEME:**
    - Tanınan müşterinin yaklaşan randevularındaki [Randevu ID] ve istenen yeni tarih/saat ile `propose_appointment_reschedule` aracını çağır.
@@ -366,8 +514,16 @@ GÖREVLER VE İŞLEM AKIŞI (YÖNETİCİ ONAY PRENSİBİ):
 5. **ONLİNE RANDEVU SEÇENEĞİ:**
    - Müsait saatleri canlı görüp anında randevu almak isteyenlere linki sun: {$booking_url}
 
+6. **ÇALIŞMA SAATLERİ, AÇIKLIK VE MÜSAİTLİK SORULARI (ÖNEMLİ KURAL):**
+   - Müşteri "bugün açık mısınız?", "çalışıyor musunuz?", "saat kaçta açılıyorsunuz?", "hafta sonu açık mısınız?" veya belirli bir terapistin (örn: Nur Hanım) müsaitliğini sorduğunda KENDİ KAFANDAN TAHMİN YAPMA VE "asistan olarak her zaman buradayım" GİBİ GEÇİŞTİRİCİ CEVAP VERME.
+   - MUTLAKA ilk adım olarak `check_availability` aracını çağır!
+   - Bu araç işletmenin ve terapistlerin gerçek çalışma takvimini, kapalı günlerini ve boş randevu saatlerini hesaplar.
+   - Araç "kapalıdır" veya "müsait randevu saati bulunmamaktadır" döndürürse: Müşteriye bugün kapalı olduğumuzu veya o tarihte randevu bulunmadığını nazikçe açıkla ve aracın önerdiği en yakın açık iş gününü (örn: Pazartesi) ve saatleri teklif et.
+   - Müşteri doğrudan randevu almak istediğinde de önce veya randevu teklifi sırasında saatin uygunluğunu `check_availability` ile doğrula.
+
 GENEL KURALLAR:
 - Her zaman Türkçe, saygılı, samimi ve mobil mesaja uygun formatta (kısa, paragraflı) yanıt ver.
+- Mesajlaşma kanalını karıştırma: Şu an {$channel_name} üzerindesin. 'SMS ile bildireceğiz' veya 'e-posta attık' gibi uydurma bildirim kanalları söyleme; talebin yönetici tarafından onaylandığında doğrudan buradan ({$channel_name}) bildirim alacağını belirt.
 - Elinde olmayan hizmet veya fiyatı uydurma.
 - Teknik terimlerden (JSON, araç, prompt, database) asla bahsetme.
 PROMPT;
@@ -383,6 +539,183 @@ PROMPT;
             $this->CI->load->model('customers_model');
 
             switch ($name) {
+                case 'get_providers':
+                    $this->CI->load->model('providers_model');
+                    $providers = $this->CI->providers_model->get_available_providers();
+                    return array_map(static fn (array $p) => [
+                        'id' => (int) $p['id'],
+                        'name' => trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')),
+                    ], $providers);
+
+                case 'get_services':
+                    $this->CI->load->model('services_model');
+                    $services = $this->CI->services_model->get_available_services();
+                    return array_map(static fn (array $s) => [
+                        'id' => (int) $s['id'],
+                        'name' => $s['name'],
+                        'duration' => (int) ($s['duration'] ?? 30),
+                        'price' => (float) ($s['price'] ?? 0),
+                        'currency' => $s['currency'] ?? 'TL',
+                    ], $services);
+
+                case 'check_availability':
+                    $this->CI->load->library('availability');
+                    $this->CI->load->model('services_model');
+                    $this->CI->load->model('providers_model');
+
+                    $date = trim((string) ($args['date'] ?? date('Y-m-d')));
+                    $ts = $date !== '' ? strtotime($date) : false;
+                    $date = $ts !== false ? date('Y-m-d', $ts) : date('Y-m-d');
+                    $service_id = (int) ($args['service_id'] ?? 0);
+                    $service_name = trim((string) ($args['service_name'] ?? ''));
+                    $provider_id = (int) ($args['provider_id'] ?? 0);
+                    $provider_name = trim((string) ($args['provider_name'] ?? ''));
+
+                    $day_names_tr = [
+                        1 => 'Pazartesi', 2 => 'Salı', 3 => 'Çarşamba', 4 => 'Perşembe',
+                        5 => 'Cuma', 6 => 'Cumartesi', 7 => 'Pazar'
+                    ];
+                    $day_tr = $day_names_tr[(int) date('N', strtotime($date))] ?? '';
+
+                    // 1. Resolve Service
+                    $service = null;
+                    if ($service_id > 0) {
+                        $service = $this->CI->services_model->find($service_id);
+                    }
+                    $available_services = $this->CI->services_model->get_available_services();
+                    if (!$service && $service_name !== '') {
+                        foreach ($available_services as $s) {
+                            if (stripos($s['name'], $service_name) !== false || stripos($service_name, $s['name']) !== false) {
+                                $service = $s;
+                                break;
+                            }
+                        }
+                    }
+                    if (!$service) {
+                        $service = !empty($available_services) ? $available_services[0] : [
+                            'id' => 1,
+                            'duration' => 60,
+                            'slot_interval' => 15,
+                            'attendants_number' => 1,
+                            'is_private' => false,
+                        ];
+                    }
+
+                    // 2. Resolve Providers
+                    $all_providers = $this->CI->providers_model->get_available_providers();
+                    $candidate_providers = [];
+
+                    if ($provider_id > 0) {
+                        foreach ($all_providers as $p) {
+                            if ((int) $p['id'] === $provider_id) {
+                                $candidate_providers[] = $p;
+                                break;
+                            }
+                        }
+                    } elseif ($provider_name !== '') {
+                        foreach ($all_providers as $p) {
+                            $full = trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''));
+                            if (stripos($full, $provider_name) !== false || stripos($provider_name, ($p['first_name'] ?? '')) !== false) {
+                                $candidate_providers[] = $p;
+                                break;
+                            }
+                        }
+                    }
+
+                    // If no specific provider selected or found, filter providers assigned to this service
+                    if (empty($candidate_providers)) {
+                        foreach ($all_providers as $p) {
+                            if (empty($service['id']) || in_array((int) $service['id'], array_map('intval', $p['services'] ?? []), true)) {
+                                $candidate_providers[] = $p;
+                            }
+                        }
+                    }
+                    if (empty($candidate_providers)) {
+                        $candidate_providers = $all_providers;
+                    }
+
+                    // 3. Check availability using BooKi Availability library
+                    $availability_by_provider = [];
+                    $total_available_hours = [];
+
+                    foreach ($candidate_providers as $provider) {
+                        if (empty($provider['settings']['working_plan'])) {
+                            $provider['settings']['working_plan'] = setting('company_working_plan');
+                        }
+
+                        $hours = $this->CI->availability->get_available_hours($date, $service, $provider);
+                        $p_name = trim(($provider['first_name'] ?? '') . ' ' . ($provider['last_name'] ?? ''));
+
+                        if (!empty($hours)) {
+                            $availability_by_provider[$p_name] = $hours;
+                            $total_available_hours = array_unique(array_merge($total_available_hours, $hours));
+                        }
+                    }
+                    sort($total_available_hours);
+
+                    // 4. If slots exist on requested date
+                    if (!empty($total_available_hours)) {
+                        $is_provider_requested = ($provider_id > 0 || $provider_name !== '');
+                        $sample_hours = count($total_available_hours) > 8 ? array_slice($total_available_hours, 0, 8) : $total_available_hours;
+                        $hours_str = implode(', ', $sample_hours) . (count($total_available_hours) > 8 ? ' ...' : '');
+
+                        if ($is_provider_requested) {
+                            $note = "{$date} ({$day_tr}) günü randevu için uygundur. {$provider_name} için müsait saatler: {$hours_str}";
+                        } else {
+                            $note = "{$date} ({$day_tr}) günü randevu için uygundur. Müsait saatler: {$hours_str}\n(KATI KURAL: Müşteri özellikle uzman sormadığı sürece yanıtınızda KESİNLİKLE hiçbir uzman/terapist ismi belirtmeyiniz, yalnızca uygun saatleri söyleyiniz.)";
+                        }
+
+                        return [
+                            'date' => $date,
+                            'day' => $day_tr,
+                            'is_available' => true,
+                            'is_closed' => false,
+                            'available_slots' => $total_available_hours,
+                            'providers' => $availability_by_provider,
+                            'note' => $note,
+                        ];
+                    }
+
+                    // 5. If NO slots available on requested date (e.g. Saturday/Sunday closed, holiday, or booked)
+                    $next_slots = $this->CI->availability->find_first_available_slots($service, $candidate_providers, 4, 14, false);
+
+                    $is_provider_requested = ($provider_id > 0 || $provider_name !== '');
+                    $suggestions = [];
+                    foreach ($next_slots as $slot) {
+                        $slot_date = $slot['date'];
+                        $slot_day = $day_names_tr[(int) date('N', strtotime($slot_date))] ?? '';
+                        if ($is_provider_requested) {
+                            $suggestions[] = "• {$slot_date} ({$slot_day}) {$slot['hour']} - {$slot['provider_name']}";
+                        } else {
+                            $suggestions[] = "• {$slot_date} ({$slot_day}) {$slot['hour']}";
+                        }
+                    }
+                    $unique_suggestions = array_values(array_unique($suggestions));
+
+                    $next_open_day = !empty($next_slots[0])
+                        ? $next_slots[0]['date'] . ' (' . ($day_names_tr[(int) date('N', strtotime($next_slots[0]['date']))] ?? '') . ')'
+                        : 'Pazartesi';
+
+                    $note = "İşletme veya seçilen uzman {$date} ({$day_tr}) tarihinde kapalıdır / müsait randevu saati bulunmamaktadır.";
+                    if (!empty($unique_suggestions)) {
+                        $note .= " En yakın müsait alternatifler:\n" . implode("\n", $unique_suggestions);
+                    } else {
+                        $note .= " En yakın açık iş günü: {$next_open_day}.";
+                    }
+                    if (!$is_provider_requested) {
+                        $note .= "\n(KATI KURAL: Müşteri özellikle uzman sormadıkça yanıtınızda KESİNLİKLE uzman ismi geçirmeyiniz, yalnızca gün ve saat öneriniz.)";
+                    }
+
+                    return [
+                        'date' => $date,
+                        'day' => $day_tr,
+                        'is_available' => false,
+                        'is_closed' => true,
+                        'note' => $note,
+                        'next_open_day' => $next_open_day,
+                        'suggested_slots' => $next_slots,
+                    ];
+
                 case 'link_customer_channel':
                     $phone = trim((string) ($args['phone_number'] ?? ''));
                     if (empty($phone)) {
@@ -437,6 +770,8 @@ PROMPT;
                 case 'propose_appointment_create':
                     $service_name = (string) ($args['service_name'] ?? '');
                     $service_id = (int) ($args['service_id'] ?? 0);
+                    $provider_name = trim((string) ($args['provider_name'] ?? ''));
+                    $provider_id = (int) ($args['provider_id'] ?? 0);
                     $start_datetime = (string) ($args['start_datetime'] ?? '');
                     $customer_name = trim((string) ($args['customer_name'] ?? ($matched_user ? (($matched_user['first_name'] ?? '') . ' ' . ($matched_user['last_name'] ?? '')) : 'Misafir')));
                     $customer_phone = trim((string) ($args['customer_phone'] ?? ($matched_user['phone_number'] ?? $sender_id)));
@@ -448,34 +783,167 @@ PROMPT;
                         return ['error' => 'start_datetime zorunludur.'];
                     }
 
+                    // Try to match provider by name if provider_id wasn't passed directly
+                    if (!$provider_id && !empty($provider_name)) {
+                        $this->CI->load->model('providers_model');
+                        $all_p = $this->CI->providers_model->get_available_providers();
+                        foreach ($all_p as $p) {
+                            $full = trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''));
+                            if (stripos($full, $provider_name) !== false || stripos($provider_name, ($p['first_name'] ?? '')) !== false) {
+                                $provider_id = (int) $p['id'];
+                                $provider_name = $full;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Try to match service by name if service_id wasn't passed directly
+                    if (!$service_id && !empty($service_name)) {
+                        $this->CI->load->model('services_model');
+                        $all_s = $this->CI->services_model->get_available_services();
+                        foreach ($all_s as $s) {
+                            if (stripos($s['name'], $service_name) !== false || stripos($service_name, $s['name']) !== false) {
+                                $service_id = (int) $s['id'];
+                                $service_name = $s['name'];
+                                break;
+                            }
+                        }
+                    }
+
+                    // --- Validate appointment availability via BooKi native Availability library ---
+                    $this->CI->load->library('availability');
+                    $req_ts = strtotime($start_datetime);
+                    if ($req_ts !== false) {
+                        $req_date = date('Y-m-d', $req_ts);
+                        $req_hour = date('H:i', $req_ts);
+
+                        // Load service
+                        $service_data = null;
+                        if ($service_id > 0) {
+                            $service_data = $this->CI->services_model->find($service_id);
+                        }
+                        if (!$service_data) {
+                            $avail_s = $this->CI->services_model->get_available_services();
+                            $service_data = !empty($avail_s) ? $avail_s[0] : null;
+                        }
+
+                        // Load candidate provider(s)
+                        $candidate_providers = [];
+                        if ($provider_id > 0) {
+                            $candidate_providers = [$this->CI->providers_model->find($provider_id)];
+                        } else {
+                            $candidate_providers = $this->CI->providers_model->get_available_providers();
+                        }
+
+                        if ($service_data && !empty($candidate_providers)) {
+                            $slot_found = false;
+                            $open_hours_any = [];
+                            foreach ($candidate_providers as $cp) {
+                                if (empty($cp['settings']['working_plan'])) {
+                                    $cp['settings']['working_plan'] = setting('company_working_plan');
+                                }
+                                $hours = $this->CI->availability->get_available_hours($req_date, $service_data, $cp);
+                                if (!empty($hours)) {
+                                    $open_hours_any = array_merge($open_hours_any, $hours);
+                                    if (in_array($req_hour, $hours, true)) {
+                                        $slot_found = true;
+                                        if (!$provider_id) {
+                                            $provider_id = (int) $cp['id'];
+                                            $provider_name = trim(($cp['first_name'] ?? '') . ' ' . ($cp['last_name'] ?? ''));
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!$slot_found) {
+                                $day_names_tr = [1 => 'Pazartesi', 2 => 'Salı', 3 => 'Çarşamba', 4 => 'Perşembe', 5 => 'Cuma', 6 => 'Cumartesi', 7 => 'Pazar'];
+                                $next_slots = $this->CI->availability->find_first_available_slots($service_data, $candidate_providers, 4, 14, false);
+
+                                $is_provider_requested = !empty($provider_name) || !empty($provider_id);
+                                $suggestions = [];
+                                foreach ($next_slots as $ns) {
+                                    $dname = $day_names_tr[(int) date('N', strtotime($ns['date']))] ?? '';
+                                    if ($is_provider_requested) {
+                                        $suggestions[] = "• {$ns['date']} ({$dname}) {$ns['hour']} - {$ns['provider_name']}";
+                                    } else {
+                                        $suggestions[] = "• {$ns['date']} ({$dname}) {$ns['hour']}";
+                                    }
+                                }
+                                $unique_sugg = array_values(array_unique($suggestions));
+
+                                if (empty($open_hours_any)) {
+                                    $dname_req = $day_names_tr[(int) date('N', $req_ts)] ?? '';
+                                    $err = "İşletme {$req_date} ({$dname_req}) tarihinde kapalıdır / randevu kabul etmemektedir. Randevu ONAY KUYRUĞUNA ALINMADI. Müşteriye o gün kapalı olduğumuzu nazikçe açıkla ve şu en yakın müsait gün/saatleri öner:\n" . implode("\n", $unique_sugg);
+                                    if (!$is_provider_requested) {
+                                        $err .= "\n(KATI KURAL: Müşteri özellikle uzman adı belirtmediği için yanıtta KESİNLİKLE hiçbir uzman/terapist ismi geçirmeyiniz.)";
+                                    }
+                                    return [
+                                        'queued' => false,
+                                        'error' => $err,
+                                        'suggested_slots' => $next_slots,
+                                    ];
+                                } else {
+                                    $unique_hours = array_values(array_unique($open_hours_any));
+                                    sort($unique_hours);
+                                    $sample_hours = array_slice($unique_hours, 0, 6);
+                                    $err = "Talep edilen saat ({$req_hour}) {$req_date} tarihinde müsait değildir veya mesai saatleri dışındadır. Randevu ONAY KUYRUĞUNA ALINMADI. O günkü müsait saatler: " . implode(', ', $sample_hours) . ". Lütfen müşteriye bu saatleri öner.";
+                                    if (!$is_provider_requested) {
+                                        $err .= " (KATI KURAL: Uzman ismi belirtmeyiniz.)";
+                                    }
+                                    return [
+                                        'queued' => false,
+                                        'error' => $err,
+                                        'available_hours' => $unique_hours,
+                                    ];
+                                }
+                            }
+                        }
+                    }
+
+                    $is_provider_requested = !empty($args['provider_name']) || !empty($args['provider_id']);
+                    $notes_with_provider = $notes;
+                    if ($is_provider_requested && !empty($provider_name) && stripos($notes_with_provider, $provider_name) === false) {
+                        $notes_with_provider = trim($notes_with_provider . " [Müşteri Tercihi Uzman: {$provider_name}]");
+                    }
+
                     $changes_payload = [
                         'action' => 'create',
                         'channel' => $channel,
                         'sender_id' => $sender_id,
                         'service_id' => $service_id,
                         'service_name' => $service_name,
+                        'provider_id' => $provider_id ?: null,
+                        'provider_name' => $provider_name ?: null,
                         'start_datetime' => $start_datetime,
                         'customer_name' => $customer_name,
                         'customer_phone' => $customer_phone,
                         'customer_email' => $customer_email,
                         'customer_id' => $matched_user['id'] ?? null,
-                        'notes' => $notes,
+                        'notes' => $notes_with_provider,
                     ];
 
                     $this->CI->db->insert('ai_agent_pending_changes', [
                         'target_table' => 'appointments',
                         'target_id' => 0,
                         'changes' => json_encode($changes_payload, JSON_UNESCAPED_UNICODE),
-                        'reason' => "[{$channel}] " . $reason . " ({$customer_name} - {$service_name} @ {$start_datetime})",
+                        'reason' => "[{$channel}] " . $reason . " ({$customer_name} - {$service_name}" . ($is_provider_requested ? " / {$provider_name}" : '') . " @ {$start_datetime})",
                         'model_name' => $active_provider,
                         'status' => 'pending',
                         'created_at' => date('Y-m-d H:i:s'),
                     ]);
 
+                    $return_note = 'Yeni randevu talebi yönetici onay kuyruğuna alındı.';
+                    if (!$is_provider_requested) {
+                        $return_note .= ' (KATI KURAL: Müşteri özellikle uzman talep etmediği için cevabınızda KESİNLİKLE uzman/terapist ismi belirtmeyiniz! Yalnızca hizmet adı, tarih ve saati bildiriniz.)';
+                    } else {
+                        $return_note .= " (Talep edilen uzman: {$provider_name})";
+                    }
+
                     return [
                         'queued' => true,
                         'pending_id' => $this->CI->db->insert_id(),
-                        'note' => 'Yeni randevu talebi yönetici onay kuyruğuna alındı.',
+                        'note' => $return_note,
                     ];
 
                 case 'propose_appointment_cancel':

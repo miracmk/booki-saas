@@ -171,6 +171,96 @@
                 <button type="submit">Kaydet</button>
             </form>
         </div>
+
+        <!-- BOO-KI PAZAR YERİ VE SEKTÖREL KOMİSYON YÖNETİMİ -->
+        <div class="card" style="border-top: 4px solid #35A768;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="font-size:1.15rem;margin-top:0;color:#35A768;">🏪 BooKi Pazar Yeri & Sektörel Komisyon Yönetimi</h2>
+                <span class="badge" style="background:#eaf6ef;color:#2a8653;">Marketplace Storefront</span>
+            </div>
+            <p class="hint">
+                Pazar yeri üzerinden alınan doğrudan rezervasyonlarda platform tarafından tahsil edilen ödemelerden kesilecek sektörel komisyon oranlarını yönetin.
+                İşletme hak edişleri (Fiyat - Komisyon) günlük periyotlarla mutabakat altına alınır.
+            </p>
+
+            <!-- Wallet Aggregate Metrics Bar -->
+            <?php $ws = vars('wallet_stats') ?? []; ?>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px;margin:1rem 0;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+                <div>
+                    <div style="font-size:0.75rem;color:#64748b;font-weight:600;">TOPLAM HACİM</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#0f172a;">₺<?= number_format($ws['total_earned'] ?? 0, 2) ?></div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:#64748b;font-weight:600;">KESİLEN KOMİSYON</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#35A768;">₺<?= number_format($ws['total_commission'] ?? 0, 2) ?></div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:#64748b;font-weight:600;">BEKLEYEN HAKEDİŞ</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#d97706;">₺<?= number_format($ws['total_balance'] ?? 0, 2) ?></div>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem;color:#64748b;font-weight:600;">AKTİF CÜZDAN</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#475569;"><?= (int)($ws['active_wallets'] ?? 0) ?> İşletme</div>
+                </div>
+            </div>
+
+            <!-- Settlement Action -->
+            <div style="display:flex;align-items:center;justify-content:space-between;background:#fffbeb;padding:10px 14px;border-radius:6px;border:1px solid #fef3c7;margin-bottom:1.5rem;">
+                <span style="font-size:0.83rem;color:#92400e;">
+                    <strong>Günlük Hak Ediş:</strong> Pozitif bakiyesi olan işletmelerin hakediş transfer emrini işletin.
+                </span>
+                <button type="button" id="btn-process-settlements" style="margin-top:0;background:#d97706;padding:6px 12px;font-size:0.82rem;">
+                    ⚡ Hakedişleri İşlet
+                </button>
+            </div>
+            <div class="msg" id="settlement-msg"></div>
+
+            <hr style="margin:1.2rem 0;border:none;border-top:1px solid #eee;">
+
+            <!-- Commission Form -->
+            <form id="commission-settings-form">
+                <label style="font-size:0.95rem;color:#0f172a;">Genel Varsayılan Komisyon Oranı (%)</label>
+                <input type="number" step="0.01" min="0" max="100" id="marketplace_commission_rate" value="<?= e(vars('marketplace_commission_rate')) ?>" style="font-weight:700;font-size:1rem;">
+                <span class="hint">Özel oran belirlenmemiş sektörler ve genel işletmeler için uygulanacak komisyon.</span>
+
+                <label style="margin-top:1.5rem;font-size:0.95rem;color:#0f172a;">Sektör Bazlı Komisyon Oranları (%)</label>
+                <?php 
+                $sec_rates = vars('sector_commission_rates') ?? []; 
+                $sectors_info = [
+                    'barber' => ['name' => '💇‍♂️ Berber & Erkek Kuaförü', 'desc' => 'Saç kesimi, sakal, bakım'],
+                    'beauty_salon' => ['name' => '💅 Güzellik Salonu & Kuaför', 'desc' => 'Bayan kuaförü, cilt bakımı, makyaj'],
+                    'nail_studio' => ['name' => '💅 Tırnak & Nail Art Stüdyosu', 'desc' => 'Protez tırnak, kalıcı oje, manikür'],
+                    'massage_spa' => ['name' => '💆‍♀️ Spa, Masaj & Hamam', 'desc' => 'Aromaterapi, medikal masaj, spa'],
+                    'dentist' => ['name' => '🦷 Diş Kliniği & Hekimi', 'desc' => 'Diş muayenesi, estetik diş, temizlik'],
+                    'doctor_clinic' => ['name' => '🩺 Doktor & Özel Klinik', 'desc' => 'Uzman doktor muayeneleri, klinik'],
+                    'pilates_studio' => ['name' => '🧘‍♀️ Pilates & Yoga Stüdyosu', 'desc' => 'Reformer pilates, grup yoga'],
+                    'gym' => ['name' => '🏋️‍♂️ Spor Salonu & Fitness', 'desc' => 'Spor salonu seansları, fitness'],
+                    'pt_training' => ['name' => '🏃‍♂️ Personal Trainer (PT)', 'desc' => 'Birebir özel antrenörlük'],
+                    'car_wash' => ['name' => '🚗 Oto Yıkama & Detailing', 'desc' => 'İç-dış yıkama, seramik kaplama'],
+                    'restaurant' => ['name' => '🍽️ Restoran & Masa Rezervasyonu', 'desc' => 'Restoran masaları, şef tadımları'],
+                    'hotel' => ['name' => '🏨 Otel & Konaklama', 'desc' => 'Otel oda ve suit rezervasyonları'],
+                ];
+                ?>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:12px;margin-top:10px;">
+                    <?php foreach ($sectors_info as $code => $info): 
+                        $current_rate = $sec_rates[$code] ?? 5.00;
+                    ?>
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:8px;">
+                            <div style="font-weight:600;font-size:0.85rem;margin-bottom:2px;"><?= $info['name'] ?></div>
+                            <div style="font-size:0.75rem;color:#64748b;margin-bottom:6px;"><?= $info['desc'] ?></div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <input type="number" step="0.01" min="0" max="100" class="sector-rate-input" data-sector="<?= $code ?>" value="<?= number_format((float)$current_rate, 2, '.', '') ?>" style="padding:4px 8px;font-weight:600;">
+                                <span style="font-weight:600;color:#64748b;font-size:0.85rem;">%</span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="msg" id="commission-settings-msg"></div>
+                <button type="submit" style="background:#35A768;">Komisyon Oranlarını Kaydet</button>
+            </form>
+        </div>
     </main>
 
     <script>
@@ -263,6 +353,89 @@
                     if (data.success) {
                         window.location.reload();
                     }
+                });
+        });
+
+        // Commission Settings Form
+        document.getElementById('commission-settings-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const msg = document.getElementById('commission-settings-msg');
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            const generalRate = document.getElementById('marketplace_commission_rate').value;
+            const sectorRates = {};
+            document.querySelectorAll('.sector-rate-input').forEach(input => {
+                const sec = input.getAttribute('data-sector');
+                sectorRates[sec] = input.value;
+            });
+
+            const bodyParams = new URLSearchParams();
+            bodyParams.append('csrf_token', '<?= e(vars('csrf_token')) ?>');
+            bodyParams.append('marketplace_commission_rate', generalRate);
+            for (const [sCode, sRate] of Object.entries(sectorRates)) {
+                bodyParams.append(`sector_rates[${sCode}]`, sRate);
+            }
+
+            fetch('<?= site_url('superadmin_settings/save') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: bodyParams.toString(),
+            })
+                .then(r => r.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    msg.style.display = 'block';
+                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
+                    msg.textContent = data.success ? 'Komisyon oranları başarıyla güncellendi.' : (data.message || 'Hata oluştu.');
+                    if (data.success) {
+                        setTimeout(() => window.location.reload(), 1200);
+                    }
+                })
+                .catch(err => {
+                    submitBtn.disabled = false;
+                    msg.style.display = 'block';
+                    msg.className = 'msg err';
+                    msg.textContent = 'Bağlantı hatası: ' + err.message;
+                });
+        });
+
+        // Process Settlements Button
+        document.getElementById('btn-process-settlements').addEventListener('click', function () {
+            if (!confirm('Tüm kiracı cüzdanlarındaki pozitif bakiyeler için günlük hakediş transfer emri işletilecek. Devam edilsin mi?')) {
+                return;
+            }
+
+            const btn = this;
+            const msg = document.getElementById('settlement-msg');
+            btn.disabled = true;
+            btn.textContent = 'İşleniyor...';
+
+            const bodyParams = new URLSearchParams();
+            bodyParams.append('csrf_token', '<?= e(vars('csrf_token')) ?>');
+
+            fetch('<?= site_url('superadmin_settings/process_daily_settlements') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: bodyParams.toString(),
+            })
+                .then(r => r.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Hakedişleri İşlet';
+                    msg.style.display = 'block';
+                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
+                    msg.textContent = data.message || (data.success ? 'Hakedişler başarıyla işlendi.' : 'Hata oluştu.');
+                    if (data.success) {
+                        setTimeout(() => window.location.reload(), 1500);
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Hakedişleri İşlet';
+                    msg.style.display = 'block';
+                    msg.className = 'msg err';
+                    msg.textContent = 'Hata: ' + err.message;
                 });
         });
     </script>

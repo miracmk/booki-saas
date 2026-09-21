@@ -106,6 +106,26 @@ class Google_sync
     }
 
     /**
+     * BooKi (2026-09-19) - Get the OAuth redirect URI.
+     * In multi-tenant SaaS mode, Google Cloud Console has only the platform central callback
+     * registered (https://bookiapp.kibusiness.co/google/oauth_callback). All tenant OAuth flows
+     * route through this central callback before bouncing back to the tenant's own origin.
+     *
+     * @return string
+     */
+    public function get_redirect_uri(): string
+    {
+        $tenant_client_id = setting('google_client_id');
+
+        if (empty($tenant_client_id) && is_multi_tenant_mode()) {
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+            return 'https://' . $app_domain . '/google/oauth_callback';
+        }
+
+        return site_url('google/oauth_callback');
+    }
+
+    /**
      * Initialize the client, so that existing execution errors are not passed from one provider to another.
      */
     public function initialize_clients(): void
@@ -120,7 +140,7 @@ class Google_sync
         $this->client->setApplicationName('BooKi');
         $this->client->setClientId($this->get_client_id());
         $this->client->setClientSecret($this->get_client_secret());
-        $this->client->setRedirectUri(site_url('google/oauth_callback'));
+        $this->client->setRedirectUri($this->get_redirect_uri());
         $this->client->setPrompt('consent');
         $this->client->setAccessType('offline');
         $this->client->addScope([Google_Service_Calendar::CALENDAR]);

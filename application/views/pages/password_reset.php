@@ -3,7 +3,7 @@
 <?php section('content'); ?>
 
 <div class="text-center mb-4">
-    <img src="<?= asset_url('assets/img/logo.png') ?>" alt="BooKi" 
+    <img src="<?= e(white_label_logo()) ?>" alt="<?= e(vars('company_name') ?: 'BooKi') ?>" 
          class="shadow mb-3" width="72" height="72">
     
     <h4 class="text-primary fw-semibold mb-1"><?= lang('reset_password') ?></h4>

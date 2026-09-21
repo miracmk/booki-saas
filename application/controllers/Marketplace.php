@@ -169,11 +169,11 @@ class Marketplace extends EA_Controller
         $district_list = array_values(array_filter(array_column($districts, 'district')));
 
         // SEO & GEO: Build Schema.org ItemList JSON-LD
-        $current_url = base_url('marketplace');
+        $current_url = randevuburada_url();
         $json_ld = [
             '@context' => 'https://schema.org',
             '@type' => 'ItemList',
-            'name' => 'BooKi Hizmet & Randevu Pazar Yeri',
+            'name' => 'RandevuBurada — BooKi Hizmet & Randevu Pazaryeri',
             'description' => 'En iyi kuaför, berber, güzellik salonu, klinik ve uzmanları keşfedin, kolayca randevu alın.',
             'url' => $current_url,
             'numberOfItems' => count($tenants),
@@ -182,7 +182,7 @@ class Marketplace extends EA_Controller
 
         foreach ($tenants as $idx => $t) {
             $displayName = !empty($t['company_name']) ? $t['company_name'] : $t['subdomain'];
-            $bizUrl = base_url('marketplace/business/' . urlencode($t['subdomain']));
+            $bizUrl = randevuburada_url('business/' . urlencode($t['subdomain']));
             $item = [
                 '@type' => 'ListItem',
                 'position' => $idx + 1,
@@ -191,7 +191,7 @@ class Marketplace extends EA_Controller
                     'name' => $displayName,
                     'url' => $bizUrl,
                     'image' => !empty($t['cover_image_url']) ? $t['cover_image_url'] : base_url('assets/img/logo.png'),
-                    'description' => $t['short_description'] ?? 'BooKi randevu ve rezervasyon noktası.',
+                    'description' => $t['short_description'] ?? 'RandevuBurada randevu ve rezervasyon noktası.',
                 ],
             ];
             if (!empty($t['city']) || !empty($t['district'])) {
@@ -202,11 +202,11 @@ class Marketplace extends EA_Controller
                     'addressCountry' => 'TR',
                 ];
             }
-            if ((int)$t['review_count'] > 0) {
+            if ((int) ($t['review_count'] ?? 0) > 0) {
                 $item['item']['aggregateRating'] = [
                     '@type' => 'AggregateRating',
-                    'ratingValue' => round((float)$t['avg_rating'], 1),
-                    'reviewCount' => (int)$t['review_count'],
+                    'ratingValue' => round((float) $t['avg_rating'], 1),
+                    'reviewCount' => (int) $t['review_count'],
                     'bestRating' => '5',
                 ];
             }
@@ -217,18 +217,81 @@ class Marketplace extends EA_Controller
         $popular_categories = [
             ['name' => 'Kuaför & Saç', 'icon' => 'fas fa-cut'],
             ['name' => 'Güzellik & Bakım', 'icon' => 'fas fa-spa'],
+            ['name' => 'Tırnak & Estetik', 'icon' => 'fas fa-paint-brush'],
+            ['name' => 'Berber & Erkek', 'icon' => 'fas fa-scissors'],
             ['name' => 'Masaj & Terapi', 'icon' => 'fas fa-hand-sparkles'],
             ['name' => 'Klinik & Sağlık', 'icon' => 'fas fa-stethoscope'],
-            ['name' => 'Tırnak & Estetik', 'icon' => 'fas fa-paint-brush'],
-            ['name' => 'Fitness & Antrenör', 'icon' => 'fas fa-dumbbell'],
-            ['name' => 'Pet Kuaför', 'icon' => 'fas fa-paw'],
+            ['name' => 'Fitness & PT', 'icon' => 'fas fa-dumbbell'],
+            ['name' => 'Oto Detailing', 'icon' => 'fas fa-car'],
+        ];
+
+        // Schema.org FAQPage for AI Citability & GEO Optimization
+        $faq_json_ld = [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => [
+                [
+                    '@type' => 'Question',
+                    'name' => 'RandevuBurada üzerinden randevu almak ücretli mi?',
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => 'Hayır, RandevuBurada üzerinden kuaför, berber, güzellik salonu ve klinik randevusu almak müşteriler için tamamen ücretsizdir. Yalnızca aldığınız hizmet bedelini ödersiniz.',
+                    ],
+                ],
+                [
+                    '@type' => 'Question',
+                    'name' => 'RandevuBurada\'dan doğrudan randevu nasıl oluşturulur?',
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => 'Dilediğiniz işletmeyi seçip hizmet listesinden randevu al butonuna tıklayın; uzman, tarih ve saat dilimini seçerek saniyeler içinde anında onaylı randevunuzu tamamlayın.',
+                    ],
+                ],
+                [
+                    '@type' => 'Question',
+                    'name' => 'İşletmemi RandevuBurada vitrinine nasıl ekleyebilirim?',
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => 'BooKi salon yönetim sistemini kullanan tüm işletmeler, tek bir tıklamayla RandevuBurada pazaryeri vitrinine dahil olarak binlerce yeni müşteriye doğrudan erişebilir.',
+                    ],
+                ],
+                [
+                    '@type' => 'Question',
+                    'name' => 'Ödeme nasıl yapılıyor ve güvenli mi?',
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => 'Ödemeler SSL korumalı platform güvencesiyle ister online kredi kartıyla, ister salonda hizmet anında yapılabilir. RandevuBurada ve BooKi Hizmet Pazaryeri güvencesi tüm rezervasyonlarda geçerlidir.',
+                    ],
+                ],
+            ],
+        ];
+
+        // Schema.org BreadcrumbList
+        $breadcrumb_json_ld = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'BooKi Ana Sayfa',
+                    'item' => booki_site_url(),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'RandevuBurada',
+                    'item' => $current_url,
+                ],
+            ],
         ];
 
         html_vars([
-            'page_title' => 'En İyi İşletmeleri Keşfedin & Online Randevu Alın — BooKi Marketplace',
-            'meta_description' => 'Şehrinizdeki en iyi kuaför, berber, güzellik salonu, klinik ve randevulu hizmetleri keşfedin. Müşteri yorumlarını okuyun, fiyatları görün ve anında randevu alın.',
+            'page_title' => 'RandevuBurada — Türkiye\'nin Online Randevu ve Hizmet Pazaryeri | by BooKi',
+            'meta_description' => 'Şehrinizdeki en iyi kuaför, berber, güzellik merkezi ve klinikleri keşfedin. Gerçek müşteri yorumlarını okuyun, anında fiyatları görün ve 7/24 randevunuzu RandevuBurada ile kolayca alın.',
             'canonical_url' => $current_url,
             'json_ld' => $json_ld,
+            'faq_json_ld' => $faq_json_ld,
+            'breadcrumb_json_ld' => $breadcrumb_json_ld,
             'tenants' => $tenants,
             'categories' => $category_list,
             'cities' => $city_list,
@@ -310,7 +373,12 @@ class Marketplace extends EA_Controller
         }
 
         $booking_url .= (parse_url($booking_url, PHP_URL_QUERY) ? '&' : '?') . 'ref=marketplace';
-        setcookie('booki_marketplace_ref', 'marketplace', time() + (86400 * 30), '/');
+        $cookie_domain = '';
+        $host_parts = explode('.', $app_domain);
+        if (count($host_parts) >= 2) {
+            $cookie_domain = '.' . implode('.', array_slice($host_parts, -2));
+        }
+        setcookie('booki_marketplace_ref', 'marketplace', time() + (86400 * 30), '/', $cookie_domain);
 
         // Fetch services preview from tenant's database
         $services = [];
@@ -344,7 +412,7 @@ class Marketplace extends EA_Controller
         }
 
         $display_name = !empty($tenant['company_name']) ? $tenant['company_name'] : $tenant['subdomain'];
-        $business_url = base_url('marketplace/business/' . urlencode($tenant['subdomain']));
+        $business_url = randevuburada_url('business/' . urlencode($tenant['subdomain']));
 
         // Build Schema.org LocalBusiness / HealthAndBeautyBusiness JSON-LD
         $json_ld = [
@@ -442,7 +510,7 @@ class Marketplace extends EA_Controller
         ];
 
         html_vars([
-            'page_title' => $display_name . ' — Online Randevu & Değerlendirmeler | BooKi',
+            'page_title' => $display_name . ' — Online Randevu & Hizmetler | RandevuBurada by BooKi',
             'meta_description' => $tenant['short_description'] ?: ($display_name . ' için sunulan hizmetleri inceleyin, müşteri yorumlarını okuyun ve online randevu oluşturun.'),
             'canonical_url' => $business_url,
             'json_ld' => $json_ld,
@@ -572,6 +640,369 @@ class Marketplace extends EA_Controller
     }
 
     /**
+     * Connect to a specific tenant's database connection.
+     */
+    protected function connect_tenant_db(array $tenant)
+    {
+        return $this->load->database([
+            'hostname' => $tenant['db_host'],
+            'username' => $tenant['db_username'],
+            'password' => tenant_master_decrypt($tenant['db_password']),
+            'database' => $tenant['db_name'],
+            'dbdriver' => 'mysqli',
+            'dbprefix' => 'ea_',
+            'pconnect' => false,
+            'db_debug' => false,
+            'char_set' => 'utf8mb4',
+            'dbcollat' => 'utf8mb4_unicode_ci',
+        ], true);
+    }
+
+    /**
+     * Return real-time available time slots for a specific service and date on tenant's calendar.
+     */
+    public function get_slots(string $subdomain = ''): void
+    {
+        try {
+            method('get');
+
+            $subdomain = strtolower(trim($subdomain));
+            check('service_id', 'numeric');
+            check('date', 'string');
+
+            $service_id = (int) request('service_id');
+            $date = trim((string) request('date')); // Y-m-d
+
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                throw new InvalidArgumentException('Geçersiz tarih formatı (YYYY-AA-GG bekleniyor).');
+            }
+
+            // Cannot book in the past
+            $today = date('Y-m-d');
+            if ($date < $today) {
+                json_response(['success' => true, 'slots' => []]);
+                return;
+            }
+
+            $tenant = $this->db
+                ->get_where('tenants', ['subdomain' => $subdomain, 'marketplace_opt_in' => 1, 'status' => 'active'])
+                ->row_array();
+
+            if (!$tenant) {
+                throw new InvalidArgumentException('İşletme bulunamadı veya pazar yerinde aktif değil.');
+            }
+
+            $tenant_db = $this->connect_tenant_db($tenant);
+            if (!$tenant_db) {
+                throw new RuntimeException('İşletme takvimine bağlanılamadı.');
+            }
+
+            $service = $tenant_db->get_where('services', ['id' => $service_id])->row_array();
+            if (!$service) {
+                throw new InvalidArgumentException('Seçilen hizmet bulunamadı.');
+            }
+
+            $duration = max(15, (int) ($service['duration'] ?? 30));
+
+            // Determine working plan for the requested day
+            $day_of_week = strtolower(date('l', strtotime($date)));
+            $plan_setting = $tenant_db->get_where('settings', ['name' => 'company_working_plan'])->row_array();
+            $plan = !empty($plan_setting['value']) ? json_decode($plan_setting['value'], true) : null;
+
+            $start_time = '09:00';
+            $end_time = '19:00';
+            $breaks = [];
+            $is_open = true;
+
+            if ($plan && isset($plan[$day_of_week])) {
+                $day_plan = $plan[$day_of_week];
+                if (empty($day_plan) || empty($day_plan['start']) || empty($day_plan['end'])) {
+                    $is_open = false;
+                } else {
+                    $start_time = $day_plan['start'];
+                    $end_time = $day_plan['end'];
+                    $breaks = $day_plan['breaks'] ?? [];
+                }
+            }
+
+            if (!$is_open) {
+                json_response(['success' => true, 'slots' => [], 'message' => 'İşletme seçilen günde kapalıdır.']);
+                return;
+            }
+
+            // Fetch existing appointments on that date
+            $existing_appts = $tenant_db->select('start_datetime, end_datetime, status')
+                ->where('DATE(start_datetime)', $date)
+                ->where('status !=', 'cancelled')
+                ->get('appointments')
+                ->result_array();
+
+            // Generate slots
+            $slots = [];
+            $current = strtotime($date . ' ' . $start_time);
+            $day_end = strtotime($date . ' ' . $end_time);
+            $now = time();
+
+            while (($current + ($duration * 60)) <= $day_end) {
+                $slot_time = date('H:i', $current);
+
+                // Skip past slots for today
+                if ($date === $today && $current <= ($now + 1800)) { // 30 min buffer
+                    $current += 1800; // 30 min increment
+                    continue;
+                }
+
+                // Check breaks
+                $in_break = false;
+                foreach ($breaks as $brk) {
+                    if (!empty($brk['start']) && !empty($brk['end'])) {
+                        $brk_start = strtotime($date . ' ' . $brk['start']);
+                        $brk_end = strtotime($date . ' ' . $brk['end']);
+                        if ($current < $brk_end && ($current + ($duration * 60)) > $brk_start) {
+                            $in_break = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!$in_break) {
+                    // Check conflicts with existing appointments
+                    $conflict = false;
+                    foreach ($existing_appts as $ea) {
+                        $ea_start = strtotime($ea['start_datetime']);
+                        $ea_end = strtotime($ea['end_datetime']);
+                        if ($current < $ea_end && ($current + ($duration * 60)) > $ea_start) {
+                            $conflict = true;
+                            break;
+                        }
+                    }
+
+                    if (!$conflict) {
+                        $slots[] = $slot_time;
+                    }
+                }
+
+                $current += 1800; // 30-minute interval step
+            }
+
+            // Fetch providers capable of this service for optional provider picker
+            $providers = $tenant_db->select('u.id, u.first_name, u.last_name')
+                ->from('users u')
+                ->join('services_providers sp', 'sp.id_users = u.id')
+                ->where('sp.id_services', $service_id)
+                ->where('u.is_active', 1)
+                ->get()
+                ->result_array();
+
+            json_response([
+                'success' => true,
+                'service' => [
+                    'id' => $service['id'],
+                    'name' => $service['name'],
+                    'duration' => $duration,
+                    'price' => (float) $service['price'],
+                    'currency' => $service['currency'] ?? 'TRY',
+                ],
+                'slots' => $slots,
+                'providers' => $providers,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Create an appointment directly from the marketplace storefront, collect platform payment,
+     * record sector-specific commission, and credit the tenant wallet.
+     */
+    public function create_booking(string $subdomain = ''): void
+    {
+        try {
+            method('post');
+
+            $subdomain = strtolower(trim($subdomain));
+            check('service_id', 'numeric');
+            check('date', 'string');
+            check('time', 'string');
+            check('first_name', 'string');
+            check('last_name', 'string');
+            check('phone_number', 'string');
+            check('email', 'string|null');
+            check('notes', 'string|null');
+            check('provider_id', 'string|numeric|null');
+            check('payment_method', 'string|null');
+
+            $service_id = (int) request('service_id');
+            $date = trim((string) request('date'));
+            $time = trim((string) request('time'));
+            $first_name = trim((string) request('first_name'));
+            $last_name = trim((string) request('last_name'));
+            $phone_number = trim((string) request('phone_number'));
+            $email = trim((string) request('email'));
+            $notes = trim((string) request('notes'));
+            $provider_id = request('provider_id');
+            $payment_method = trim((string) request('payment_method')) ?: 'online';
+
+            if ($first_name === '' || $last_name === '' || $phone_number === '') {
+                throw new InvalidArgumentException('Lütfen ad, soyad ve telefon numaranızı eksiksiz girin.');
+            }
+
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !preg_match('/^\d{1,2}:\d{2}$/', $time)) {
+                throw new InvalidArgumentException('Geçersiz tarih veya saat seçimi.');
+            }
+
+            $tenant = $this->db
+                ->get_where('tenants', ['subdomain' => $subdomain, 'marketplace_opt_in' => 1, 'status' => 'active'])
+                ->row_array();
+
+            if (!$tenant) {
+                throw new InvalidArgumentException('İşletme bulunamadı.');
+            }
+
+            $tenant_db = $this->connect_tenant_db($tenant);
+            if (!$tenant_db) {
+                throw new RuntimeException('İşletme veritabanına bağlanılamadı.');
+            }
+
+            $service = $tenant_db->get_where('services', ['id' => $service_id])->row_array();
+            if (!$service) {
+                throw new InvalidArgumentException('Hizmet bulunamadı.');
+            }
+
+            $duration = max(15, (int) ($service['duration'] ?? 30));
+            $start_datetime = date('Y-m-d H:i:s', strtotime($date . ' ' . $time));
+            $end_datetime = date('Y-m-d H:i:s', strtotime($start_datetime . " +{$duration} minutes"));
+
+            // Resolve provider
+            if (empty($provider_id) || $provider_id === 'any') {
+                $sp_row = $tenant_db->select('sp.id_users')
+                    ->from('services_providers sp')
+                    ->join('users u', 'u.id = sp.id_users')
+                    ->where('sp.id_services', $service_id)
+                    ->where('u.is_active', 1)
+                    ->limit(1)
+                    ->get()
+                    ->row_array();
+                $resolved_provider_id = $sp_row ? (int) $sp_row['id_users'] : 1;
+            } else {
+                $resolved_provider_id = (int) $provider_id;
+            }
+
+            // Find or create customer in tenant DB
+            $clean_phone = preg_replace('/[^\d+]/', '', $phone_number);
+            $existing_cust = $tenant_db->where('phone_number', $clean_phone)
+                ->or_where('phone_number', $phone_number)
+                ->get('users')
+                ->row_array();
+
+            if ($existing_cust) {
+                $customer_id = (int) $existing_cust['id'];
+            } else {
+                // Find customer role id
+                $role_row = $tenant_db->get_where('roles', ['slug' => 'customer'])->row_array();
+                $role_id = $role_row ? (int) $role_row['id'] : 3;
+
+                $tenant_db->insert('users', [
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'email' => $email !== '' ? $email : null,
+                    'phone_number' => $phone_number,
+                    'id_roles' => $role_id,
+                    'is_active' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+                $customer_id = (int) $tenant_db->insert_id();
+            }
+
+            // Insert Appointment in tenant DB
+            $appt_hash = bin2hex(random_bytes(16));
+            $pay_label = ($payment_method === 'online') ? 'Online Tahsilat' : 'Salonda Ödeme';
+            $appointment_notes = "[Pazar Yeri - {$pay_label}] " . ($notes !== '' ? $notes : 'Müşteri BooKi Pazar Yeri üzerinden randevu oluşturdu.');
+
+            $tenant_db->insert('appointments', [
+                'start_datetime' => $start_datetime,
+                'end_datetime' => $end_datetime,
+                'id_services' => $service_id,
+                'id_users_provider' => $resolved_provider_id,
+                'id_users_customer' => $customer_id,
+                'status' => 'confirmed',
+                'is_unavailability' => 0,
+                'notes' => $appointment_notes,
+                'hash' => $appt_hash,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            $appointment_id = (int) $tenant_db->insert_id();
+
+            // Calculate Sectoral Commission & Update Master DB Wallet
+            $price = (float) ($service['price'] ?? 0);
+            $sector_key = $tenant['business_type'] ?? ($tenant['category'] ?? null);
+            $commission_rate = get_sector_commission_rate($sector_key);
+            $commission_amount = round($price * ($commission_rate / 100), 2);
+            $net_amount = max(0, $price - $commission_amount);
+            $currency = $service['currency'] ?? 'TRY';
+
+            if ($this->db->table_exists('tenant_wallets')) {
+                $this->db->query(
+                    'INSERT INTO ' . $this->db->dbprefix('tenant_wallets') . ' ' .
+                    '(id_tenants, balance, total_earned, total_commission, updated_at) ' .
+                    'VALUES (?, ?, ?, ?, ?) ' .
+                    'ON DUPLICATE KEY UPDATE balance = balance + ?, total_earned = total_earned + ?, total_commission = total_commission + ?, updated_at = ?',
+                    [
+                        $tenant['id'],
+                        $net_amount, $price, $commission_amount, date('Y-m-d H:i:s'),
+                        $net_amount, $price, $commission_amount, date('Y-m-d H:i:s'),
+                    ]
+                );
+            }
+
+            if ($this->db->table_exists('wallet_ledger')) {
+                $ref_code = 'MP-' . date('ymd') . '-' . $appointment_id;
+                $this->db->insert('wallet_ledger', [
+                    'id_tenants' => $tenant['id'],
+                    'type' => 'booking_earning',
+                    'amount' => $price,
+                    'currency' => $currency,
+                    'reference_id' => $ref_code,
+                    'description' => "Pazar Yeri Rezervasyon Geliri: {$service['name']} (#{$appointment_id})",
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                if ($commission_amount > 0) {
+                    $this->db->insert('wallet_ledger', [
+                        'id_tenants' => $tenant['id'],
+                        'type' => 'commission_deduction',
+                        'amount' => -$commission_amount,
+                        'currency' => $currency,
+                        'reference_id' => $ref_code,
+                        'description' => "Marketplace Komisyonu (%{$commission_rate} - " . ($tenant['company_name'] ?? $tenant['subdomain']) . ")",
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+
+            $booking_ref = 'BK-' . strtoupper(substr(md5($appt_hash), 0, 8));
+
+            json_response([
+                'success' => true,
+                'message' => 'Rezervasyonunuz başarıyla onaylandı!',
+                'booking_ref' => $booking_ref,
+                'appointment_id' => $appointment_id,
+                'appointment_hash' => $appt_hash,
+                'service_name' => $service['name'],
+                'date_formatted' => date('d.m.Y', strtotime($date)),
+                'time' => $time,
+                'price' => $price,
+                'currency' => $currency,
+                'payment_method' => $payment_method,
+                'tenant_name' => $tenant['company_name'] ?: $tenant['subdomain'],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
      * Output dynamically generated XML Sitemap for SEO.
      */
     public function sitemap(): void
@@ -597,17 +1028,43 @@ class Marketplace extends EA_Controller
         echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
-        // Marketplace Home
+        // SaaS Landing Page
         echo '  <url>' . PHP_EOL;
-        echo '    <loc>' . htmlspecialchars(base_url('marketplace')) . '</loc>' . PHP_EOL;
+        echo '    <loc>' . htmlspecialchars(booki_site_url()) . '</loc>' . PHP_EOL;
         echo '    <changefreq>daily</changefreq>' . PHP_EOL;
         echo '    <priority>1.0</priority>' . PHP_EOL;
+        echo '  </url>' . PHP_EOL;
+
+        // Marketplace Home
+        echo '  <url>' . PHP_EOL;
+        echo '    <loc>' . htmlspecialchars(randevuburada_url()) . '</loc>' . PHP_EOL;
+        echo '    <changefreq>daily</changefreq>' . PHP_EOL;
+        echo '    <priority>1.0</priority>' . PHP_EOL;
+        echo '  </url>' . PHP_EOL;
+
+        // BooKi Marketplace Path Alias
+        echo '  <url>' . PHP_EOL;
+        echo '    <loc>' . htmlspecialchars(booki_site_url('marketplace')) . '</loc>' . PHP_EOL;
+        echo '    <changefreq>daily</changefreq>' . PHP_EOL;
+        echo '    <priority>0.9</priority>' . PHP_EOL;
+        echo '  </url>' . PHP_EOL;
+
+        // Legal Pages
+        echo '  <url>' . PHP_EOL;
+        echo '    <loc>' . htmlspecialchars(randevuburada_url('privacy')) . '</loc>' . PHP_EOL;
+        echo '    <changefreq>monthly</changefreq>' . PHP_EOL;
+        echo '    <priority>0.5</priority>' . PHP_EOL;
+        echo '  </url>' . PHP_EOL;
+        echo '  <url>' . PHP_EOL;
+        echo '    <loc>' . htmlspecialchars(randevuburada_url('terms')) . '</loc>' . PHP_EOL;
+        echo '    <changefreq>monthly</changefreq>' . PHP_EOL;
+        echo '    <priority>0.5</priority>' . PHP_EOL;
         echo '  </url>' . PHP_EOL;
 
         // Categories
         foreach ($categories as $c) {
             echo '  <url>' . PHP_EOL;
-            echo '    <loc>' . htmlspecialchars(base_url('marketplace?category=' . urlencode($c['category']))) . '</loc>' . PHP_EOL;
+            echo '    <loc>' . htmlspecialchars(randevuburada_url('?category=' . urlencode($c['category']))) . '</loc>' . PHP_EOL;
             echo '    <changefreq>weekly</changefreq>' . PHP_EOL;
             echo '    <priority>0.8</priority>' . PHP_EOL;
             echo '  </url>' . PHP_EOL;
@@ -617,7 +1074,7 @@ class Marketplace extends EA_Controller
         foreach ($tenants as $t) {
             $lastmod = !empty($t['updated_at']) ? date('Y-m-d', strtotime($t['updated_at'])) : date('Y-m-d');
             echo '  <url>' . PHP_EOL;
-            echo '    <loc>' . htmlspecialchars(base_url('marketplace/business/' . urlencode($t['subdomain']))) . '</loc>' . PHP_EOL;
+            echo '    <loc>' . htmlspecialchars(randevuburada_url('business/' . urlencode($t['subdomain']))) . '</loc>' . PHP_EOL;
             echo '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
             echo '    <changefreq>daily</changefreq>' . PHP_EOL;
             echo '    <priority>0.9</priority>' . PHP_EOL;
@@ -633,11 +1090,12 @@ class Marketplace extends EA_Controller
      */
     public function robots(): void
     {
-        $domain = getenv('MARKETPLACE_DOMAIN') ?: 'reservation.kibusiness.co';
+        $domain = getenv('RANDEVUBURADA_DOMAIN') ?: 'randevuburada.kibusiness.co';
         header('Content-Type: text/plain; charset=utf-8');
-        echo "# BooKi Marketplace Robots.txt\n";
+        echo "# RandevuBurada (BooKi Hizmet Pazaryeri) Robots.txt\n";
         echo "User-agent: *\n";
         echo "Allow: /\n";
+        echo "Allow: /business/*\n";
         echo "Allow: /marketplace\n";
         echo "Allow: /marketplace/*\n";
         echo "Disallow: /admin\n";
@@ -667,16 +1125,19 @@ class Marketplace extends EA_Controller
             ->get('tenants')
             ->result_array();
 
-        $domain = getenv('MARKETPLACE_DOMAIN') ?: 'reservation.kibusiness.co';
+        $domain = getenv('RANDEVUBURADA_DOMAIN') ?: 'randevuburada.kibusiness.co';
+        $booki_domain = getenv('MARKETPLACE_DOMAIN') ?: 'booki.kibusiness.co';
 
         header('Content-Type: text/markdown; charset=utf-8');
-        echo "# BooKi Platform & Marketplace\n\n";
-        echo "> BooKi is an enterprise multi-tenant appointment scheduling and service discovery platform operating in Turkey.\n\n";
-        echo "## Core URLs\n";
-        echo "- Discovery Portal: https://{$domain}/marketplace\n";
-        echo "- Sitemap: https://{$domain}/sitemap.xml\n";
-        echo "- Service Preview API: https://{$domain}/marketplace/services_preview/{subdomain}\n\n";
-        echo "## Listed Service Businesses\n\n";
+        echo "# RandevuBurada — BooKi Hizmet ve Randevu Pazaryeri\n\n";
+        echo "> RandevuBurada, BooKi Hizmet Pazaryeridir. Türkiye genelindeki seçkin kuaför, berber, klinik ve güzellik salonlarından 7/24 anında online randevu alma olanağı sunar.\n\n";
+        echo "## Temel Bağlantılar\n";
+        echo "- RandevuBurada Pazaryeri: https://{$domain}/\n";
+        echo "- BooKi Yazılım Platformu: https://{$booki_domain}/\n";
+        echo "- BooKi Pazaryeri Girişi: https://{$booki_domain}/marketplace\n";
+        echo "- XML Sitemap: https://{$domain}/sitemap.xml\n";
+        echo "- Hizmet Önizleme API: https://{$domain}/services_preview/{subdomain}\n\n";
+        echo "## Kayıtlı İşletmeler\n\n";
 
         foreach ($tenants as $t) {
             $name = !empty($t['company_name']) ? $t['company_name'] : $t['subdomain'];
@@ -684,12 +1145,12 @@ class Marketplace extends EA_Controller
             $locStr = implode(', ', $loc);
             echo "### {$name} (" . ($t['category'] ?? 'Hizmet') . ")\n";
             if ($locStr !== '') {
-                echo "- Location: {$locStr}\n";
+                echo "- Konum: {$locStr}\n";
             }
             if (!empty($t['short_description'])) {
-                echo "- Description: {$t['short_description']}\n";
+                echo "- Açıklama: {$t['short_description']}\n";
             }
-            echo "- Profile & Booking: https://{$domain}/marketplace/business/{$t['subdomain']}\n\n";
+            echo "- Profil & Randevu: https://{$domain}/business/{$t['subdomain']}\n\n";
         }
 
         exit;

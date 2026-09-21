@@ -95,7 +95,10 @@ class Notifications
             return;
         }
 
-        if (!filter_var(setting('telegram_notifications_enabled'), FILTER_VALIDATE_BOOLEAN)) {
+        $settings = $this->CI->messaging_settings_model->get_settings();
+        $enabled = filter_var($settings['telegram_notifications_enabled'] ?? setting('telegram_notifications_enabled'), FILTER_VALIDATE_BOOLEAN);
+
+        if (!$enabled) {
             return;
         }
 

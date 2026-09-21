@@ -126,49 +126,65 @@ App.Pages.Products = (function () {
   function renderTable() {
     $tbody.empty();
 
+    if (!tableRows || tableRows.length === 0) {
+      $tbody.html(
+        '<tr><td colspan="8" class="text-center text-muted py-5">' +
+        '<i class="fas fa-cubes fa-3x text-secondary opacity-50 mb-3 d-block"></i>' +
+        '<span>Henüz kayıtlı ürün bulunmuyor.</span></td></tr>'
+      );
+      return;
+    }
+
     tableRows.forEach(function (product) {
       const statusClass =
-        product.stock_quantity <= product.low_stock_threshold
-          ? 'badge-warning'
-          : product.stock_quantity === 0
-            ? 'badge-danger'
-            : 'badge-success';
+        product.stock_quantity <= 0
+          ? 'bg-danger-subtle text-danger border border-danger-subtle'
+          : product.stock_quantity <= product.low_stock_threshold
+            ? 'bg-warning-subtle text-warning-emphasis border border-warning-subtle'
+            : 'bg-success-subtle text-success border border-success-subtle';
 
       const statusBadge =
         '<span class="badge ' +
         statusClass +
-        '">' +
-        (product.stock_quantity === 0
-          ? App.Lang.out_of_stock
+        ' px-2 py-1">' +
+        (product.stock_quantity <= 0
+          ? (App.Lang.out_of_stock || 'Tükendi')
           : product.stock_quantity <= product.low_stock_threshold
-            ? App.Lang.low_stock
-            : App.Lang.in_stock) +
+            ? (App.Lang.low_stock || 'Kritik Stok')
+            : (App.Lang.in_stock || 'Stokta')) +
         '</span>';
+
+      const formattedPrice = parseFloat(product.sale_price || 0).toLocaleString('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + ' ₺';
 
       const $row = $(
         '<tr>' +
-          '<td>#' + product.id + '</td>' +
-          '<td>' + product.name + '</td>' +
-          '<td>' + (product.sku || '-') + '</td>' +
-          '<td>' + parseFloat(product.sale_price).toFixed(2) + '</td>' +
-          '<td>' + product.stock_quantity + '</td>' +
-          '<td>' + product.low_stock_threshold + '</td>' +
-          '<td>' + statusBadge + '</td>' +
-          '<td>' +
-          '<button class="btn btn-sm btn-info edit-btn" data-id="' +
+          '<td class="ps-3 fw-bold text-muted">#' + product.id + '</td>' +
+          '<td class="fw-semibold text-dark">' + product.name + '</td>' +
+          '<td><code class="text-muted">' + (product.sku || '-') + '</code></td>' +
+          '<td class="text-end fw-semibold text-dark">' + formattedPrice + '</td>' +
+          '<td class="text-center"><span class="fw-semibold">' + product.stock_quantity + '</span> <span class="text-muted small">Adet</span></td>' +
+          '<td class="text-center text-muted">' + product.low_stock_threshold + ' <span class="small">Adet</span></td>' +
+          '<td class="text-center">' + statusBadge + '</td>' +
+          '<td class="text-end pe-3">' +
+          '<div class="btn-group btn-group-sm">' +
+          '<button class="btn btn-outline-primary edit-btn" data-id="' +
           product.id +
           '" title="' +
-          App.Lang.edit +
+          (App.Lang.edit || 'Düzenle') +
           '">' +
           '<i class="fas fa-edit"></i>' +
-          '</button> ' +
-          '<button class="btn btn-sm btn-danger delete-btn" data-id="' +
+          '</button>' +
+          '<button class="btn btn-outline-danger delete-btn" data-id="' +
           product.id +
           '" title="' +
-          App.Lang.delete +
+          (App.Lang.delete || 'Sil') +
           '">' +
-          '<i class="fas fa-trash"></i>' +
+          '<i class="fas fa-trash-alt"></i>' +
           '</button>' +
+          '</div>' +
           '</td>' +
           '</tr>'
       );

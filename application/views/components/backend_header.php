@@ -24,7 +24,7 @@ if ($expiry_warning): ?>
 
 <?php
 $header_company_name = vars('company_name') ?: 'BooKi';
-$header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
+$header_company_logo = base_url('assets/img/logo.png');
 ?>
 <!-- Mobile Top Navigation Bar -->
 <nav id="header" class="d-md-none navbar navbar-dark bg-primary py-2 px-2">
@@ -118,6 +118,29 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                         <li><a class="dropdown-item py-2" href="<?= site_url('expenses') ?>"><i class="fas fa-file-invoice-dollar text-danger me-2"></i>Gider Ekle</a></li>
                     <?php endif; ?>
                 </ul>
+            </div>
+        </div>
+
+        <?php
+        $current_tenant_ctx = function_exists('tenant_context') ? tenant_context() : null;
+        $tenant_sub = $current_tenant_ctx['subdomain'] ?? '';
+        $mp_url = !empty($tenant_sub)
+            ? (function_exists('randevuburada_url') ? randevuburada_url('business/' . rawurlencode($tenant_sub)) : 'https://randevuburada.kibusiness.co/business/' . rawurlencode($tenant_sub))
+            : (function_exists('randevuburada_url') ? randevuburada_url() : 'https://randevuburada.kibusiness.co');
+        ?>
+        <!-- Marketplace Storefront Status Card -->
+        <div class="px-3 pt-1 pb-2">
+            <div class="p-2 rounded-3 text-white" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="badge bg-success bg-opacity-75 text-white" style="font-size: 10px;">
+                        <i class="fas fa-check-circle me-1"></i>RandevuBurada
+                    </span>
+                    <span class="text-white-50" style="font-size: 11px;">7/24 Açık</span>
+                </div>
+                <div class="small fw-semibold text-truncate mb-2" style="font-size: 12px;">Pazaryeri Vitrininiz</div>
+                <a href="<?= e($mp_url) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light w-100 py-1" style="font-size: 11px; border-color: rgba(255,255,255,0.3);">
+                    <i class="fas fa-store me-1 text-warning"></i> RandevuBurada Vitrinim
+                </a>
             </div>
         </div>
 
@@ -373,9 +396,9 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="<?= site_url('marketplace') ?>" target="_blank" class="nav-link text-white">
-                                <i class="fas fa-store me-2 text-warning"></i>
-                                Marketplace Vitrini
+                            <a href="<?= e($mp_url) ?>" target="_blank" rel="noopener" class="nav-link text-white d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-store me-2 text-warning"></i>RandevuBurada Profilim</span>
+                                <span class="badge bg-warning text-dark font-monospace" style="font-size: 10px;">CANLI</span>
                             </a>
                         </li>
                     </ul>
@@ -434,9 +457,9 @@ $header_company_logo = vars('company_logo') ?: base_url('assets/img/logo.png');
                                 <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('data_requests') ?>"><i class="fas fa-shield-alt me-2"></i>Veri Talepleri (KVKK)</a></li>
                             <?php endif; ?>
                             <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('account') ?>"><i class="fas fa-user me-2"></i><?= lang('account') ?></a></li>
-                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('booking') ?>" target="_blank"><i class="fas fa-external-link me-2"></i>Müşteri Randevu Sayfası</a></li>
-                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('marketplace') ?>" target="_blank"><i class="fas fa-store me-2 text-warning"></i>Pazar Yeri Keşif Vitrini</a></li>
-                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('logout') ?>"><i class="fas fa-sign-out me-2"></i><?= lang('log_out') ?></a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('booking') ?>" target="_blank"><i class="fas fa-external-link-alt me-2"></i>Müşteri Randevu Sayfası</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= e($mp_url) ?>" target="_blank" rel="noopener"><i class="fas fa-store me-2 text-warning"></i>RandevuBurada Vitrinim</a></li>
+                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('logout') ?>"><i class="fas fa-sign-out-alt me-2"></i><?= lang('log_out') ?></a></li>
                         </ul>
                     </div>
                 </li>

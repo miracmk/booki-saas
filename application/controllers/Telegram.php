@@ -127,7 +127,14 @@ class Telegram extends EA_Controller
             setting(['ai_reply_telegram_enabled' => $ai_reply_enabled ? '1' : '0']);
 
             $this->load->model('messaging_settings_model');
-            $this->messaging_settings_model->save_settings(['ai_reply_telegram_enabled' => $ai_reply_enabled ? 1 : 0]);
+            $messaging_update = [
+                'telegram_notifications_enabled' => $notifications_enabled ? 1 : 0,
+                'ai_reply_telegram_enabled' => $ai_reply_enabled ? 1 : 0,
+            ];
+            if ($bot_token !== '') {
+                $messaging_update['telegram_bot_token'] = $bot_token;
+            }
+            $this->messaging_settings_model->save_settings($messaging_update);
 
             json_response(['success' => true, 'bot_username' => setting('telegram_bot_username')]);
         } catch (Throwable $e) {

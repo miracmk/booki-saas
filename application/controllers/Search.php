@@ -9,6 +9,20 @@ class Search extends EA_Controller
     public function __construct()
     {
         parent::__construct();
+
+        if (!session('user_id')) {
+            if ($this->input->is_ajax_request() || $this->input->get('q') !== null) {
+                $this->output
+                    ->set_status_header(401)
+                    ->set_content_type('application/json')
+                    ->set_output(json_encode(['success' => false, 'message' => 'Unauthorized']))
+                    ->_display();
+                exit;
+            }
+            redirect('login');
+            exit;
+        }
+
         $this->load->model('customers_model');
         $this->load->model('services_model');
         $this->load->model('products_model');

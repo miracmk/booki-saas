@@ -169,11 +169,11 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light small text-muted">
                             <tr>
-                                <th class="ps-3">TARİH</th>
-                                <th>ADİSYON NO</th>
-                                <th>MÜŞTERİ</th>
-                                <th>ÖDEME YÖNTEMİ</th>
-                                <th class="text-end pe-3">TUTAR</th>
+                                <th class="ps-3">Tarih</th>
+                                <th>Adisyon No</th>
+                                <th><?= lang('customer') ?></th>
+                                <th>Ödeme Yöntemi</th>
+                                <th class="text-end pe-3">Tutar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -197,11 +197,11 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light small text-muted">
                             <tr>
-                                <th class="ps-3">TARİH</th>
-                                <th>KATEGORİ</th>
-                                <th>GİDER BAŞLIĞI / TEDARİKÇİ</th>
-                                <th>YÖNTEM</th>
-                                <th class="text-end pe-3">TUTAR</th>
+                                <th class="ps-3">Tarih</th>
+                                <th>Kategori</th>
+                                <th>Gider Başlığı / Tedarikçi</th>
+                                <th>Yöntem</th>
+                                <th class="text-end pe-3">Tutar</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -225,12 +225,12 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light small text-muted">
                             <tr>
-                                <th class="ps-3">PERSONEL</th>
-                                <th>SATIŞ ADEDİ</th>
-                                <th>TOPLAM SATIŞ</th>
-                                <th>HAKEDİLEN PRİM</th>
-                                <th>BAHŞİŞ</th>
-                                <th class="text-end pe-3">İŞLEM</th>
+                                <th class="ps-3"><?= lang('provider') ?></th>
+                                <th>Satış Adedi</th>
+                                <th>Toplam Satış</th>
+                                <th>Hakedilen Prim</th>
+                                <th>Bahşiş</th>
+                                <th class="text-end pe-3"><?= lang('actions') ?></th>
                             </tr>
                         </thead>
                         <tbody>

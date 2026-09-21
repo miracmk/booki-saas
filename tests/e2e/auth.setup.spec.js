@@ -7,9 +7,9 @@ const authFile = 'tests/e2e/.auth/admin.json';
 // or per-test `test.use({ storageState: authFile })`).
 setup('authenticate as qatest admin', async ({ page }) => {
   await page.goto('/login');
-  await page.getByPlaceholder(/username/i).fill('administrator');
-  await page.getByPlaceholder(/password/i).fill('administrator');
-  await page.getByRole('button', { name: /login/i }).click();
+  await page.locator('#username').fill('administrator');
+  await page.locator('#password').fill('administrator');
+  await page.locator('#login').click();
   await expect(page).toHaveURL(/dashboard/);
   await page.context().storageState({ path: authFile });
 });

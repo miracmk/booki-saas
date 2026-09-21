@@ -117,9 +117,8 @@
         </div>
     </div>
 </div>
+<?php end_section('content'); ?>
 
 <?php section('scripts'); ?>
 <script src="<?= asset_url('assets/js/pages/ai_agent.js') ?>"></script>
 <?php end_section('scripts'); ?>
-
-<?php end_section('content'); ?>

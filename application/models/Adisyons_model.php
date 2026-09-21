@@ -186,6 +186,13 @@ class Adisyons_model extends EA_Model
 
         $this->cast($adisyon);
 
+        if (!empty($adisyon['customer_phone']) && function_exists('sf_pii_is_encrypted') && sf_pii_is_encrypted($adisyon['customer_phone'])) {
+            $adisyon['customer_phone'] = sf_pii_decrypt($adisyon['customer_phone']);
+        }
+        if (!empty($adisyon['customer_email']) && function_exists('sf_pii_is_encrypted') && sf_pii_is_encrypted($adisyon['customer_email'])) {
+            $adisyon['customer_email'] = sf_pii_decrypt($adisyon['customer_email']);
+        }
+
         // Fetch items
         $adisyon['items'] = $this->db
             ->select('ai.*, s.name as service_name, p.name as product_name, u.first_name as staff_first_name, u.last_name as staff_last_name')

@@ -2,56 +2,56 @@
 
 <?php section('content'); ?>
 
-<div class="wrapper">
-  <div class="container-fluid">
-    <div class="row mb-2">
-      <div class="col">
-        <h1 class="page-title">
-          <i class="fas fa-boxes"></i>
-          <?= vars('page_title') ?>
-        </h1>
-      </div>
-      <div class="col-auto">
-        <div class="btn-toolbar" role="toolbar">
-          <button class="btn btn-primary" id="add-package" title="<?= lang('add') ?>">
-            <i class="fas fa-plus"></i>
-            <?= lang('add') ?>
-          </button>
-        </div>
-      </div>
+<div class="container-fluid py-3 px-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h4 mb-0 fw-bold text-dark">
+        <i class="fas fa-boxes me-2 text-primary"></i><?= vars('page_title') ?>
+      </h1>
+      <p class="text-muted small mb-0">Müşterilerinize tanımlanan çoklu seans paketlerini ve kalan hakları takip edin.</p>
     </div>
+    <div>
+      <button class="btn btn-primary" id="add-package" title="<?= lang('add') ?>">
+        <i class="fas fa-plus me-1"></i> <?= lang('add') ?>
+      </button>
+    </div>
+  </div>
 
-    <div class="row">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-body">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3">
+      <div class="row align-items-center g-2">
+        <div class="col-md-4 col-sm-6">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted">
+              <i class="fas fa-search"></i>
+            </span>
             <input
               type="text"
-              class="keyword form-control"
+              class="keyword form-control border-start-0 bg-light"
               placeholder="<?= lang('search') ?>..."
               title="<?= lang('search') ?>"
             />
           </div>
-
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th><?= lang('customer') ?></th>
-                  <th><?= lang('service') ?></th>
-                  <th><?= lang('total_sessions') ?></th>
-                  <th><?= lang('used_sessions') ?></th>
-                  <th><?= lang('status') ?></th>
-                  <th><?= lang('expires') ?></th>
-                  <th><?= lang('actions') ?></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
         </div>
       </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3" style="width: 70px;">#</th>
+            <th><?= lang('customer') ?></th>
+            <th><?= lang('service') ?></th>
+            <th class="text-center" style="width: 140px;"><?= lang('total_sessions') ?></th>
+            <th class="text-center" style="width: 140px;"><?= lang('used_sessions') ?></th>
+            <th class="text-center" style="width: 130px;"><?= lang('status') ?></th>
+            <th style="width: 150px;"><?= lang('expires') ?></th>
+            <th class="text-end pe-3" style="width: 120px;"><?= lang('actions') ?></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -104,14 +104,17 @@
                 <label for="package-total-sessions" class="form-label">
                   <?= lang('total_sessions') ?> *
                 </label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="package-total-sessions"
-                  name="package[total_sessions]"
-                  min="1"
-                  required
-                />
+                <div class="input-group">
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="package-total-sessions"
+                    name="package[total_sessions]"
+                    min="1"
+                    required
+                  />
+                  <span class="input-group-text">Seans</span>
+                </div>
               </div>
             </div>
             <div class="col-md-6">
@@ -119,14 +122,17 @@
                 <label for="package-unit-price" class="form-label">
                   <?= lang('unit_price') ?>
                 </label>
-                <input
-                  type="number"
-                  class="form-control"
-                  id="package-unit-price"
-                  name="package[unit_price]"
-                  step="0.01"
-                  min="0"
-                />
+                <div class="input-group">
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="package-unit-price"
+                    name="package[unit_price]"
+                    step="0.01"
+                    min="0"
+                  />
+                  <span class="input-group-text">₺</span>
+                </div>
               </div>
             </div>
           </div>

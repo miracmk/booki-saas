@@ -1,7 +1,9 @@
 import makeWASocket, {
     useMultiFileAuthState,
+    makeCacheableSignalKeyStore,
     DisconnectReason,
     fetchLatestBaileysVersion,
+    Browsers,
 } from '@whiskeysockets/baileys';
 
 import pino from 'pino';
@@ -43,6 +45,29 @@ const SESSIONS_DIR = process.env.SESSIONS_DIR || '/app/sessions';
 
 /** @type {Map<string, SessionEntry>} */
 const sessions = new Map();
+
+/**
+ * In-memory message store for getMessage retry requests.
+ * Prevents "Waiting for this message. This may take a while" on recipient devices
+ * when end-to-end encryption keys are re-negotiated by WhatsApp.
+ */
+const MAX_STORED_MESSAGES = 1000;
+const messageStore = new Map();
+
+function storeMessage(tenant, id, message) {
+    if (!id || !message) return;
+    const key = `${tenant}:${id}`;
+    if (messageStore.size >= MAX_STORED_MESSAGES) {
+        const oldestKey = messageStore.keys().next().value;
+        if (oldestKey) messageStore.delete(oldestKey);
+    }
+    messageStore.set(key, message);
+}
+
+function getStoredMessage(tenant, id) {
+    if (!id) return undefined;
+    return messageStore.get(`${tenant}:${id}`);
+}
 
 /** Backoff schedule for auto-reconnect after a transient connection close. */
 const RECONNECT_DELAYS_MS = [2000, 5000, 10000];
@@ -181,6 +206,10 @@ function onMessagesUpsert(entry, upsert) {
             continue;
         }
 
+        if (msg.key?.id) {
+            storeMessage(entry.tenant, msg.key.id, msg.message);
+        }
+
         if (msg.key.fromMe) {
             continue;
         }
@@ -211,9 +240,25 @@ async function createSocket(entry) {
 
     const sock = makeWASocket({
         version,
-        auth: state,
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, log),
+        },
         logger: pino({ level: 'silent' }),
         printQRInTerminal: false,
+        browser: Browsers.ubuntu('Chrome'),
+        syncFullHistory: false,
+        markOnlineOnConnect: false,
+        generateHighQualityLinkPreview: true,
+        retryRequestDelayMs: 250,
+        maxMsgRetryCount: 5,
+        getMessage: async (key) => {
+            const stored = getStoredMessage(entry.tenant, key?.id);
+            if (stored) {
+                return stored;
+            }
+            return undefined;
+        },
     });
 
     entry.sock = sock;
@@ -496,9 +541,15 @@ export async function sendMessage(tenant, to, text) {
     }
 
     try {
-        const sent = await entry.sock.sendMessage(`${digits}@s.whatsapp.net`, { text: String(text) });
+        const jid = `${digits}@s.whatsapp.net`;
+        const sent = await entry.sock.sendMessage(jid, { text: String(text) });
+        const messageId = sent?.key?.id;
 
-        return { success: true, message_id: `WA-${sent?.id || 'unknown'}` };
+        if (messageId && sent?.message) {
+            storeMessage(tenant, messageId, sent.message);
+        }
+
+        return { success: true, message_id: `WA-${messageId || 'unknown'}` };
     } catch (err) {
         log.warn({ tenant, err: err.message }, 'send failed');
 

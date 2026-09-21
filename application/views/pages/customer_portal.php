@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e(setting('company_name') ?: 'BooKi') ?> — Müşteri Portalı</title>
     <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap/bootstrap.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/fontawesome/css/all.min.css') ?>">
     <style>
         :root {
             --primary-color: <?= setting('company_color') ?: '#35A768' ?>;
@@ -86,7 +85,7 @@
     <header class="app-header py-3 px-3">
         <div class="container d-flex justify-content-between align-items-center" style="max-width: 680px;">
             <div class="d-flex align-items-center">
-                <img src="<?= setting('company_logo') ? e(setting('company_logo')) : base_url('assets/img/logo.png') ?>" alt="logo" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: contain;">
+                <img src="<?= e(white_label_logo()) ?>" alt="logo" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: contain;">
                 <span class="fw-bold fs-6"><?= e(setting('company_name') ?: 'BooKi') ?></span>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -347,7 +346,7 @@
                 <p class="text-muted small mb-3">Tesise girişte bu QR kodu okutabilirsiniz.</p>
 
                 <div class="p-3 bg-white border rounded-4 d-inline-block mx-auto mb-3 shadow-sm">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=<?= vars('customer')['id'] ?? '1' ?>" alt="QR" style="width: 180px; height: 180px;">
+                    <div id="customer-qr-code" style="width: 180px; height: 180px; margin: 0 auto;"></div>
                 </div>
 
                 <div class="fw-bold fs-6 mb-1"><?= e(vars('customer')['first_name'] ?? '') ?> <?= e(vars('customer')['last_name'] ?? '') ?></div>
@@ -358,20 +357,39 @@
         </div>
     </div>
 
-    <script src="<?= base_url('assets/vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
+    <script src="<?= base_url('assets/vendor/@popperjs-core/popper.min.js') ?>"></script>
+    <script src="<?= base_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
+    <script src="<?= base_url('assets/vendor/@fortawesome-fontawesome-free/fontawesome.min.js') ?>"></script>
+    <script src="<?= base_url('assets/vendor/@fortawesome-fontawesome-free/solid.min.js') ?>"></script>
+    <script src="<?= base_url('assets/vendor/qrcodejs/qrcode.min.js') ?>"></script>
     <script>
+    let qrGenerated = false;
+
     function switchTab(tabName, linkEl) {
         document.querySelectorAll('.tab-content-portal').forEach(tab => tab.classList.remove('active'));
         document.getElementById('portal-tab-' + tabName)?.classList.add('active');
 
+        document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
         if (linkEl) {
-            document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
             linkEl.classList.add('active');
+        } else {
+            const targetLink = document.querySelector(`.bottom-nav-item[onclick*="'${tabName}'"]`);
+            targetLink?.classList.add('active');
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function showQRPassModal() {
+        const qrContainer = document.getElementById('customer-qr-code');
+        if (!qrGenerated && qrContainer && typeof QRCode !== 'undefined') {
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: '<?= (string)(vars('customer')['id'] ?? '1') ?>',
+                width: 180,
+                height: 180
+            });
+            qrGenerated = true;
+        }
         const modal = new bootstrap.Modal(document.getElementById('qr-pass-modal'));
         modal.show();
     }

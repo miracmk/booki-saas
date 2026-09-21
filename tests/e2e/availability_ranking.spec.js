@@ -18,9 +18,9 @@ test.describe('İlk Müsaitlik sıralama (demo-guzellik)', () => {
 
   test('Sağlayıcılar müşteri memnuniyeti skoruna göre sıralanıyor', async ({ page }) => {
     await page.goto('/login');
-    await page.getByPlaceholder(/username/i).fill('administrator');
-    await page.getByPlaceholder(/password/i).fill('administrator');
-    await page.getByRole('button', { name: /login/i }).click();
+    await page.locator('#username').fill('administrator');
+    await page.locator('#password').fill('administrator');
+    await page.locator('#login').click();
     await expect(page).toHaveURL(/dashboard/);
     await page.waitForFunction(() => typeof window.App !== 'undefined' && typeof window.App.Http !== 'undefined' && typeof window.App.Http.Calendar !== 'undefined');
 
@@ -49,9 +49,9 @@ test.describe('İlk Müsaitlik sıralama (demo-guzellik)', () => {
 
   test('İstasyonlar display_order alanına göre sıralanıyor', async ({ page, request }) => {
     await page.goto('/login');
-    await page.getByPlaceholder(/username/i).fill('administrator');
-    await page.getByPlaceholder(/password/i).fill('administrator');
-    await page.getByRole('button', { name: /login/i }).click();
+    await page.locator('#username').fill('administrator');
+    await page.locator('#password').fill('administrator');
+    await page.locator('#login').click();
     await expect(page).toHaveURL(/dashboard/);
     await page.waitForFunction(() => typeof window.App !== 'undefined' && typeof window.App.Http !== 'undefined' && typeof window.App.Http.Calendar !== 'undefined');
 

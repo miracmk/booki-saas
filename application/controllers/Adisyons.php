@@ -63,6 +63,13 @@ class Adisyons extends EA_Controller
             ->get()
             ->result_array();
 
+        foreach ($adisyons as &$ad) {
+            if (!empty($ad['customer_phone']) && function_exists('sf_pii_is_encrypted') && sf_pii_is_encrypted($ad['customer_phone'])) {
+                $ad['customer_phone'] = sf_pii_decrypt($ad['customer_phone']);
+            }
+        }
+        unset($ad);
+
         $open_count = (int) $this->db->where('status', 'open')->count_all_results('adisyons');
         $unpaid_row = $this->db->select('SUM(total_amount - paid_amount) as unpaid', false)
             ->where('payment_status !=', 'paid')
@@ -93,10 +100,17 @@ class Adisyons extends EA_Controller
             ->get()
             ->result_array();
 
+        foreach ($active_appointments as &$apt) {
+            if (!empty($apt['customer_phone']) && function_exists('sf_pii_is_encrypted') && sf_pii_is_encrypted($apt['customer_phone'])) {
+                $apt['customer_phone'] = sf_pii_decrypt($apt['customer_phone']);
+            }
+        }
+        unset($apt);
+
         $this->load->library('accounting/erp_manager');
         $erp_providers = Erp_manager::PROVIDERS;
-        $active_erp_provider = setting('active_erp_provider') ?: setting('e_invoice_provider') ?: 'parasut';
-        $open_id = $this->input->get('open_id') ?: $this->input->get('appointment_id') ?: null;
+        $raw_open_id = $this->input->get('open_id') ?: $this->input->get('appointment_id') ?: null;
+        $open_id = ($raw_open_id !== null && is_numeric($raw_open_id)) ? (int) $raw_open_id : null;
 
         html_vars([
             'page_title' => 'Adisyon & Hesap Yönetimi',

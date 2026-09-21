@@ -131,7 +131,7 @@ class Booking extends EA_Controller
         }
 
         $company_name = setting('company_name');
-        $company_logo = setting('company_logo');
+        $company_logo = white_label_logo();
         $company_color = setting('company_color');
         $disable_booking = setting('disable_booking');
         $google_analytics_code = setting('google_analytics_code');
@@ -459,7 +459,8 @@ class Booking extends EA_Controller
             }
             
             // Faz 43/44 Marketplace Attribution
-            $is_marketplace = (request('ref') === 'marketplace' || (isset($_COOKIE['booki_marketplace_ref']) && $_COOKIE['booki_marketplace_ref'] === 'marketplace'));
+            $ref_val = $this->input->post('ref') ?: (request('ref') ?: ($this->input->get('ref') ?: null));
+            $is_marketplace = ($ref_val === 'marketplace' || (isset($_COOKIE['booki_marketplace_ref']) && $_COOKIE['booki_marketplace_ref'] === 'marketplace'));
             if ($is_marketplace) {
                 $appointment['notes'] = "[Pazar Yeri] " . ($appointment['notes'] ?? '');
             }

@@ -61,13 +61,18 @@ services:
       # rewrite. Empty key = agent replies with a "not configured" message, no tenant impact.
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       AI_AGENT_MODEL: ${AI_AGENT_MODEL:-openrouter/free}
+      # Google Calendar & Workspace OAuth2 (Multi-Tenant Central Relay)
+      GOOGLE_SYNC_FEATURE: "${GOOGLE_SYNC_FEATURE:-TRUE}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       # JS/CSS cache-busting token (see application/config/app.php) - bump on every deploy that
       # changes a JS/CSS file.
-      ASSET_VERSION: "prod-20260919-002"
+      ASSET_VERSION: "prod-20260920-001"
     volumes:
       - /opt/ki-ecosystem/ki-reservation/files:/var/www/html/storage
     networks:
       - ki-reservation-net
+      - external_network
 
   db:
     image: mysql:8.0
@@ -133,9 +138,12 @@ services:
       LOG_LEVEL: info
       KI_AGENT_API_BASE: ${KI_AGENT_API_BASE:-}
       KI_AGENT_API_TOKEN: ${KI_AGENT_API_TOKEN:-}
+      MCP_SERVER_TOKEN: ${MCP_SERVER_TOKEN:-}
     networks:
       - ki-reservation-net
 
 networks:
   ki-reservation-net:
     driver: bridge
+  external_network:
+    external: true

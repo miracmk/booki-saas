@@ -4,13 +4,35 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e(vars('page_title')) ?></title>
-    <meta name="description" content="BooKi; randevu alımı, takvim, müşteri yönetimi, ödeme takibi ve WhatsApp entegrasyonunu tek panelde toplayan online randevu sistemidir.">
+    <meta name="description" content="BooKi; randevu alımı, salon takvimi, WhatsApp hatırlatmaları ve Türkiye'nin hizmet pazar yerini tek çatı altında buluşturan yeni nesil platformdur. İşletmenizi yönetin, anında yeni müşteri kazanın.">
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="<?= base_url('/') ?>">
     <meta property="og:type" content="website">
     <meta property="og:title" content="<?= e(vars('page_title')) ?>">
-    <meta property="og:description" content="İşletmeniz için online randevu, müşteri ve takvim yönetimi tek panelde. WhatsApp entegrasyonu ile.">
+    <meta property="og:description" content="İşletmeniz için online randevu, müşteri ve takvim yönetimi tek panelde. BooKi Pazar Yeri ile işletmenize 7/24 hazır müşteri akışı sağlayın.">
     <meta property="og:url" content="<?= base_url('/') ?>">
+    <meta property="og:image" content="<?= asset_url('assets/img/social-card.png') ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= e(vars('page_title')) ?>">
+    <meta name="twitter:description" content="İşletmeniz için online randevu, müşteri ve takvim yönetimi tek panelde. BooKi Pazar Yeri ile 7/24 müşteri akışı.">
+    <meta name="twitter:image" content="<?= asset_url('assets/img/social-card.png') ?>">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "BooKi",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "TRY",
+        "lowPrice": "0",
+        "highPrice": "1990",
+        "offerCount": "4"
+      },
+      "description": "Online randevu ve salon yönetim sistemi. Takvim, müşteri yönetimi, adisyon, POS, e-fatura ve WhatsApp entegrasyonu."
+    }
+    </script>
     <link rel="icon" type="image/png" href="<?= asset_url('img/logo-16x16.png') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -259,15 +281,35 @@
         .step h3 { font-size: 1.08rem; color: var(--navy); margin-bottom: .5rem; }
         .step p { color: var(--muted); font-size: .94rem; }
 
-        /* Marketplace strip */
+        /* Marketplace strip & Growth showcase */
         .marketplace { background: #fff; border-top: 1px solid #e6ebee; border-bottom: 1px solid #e6ebee; }
         .marketplace-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
         .tenant-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
-        .tenant-card { background: var(--bg); border: 1px solid #e6ebee; border-radius: var(--radius); padding: 1.4rem; }
+        .tenant-card { background: var(--bg); border: 1px solid #e6ebee; border-radius: var(--radius); padding: 1.4rem; display: flex; flex-direction: column; justify-content: space-between; }
         .tenant-card h3 { font-size: 1.05rem; color: var(--navy); }
         .tenant-card .tenant-card__meta { color: var(--muted); font-size: .86rem; margin: .3rem 0 .8rem; }
-        .tenant-card .tenant-card__stars { color: #f2b01e; font-size: .9rem; }
+        .tenant-card .tenant-card__stars { color: #f2b01e; font-size: .9rem; margin-bottom: 0.5rem; }
         .tenant-card .btn { margin-top: .5rem; }
+
+        .mp-growth { background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%); border-top: 1px solid #ccfbf1; border-bottom: 1px solid #e6ebee; padding: 5rem 0; }
+        .mp-growth-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; margin-top: 2.5rem; }
+        .mp-growth-card { background: #fff; border: 1px solid #e2e8f0; border-radius: var(--radius); padding: 1.6rem; box-shadow: 0 4px 16px rgba(15, 118, 110, 0.05); transition: transform .2s, box-shadow .2s; }
+        .mp-growth-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(15, 118, 110, 0.12); }
+        .mp-icon-wrap { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.2rem; }
+        .mp-growth-card h4 { font-size: 1.08rem; color: var(--navy); margin-bottom: 0.5rem; }
+        .mp-growth-card p { font-size: 0.88rem; color: var(--muted); line-height: 1.55; }
+
+        .category-chips-bar { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
+        .category-chip { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; background: #ffffff; border: 1px solid #d1d5db; border-radius: 999px; font-size: 0.86rem; font-weight: 600; color: var(--navy); transition: all 0.2s; text-decoration: none; }
+        .category-chip:hover { border-color: var(--primary); background: #f0fdfa; color: var(--primary); transform: translateY(-2px); text-decoration: none; }
+
+        .mp-compare-box { margin-top: 3.5rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow); }
+        .mp-compare-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+        .mp-compare-table th { padding: 0.9rem 1rem; background: #f8fafc; color: var(--navy); font-weight: 700; border-bottom: 2px solid #e2e8f0; }
+        .mp-compare-table td { padding: 1rem; border-bottom: 1px solid #f1f5f9; color: var(--text); }
+        .mp-compare-table tr:last-child td { border-bottom: none; }
+        .badge-check { display: inline-flex; align-items: center; gap: 0.3rem; color: #0d9488; font-weight: 700; }
+        .badge-cross { display: inline-flex; align-items: center; gap: 0.3rem; color: #94a3b8; }
 
         /* CTA */
         .cta {
@@ -296,11 +338,39 @@
             font-size: .85rem;
         }
 
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: var(--navy);
+            line-height: 1;
+            padding: 0.25rem 0.5rem;
+        }
+
         /* ---------- Responsive ---------- */
         @media (max-width: 880px) {
             .hero .container { grid-template-columns: 1fr; padding-top: 3rem; }
-            .features-grid, .steps, .tenant-cards, .stats .container { grid-template-columns: 1fr; }
-            .nav-links { display: none; }
+            .features-grid, .steps, .tenant-cards, .stats .container, .mp-growth-cards { grid-template-columns: 1fr; }
+            .mp-compare-box { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .mp-compare-table { min-width: 580px; }
+            .mobile-menu-btn { display: block; }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #ffffff;
+                padding: 1.5rem;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                gap: 1rem;
+                align-items: stretch;
+                text-align: center;
+            }
+            .nav-links.active { display: flex; }
             .float-badge--avg { left: -0.3rem; }
         }
     </style>
@@ -308,16 +378,21 @@
 <body>
 
 <header class="site-header">
-    <div class="container">
+    <div class="container" style="position:relative; display:flex; justify-content:space-between; align-items:center;">
         <a class="brand" href="<?= base_url('/') ?>" aria-label="BooKi ana sayfa">
             <span class="brand__logo">BOO·KI</span>
         </a>
-        <nav class="nav-links" aria-label="Ana gezinme">
-            <a href="#ozellikler">Özellikler</a>
-            <a href="#nasil-calisir">Nasıl Çalışır</a>
-            <a href="#isletmeler">İşletmeler</a>
-            <a class="btn btn--outline btn--sm" href="<?= base_url('marketplace') ?>">Keşfet</a>
-            <a class="btn btn--primary btn--sm" href="<?= e(vars('portal_url')) ?>">Giriş Yap</a>
+        <button class="mobile-menu-btn" aria-label="Menüyü Aç" onclick="document.getElementById('mainNav').classList.toggle('active')">☰</button>
+        <nav id="mainNav" class="nav-links" aria-label="Ana gezinme">
+            <a href="https://booki.kibusiness.co" style="font-weight: 700; color: var(--navy);">Ana Sayfa</a>
+            <a href="#ozellikler" onclick="document.getElementById('mainNav').classList.remove('active')">Özellikler</a>
+            <a href="#pazar-yeri" onclick="document.getElementById('mainNav').classList.remove('active')" style="color: #0d9488; font-weight: 700;">✦ RandevuBurada Pazaryeri</a>
+            <a href="#nasil-calisir" onclick="document.getElementById('mainNav').classList.remove('active')">Nasıl Çalışır</a>
+            <a href="#fiyatlandirma" onclick="document.getElementById('mainNav').classList.remove('active')">Fiyatlar</a>
+            <a class="btn btn--outline btn--sm" href="https://randevuburada.kibusiness.co" target="_blank" rel="noopener" style="border-color: #0d9488; color: #0d9488; background: #f0fdfa; font-weight: 700;">
+                <span style="margin-right: 4px;">🏪</span> RandevuBurada (Randevu Al)
+            </a>
+            <a class="btn btn--primary btn--sm" href="<?= e(vars('portal_url')) ?>">İşletme Girişi</a>
         </nav>
     </div>
 </header>
@@ -327,14 +402,14 @@
     <section class="hero">
         <div class="container">
             <div>
-                <span class="hero__kicker">✦ İşletmeler için online randevu sistemi</span>
-                <h1>Randevularınızı, takviminizi ve müşterilerinizi <em>tek panelde</em> yönetin.</h1>
-                <p class="lead">BooKi; online randevu alımı, takvim yönetimi, WhatsApp hatırlatmaları, üyelikler, paketler ve ödeme takibini tek yerden sunar — siz işinize odaklanın.</p>
+                <span class="hero__kicker">✦ Salon Yazılımı + Müşteri Çeken Hizmet Pazaryeri</span>
+                <h1>Randevularınızı yönetin, <em>RandevuBurada</em> pazaryeri ile yeni müşteriler kazanın.</h1>
+                <p class="lead">BooKi; salon takvimi, WhatsApp hatırlatmaları, adisyon ve ödeme altyapısını Türkiye'nin öncü hizmet pazaryeri RandevuBurada ile birleştirir. Sadece randevu defteri değil; işletmenize 7/24 kesintisiz müşteri akışı sağlayan çift taraflı büyüme motoru!</p>
                 <div class="hero__actions">
-<a class="btn btn--light" href="<?= e(vars('portal_url')) ?>">Hemen Başlayın</a>
-                    <a class="btn btn--ghost" href="#ozellikler">Özellikleri İncele</a>
+                    <a class="btn btn--light" href="<?= e(vars('portal_url')) ?>">İşletmenizi Ekleyin (Ücretsiz)</a>
+                    <a class="btn btn--ghost" href="https://randevuburada.kibusiness.co" target="_blank" rel="noopener">🏪 RandevuBurada'da Randevu Al</a>
                 </div>
-                <p class="hero__proof">Aktif <strong>işletmeler</strong> tarafından kullanılıyor · Mobil uyumlu · Kurulum gerektirmez</p>
+                <p class="hero__proof">Aktif <strong>işletmeler</strong> · Güvenli kartla ödeme · Günlük hakediş aktarımı · Sektörel adil komisyon</p>
             </div>
             <div class="hero__visual">
                 <div class="browser-card">
@@ -343,30 +418,30 @@
                         <div class="mini-row">
                             <div>
                                 <div class="mini-row__title">Yarın · 14:00</div>
-                                <div class="mini-row__sub">Ayşe K. — Saç Bakımı</div>
+                                <div class="mini-row__sub">Ayşe K. — Saç Bakımı & Fön</div>
                             </div>
-                            <span class="mini-row__status">Onaylı</span>
+                            <span class="mini-row__status">RandevuBurada</span>
                         </div>
                         <div class="mini-row">
                             <div>
                                 <div class="mini-row__title">Yarın · 15:30</div>
-                                <div class="mini-row__sub">Mehmet D. — Manikür</div>
+                                <div class="mini-row__sub">Mehmet D. — Sakal Tıraşı</div>
                             </div>
                             <span class="mini-row__status">Onaylı</span>
                         </div>
                         <div class="mini-row">
                             <div>
                                 <div class="mini-row__title">Cumartesi · 11:00</div>
-                                <div class="mini-row__sub">Zeynep T. — Cilt Bakımı</div>
+                                <div class="mini-row__sub">Zeynep T. — Medikal Cilt Bakımı</div>
                             </div>
-                            <span class="mini-chip">Bekleme Listesi</span>
+                            <span class="mini-chip">Online Ödendi</span>
                         </div>
                     </div>
                 </div>
-                <div class="float-badge float-badge--wa">WhatsApp hatırlatması gönderildi ✓</div>
+                <div class="float-badge float-badge--wa" style="top: -1.2rem; right: -1rem; border-left: 4px solid #10b981;">🎉 RandevuBurada Rezervasyonu: +₺850</div>
                 <div class="float-badge float-badge--avg">
                     <span class="float-badge__stars">★★★★★</span>
-                    <span>4.9 ortalaması</span>
+                    <span>4.9 memnuniyet</span>
                 </div>
             </div>
         </div>
@@ -375,10 +450,10 @@
     <!-- STATS -->
     <section class="stats" aria-hidden="true">
         <div class="container">
-            <div><div class="stat__num">%40</div><div class="stat__label">daha az no-show</div></div>
-            <div><div class="stat__num">7/24</div><div class="stat__label">online randevu alımı</div></div>
-            <div><div class="stat__num">+15</div><div class="stat__label">entegrasyon</div></div>
-            <div><div class="stat__num">1 dk</div><div class="stat__label">kurulum</div></div>
+            <div><div class="stat__num">7/24</div><div class="stat__label">Pazar Yeri Keşfi & Randevu</div></div>
+            <div><div class="stat__num">0 ₺</div><div class="stat__label">Sabit Vitrin Ücreti</div></div>
+            <div><div class="stat__num">1 Gün</div><div class="stat__label">Günlük Hakediş Transferi</div></div>
+            <div><div class="stat__num">%40</div><div class="stat__label">Daha Az No-Show Oranı</div></div>
         </div>
     </section>
 
@@ -478,42 +553,241 @@
         </div>
     </section>
 
-    <!-- MARKETPLACE -->
+    <!-- PAZAR YERİ BÜYÜME MOTORU (RANDEVUBURADA SHOWCASE) -->
+    <section class="mp-growth" id="pazar-yeri">
+        <div class="container">
+            <div class="section-head" style="text-align: center; margin: 0 auto 3rem; max-width: 52rem;">
+                <span class="hero__kicker" style="background: rgba(13, 148, 136, 0.1); border-color: rgba(13, 148, 136, 0.25); color: #0f766e;">✦ SADECE YAZILIM DEĞİL, HAZIR MÜŞTERİ TRAFİĞİ</span>
+                <h2 style="font-size: clamp(1.9rem, 3.5vw, 2.7rem);">Klasik Randevu Sistemlerini Unutun: RandevuBurada ile Çift Taraflı Büyüme</h2>
+                <p style="font-size: 1.05rem;">Sadece randevu defteri tutan yazılımların aksine BooKi; işletmenizi Türkiye'nin yeni nesil hizmet pazaryeri <strong>RandevuBurada</strong> vitrininde sergiler, Google aramalarından ve doğrudan platformdan salonunuza her gün yeni müşteri kazandırır.</p>
+                
+                <!-- Category Discovery Chips -->
+                <div class="category-chips-bar" style="justify-content: center;">
+                    <a href="https://randevuburada.kibusiness.co/?category=kuafor" target="_blank" rel="noopener" class="category-chip">💇 Kuaför & Saç</a>
+                    <a href="https://randevuburada.kibusiness.co/?category=guzellik" target="_blank" rel="noopener" class="category-chip">✨ Güzellik & Cilt</a>
+                    <a href="https://randevuburada.kibusiness.co/?category=tirnak" target="_blank" rel="noopener" class="category-chip">💅 Tırnak & Nail Art</a>
+                    <a href="https://randevuburada.kibusiness.co/?category=berber" target="_blank" rel="noopener" class="category-chip">💈 Erkek Berberi</a>
+                    <a href="https://randevuburada.kibusiness.co/?category=spa" target="_blank" rel="noopener" class="category-chip">🧖‍♀️ Spa & Masaj</a>
+                    <a href="https://randevuburada.kibusiness.co/?category=klinik" target="_blank" rel="noopener" class="category-chip">🦷 Klinik & Diş</a>
+                    <a href="https://randevuburada.kibusiness.co" target="_blank" rel="noopener" class="category-chip" style="background: #0f766e; color: #fff; border-color: #0f766e;">Tüm Kategoriler →</a>
+                </div>
+            </div>
+
+            <div class="mp-growth-cards">
+                <div class="mp-growth-card">
+                    <div class="mp-icon-wrap" style="background: #e0f2fe; color: #0284c7;">🎯</div>
+                    <h4>Otomatik Müşteri Kazanımı</h4>
+                    <p>Yazılımı kullanmaya başladığınız anda işletmeniz RandevuBurada pazaryeri vitrininde otomatik listelenir. Sıfır reklam bütçesiyle Google'dan ve pazaryerinden hazır müşteri trafiği çekersiniz.</p>
+                </div>
+                <div class="mp-growth-card">
+                    <div class="mp-icon-wrap" style="background: #dcfce7; color: #16a34a;">⚡</div>
+                    <h4>Doğrudan Pazaryeri Rezervasyonu</h4>
+                    <p>Müşterileriniz telefon araması yapmadan, RandevuBurada üzerinden boş saatleri görüp anında randevu oluşturur. Randevu anında takviminize düşer, çakışma riski sıfırlanır.</p>
+                </div>
+                <div class="mp-growth-card">
+                    <div class="mp-icon-wrap" style="background: #fef3c7; color: #d97706;">⚖️</div>
+                    <h4>Sektörel Adil Komisyonlar</h4>
+                    <p>Her sektörün kar marjı farklıdır. Kuaför, güzellik, berber, klinik veya masaj için ayrı ayrı belirlenmiş şeffaf ve adil sektörel komisyon oranlarıyla çalışırsınız. Fahiş tek tip kesintiler yoktur.</p>
+                </div>
+                <div class="mp-growth-card">
+                    <div class="mp-icon-wrap" style="background: #ede9fe; color: #7c3aed;">💳</div>
+                    <h4>Günlük Kesintisiz Hakediş (IBAN)</h4>
+                    <p>Pazaryerinden yapılan tahsilatlar BooKi güvencesinde toplanır. Komisyonu kesilmiş net kazancınız her iş günü otomatik olarak banka hesabınıza aktarılır. Haftalarca para beklemezsiniz.</p>
+                </div>
+            </div>
+
+            <!-- COMPARISON BOX -->
+            <div class="mp-compare-box">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.3rem; color: var(--navy); margin-bottom: 0.3rem;">Neden BooKi & RandevuBurada?</h3>
+                    <p style="color: var(--muted); font-size: 0.92rem;">Rakipler ve eski nesil ajandalarla karşılaştırın, farkı kendiniz görün.</p>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="mp-compare-table">
+                        <thead>
+                            <tr>
+                                <th>Kriter / Özellik</th>
+                                <th style="color: #0f766e; font-weight: 800; background: #f0fdfa;">BooKi + RandevuBurada</th>
+                                <th style="color: #64748b;">KolayRandevu vb. Eski Pazar Yerleri</th>
+                                <th style="color: #64748b;">Sadece Takvim / Ajanda Yazılımları</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Yeni Müşteri Trafiği</strong></td>
+                                <td><span class="badge-check">✓ Var (RandevuBurada + Organik SEO)</span></td>
+                                <td><span class="badge-check">✓ Var</span></td>
+                                <td><span class="badge-cross">✕ Yok (Trafiği siz bulursunuz)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Komisyon Yapısı</strong></td>
+                                <td><span class="badge-check">✓ Sektörel Adil Oranlar (%5 - %12)</span></td>
+                                <td><span class="badge-cross">✕ Tek Tip & Yüksek Oranlar</span></td>
+                                <td><span style="color:#64748b;">— Komisyonsuz ama müşteri de yok</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hakediş Ödeme Periyodu</strong></td>
+                                <td><span class="badge-check">✓ Günlük Otomatik Transfer (IBAN)</span></td>
+                                <td><span class="badge-cross">✕ 14 - 30 Günde Bir</span></td>
+                                <td><span style="color:#64748b;">— Uygulanmaz</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>İşletme Yönetim Gücü</strong></td>
+                                <td><span class="badge-check">✓ POS, Adisyon, WhatsApp, e-Fatura, AI</span></td>
+                                <td><span class="badge-cross">✕ Sadece Temel Rezervasyon</span></td>
+                                <td><span style="color:#0d9488;">✓ Yazılım odaklı</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Doğrudan Vitrinden Rezervasyon</strong></td>
+                                <td><span class="badge-check">✓ 7/24 Kesintisiz Slot Seçimi & Ödeme</span></td>
+                                <td><span class="badge-check">✓ Var</span></td>
+                                <td><span class="badge-cross">✕ Ortak Vitrin Yok</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a class="btn btn--primary" href="<?= e(vars('portal_url')) ?>">Hemen İşletmenizi Ekleyin & Müşteri Almaya Başlayın</a>
+                    <a class="btn btn--outline" href="https://randevuburada.kibusiness.co" target="_blank" rel="noopener" style="margin-left: 0.8rem;">RandevuBurada'yı Canlı İnceleyin →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MARKETPLACE ISLETMELER -->
     <section class="marketplace" id="isletmeler">
         <div class="container">
             <div class="marketplace-head">
                 <div class="section-head" style="margin-bottom:0;">
-                    <h2>Marketplace'teki işletmeler</h2>
-                    <p>BooKi marketplace'inde aktif olarak hizmet veren işletmelere göz atın.</p>
+                    <span class="hero__kicker" style="margin-bottom: 0.5rem; display: inline-block;">✦ Popüler Salonlar</span>
+                    <h2>RandevuBurada Pazaryerindeki Öne Çıkan İşletmeler</h2>
+                    <p>RandevuBurada ile 7/24 online randevu kabul eden ve müşterilerine kesintisiz hizmet sunan popüler salonlar.</p>
                 </div>
-                <a class="btn btn--outline" href="<?= base_url('marketplace') ?>">Tümünü Gör</a>
+                <a class="btn btn--outline" href="https://randevuburada.kibusiness.co" target="_blank" rel="noopener">Tümünü RandevuBurada'da Gör (<?= count(vars('featured_tenants') ?: []) ?>+)</a>
             </div>
 
             <?php if (empty(vars('featured_tenants'))): ?>
-                <p style="color:var(--muted);">Henüz liste dışı bir işletme yok. İlk işletme olun!</p>
+                <div style="background: var(--bg); border: 2px dashed #cbd5e1; border-radius: var(--radius); padding: 3rem; text-align: center;">
+                    <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏪</div>
+                    <h3 style="color: var(--navy); font-size: 1.25rem; margin-bottom: 0.5rem;">RandevuBurada Vitrini Hazır!</h3>
+                    <p style="color: var(--muted); max-width: 32rem; margin: 0 auto 1.5rem;">İlk katılan işletmelerden biri olun, bölgenizdeki aramalarda en üst sırada yerinizi alın.</p>
+                    <a class="btn btn--primary btn--sm" href="<?= e(vars('portal_url')) ?>">İşletmenizi Ücretsiz Kaydedin</a>
+                </div>
             <?php else: ?>
                 <div class="tenant-cards">
                     <?php foreach (vars('featured_tenants') as $tenant): ?>
                         <?php
-                            $site = $tenant['custom_domain'] ?? ($tenant['subdomain'] . '-' . vars('app_domain'));
                             $review_count = (int) ($tenant['review_count'] ?? 0);
                             $avg_rating = round((float) ($tenant['avg_rating'] ?? 0), 1);
+                            $mp_profile_url = 'https://randevuburada.kibusiness.co/business/' . rawurlencode($tenant['subdomain']);
                         ?>
                         <div class="tenant-card">
-                            <h3><?= e($tenant['company_name'] ?? $tenant['subdomain']) ?></h3>
-                            <div class="tenant-card__meta">
-                                <?= e($tenant['category'] ?? 'Hizmet') ?>
-                                <?= !empty($tenant['city']) ? '· ' . e($tenant['city']) : '' ?>
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                                    <span style="display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px;">
+                                        <?= e($tenant['category'] ?? 'Hizmet & Bakım') ?>
+                                    </span>
+                                    <span style="color: #10b981; font-size: 0.76rem; font-weight: 700;">● Müsait</span>
+                                </div>
+                                <h3 style="font-size: 1.15rem; margin-bottom: 0.3rem;"><?= e($tenant['company_name'] ?? $tenant['subdomain']) ?></h3>
+                                <div class="tenant-card__meta">
+                                    <?= !empty($tenant['city']) ? '📍 ' . e($tenant['city']) : '📍 Türkiye' ?>
+                                </div>
+                                <div class="tenant-card__stars">
+                                    <span style="color: #f59e0b;"><?= str_repeat('★', max(1, (int) round($avg_rating))) ?></span>
+                                    <strong style="color: var(--navy); margin-left: 4px;"><?= $avg_rating > 0 ? number_format($avg_rating, 1) : '5.0' ?></strong>
+                                    <span style="color: var(--muted); font-size: 0.8rem;"><?= $review_count > 0 ? ('(' . $review_count . ' değerlendirme)') : '(Yeni vitrin)' ?></span>
+                                </div>
                             </div>
-                            <div class="tenant-card__stars">
-                                <?= str_repeat('★', max(0, (int) round($avg_rating))) ?>
-                                <?= $review_count > 0 ? ('(' . $review_count . ')') : 'Henüz yorum yok' ?>
+                            <div style="margin-top: 1.2rem; display: flex; gap: 0.5rem;">
+                                <a class="btn btn--primary btn--sm" style="flex: 1; text-align: center;" href="<?= e($mp_profile_url) ?>" target="_blank" rel="noopener">RandevuBurada Vitrini & Randevu</a>
                             </div>
-                            <a class="btn btn--primary btn--sm" href="https://<?= e($site) ?>/">Randevu Al</a>
                         </div>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="pricing" id="fiyatlandirma" style="padding: 5rem 0; background: #ffffff;">
+        <div class="container">
+            <div class="section-head" style="text-align: center; margin-bottom: 3.5rem;">
+                <span class="hero__kicker" style="display:inline-block; margin-bottom: 0.5rem;">✦ Şeffaf & Adil Paketler</span>
+                <h2>İşletmenizin büyüklüğüne göre ölçeklenen planlar</h2>
+                <p>İster tek kişilik stüdyo, ister çok şubeli kurumsal klinik; ihtiyacınız olan her şey hazır.</p>
+            </div>
+            <div class="pricing-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+                <!-- FREE -->
+                <div class="pricing-card" style="background: var(--bg); border: 1px solid #e2e8f0; border-radius: var(--radius); padding: 2rem; display: flex; flex-direction: column;">
+                    <div class="badge" style="display:inline-block; align-self:flex-start; padding: 0.25rem 0.6rem; background: #e2e8f0; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #475569;">BAŞLANGIÇ</div>
+                    <h3 style="margin-top: 1rem; font-size: 1.3rem;">Free</h3>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.25rem;">0 ₺ <span style="font-size: 0.9rem; font-weight: 500; color: var(--muted);">/ ömür boyu</span></div>
+                    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem;">Bireysel çalışanlar ve tek kişilik işletmeler için.</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem; font-size: 0.88rem; color: var(--text); flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <li>✓ 1 Personel & Takvim</li>
+                        <li>✓ Sınırsız Randevu Alma</li>
+                        <li>✓ Müşteri Rehberi</li>
+                        <li>✓ Mobil Uyumlu Rezervasyon Sayfası</li>
+                        <li style="color: #94a3b8;">✕ Raporlar & Analitik</li>
+                        <li style="color: #94a3b8;">✕ WhatsApp Bildirimleri</li>
+                    </ul>
+                    <a class="btn btn--outline btn--sm" style="width: 100%; text-align: center;" href="<?= e(vars('portal_url')) ?>">Hemen Başla</a>
+                </div>
+
+                <!-- BASIC -->
+                <div class="pricing-card" style="background: var(--bg); border: 1px solid #cbd5e1; border-radius: var(--radius); padding: 2rem; display: flex; flex-direction: column;">
+                    <div class="badge" style="display:inline-block; align-self:flex-start; padding: 0.25rem 0.6rem; background: #e0f2fe; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #0369a1;">TEMEL İŞLETME</div>
+                    <h3 style="margin-top: 1rem; font-size: 1.3rem;">Basic</h3>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.25rem;">490 ₺ <span style="font-size: 0.9rem; font-weight: 500; color: var(--muted);">/ ay</span></div>
+                    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem;">Büyüyen salonlar ve operasyonunu hızlandırmak isteyenler.</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem; font-size: 0.88rem; color: var(--text); flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <li>✓ 3 Personele Kadar</li>
+                        <li>✓ Raporlar & Detaylı KPI Analizi</li>
+                        <li>✓ Bekleme Listesi (Waitlist)</li>
+                        <li>✓ Google Takvim 2-Yönlü Senkronizasyon</li>
+                        <li>✓ Ürün Satışı & Stok Takibi</li>
+                        <li>✓ PWA Mobil Uygulama Desteği</li>
+                    </ul>
+                    <a class="btn btn--primary btn--sm" style="width: 100%; text-align: center;" href="<?= e(vars('portal_url')) ?>">14 Gün Ücretsiz Dene</a>
+                </div>
+
+                <!-- PREMIUM -->
+                <div class="pricing-card" style="background: #ffffff; border: 2px solid var(--primary); border-radius: var(--radius); padding: 2rem; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(27, 94, 100, 0.12); position: relative;">
+                    <div class="badge" style="position: absolute; top: -12px; right: 1.5rem; background: var(--primary); color: #fff; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.5px;">EN POPÜLER</div>
+                    <div class="badge" style="display:inline-block; align-self:flex-start; padding: 0.25rem 0.6rem; background: var(--primary-soft); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--primary);">TAM PROFESYONEL</div>
+                    <h3 style="margin-top: 1rem; font-size: 1.3rem;">Premium</h3>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.25rem;">990 ₺ <span style="font-size: 0.9rem; font-weight: 500; color: var(--muted);">/ ay</span></div>
+                    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem;">Ciro, pazarlama ve otomatik tahsilat odaklı salonlar.</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem; font-size: 0.88rem; color: var(--text); flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <li>✓ 10 Personele Kadar</li>
+                        <li>✓ WhatsApp Otomatik Hatırlatma & Bildirim</li>
+                        <li>✓ Adisyon & POS Entegrasyonu</li>
+                        <li>✓ e-Fatura (Paraşüt / QuickBooks / Zoho)</li>
+                        <li>✓ Pazarlama & Akıllı Müşteri Segmentleri</li>
+                        <li>✓ Çoklu Şube (Branches) Desteği</li>
+                        <li>✓ Üyelikler, Seans Paketleri & Hakediş</li>
+                    </ul>
+                    <a class="btn btn--primary btn--sm" style="width: 100%; text-align: center; background: var(--primary);" href="<?= e(vars('portal_url')) ?>">14 Gün Ücretsiz Dene</a>
+                </div>
+
+                <!-- ELITE -->
+                <div class="pricing-card" style="background: var(--bg); border: 1px solid #cbd5e1; border-radius: var(--radius); padding: 2rem; display: flex; flex-direction: column;">
+                    <div class="badge" style="display:inline-block; align-self:flex-start; padding: 0.25rem 0.6rem; background: #fef3c7; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #b45309;">KURUMSAL & AI</div>
+                    <h3 style="margin-top: 1rem; font-size: 1.3rem;">Elite</h3>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--navy); margin: 0.75rem 0 0.25rem;">1.990 ₺ <span style="font-size: 0.9rem; font-weight: 500; color: var(--muted);">/ ay</span></div>
+                    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem;">AI asistan, özel alan adı ve tam markasız kurumsal çözüm.</p>
+                    <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem; font-size: 0.88rem; color: var(--text); flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem;">
+                        <li>✓ Sınırsız Personel & Şube</li>
+                        <li>✓ <strong>Çok Kanallı AI Asistan</strong> (WhatsApp/Instagram/Telegram)</li>
+                        <li>✓ <strong>Özel Alan Adı (Custom Domain)</strong></li>
+                        <li>✓ <strong>White-Label</strong> (Markasız Özel Arayüz)</li>
+                        <li>✓ Öncelikli 7/24 Destek & Danışmanlık</li>
+                        <li>✓ Özel Veri Aktarımı & Kurulum</li>
+                    </ul>
+                    <a class="btn btn--outline btn--sm" style="width: 100%; text-align: center;" href="<?= e(vars('portal_url')) ?>">İletişime Geçin</a>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -522,7 +796,7 @@
         <div class="container">
             <h2>İşletmenizi dijitalleştirmeye hazır mısınız?</h2>
             <p>BooKi'yi bugün kullanmaya başlayın. Kurulum gerektirmez, dakikalar içinde randevu almaya başlayın.</p>
-            <a class="btn btn--light" href="<?= base_url('portal') ?>">Hemen Başlayın</a>
+            <a class="btn btn--light" href="<?= e(vars('portal_url')) ?>">Hemen Başlayın</a>
         </div>
     </section>
 </main>
@@ -540,21 +814,46 @@
         <div>
             <h4>Ürün</h4>
             <ul>
+                <li><a href="https://booki.kibusiness.co">Ana Sayfa (booki.kibusiness.co)</a></li>
                 <li><a href="#ozellikler">Özellikler</a></li>
                 <li><a href="#nasil-calisir">Nasıl Çalışır</a></li>
-                <li><a href="<?= base_url('marketplace') ?>">Marketplace</a></li>
-                <li><a href="<?= e(vars('portal_url')) ?>">Giriş Yap</a></li>
+                <li><a href="#fiyatlandirma">Fiyatlar & Paketler</a></li>
+                <li><a href="<?= e(vars('portal_url')) ?>">İşletme Girişi</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Pazaryeri</h4>
+            <ul>
+                <li><a href="https://randevuburada.kibusiness.co" target="_blank" rel="noopener" style="color:#34d399; font-weight:700;">🏪 RandevuBurada</a></li>
+                <li><a href="<?= base_url('marketplace') ?>">booki.kibusiness.co/marketplace</a></li>
+                <li><a href="https://randevuburada.kibusiness.co/?category=kuafor" target="_blank" rel="noopener">Kuaför & Berber Randevu</a></li>
+                <li><a href="https://randevuburada.kibusiness.co/?category=guzellik" target="_blank" rel="noopener">Güzellik Salonu Randevu</a></li>
+                <li><a href="https://randevuburada.kibusiness.co/?category=klinik" target="_blank" rel="noopener">Klinik & Diş Randevu</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Yasal</h4>
+            <ul>
+                <li><a href="<?= base_url('privacy') ?>">Gizlilik Politikası (Privacy Policy)</a></li>
+                <li><a href="<?= base_url('terms') ?>">Kullanım Şartları (Terms of Service)</a></li>
             </ul>
         </div>
         <div>
             <h4>Şirket</h4>
             <ul>
+                <li><a href="https://kibusiness.co" target="_blank" rel="noopener">Ki Business Solutions</a></li>
                 <li><a href="https://kisoftware.com" target="_blank" rel="noopener">Ki Software</a></li>
             </ul>
         </div>
     </div>
     <div class="site-footer__bottom">
-        <div class="container">© <?= date('Y') ?> BooKi · Ki Software. Tüm hakları saklıdır.</div>
+        <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+            <span>© <?= date('Y') ?> BooKi · <a href="https://randevuburada.kibusiness.co" target="_blank" rel="noopener" style="color:#34d399; font-weight:600;">RandevuBurada</a> BooKi Hizmet Pazaryeridir. Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</span>
+            <span>
+                <a href="<?= base_url('privacy') ?>" style="color:rgba(255,255,255,.8);margin-right:1rem;">Gizlilik / Privacy</a>
+                <a href="<?= base_url('terms') ?>" style="color:rgba(255,255,255,.8);">Şartlar / Terms</a>
+            </span>
+        </div>
     </div>
 </footer>
 

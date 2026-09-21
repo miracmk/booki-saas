@@ -61,9 +61,47 @@ class Superadmin_settings extends EA_Controller
             'ai_model_openai' => master_setting('ai_model_openai') ?? 'gpt-4o-mini',
             'anthropic_api_key_set' => !empty(master_setting('anthropic_api_key')) || !empty(getenv('ANTHROPIC_API_KEY')),
             'ai_model_anthropic' => master_setting('ai_model_anthropic') ?? 'claude-3-5-haiku-20241022',
+
+            // BooKi Marketplace & Sectoral Commissions
+            'marketplace_commission_rate' => master_setting('marketplace_commission_rate') ?? '5.00',
+            'sector_commission_rates' => get_all_sector_commission_rates(),
+            'wallet_stats' => $this->get_wallet_stats(),
         ]);
 
         $this->load->view('pages/superadmin_settings');
+    }
+
+    /**
+     * Retrieve aggregate stats across all tenant wallets from master DB.
+     */
+    protected function get_wallet_stats(): array
+    {
+        $stats = [
+            'total_balance' => 0.00,
+            'total_earned' => 0.00,
+            'total_commission' => 0.00,
+            'active_wallets' => 0,
+        ];
+
+        try {
+            $master_db = $this->load->database('default', true);
+            if ($master_db && $master_db->table_exists('tenant_wallets')) {
+                $row = $master_db->select('SUM(balance) AS total_balance, SUM(total_earned) AS total_earned, SUM(total_commission) AS total_commission, COUNT(*) AS active_wallets')
+                    ->get('tenant_wallets')
+                    ->row_array();
+
+                if ($row) {
+                    $stats['total_balance'] = (float) ($row['total_balance'] ?? 0);
+                    $stats['total_earned'] = (float) ($row['total_earned'] ?? 0);
+                    $stats['total_commission'] = (float) ($row['total_commission'] ?? 0);
+                    $stats['active_wallets'] = (int) ($row['active_wallets'] ?? 0);
+                }
+            }
+        } catch (Throwable $e) {
+            log_message('error', 'Superadmin_settings::get_wallet_stats: ' . $e->getMessage());
+        }
+
+        return $stats;
     }
 
     public function save(): void
@@ -152,7 +190,88 @@ class Superadmin_settings extends EA_Controller
                 }
             }
 
+            // BooKi Marketplace Commissions
+            if (request('marketplace_commission_rate') !== null) {
+                $gen_rate = max(0, min(100, (float) request('marketplace_commission_rate')));
+                master_setting('marketplace_commission_rate', number_format($gen_rate, 2, '.', ''));
+            }
+
+            if (request('sector_rates') !== null && is_array(request('sector_rates'))) {
+                $cleaned_rates = [];
+                foreach (request('sector_rates') as $sec_key => $sec_rate) {
+                    $cleaned_rates[preg_replace('/[^a-z0-9_]/', '', (string)$sec_key)] = max(0, min(100, (float)$sec_rate));
+                }
+                master_setting('marketplace_sector_commission_rates', json_encode($cleaned_rates));
+            }
+
             json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Process daily settlements: calculates cleared payouts for tenants with positive balance,
+     * logs settlement records in wallet_ledger, and resets/transfers the balance.
+     */
+    public function process_daily_settlements(): void
+    {
+        try {
+            method('post');
+
+            $master_db = $this->load->database('default', true);
+            if (!$master_db || !$master_db->table_exists('tenant_wallets')) {
+                throw new RuntimeException('Cüzdan tablosu bulunamadı.');
+            }
+
+            $wallets = $master_db->select('tw.*, t.company_name, t.subdomain, t.iban, t.bank_name')
+                ->from('tenant_wallets tw')
+                ->join('tenants t', 't.id = tw.id_tenants', 'left')
+                ->where('tw.balance >', 0)
+                ->get()
+                ->result_array();
+
+            $processed_count = 0;
+            $total_settled_amount = 0.00;
+            $batch_ref = 'STLM-' . date('Ymd-His');
+
+            foreach ($wallets as $wallet) {
+                $payout_amount = (float) $wallet['balance'];
+                if ($payout_amount <= 0) {
+                    continue;
+                }
+
+                $tenant_name = $wallet['company_name'] ?: $wallet['subdomain'];
+
+                // Deduct from wallet balance
+                $master_db->where('id', $wallet['id'])
+                    ->update('tenant_wallets', [
+                        'balance' => 0.00,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                // Record settlement entry in ledger
+                $master_db->insert('wallet_ledger', [
+                    'id_tenants' => $wallet['id_tenants'],
+                    'type' => 'settlement',
+                    'amount' => -$payout_amount,
+                    'currency' => 'TRY',
+                    'reference_id' => $batch_ref . '-T' . $wallet['id_tenants'],
+                    'description' => 'Günlük Hakediş Transferi (' . $tenant_name . ' - ' . ($wallet['iban'] ? 'IBAN: ' . $wallet['iban'] : 'Banka Transferi') . ')',
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $processed_count++;
+                $total_settled_amount += $payout_amount;
+            }
+
+            json_response([
+                'success' => true,
+                'message' => "Günlük hakediş işlemi tamamlandı. {$processed_count} işletmeye toplam ₺" . number_format($total_settled_amount, 2) . " tutarında ödeme emri oluşturuldu.",
+                'processed_count' => $processed_count,
+                'total_settled_amount' => $total_settled_amount,
+                'batch_ref' => $batch_ref,
+            ]);
         } catch (Throwable $e) {
             json_exception($e);
         }

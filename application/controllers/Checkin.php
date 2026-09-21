@@ -58,7 +58,7 @@ class Checkin extends EA_Controller
     {
         $this->load->view('pages/kiosk', [
             'company_name' => setting('company_name') ?: 'BooKi',
-            'company_logo' => setting('company_logo') ?: base_url('assets/img/logo.png'),
+            'company_logo' => white_label_logo(),
             'touchless_url' => site_url('checkin/mobile'),
         ]);
     }
@@ -70,7 +70,7 @@ class Checkin extends EA_Controller
     {
         $this->load->view('pages/mobile_checkin', [
             'company_name' => setting('company_name') ?: 'BooKi',
-            'company_logo' => setting('company_logo') ?: base_url('assets/img/logo.png'),
+            'company_logo' => white_label_logo(),
         ]);
     }
 

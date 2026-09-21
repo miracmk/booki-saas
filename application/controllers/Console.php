@@ -362,6 +362,8 @@ class Console extends EA_Controller
             'address' => ['type' => 'TEXT', 'null' => true],
             'price_range' => ['type' => 'VARCHAR', 'constraint' => 16, 'null' => true, 'default' => '₺₺'],
             'working_hours_json' => ['type' => 'TEXT', 'null' => true],
+            'iban' => ['type' => 'VARCHAR', 'constraint' => 34, 'null' => true],
+            'bank_name' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
             // BooKi (2026-09-10) - tenant self-service custom domain (Custom_domain.php
             // controller). 'custom_domain' (above) is the LIVE, routed domain - untouched here until
             // the host-side domain-worker.sh actually provisions it. 'custom_domain_pending' is what
@@ -492,6 +494,248 @@ class Console extends EA_Controller
             $this->db->query('ALTER TABLE ' . $this->db->dbprefix('wallet_ledger') . ' ADD INDEX idx_wallet_tenant (id_tenants), ADD INDEX idx_wallet_created (created_at)');
             echo 'Created "wallet_ledger" table.' . PHP_EOL;
         }
+
+        // BooKi (2026-09-21) - SaaS Sales CRM & Lead Database
+        if (!$this->db->table_exists('leads')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'name' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => false],
+                'sector' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'district' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'address' => ['type' => 'TEXT', 'null' => true],
+                'contact_person' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'phone' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'whatsapp' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'email' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'website' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'instagram' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'reservation_type' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'verification' => ['type' => 'VARCHAR', 'constraint' => 64, 'default' => 'Doğrulanmış', 'null' => true],
+                'stage' => ['type' => 'VARCHAR', 'constraint' => 64, 'default' => 'Visit Planned', 'null' => false],
+                'priority' => ['type' => 'ENUM', 'constraint' => ['low', 'medium', 'high', 'urgent'], 'default' => 'medium', 'null' => false],
+                'lead_source' => ['type' => 'VARCHAR', 'constraint' => 64, 'default' => 'Field Research', 'null' => false],
+                'owner_id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true],
+                'owner_name' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'package' => ['type' => 'VARCHAR', 'constraint' => 64, 'default' => 'Henüz Seçilmedi', 'null' => true],
+                'billing_period' => ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'Aylık', 'null' => true],
+                'potential_mrr' => ['type' => 'DECIMAL', 'constraint' => '10,2', 'default' => 0.00, 'null' => false],
+                'demo_start_date' => ['type' => 'DATE', 'null' => true],
+                'demo_end_date' => ['type' => 'DATE', 'null' => true],
+                'trial_status' => ['type' => 'VARCHAR', 'constraint' => 32, 'null' => true],
+                'next_action' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'next_action_date' => ['type' => 'DATE', 'null' => true],
+                'notes' => ['type' => 'TEXT', 'null' => true],
+                'tags' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'converted_tenant_id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true],
+                'conversion_date' => ['type' => 'DATETIME', 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+                'updated_at' => ['type' => 'DATETIME', 'null' => true],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('leads', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('leads') . 
+                ' ADD INDEX idx_leads_stage (stage),' .
+                ' ADD INDEX idx_leads_sector (sector),' .
+                ' ADD INDEX idx_leads_district (district),' .
+                ' ADD INDEX idx_leads_phone (phone),' .
+                ' ADD INDEX idx_leads_email (email),' .
+                ' ADD INDEX idx_leads_converted_tenant (converted_tenant_id)');
+            echo 'Created "leads" table.' . PHP_EOL;
+        }
+
+        // Lead Activities (calls, WhatsApp, emails, visits, notes, etc.)
+        if (!$this->db->table_exists('lead_activities')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_leads' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'activity_type' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'title' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => false],
+                'description' => ['type' => 'TEXT', 'null' => true],
+                'performed_by' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'metadata_json' => ['type' => 'TEXT', 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('lead_activities', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('lead_activities') . 
+                ' ADD INDEX idx_act_leads (id_leads), ADD INDEX idx_act_type (activity_type)');
+            echo 'Created "lead_activities" table.' . PHP_EOL;
+        }
+
+        // Lead Stage History (audit trail of every pipeline move)
+        if (!$this->db->table_exists('lead_stage_history')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_leads' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'old_stage' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'new_stage' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'changed_by' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'reason_notes' => ['type' => 'TEXT', 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('lead_stage_history', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('lead_stage_history') . ' ADD INDEX idx_lsh_leads (id_leads)');
+            echo 'Created "lead_stage_history" table.' . PHP_EOL;
+        }
+
+        // Lead Tasks & Follow-ups
+        if (!$this->db->table_exists('lead_tasks')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_leads' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true],
+                'task_type' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'title' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => false],
+                'due_date' => ['type' => 'DATE', 'null' => false],
+                'due_time' => ['type' => 'TIME', 'null' => true],
+                'priority' => ['type' => 'ENUM', 'constraint' => ['low', 'medium', 'high', 'urgent'], 'default' => 'medium', 'null' => false],
+                'assigned_to' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'status' => ['type' => 'ENUM', 'constraint' => ['pending', 'in_progress', 'completed', 'cancelled'], 'default' => 'pending', 'null' => false],
+                'notes' => ['type' => 'TEXT', 'null' => true],
+                'completed_at' => ['type' => 'DATETIME', 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('lead_tasks', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('lead_tasks') . 
+                ' ADD INDEX idx_tasks_lead (id_leads), ADD INDEX idx_tasks_status (status), ADD INDEX idx_tasks_due (due_date)');
+            echo 'Created "lead_tasks" table.' . PHP_EOL;
+        }
+
+        // Field Visit Questionnaire Records
+        if (!$this->db->table_exists('lead_visits')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_leads' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'visit_date' => ['type' => 'DATETIME', 'null' => false],
+                'contact_person' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'position' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'current_booking_method' => ['type' => 'TEXT', 'null' => true],
+                'current_system' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'staff_count' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'resource_count' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'monthly_appointments' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'biggest_problem' => ['type' => 'TEXT', 'null' => true],
+                'most_needed_feature' => ['type' => 'TEXT', 'null' => true],
+                'uses_whatsapp' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'null' => false],
+                'uses_online_booking' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0, 'null' => false],
+                'competitor_system' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'budget_approach' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'decision_maker' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'purchase_timeframe' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'objections' => ['type' => 'TEXT', 'null' => true],
+                'quick_tags' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+                'suggested_stage' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'notes' => ['type' => 'TEXT', 'null' => true],
+                'created_by' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('lead_visits', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('lead_visits') . ' ADD INDEX idx_visits_lead (id_leads)');
+            echo 'Created "lead_visits" table.' . PHP_EOL;
+        }
+
+        // Onboarding Sessions (tokenized multi-step customer setup)
+        if (!$this->db->table_exists('onboarding_sessions')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_tenants' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'id_leads' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true],
+                'token' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'status' => ['type' => 'ENUM', 'constraint' => ['not_opened', 'opened', 'started', 'in_progress', 'completed'], 'default' => 'not_opened', 'null' => false],
+                'current_step' => ['type' => 'INT', 'default' => 1, 'null' => false],
+                'total_steps' => ['type' => 'INT', 'default' => 10, 'null' => false],
+                'progress_percent' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'session_data_json' => ['type' => 'MEDIUMTEXT', 'null' => true],
+                'expires_at' => ['type' => 'DATETIME', 'null' => false],
+                'first_opened_at' => ['type' => 'DATETIME', 'null' => true],
+                'last_activity_at' => ['type' => 'DATETIME', 'null' => true],
+                'completed_at' => ['type' => 'DATETIME', 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('onboarding_sessions', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('onboarding_sessions') . 
+                ' ADD UNIQUE INDEX idx_os_token (token),' .
+                ' ADD INDEX idx_os_tenant (id_tenants),' .
+                ' ADD INDEX idx_os_status (status)');
+            echo 'Created "onboarding_sessions" table.' . PHP_EOL;
+        }
+
+        // Import Jobs & Error Logs
+        if (!$this->db->table_exists('import_jobs')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'file_name' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => false],
+                'import_type' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'total_rows' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'imported_count' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'updated_count' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'duplicate_count' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'failed_count' => ['type' => 'INT', 'default' => 0, 'null' => false],
+                'status' => ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'completed', 'null' => false],
+                'created_by' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('import_jobs', true, ['engine' => 'InnoDB']);
+            echo 'Created "import_jobs" table.' . PHP_EOL;
+        }
+
+        if (!$this->db->table_exists('import_errors')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'id_jobs' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => false],
+                'row_number' => ['type' => 'INT', 'null' => false],
+                'raw_data_json' => ['type' => 'TEXT', 'null' => true],
+                'error_reason' => ['type' => 'TEXT', 'null' => false],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('import_errors', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('import_errors') . ' ADD INDEX idx_err_job (id_jobs)');
+            echo 'Created "import_errors" table.' . PHP_EOL;
+        }
+
+        // Master Audit Logs
+        if (!$this->db->table_exists('master_audit_logs')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'actor_username' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'action' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'entity_type' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'entity_id' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'description' => ['type' => 'TEXT', 'null' => true],
+                'ip_address' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+                'metadata_json' => ['type' => 'TEXT', 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('master_audit_logs', true, ['engine' => 'InnoDB']);
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('master_audit_logs') . 
+                ' ADD INDEX idx_mal_action (action),' .
+                ' ADD INDEX idx_mal_entity (entity_type, entity_id),' .
+                ' ADD INDEX idx_mal_created (created_at)');
+            echo 'Created "master_audit_logs" table.' . PHP_EOL;
+        }
+
+        // Additional columns on tenants for CRM & Onboarding linkage
+        $tenant_crm_columns = [
+            'id_leads' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true],
+            'acquisition_source' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'sales_owner' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+            'onboarding_status' => ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'pending', 'null' => false],
+            'onboarding_completed_at' => ['type' => 'DATETIME', 'null' => true],
+            'onboarding_token' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+        ];
+
+        foreach ($tenant_crm_columns as $col => $spec) {
+            if (!$this->db->field_exists($col, 'tenants')) {
+                $this->dbforge->add_column('tenants', [$col => $spec]);
+                echo 'Added "tenants.' . $col . '" column.' . PHP_EOL;
+            }
+        }
     }
 
     /**
@@ -531,6 +775,138 @@ class Console extends EA_Controller
         ]);
 
         echo 'Super-admin "' . $username . '" created.' . PHP_EOL;
+    }
+
+    /**
+     * BooKi (2026-09-21) - Seed the 560 reference portfolio leads into the master CRM database.
+     *
+     * Usage: php index.php console seed_initial_leads
+     */
+    public function seed_initial_leads(): void
+    {
+        $this->master_install();
+
+        $json_file = APPPATH . 'data/initial_560_leads.json';
+        if (!file_exists($json_file)) {
+            show_error('Reference leads data file not found at: ' . $json_file);
+            return;
+        }
+
+        $leads_data = json_decode(file_get_contents($json_file), true);
+        if (!is_array($leads_data) || empty($leads_data)) {
+            show_error('Invalid or empty JSON in ' . $json_file);
+            return;
+        }
+
+        $stage_map = [
+            'Planlı' => 'Visit Planned',
+            'Ziyaret Edildi' => 'Visited',
+            'Demo Sunuldu' => 'Demo Presented',
+            'Demo Satışı Yapıldı' => 'Trial Started',
+            'Yeniden Ziyaret' => 'Follow-up',
+            'Kazanıldı' => 'Won',
+            'Kaybedildi' => 'Lost',
+        ];
+
+        $package_prices = [
+            'Starter' => 1999.00,
+            'Professional' => 2199.00,
+            'Enterprise' => 4499.00,
+            'Henüz Seçilmedi' => 2199.00,
+        ];
+
+        // Ensure clean state if re-seeding reference portfolio
+        $existing_count = $this->db->count_all_results('leads');
+        if ($existing_count < 560) {
+            $this->db->truncate('leads');
+            $this->db->truncate('lead_activities');
+            echo 'Resetting leads table to import full 560 portfolio...' . PHP_EOL;
+        } else {
+            echo "Leads table already has {$existing_count} records." . PHP_EOL;
+            return;
+        }
+
+        $inserted = 0;
+        $now = date('Y-m-d H:i:s');
+
+        foreach ($leads_data as $item) {
+            $name = trim($item['name'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+
+            $raw_stage = trim($item['stage'] ?? 'Planlı');
+            $stage = $stage_map[$raw_stage] ?? 'Visit Planned';
+
+            $package = trim($item['package'] ?? 'Henüz Seçilmedi');
+            $mrr = $package_prices[$package] ?? 2199.00;
+
+            $demo_start = !empty($item['demo_start_date']) ? $item['demo_start_date'] : null;
+            $demo_end = !empty($item['demo_end_date']) ? $item['demo_end_date'] : null;
+            $trial_status = null;
+            if ($stage === 'Trial Started') {
+                $trial_status = 'active';
+            } elseif ($stage === 'Follow-up') {
+                $trial_status = 'ending_soon';
+            } elseif ($stage === 'Won') {
+                $trial_status = 'converted';
+            } elseif ($stage === 'Lost') {
+                $trial_status = 'cancelled';
+            }
+
+            $lead_record = [
+                'id' => (int) ($item['id'] ?? 0) ?: null,
+                'name' => $name,
+                'sector' => trim($item['sector'] ?? '💅 Güzellik & Tırnak'),
+                'district' => trim($item['district'] ?? 'Nilüfer'),
+                'address' => trim($item['address'] ?? ''),
+                'contact_person' => trim($item['contact_person'] ?? 'Yetkili'),
+                'phone' => trim($item['phone'] ?? ''),
+                'whatsapp' => trim($item['whatsapp'] ?? ($item['phone'] ?? '')),
+                'email' => trim($item['email'] ?? ''),
+                'website' => trim($item['website'] ?? ''),
+                'instagram' => trim($item['instagram'] ?? ''),
+                'reservation_type' => trim($item['reservation_type'] ?? 'Telefon / WhatsApp'),
+                'verification' => trim($item['verification'] ?? 'Doğrulanmış'),
+                'stage' => $stage,
+                'priority' => ($stage === 'Trial Started' || $stage === 'Follow-up') ? 'high' : 'medium',
+                'lead_source' => 'Field Research',
+                'owner_name' => 'Miraç',
+                'package' => $package,
+                'billing_period' => trim($item['billing_period'] ?? 'Aylık'),
+                'potential_mrr' => $mrr,
+                'demo_start_date' => $demo_start,
+                'demo_end_date' => $demo_end,
+                'trial_status' => $trial_status,
+                'next_action' => !empty($item['next_action_date']) ? 'Saha Takibi / Görüşme' : null,
+                'next_action_date' => !empty($item['next_action_date']) ? $item['next_action_date'] : null,
+                'notes' => trim($item['notes'] ?? ''),
+                'created_at' => !empty($item['last_updated']) ? date('Y-m-d H:i:s', strtotime($item['last_updated'])) : $now,
+                'updated_at' => $now,
+            ];
+
+            if ($lead_record['id'] === null) {
+                unset($lead_record['id']);
+            }
+
+            $this->db->insert('leads', $lead_record);
+            $lead_id = $lead_record['id'] ?? $this->db->insert_id();
+
+            // Record initial activity
+            $this->db->insert('lead_activities', [
+                'id_leads' => $lead_id,
+                'activity_type' => 'note',
+                'title' => 'Saha CRM Portföyüne Eklendi',
+                'description' => 'İşletme referans saha portföyünden sisteme aktarıldı. Aşama: ' . $stage,
+                'performed_by' => 'Sistem / Saha Satış',
+                'created_at' => $now,
+            ]);
+
+            $inserted++;
+        }
+
+        echo "Seeding completed: Exactly {$inserted} leads inserted into CRM." . PHP_EOL;
+        return;
     }
 
     /**
@@ -3880,10 +4256,10 @@ class Console extends EA_Controller
      *
      * @param int $hours_ahead Default 24 hours
      */
-    public function send_reminders(int $hours_ahead = 24): void
+    public function send_reminders(?int $hours_ahead = null): void
     {
         if (!is_multi_tenant_mode()) {
-            $count = $this->send_reminders_current_db((int) $hours_ahead);
+            $count = $this->send_reminders_current_db($hours_ahead);
             echo "Sent {$count} appointment reminder(s)." . PHP_EOL;
             return;
         }
@@ -3892,14 +4268,14 @@ class Console extends EA_Controller
         foreach ($tenants as $tenant) {
             echo 'Sending reminders for tenant "' . $tenant['subdomain'] . '"... ';
             $this->connect_tenant($tenant);
-            $count = $this->send_reminders_current_db((int) $hours_ahead);
+            $count = $this->send_reminders_current_db($hours_ahead);
             echo $count . ' reminder(s) sent' . PHP_EOL;
         }
 
         $this->connect_master();
     }
 
-    private function send_reminders_current_db(int $hours_ahead): int
+    private function send_reminders_current_db(?int $hours_ahead = null): int
     {
         $this->load->library('notifications');
         $this->load->library('channel_templates');
@@ -3908,30 +4284,63 @@ class Console extends EA_Controller
         $this->load->model('customers_model');
         $this->load->model('services_model');
         $this->load->model('providers_model');
+        $this->load->model('messaging_settings_model');
+
+        $msg_settings = $this->messaging_settings_model->get_settings();
+        if (isset($msg_settings['reminder_notifications_enabled']) && !(bool) $msg_settings['reminder_notifications_enabled']) {
+            return 0; // Tenant has disabled appointment reminders
+        }
+
+        if ($hours_ahead === null || $hours_ahead <= 0) {
+            $hours_ahead = (int) ($msg_settings['reminder_hours_ahead'] ?? 24);
+            if ($hours_ahead <= 0) {
+                $hours_ahead = 24;
+            }
+        }
 
         $now = date('Y-m-d H:i:s');
         $target_time = date('Y-m-d H:i:s', strtotime("+{$hours_ahead} hours"));
 
-        // Find upcoming confirmed/reserved appointments within time window
-        $appointments = $this->db
+        // Find upcoming confirmed/reserved appointments within time window that haven't received reminder yet
+        $this->db
             ->from('appointments')
             ->where('is_unavailability', false)
             ->where('start_datetime >=', $now)
             ->where('start_datetime <=', $target_time)
-            ->where_not_in('status', ['Cancelled', 'Draft'])
-            ->get()
-            ->result_array();
+            ->where_not_in('status', ['Cancelled', 'Draft']);
+
+        if ($this->db->field_exists('is_reminder_sent', 'appointments')) {
+            $this->db->where('is_reminder_sent', 0);
+        }
+
+        $appointments = $this->db->get()->result_array();
 
         $sent_count = 0;
+        $company_settings = [
+            'company_name' => setting('company_name'),
+            'company_link' => setting('company_link'),
+            'company_email' => setting('company_email'),
+            'company_color' => setting('company_color'),
+            'company_address' => setting('company_address'),
+            'company_phone' => setting('company_phone'),
+            'date_format' => setting('date_format'),
+            'time_format' => setting('time_format'),
+        ];
+
         foreach ($appointments as $appointment) {
             try {
                 $service = $this->services_model->find((int) $appointment['id_services']) ?: [];
                 $provider = $this->providers_model->find((int) $appointment['id_users_provider']) ?: [];
                 $customer = $this->customers_model->find((int) $appointment['id_users_customer']) ?: [];
-                $settings = $this->settings_model->get_settings();
 
                 if (!empty($customer)) {
-                    $this->notifications->notify_appointment_reminder($appointment, $provider, $service, $customer, $settings);
+                    $this->notifications->notify_appointment_reminder($appointment, $provider, $service, $customer, $company_settings);
+                    if ($this->db->field_exists('is_reminder_sent', 'appointments')) {
+                        $this->db->where('id', (int) $appointment['id'])->update('appointments', [
+                            'is_reminder_sent' => 1,
+                            'reminder_sent_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    }
                     $sent_count++;
                 }
             } catch (Throwable $e) {

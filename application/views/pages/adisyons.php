@@ -141,16 +141,16 @@
                             <th class="ps-3" style="width: 40px;">
                                 <input type="checkbox" class="form-check-input" id="select-all-adisyons" title="Tümünü Seç">
                             </th>
-                            <th>ADİSYON NO</th>
-                            <th>MÜŞTERİ / MASA</th>
-                            <th>SORUMLU PERSONEL</th>
-                            <th>DURUM</th>
-                            <th>ÖDEME DURUMU</th>
-                            <th>FATURA DURUMU</th>
-                            <th>TOPLAM TUTAR</th>
-                            <th>TAHSİL EDİLEN</th>
-                            <th>TARİH / SAAT</th>
-                            <th class="text-end pe-3">İŞLEMLER</th>
+                            <th>Adisyon No</th>
+                            <th>Müşteri / Masa</th>
+                            <th>Sorumlu Personel</th>
+                            <th>Durum</th>
+                            <th>Ödeme Durumu</th>
+                            <th>Fatura Durumu</th>
+                            <th>Toplam Tutar</th>
+                            <th>Tahsil Edilen</th>
+                            <th>Tarih / Saat</th>
+                            <th class="text-end pe-3"><?= lang('actions') ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -626,9 +626,9 @@ let invoicingAdisyonIds = [];
 
 // Initialize auto-open if passed from backend redirect
 document.addEventListener('DOMContentLoaded', function() {
-    const autoOpenId = '<?= $open_id ?? '' ?>';
-    if (autoOpenId && !isNaN(parseInt(autoOpenId))) {
-        openAdisyonDrawer(parseInt(autoOpenId));
+    const autoOpenId = <?= !empty($open_id) ? (int) $open_id : 'null' ?>;
+    if (autoOpenId) {
+        openAdisyonDrawer(autoOpenId);
     }
 
     // Bind Select All Checkbox

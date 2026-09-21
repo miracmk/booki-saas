@@ -187,13 +187,14 @@ class Google_integrations extends EA_Controller
             show_error('En az bir servis seçmelisiniz.', 400);
         }
 
-        $oauth_state = bin2hex(random_bytes(32));
+        $csrf_token = bin2hex(random_bytes(32));
+        $oauth_state = build_google_oauth_state($csrf_token, 'google_integrations/oauth_callback');
 
         session([
             'google_integrations_owner_type' => $owner_type,
             'google_integrations_owner_id' => $owner_id,
             'google_integrations_services' => $service_keys,
-            'google_integrations_oauth_state' => $oauth_state,
+            'google_integrations_oauth_state' => $csrf_token,
         ]);
 
         header('Location: ' . $this->google_integrations_client->get_auth_url($service_keys, $oauth_state));
@@ -208,10 +209,16 @@ class Google_integrations extends EA_Controller
             abort(403, 'Forbidden');
         }
 
-        $returned_state = request('state');
+        $returned_state = (string) request('state');
         $stored_state = session('google_integrations_oauth_state');
 
-        if (empty($returned_state) || empty($stored_state) || !hash_equals($stored_state, $returned_state)) {
+        $csrf_to_verify = $returned_state;
+        $unpacked = verify_google_oauth_state($returned_state);
+        if ($unpacked !== null && !empty($unpacked['csrf'])) {
+            $csrf_to_verify = $unpacked['csrf'];
+        }
+
+        if (empty($csrf_to_verify) || empty($stored_state) || !hash_equals($stored_state, $csrf_to_verify)) {
             session(['google_integrations_oauth_state' => null]);
             show_error('Security validation failed. Please try connecting Google again.', 403);
 

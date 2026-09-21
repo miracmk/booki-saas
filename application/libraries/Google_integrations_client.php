@@ -92,7 +92,8 @@ class Google_integrations_client
      */
     protected function get_client_id(): string
     {
-        return setting('google_client_id') ?: (config('google_client_id') ?: '');
+        return setting('google_client_id')
+            ?: (master_setting('google_client_id') ?: (config('google_client_id') ?: ''));
     }
 
     /**
@@ -100,7 +101,25 @@ class Google_integrations_client
      */
     protected function get_client_secret(): string
     {
-        return setting('google_client_secret') ?: (config('google_client_secret') ?: '');
+        return setting('google_client_secret')
+            ?: (master_setting('google_client_secret') ?: (config('google_client_secret') ?: ''));
+    }
+
+    /**
+     * BooKi (2026-09-19) - Get the OAuth redirect URI.
+     *
+     * @return string
+     */
+    public function get_redirect_uri(): string
+    {
+        $tenant_client_id = setting('google_client_id');
+
+        if (empty($tenant_client_id) && is_multi_tenant_mode()) {
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+            return 'https://' . $app_domain . '/google/oauth_callback';
+        }
+
+        return site_url('google_integrations/oauth_callback');
     }
 
     /**
@@ -120,7 +139,7 @@ class Google_integrations_client
         $this->client->setApplicationName('BooKi');
         $this->client->setClientId($this->get_client_id());
         $this->client->setClientSecret($this->get_client_secret());
-        $this->client->setRedirectUri(site_url('google_integrations/oauth_callback'));
+        $this->client->setRedirectUri($this->get_redirect_uri());
         $this->client->setPrompt('consent');
         $this->client->setAccessType('offline');
 

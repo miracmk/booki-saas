@@ -65,6 +65,10 @@ abstract class TenantTestCase extends BaseTestCase
         if (!self::$ci) {
             throw new RuntimeException('Failed to bootstrap CodeIgniter instance.');
         }
+
+        // Restore PHPUnit's error and exception handlers that CI3 overrode during boot
+        restore_error_handler();
+        restore_exception_handler();
     }
 
     /**
@@ -196,16 +200,26 @@ abstract class TenantTestCase extends BaseTestCase
     }
 
     /**
+     * Reconnect to the master DB ('default' connection group) and reset tenant context.
+     */
+    protected static function connect_master(): void
+    {
+        $ci = self::ci();
+        $ci->load->database('default', false, true);
+        $ci->load->dbforge();
+        if (function_exists('tenant_context_clear')) {
+            tenant_context_clear();
+        }
+    }
+
+    /**
      * Tear down the test: roll back any database changes made during the test.
      */
     protected function tearDown(): void
     {
         self::db()->trans_rollback();
 
-        // Clear tenant context to ensure isolation between tests
-        if (function_exists('tenant_context_clear')) {
-            tenant_context_clear();
-        }
+        self::connect_master();
 
         parent::tearDown();
     }

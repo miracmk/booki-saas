@@ -164,6 +164,16 @@ class Ai_llm_gateway
 
             $model = $options['model'] ?? $this->get_default_model($prov);
 
+            // The Anthropic branch of this gateway does not implement tool
+            // calling: it returns tool_calls: [] and the model would then
+            // answer WITHOUT any real data (hallucinating "rezervasyon yok").
+            // Never use it for a tool request - fall through to the next
+            // provider instead.
+            if (!empty($tools) && ($prov === 'anthropic' || $prov === 'claude')) {
+                log_message('debug', 'Ai_llm_gateway: skipping anthropic for a tool request.');
+                continue;
+            }
+
             try {
                 $result = match ($prov) {
                     'google', 'gemini' => $this->call_google_gemini($messages, $model, $key, $tools, $temperature, $max_tokens),
@@ -202,12 +212,12 @@ class Ai_llm_gateway
         }
 
         return match ($provider) {
-            'google', 'gemini' => getenv('GEMINI_MODEL') ?: 'gemini-2.5-flash',
-            'groq' => getenv('GROQ_MODEL') ?: 'openai/gpt-oss-120b',
+            'google', 'gemini' => getenv('GEMINI_MODEL') ?: 'gemini-2.0-flash',
+            'groq' => getenv('GROQ_MODEL') ?: 'qwen/qwen3.8-27b',
             'openrouter' => getenv('AI_AGENT_MODEL') ?: 'google/gemini-2.0-flash-exp:free',
             'openai' => getenv('OPENAI_MODEL') ?: 'gpt-4o-mini',
             'anthropic', 'claude' => getenv('ANTHROPIC_MODEL') ?: 'claude-3-5-haiku-20241022',
-            default => 'gemini-2.5-flash',
+            default => 'gemini-2.0-flash',
         };
     }
 
@@ -252,6 +262,9 @@ class Ai_llm_gateway
                 }
             } elseif ($role === 'tool') {
                 $response_data = is_array($content) ? $content : (json_decode((string) $content, true) ?: ['result' => $content]);
+                if (!is_array($response_data) || array_is_list($response_data)) {
+                    $response_data = ['response' => $response_data];
+                }
                 $contents[] = [
                     'role' => 'user',
                     'parts' => [
@@ -290,10 +303,14 @@ class Ai_llm_gateway
             foreach ($tools as $t) {
                 if (($t['type'] ?? '') === 'function' && !empty($t['function'])) {
                     $fn = $t['function'];
+                    $params = $fn['parameters'] ?? (object)[];
+                    if (is_array($params) && empty($params['properties'])) {
+                        $params['properties'] = (object)[];
+                    }
                     $function_declarations[] = [
                         'name' => $fn['name'],
                         'description' => $fn['description'] ?? '',
-                        'parameters' => $fn['parameters'] ?? (object)[],
+                        'parameters' => $params,
                     ];
                 }
             }
@@ -355,7 +372,7 @@ class Ai_llm_gateway
             'max_tokens' => $max_tokens,
         ];
         if (!empty($tools)) {
-            $payload['tools'] = $tools;
+            $payload['tools'] = $this->normalize_tools_for_openai($tools);
         }
 
         $headers = [
@@ -380,7 +397,7 @@ class Ai_llm_gateway
             'max_tokens' => $max_tokens,
         ];
         if (!empty($tools)) {
-            $payload['tools'] = $tools;
+            $payload['tools'] = $this->normalize_tools_for_openai($tools);
         }
 
         $headers = [
@@ -407,7 +424,7 @@ class Ai_llm_gateway
             'max_tokens' => $max_tokens,
         ];
         if (!empty($tools)) {
-            $payload['tools'] = $tools;
+            $payload['tools'] = $this->normalize_tools_for_openai($tools);
         }
 
         $headers = [
@@ -417,6 +434,42 @@ class Ai_llm_gateway
 
         $res = $this->http_post($url, $payload, $headers);
         return $res ? $this->parse_openai_response($res) : null;
+    }
+
+    /**
+     * Ensure tools schema is 100% compliant with JSON schema spec for OpenAI/Groq/OpenRouter.
+     * Prevents "got array, want object" errors for empty properties.
+     */
+    protected function normalize_tools_for_openai(?array $tools): ?array
+    {
+        if (empty($tools)) {
+            return null;
+        }
+
+        $normalized = [];
+        foreach ($tools as $t) {
+            if (($t['type'] ?? '') === 'function' && !empty($t['function'])) {
+                $fn = $t['function'];
+                $params = $fn['parameters'] ?? (object)[];
+                if (is_array($params)) {
+                    if (empty($params['properties'])) {
+                        $params['properties'] = (object)[];
+                    }
+                }
+                $normalized[] = [
+                    'type' => 'function',
+                    'function' => [
+                        'name' => $fn['name'],
+                        'description' => $fn['description'] ?? '',
+                        'parameters' => $params,
+                    ],
+                ];
+            } else {
+                $normalized[] = $t;
+            }
+        }
+
+        return $normalized;
     }
 
     /**

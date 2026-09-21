@@ -227,7 +227,7 @@ class Segments_model extends EA_Model
      *
      * @return int[]
      */
-    protected function vip_customer_ids(int $min_appointments): int
+    protected function vip_customer_ids(int $min_appointments): array
     {
         if ($min_appointments <= 0) {
             return $this->all_customer_ids();
@@ -252,7 +252,7 @@ class Segments_model extends EA_Model
      *
      * @return int[]
      */
-    protected function inactive_customer_ids(int $inactive_days): int
+    protected function inactive_customer_ids(int $inactive_days): array
     {
         $cutoff = date('Y-m-d H:i:s', strtotime('-' . max(0, $inactive_days) . ' days'));
 
@@ -278,7 +278,7 @@ class Segments_model extends EA_Model
      *
      * @return int[]
      */
-    protected function birthday_customer_ids(int $days_ahead, array $rules = []): int
+    protected function birthday_customer_ids(int $days_ahead, array $rules = []): array
     {
         $rule_field = $this->birthday_field($rules);
 

@@ -89,6 +89,13 @@ class Expenses extends EA_Controller
     public function delete(int $id): void
     {
         $this->ensure_authenticated();
+        if ($this->input->method() !== 'post') {
+            $this->output
+                ->set_status_header(405)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Method Not Allowed']));
+            return;
+        }
         $this->expenses_model->delete($id);
         $this->output
             ->set_content_type('application/json')

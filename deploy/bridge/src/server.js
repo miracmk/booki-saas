@@ -125,8 +125,12 @@ function readJson(req) {
 
 function tenantFromPath(pathname) {
     const match = pathname.match(/^\/v1\/session\/([^/]+)\//);
-
-    return match ? decodeURIComponent(match[1]) : null;
+    if (!match) return null;
+    const tenant = decodeURIComponent(match[1]);
+    if (!/^[a-zA-Z0-9_-]+$/.test(tenant)) {
+        return null;
+    }
+    return tenant;
 }
 
 async function handleHealth(req, res) {

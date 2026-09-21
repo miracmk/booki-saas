@@ -131,7 +131,14 @@ class Packages_model extends EA_Model
      */
     public function find(int $package_id): array
     {
-        $package = $this->db->get_where('customer_packages', ['id' => $package_id])->row_array();
+        $package = $this->db
+            ->select('cp.*, s.name as service_name, c.first_name as customer_first_name, c.last_name as customer_last_name, c.phone_number as customer_phone')
+            ->from('customer_packages cp')
+            ->join('services s', 's.id = cp.id_services', 'left')
+            ->join('users c', 'c.id = cp.id_users_customer', 'left')
+            ->where('cp.id', $package_id)
+            ->get()
+            ->row_array();
 
         if (!$package) {
             throw new InvalidArgumentException('The provided package ID was not found in the database: ' . $package_id);
@@ -184,11 +191,21 @@ class Packages_model extends EA_Model
      */
     public function search(string $keyword, ?int $limit = null, ?int $offset = null): array
     {
-        $packages = $this->db
-            ->select('cp.*, s.name as service_name')
+        $this->db
+            ->select('cp.*, s.name as service_name, c.first_name as customer_first_name, c.last_name as customer_last_name')
             ->from('customer_packages cp')
             ->join('services s', 's.id = cp.id_services', 'left')
-            ->like('s.name', $keyword)
+            ->join('users c', 'c.id = cp.id_users_customer', 'left');
+
+        if ($keyword !== '') {
+            $this->db->group_start()
+                ->like('s.name', $keyword)
+                ->or_like('c.first_name', $keyword)
+                ->or_like('c.last_name', $keyword)
+                ->group_end();
+        }
+
+        $packages = $this->db
             ->limit($limit)
             ->offset($offset)
             ->order_by('cp.created_at DESC')

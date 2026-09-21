@@ -31,8 +31,14 @@ function add_security_headers(): void
     // Referrer policy for privacy
     header('Referrer-Policy: strict-origin-when-cross-origin');
 
-    // Permissions policy - restrict sensitive features
-    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    // Permissions policy - restrict sensitive features, but allow mic/camera
+    // on the document itself (self). Previous value `microphone=(), camera=()`
+    // explicitly disallowed getUserMedia() on EVERY page (incl. the
+    // superadmin voice-call modal) and Chrome logs:
+    // "Permission 'microphone' is explicitly disallowed by permissions policy".
+    // geolocation stays fully blocked; mic/camera are delegated to same-origin
+    // only so no third-party iframe gets them for free.
+    header('Permissions-Policy: geolocation=(), microphone=(self), camera=(self)');
 
     // BooKi customization (2026-08-24, ISO 27001/SOC 2 hardening) - Content-Security-Policy.
     // Every asset (JS/CSS/fonts/images) is self-hosted (see SBOM.md) - nothing here is loaded from a
@@ -48,7 +54,16 @@ function add_security_headers(): void
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " .
             "img-src 'self' data:; " .
             "font-src 'self' data: https://fonts.gstatic.com; " .
-            "connect-src 'self'; " .
+            // NOTE (2026-09-21, superadmin voice-call fix): `connect-src 'self'`
+            // alone breaks future direct-browser AI/SIP media (ElevenLabs, Gemini,
+            // Zadarma) and `media-src` absence blocks blob: playback of TTS /
+            // recorded audio. getUserMedia() itself needs no CSP, but once the mic
+            // IS granted the call modal needs these. Keep 'self' first, allow-list
+            // only the voice-AI/SIP origins actually used.
+            "connect-src 'self' https://api.elevenlabs.io https://*.elevenlabs.io " .
+            "https://generativelanguage.googleapis.com https://*.googleapis.com " .
+            "https://api.zadarma.com https://*.zadarma.com wss: ws: blob:; " .
+            "media-src 'self' blob: data:; " .
             "frame-src 'self'; " .
             "frame-ancestors 'self'; " .
             "form-action 'self'; " .

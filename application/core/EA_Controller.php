@@ -164,29 +164,31 @@ class EA_Controller extends CI_Controller
         $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
         $superadmin_domain = getenv('SUPERADMIN_DOMAIN') ?: 'admin-bookiapp.kibusiness.co';
         $marketplace_domain = getenv('MARKETPLACE_DOMAIN') ?: 'booki.kibusiness.co';
+        $randevuburada_domain = getenv('RANDEVUBURADA_DOMAIN') ?: 'randevuburada.kibusiness.co';
 
         // BooKi (2026-08-26) - SaaS admin panel (admin-bookiapp.kibusiness.co): a completely
         // separate host from any tenant, never resolves to one - stays on the master DB for its whole
         // "Superadmin*" controller family (see SuperadminAuth.php's docblock). Any other controller
         // reached on this host 404s, same principle as Portal.php's bare-app-domain exception below.
         if ($host === $superadmin_domain) {
-            if (str_starts_with(strtolower((string) $this->router->class), 'superadmin')) {
+            if (str_starts_with(strtolower((string) $this->router->class), 'superadmin') || strtolower((string) $this->router->class) === 'customer_onboarding') {
                 return;
             }
 
             abort(404, 'Not Found');
         }
 
-        // BooKi - Marketplace discovery portal: reads
-        // from the master DB's `tenants` and `reviews` tables. Stays on master DB for any host.
+        // BooKi / RandevuBurada - Marketplace discovery portal, marketing site, and Customer Onboarding: reads
+        // from the master DB's `tenants`, `reviews`, and `onboarding_sessions` tables. Stays on master DB for any host.
         if (
             strtolower((string) $this->router->class) === 'marketplace'
             || strtolower((string) $this->router->class) === 'landing'
+            || strtolower((string) $this->router->class) === 'customer_onboarding'
         ) {
             return;
         }
 
-        if ($host === $marketplace_domain) {
+        if ($host === $marketplace_domain || $host === $randevuburada_domain) {
             abort(404, 'Not Found');
         }
 
@@ -215,6 +217,14 @@ class EA_Controller extends CI_Controller
             // Bare app-domain exception: the "which company are you with?" portal is the ONE thing
             // allowed to run against the master DB with no tenant resolved - see Portal.php's docblock.
             if ($host === $app_domain && strtolower((string) $this->router->class) === 'portal') {
+                return;
+            }
+
+            // BooKi (2026-09-19) - Google OAuth central relay: the central app domain receives OAuth
+            // callbacks from Google (https://bookiapp.kibusiness.co/google/oauth_callback) and relays
+            // them to the originating tenant based on the cryptographic signature in the state parameter.
+            if ($host === $app_domain && strtolower((string) $this->router->class) === 'google'
+                && strtolower((string) $this->router->method) === 'oauth_callback') {
                 return;
             }
 
@@ -346,13 +356,10 @@ class EA_Controller extends CI_Controller
             'available_languages' => config('available_languages'),
             'language' => $this->lang->language,
             'csrf_token' => $this->security->get_csrf_hash(),
-            // Salon Flora customization - whitelabeling: company_name/company_logo were already
-            // editable in General Settings and consumed by the public booking page, but the backend
-            // header (backend_header.php) hardcoded "BooKi" + the platform's own logo
-            // regardless of what a tenant configured. Loading them here, for every backend request,
-            // makes the header consume the same setting the admin panel lets staff edit.
+            // BooKi - whitelabeling: custom company_logo is only exposed when white-label
+            // package and setting are active; otherwise falls back to BooKi platform logo.
             'company_name' => $has_settings ? setting('company_name') : null,
-            'company_logo' => $has_settings ? setting('company_logo') : null,
+            'company_logo' => $has_settings ? white_label_logo() : base_url('assets/img/logo.png'),
             'industry_code' => $has_settings ? current_industry_code() : 'beauty_salon',
             'industry_info' => $has_settings ? current_industry_info() : null,
             'expiry_warning' => $this->build_expiry_warning(),

@@ -100,6 +100,9 @@
                                     <div class="form-text text-muted">
                                         <small>
                                             <?= lang('company_logo_hint') ?>
+                                            <?php if (!plan_allows('white_label')): ?>
+                                                <br><span class="text-warning"><i class="fas fa-info-circle me-1"></i>Özel logonuzun randevu ve giriş ekranlarında görünmesi için <strong>White-Label (Elite Plan)</strong> gereklidir.</span>
+                                            <?php endif; ?>
                                         </small>
                                     </div>
 

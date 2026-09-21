@@ -102,6 +102,49 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 6. Google Marketing (GA4/Ads): client_id/secret var ama gerçek OAuth consent akışı (analytics.readonly+adwords scope, mevcut Calendar-only akıştan AYRI) henüz yazılmadı — `get_access_token()` hâlâ ham/manuel yapıştırılan bir token bekliyor.
 7. Meta/Instagram gerçek sandbox kimlik bilgisiyle çok-kanallı AI Asistan canlı testi.
 8. Zoho CRM (hem platform hem landing/lead formu) gerçek kimlik bilgisi.
+### 🚀 Dalga 7 — Tüm Ekosistem Denetimi, Güvenlik, Frontend/UI/UX, Mimari ve Büyüme Düzeltmeleri (2026-09-20)
+
+> 5 Uzman Agent (Frontend & UI/UX, Backend & Mimari, QA & Test Otomasyon, Security & DevOps, Pazarlama & Customer Success) tarafından tüm kod tabanı, web sitesi, marketplace ve altyapı en baştan taranarak tespit edilen açıklar, kırık bağlantılar, performans ve tasarım uyumsuzlukları planlanmış ve uygulanmaktadır.
+
+#### 1. Backend & Mimari Düzeltmeleri
+- [x] **`is_multi_tenant_mode()` DB Swap Çökmesi:** `tenant_context()` doluyken tenant DB'de `tenants` tablosu arandığı için `false` dönmesi ve plan haklarının (Free kullanıcıların Elite özelliklere erişmesi) bypass edilmesi düzeltildi (`tenant_context() !== null` kontrolü eklendi).
+- [x] **OAuth Relay State Güvenliği:** `tenant_helper.php` içindeki hardcoded fallback key kaldırıldı; geçerli environment anahtarı yoksa güvenli hata fırlatılması sağlandı.
+- [x] **Rota Çakışması (`/portal`):** `routes.php`'deki `customers/portal` (olmayan metot) rota çakışması giderildi; çıplak domain'de `portal` tenant arama motoruna, tenant altında `customer_portal` müşteri self-servis paneline yönlendirildi.
+- [x] **Gemini Protobuf Struct Uyumsuzluğu:** `Ai_llm_gateway.php` içinde tool çıktılarının (hizmet listeleri, randevular) JSON array olması durumunda Gemini API'nin HTTP 400 hatası vermesi `['response' => $data]` ile sarılarak çözüldü. Model fallback `gemini-2.0-flash` olarak güncellendi.
+- [x] **White-Label Tekil Kurulum Desteği:** Tek kiracılı (single-tenant) bağımsız kurulumlarda `company_logo`'nun beyaz etiket anahtarı aranmaksızın aktif olması sağlandı.
+
+#### 2. Güvenlik & DevOps Düzeltmeleri
+- [x] **Secret Leak Koruması:** `deploy/docker-compose.yml` içindeki hardcoded fallback Google Client Secret kaldırıldı.
+- [x] **Kiosk PII Veri Sızıntısı:** `Checkin::do_kiosk_action` üzerinden telefon numarası girilerek müşterinin tüm şifrelenmemiş PII verilerinin (adres, notlar vb.) çekilebilmesi engellendi; sadece kiosk onayına gereken asgari veri döndürüldü.
+- [x] **Genel Arama (Global Search) Yetkilendirmesi:** `Search::global_query` controller metoduna eksik olan kimlik doğrulama kontrolü eklendi.
+- [x] **Adisyon Reflected XSS Açığı:** `views/pages/adisyons.php` içindeki inline script'te filtrelenmemiş `open_id` parametresi tam sayıya `(int)` dönüştürülerek XSS açığı kapatıldı.
+- [x] **Giderler (Expenses) CSRF Açığı:** `Expenses::delete` metodunun GET isteğiyle silme yapması engellendi, `POST` ve CSRF token zorunlu hale getirildi.
+- [x] **WhatsApp Bridge Path Traversal:** `deploy/bridge/src/server.js` ve `bridge.js` içindeki kiracı oturum parametresi regex (`^[a-zA-Z0-9_-]+$`) ile kısıtlanarak dizin silme açığı önlendi.
+- [x] **Mobil Oturum Düşmesi:** `config.php` içindeki `sess_match_ip = false` yapılarak mobil hat değişimlerinde oturumun beklenmedik şekilde sonlanması engellendi.
+
+#### 3. Frontend & UI/UX Düzeltmeleri
+- [x] **Onboarding Sihirbazı Çökmesi (P0):** `onboarding.php` içinde olmayan `assets/ext/` dizinine giden jQuery ve Bootstrap script referansları `assets/vendor/` ile düzeltildi (`$ is not defined` hatası giderildi).
+- [x] **Müşteri Portalı 404 Varlıkları (P0):** `customer_portal.php` içindeki eksik FontAwesome ve Bootstrap Bundle JS 404 yolları düzeltildi, QR modal çökmesi giderildi.
+- [x] **Üçüncü Parti QR Sızıntısı:** Müşteri kimlik numarasını dış sunucuya gönderen `api.qrserver.com` yerine yerel `assets/vendor/qrcodejs/qrcode.min.js` entegre edildi.
+- [x] **Marketplace Kırık Linkler (404):** `marketplace_index.php` navbar ve footer'ındaki `/login`, `/portal`, `/docs` bağlantıları platform tam URL'sine bağlandı.
+- [x] **Landing Sayfası Mobil Menü Eksikliği:** 880px altındaki ekranlarda kaybolan menü için responsive hamburger toggle menü ve drawer eklendi.
+- [x] **Boş Özel Alan Adı Hatası:** `landing_home.php` içinde boş özel alan adı durumunda `https:///` oluşması önlendi.
+- [x] **FontAwesome Sürüm Uyumsuzluğu:** `backend_header.php` içindeki eski ikon sınıfları FontAwesome standartlarına uyarlandı.
+
+#### 4. Pazarlama, SEO, Marketplace Dönüşümü & Müşteri Başarısı
+- [x] **Pazar Yeri Attribution & Komisyon Takibi (Kritik Gelir Açığı):** Pazar yerinden gelen randevu yönlendirmesinde (`?ref=marketplace`) çerezlerin alan adı izolasyonu ve AJAX kaydında query string'in kaybolması sorunu `booking_http_client.js` ve `Booking.php` içinde çözüldü. Randevu notuna `[Pazar Yeri]` etiketi eksiksiz işlendi.
+- [x] **Komisyon Durum Tetikleyicisi:** `Appointments_model.php` komisyon hesaplaması sadece `closed` değil, `tamamlandı`, `completed`, `attended` durumlarında da otomatik devreye girecek şekilde genişletildi.
+- [x] **Fiyatlandırma & Paket Karşılaştırma:** `landing_home.php` üzerine Free (0 ₺), Basic (490 ₺), Premium (990 ₺) ve Elite (1.990 ₺) paketlerini, özellik matrisini ve yükseltme yönlendirmelerini içeren şık bir fiyatlandırma bölümü eklendi.
+- [x] **SEO & AI (GEO) Zenginleştirmesi:** Landing sayfasına OpenGraph `og:image` (social-card), Twitter Card etiketleri ve Schema.org `SoftwareApplication` JSON-LD zengin veri yapısı eklendi. `sitemap.xml` ve `llms.txt` güncellendi.
+- [x] **Müşteri Şifre Kurtarma:** Müşterilerin kullanıcı adı bilmeksizin e-posta ile şifre sıfırlama talebi gönderebilmesi sağlandı.
+
+#### 5. 220+ Use Case Senaryolu Full System Test & Canlı Dağıtım (Deploy)
+- [x] **220 Ayrı Use Case Senaryosu:** 8 kritik modülde (Kimlik/Güvenlik, Kiracı/Plan, Randevu/Çakışma Motoru, Müşteri/CRM/KVKK, Hizmet/Sağlayıcı, Adisyon/POS/Cüzdan, Marketplace/Attribution, AI/Omnichannel) toplam 220 ayrı uçtan uca senaryo `tests/System/` altında üretildi.
+- [x] **Tek Çatı Altında Full System Test Runner:** `scripts/run_full_system_test.sh` ile syntax linting, dosya senkronizasyonu, 276 testlik PHPUnit (56 birim/entegrasyon + 220 use case) paketi, 9 kritik canlı HTTP uç noktası ve güvenlik kapıları tek komutla çalıştırılabilir hale getirildi.
+- [x] **Down - Build - Up - Live Döngüsü:** Tüm konteynerlar (`ki-reservation-app`, `ki-reservation-db`, `kirsv-mcp`, `ki-wa-bridge`) `docker compose down` ile indirildi, en güncel kaynak kodlarıyla `docker compose build` edilip `up -d` ile canlıya alındı.
+- [x] **Canlı Sistem Doğrulaması:** Canlıya alınan yeni konteynerler üzerinde tam sistem testi yürütülerek 276 test (%100 OK, 531 assertion) ve tüm canlı web/API uç noktaları kusursuz şekilde doğrulandı.
+
+---
 
 ## Kapsam Dışı / Ayrı Konu
 
@@ -112,4 +155,34 @@ Bu karar Faz 1 ve Dalga 5'teki "Organization katmanı" maddesini kapsam dışı 
 | Çoklu-organizasyon (tek çatı altında N tenant) | Kullanıcı kararı: her organizasyon ayrı tenant satın alımı olarak kalacak |
 
 ---
-*Son güncelleme (2026-09-17): Dalga 0 canlıya alındı (BooKi rebrand, landing, domain şeması, Google OAuth client), Dalga 1 canlı deploy notu düzeltildi (yanlışlıkla "deploy edilmedi" yazıyordu), Dalga 6 eklendi (8 sayfa denetimi, çok-kanallı AI Asistan, Marketing/POS/ERP kurumsal genişletmeleri + gerçek API doküman araştırması ve düzeltmeleri). Güncel git HEAD: `f5f6de9`. Detay: `docs/SESSION_NOTES.md`.*
+*Son güncelleme (2026-09-20): Dalga 7 — Tüm Ekosistem Denetimi (Frontend, Backend, QA, UI/UX, Security/DevOps, Marketing, Customer Success) tamamlandı ve tüm düzeltmeler uygulandı. Güncel git durumu: temiz ve doğrulanmış.*
+
+---
+
+### 🟡 Dalga 8 — Hesaplama Motoru Güncellemesi: İşlem Bazlı + Süre Bazlı Hizmet Varyasyonları (Planlanıyor)
+
+> Şu anki fiyatlandırma motoru doğrudan süre bazlı (dakika × saatlik ücret) çalışıyor — masaj gibi hizmetlerde sorunsuz. Ancak farklı hizmet kategorileri için **işlem bazlı** fiyatlandırma da desteklenmeli:
+> - Cilt bakımı, saç boyama, araç yıkama, doktor muayenehanesi gibi hizmetler tek seans/satış başı sabit fiyatla çalışsın.
+> - Aynı hizmet için farklı süre varyasyonları (ör. "Basik Masaj 30dk / 60dk / 90dk") hizmet altına ekleneabilsin.
+>
+> Yeni bir dalga olarak planlanıyor — kod yazılmadan önce teknik tasarım ve backlog hazırlanacak.
+
+- [ ] Hesaplama (fiyatlandırma) motoru genişletildi — süre bazlı + işlem bazlı destek
+- [ ] Hizmetler altında süre bazlı varyasyon ekleme / düzenleme / silme (AJAX endpoint'leri)
+- [ ] Fiyatlandırma başlangıcı: `services` tablosuna `price_type` (duration | bundle | fixed | hybrid) ve `variations` yapısı
+- [ ] Tasarım/teknik backlog başlatıldı (Henüz kod yazılmadı — kullanıcı onayı / beyanı bekliyor)
+
+---
+
+### 🟡 Dalga 8 — Hesaplama Motoru Güncellemesi: İşlem Bazlı + Süre Bazlı Hizmet Varyasyonları (Planlanıyor)
+
+> Şu anki fiyatlandırma motoru doğrudan süre bazlı (dakika × saatlik ücret) çalışıyor — masaj gibi hizmetlerde sorunsuz. Ancak farklı hizmet kategorileri için **işlem bazlı** fiyatlandırma da desteklenmeli:
+> - Cilt bakımı, saç boyama, araç yıkama, doktor muayenehanesi gibi hizmetler tek seans/satış başı sabit fiyatla çalışsın.
+> - Aynı hizmet için farklı süre varyasyonları (ör. "Basik Masaj 30dk / 60dk / 90dk") hizmet altına ekleneabilsin.
+>
+> Yeni bir dalga olarak planlanıyor — kod yazılmadan önce teknik tasarım ve backlog hazırlanacak.
+
+- [ ] Hesaplama (fiyatlandırma) motoru genişletildi — süre bazlı + işlem bazlı destek
+- [ ] Hizmetler altında süre bazlı varyasyon ekleme / düzenleme / silme (AJAX endpoint'leri)
+- [ ] Fiyatlandırma başlangıcı: `services` tablosuna `price_type` (duration | bundle | fixed | hybrid) ve `variations` yapısı
+- [ ] Tasarım/teknik backlog başlatıldı (Henüz kod yazılmadı — kullanıcı onayı / beyanı bekliyor)

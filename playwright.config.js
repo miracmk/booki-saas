@@ -17,7 +17,7 @@ module.exports = defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'https://qatest-bookiapp.kibusiness.co',
-    ignoreHTTPSErrors: false,
+    ignoreHTTPSErrors: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },

@@ -77,6 +77,23 @@ class Ai_agent_client
         [
             'type' => 'function',
             'function' => [
+                'name' => 'list_appointments',
+                'description' => 'Sistemdeki TÜM randevuları/rezervasyonları tarih aralığında listeler (varsayılan: bugünden itibaren 30 gün). "Rezervasyonlar neler?", "rezervasyon var mı?", "yaklaşan randevular" gibi sorularda ÖNCE BU ARACI çağır; asla uydurma.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'from_date' => ['type' => 'string', 'description' => 'Başlangıç tarihi (YYYY-MM-DD). Boşsa bugün.'],
+                        'to_date' => ['type' => 'string', 'description' => 'Bitiş tarihi (YYYY-MM-DD). Boşsa from_date + 30 gün.'],
+                        'customer_id' => ['type' => 'integer', 'description' => 'Opsiyonel: sadece bu müşterinin randevuları.'],
+                        'status' => ['type' => 'string', 'description' => 'Opsiyonel durum filtresi (kısmi eşleşme, örn: reserved, confirmed).'],
+                        'limit' => ['type' => 'integer', 'description' => 'Maksimum kayıt sayısı (varsayılan 50, en fazla 100).'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'type' => 'function',
+            'function' => [
                 'name' => 'get_appointment_details',
                 'description' => 'Randevu ID ile detaylı randevu bilgilerini getirir (müşteri adı/telefonu, hizmet adı, uzman, saatler, durum, notlar).',
                 'parameters' => [
@@ -217,15 +234,29 @@ class Ai_agent_client
      * final plain-text answer (or the iteration cap is hit).
      *
      * @param array $messages Conversation history: [['role' => 'user'|'assistant'|'tool', 'content' => string, ...], ...]
+     * @param string|null $summary Optional rolling summary of older turns (long-term
+     *   memory produced by summarize_history()); injected as a system reminder.
      *
      * @return array ['reply' => string, 'tool_calls' => array]
      */
-    public function chat(array $messages): array
+    public function chat(array $messages, ?string $summary = null): array
     {
-        $conversation = array_merge([
+        $conversation = [
             ['role' => 'system', 'content' => $this->build_system_prompt()],
-        ], $messages);
+        ];
 
+        // Long-term memory: when the message window overflows, older turns are
+        // collapsed into this summary so the model never fully loses context
+        // (the root cause of the previous "bağlam kopması" reports).
+        if ($summary !== null && trim($summary) !== '') {
+            $conversation[] = [
+                'role' => 'system',
+                'content' => "ÖNCEKİ KONUŞMA ÖZETİ (bu oturumun daha eski turlarından, kelimesi kelimesine değil ama anlam olarak sadık):\n" . trim($summary),
+            ];
+        }
+
+        $base_count = count($conversation);
+        $conversation = array_merge($conversation, $messages);
         $tool_call_log = [];
 
         for ($i = 0; $i < self::MAX_TOOL_ITERATIONS; $i++) {
@@ -277,8 +308,95 @@ class Ai_agent_client
         return [
             'reply' => (string) ($response['reply'] ?? 'İşlem tamamlandı.'),
             'tool_calls' => $tool_call_log,
-            'turn_messages' => array_slice($conversation, count($messages) + 1),
+            // Only the NEW assistant/tool messages produced during this turn
+            // (the caller persists them; $base_count skips system + summary).
+            'turn_messages' => array_slice($conversation, $base_count + count($messages)),
         ];
+    }
+
+    /**
+     * Collapse a closed conversation (or any set of older messages) into a
+     * compact rolling summary, so long-term context survives even after the
+     * raw messages leave the LLM window or the session thread is closed.
+     * Tries an LLM call first; on failure falls back to a deterministic
+     * truncation-style summary so memory never silently vanishes.
+     *
+     * @param array $older_messages Rows/messages in the ['role'|'content'|'tool_name'|...] shape
+     *   (session history arrays or ai_agent_messages rows both work).
+     * @param string $previous_summary Summary accumulated so far (may be empty).
+     *
+     * @return string
+     */
+    public function summarize_history(array $older_messages, string $previous_summary = ''): string
+    {
+        $lines = [];
+
+        if ($previous_summary !== '') {
+            $lines[] = "[Önceki özet]\n" . $previous_summary;
+        }
+
+        foreach ($older_messages as $m) {
+            $role = $m['role'] ?? 'user';
+            $content = trim((string) ($m['content'] ?? ''));
+            if ($content === '') {
+                continue;
+            }
+
+            // Tool results can be huge JSON blobs - keep only a short digest.
+            if ($role === 'tool') {
+                $content = mb_substr($content, 0, 300) . (mb_strlen($content) > 300 ? '…' : '');
+                $lines[] = "[Araç sonucu: " . ($m['tool_name'] ?? 'bilinmeyen') . "] " . $content;
+                continue;
+            }
+
+            // Drop assistant tool_calls payloads (duplicated as tool results).
+            if (!empty($m['tool_calls']) && $content === '') {
+                continue;
+            }
+
+            $label = $role === 'user' ? 'Personel' : 'Asistan';
+            $lines[] = "[{$label}] " . mb_substr($content, 0, 800) . (mb_strlen($content) > 800 ? '…' : '');
+        }
+
+        $digest = implode("\n", $lines);
+        if ($digest === '') {
+            return $previous_summary;
+        }
+
+        // Try an LLM-compressed summary; fall back to the raw digest so that
+        // even if every provider fails, memory is preserved verbatim-ish.
+        $summarized = $this->summarize_via_llm($previous_summary, $digest);
+
+        return $summarized !== null ? $summarized : $digest;
+    }
+
+    /**
+     * Ask the LLM to compress older conversation turns into a short summary.
+     *
+     * @return string|null null when no provider is reachable.
+     */
+    private function summarize_via_llm(string $previous_summary, string $digest): ?string
+    {
+        $messages = [
+            ['role' => 'system', 'content' =>
+                'Sen bir konuşma özetleyicisin. Verilen önceki özeti ve yeni konuşma turlarını, sonraki turlarda asistanın bağlamı hatırlaması için 300 kelimeyi geçmeyen, madde işaretli, TÜRKÇE bir özete dönüştür. Müşteri adları, randevu tarih/saatleri, ID numaraları ve alınan kararları KORU. Yalnızca özeti döndür.'],
+            ['role' => 'user', 'content' => "ÖNCEKİ ÖZET:\n" . ($previous_summary ?: '(yok)') . "\n\nYENİ KONUŞMA TURLARI:\n" . $digest],
+        ];
+
+        try {
+            $response = $this->CI->ai_llm_gateway->chat($messages, [
+                'temperature' => 0.1,
+                'max_tokens' => 512,
+            ]);
+
+            if ($response !== null && !empty($response['success']) && trim((string) ($response['reply'] ?? '')) !== '') {
+                return trim((string) $response['reply']);
+            }
+        } catch (Throwable $e) {
+            log_message('error', 'Ai_agent_client summarize_via_llm failed: ' . $e->getMessage());
+        }
+
+        return null;
     }
 
     /**
@@ -362,6 +480,11 @@ class Ai_agent_client
                     if (empty($date)) {
                         $date = date('Y-m-d');
                     }
+
+                    // Normalize the model-supplied date (may arrive with time,
+                    // dashes instead of dashes variants, etc.).
+                    $ts = strtotime($date);
+                    $date = $ts !== false ? date('Y-m-d', $ts) : date('Y-m-d');
                     $status_filter = trim((string) ($args['status'] ?? ''));
 
                     $query = $CI->db
@@ -373,14 +496,20 @@ class Ai_agent_client
                         ->join('services s', 's.id = a.id_services', 'left')
                         ->join('users c', 'c.id = a.id_users_customer', 'left')
                         ->join('users p', 'p.id = a.id_users_provider', 'left')
-                        ->where('a.is_unavailability', false)
+                        // Explicit integer: CI binds PHP false as '' which only
+                        // works by MySQL coincidence ('' = 0). Be deliberate.
+                        ->where('a.is_unavailability', 0)
                         ->where('a.start_datetime >=', $date . ' 00:00:00')
                         ->where('a.start_datetime <=', $date . ' 23:59:59');
 
                     if ($status_filter !== '') {
-                        $query->where('a.status', $status_filter);
+                        $query->like('a.status', $status_filter);
                     } else {
-                        $query->where_not_in('a.status', ['Cancelled', 'Draft']);
+                        // Tenant data uses localized/free-form statuses ('',
+                        // 'Booked', 'Tamamlandı', 'completed', ...). Only
+                        // exclude genuine cancellations so real reservations
+                        // are never silently hidden from the agent.
+                        $query->where("(a.status IS NULL OR a.status = '' OR LOWER(a.status) NOT IN ('cancelled', 'canceled', 'iptal', 'iptal edildi'))", null, false);
                     }
 
                     $rows = $query->order_by('a.start_datetime', 'ASC')->limit(50)->get()->result_array();
@@ -408,6 +537,66 @@ class Ai_agent_client
                         ],
                         'notes' => $r['notes'],
                     ], $rows);
+
+                case 'list_appointments':
+                    $from = trim((string) ($args['from_date'] ?? ''));
+                    $ts = $from !== '' ? strtotime($from) : false;
+                    $from = $ts !== false ? date('Y-m-d', $ts) : date('Y-m-d');
+
+                    $to = trim((string) ($args['to_date'] ?? ''));
+                    $ts = $to !== '' ? strtotime($to) : false;
+                    $to = $ts !== false ? date('Y-m-d', $ts) : date('Y-m-d', strtotime($from . ' +30 days'));
+
+                    if ($to < $from) {
+                        [$from, $to] = [$to, $from];
+                    }
+
+                    $customer_id = (int) ($args['customer_id'] ?? 0);
+                    $status_filter = trim((string) ($args['status'] ?? ''));
+                    $limit = max(1, min(100, (int) ($args['limit'] ?? 50)));
+
+                    $query = $CI->db
+                        ->select('a.id, a.start_datetime, a.end_datetime, a.status, a.notes,
+                                  s.id as service_id, s.name as service_name,
+                                  c.id as customer_id, c.first_name as customer_first_name, c.last_name as customer_last_name, c.phone_number as customer_phone,
+                                  p.id as provider_id, p.first_name as provider_first_name, p.last_name as provider_last_name')
+                        ->from('appointments a')
+                        ->join('services s', 's.id = a.id_services', 'left')
+                        ->join('users c', 'c.id = a.id_users_customer', 'left')
+                        ->join('users p', 'p.id = a.id_users_provider', 'left')
+                        ->where('a.is_unavailability', 0)
+                        ->where('a.start_datetime >=', $from . ' 00:00:00')
+                        ->where('a.start_datetime <=', $to . ' 23:59:59');
+
+                    if ($customer_id > 0) {
+                        $query->where('a.id_users_customer', $customer_id);
+                    }
+
+                    if ($status_filter !== '') {
+                        $query->like('a.status', $status_filter);
+                    } else {
+                        $query->where("(a.status IS NULL OR a.status = '' OR LOWER(a.status) NOT IN ('cancelled', 'canceled', 'iptal', 'iptal edildi'))", null, false);
+                    }
+
+                    $rows = $query->order_by('a.start_datetime', 'ASC')->limit($limit)->get()->result_array();
+
+                    return [
+                        'range' => $from . ' .. ' . $to,
+                        'count' => count($rows),
+                        'appointments' => array_map(static fn (array $r) => [
+                            'appointment_id' => (int) $r['id'],
+                            'start_datetime' => $r['start_datetime'],
+                            'end_datetime' => $r['end_datetime'],
+                            'status' => $r['status'] !== '' && $r['status'] !== null ? $r['status'] : 'Planlandı',
+                            'customer' => [
+                                'id' => (int) $r['customer_id'],
+                                'name' => trim(($r['customer_first_name'] ?? '') . ' ' . ($r['customer_last_name'] ?? '')),
+                                'phone' => $r['customer_phone'],
+                            ],
+                            'service_name' => $r['service_name'],
+                            'provider_name' => trim(($r['provider_first_name'] ?? '') . ' ' . ($r['provider_last_name'] ?? '')),
+                        ], $rows),
+                    ];
 
                 case 'get_appointment_details':
                     $appointment_id = (int) ($args['appointment_id'] ?? 0);
@@ -464,14 +653,17 @@ class Ai_agent_client
 
                 case 'check_availability':
                     $date = trim((string) ($args['date'] ?? date('Y-m-d')));
+                    $ts = $date !== '' ? strtotime($date) : false;
+                    $date = $ts !== false ? date('Y-m-d', $ts) : date('Y-m-d');
                     $service_id = (int) ($args['service_id'] ?? 0);
 
                     $existing = $CI->db
                         ->select('start_datetime, end_datetime')
                         ->from('appointments')
+                        ->where('is_unavailability', 0)
                         ->where('start_datetime >=', $date . ' 00:00:00')
                         ->where('start_datetime <=', $date . ' 23:59:59')
-                        ->where_not_in('status', ['Cancelled', 'Draft'])
+                        ->where("(status IS NULL OR status = '' OR LOWER(status) NOT IN ('cancelled', 'canceled', 'iptal', 'iptal edildi'))", null, false)
                         ->get()
                         ->result_array();
 
@@ -691,11 +883,13 @@ PERSONEL / UZMANLAR:
 
 YETKİ VE ARAÇ KULLANIM KURALLARI:
 1. Her zaman TÜRKÇE, nazik, net ve çözüm odaklı konuş.
-2. Randevuları ve takvimi görmek için:
+2. Randevuları ve takvimi görmek için ASLA UYDURMA, mutlaka araç çağır:
+   - "Rezervasyonlar neler?", "rezervasyon var mı?", "yaklaşan randevular" gibi GENEL listeleme sorularında: list_appointments aracını kullan (bugünden itibaren varsayılan 30 gün).
    - Bugünkü veya belirli bir gündeki randevuları sormuşlarsa: get_appointments_by_date aracını kullan.
-   - Belirli bir müşterinin randevularını sormuşlarsa: search_customers ve get_customer_appointments araçlarını kullan.
+   - Belirli bir müşterinin randevularını sormuşlarsa: önce search_customers ile müşteriyi bul, sonra get_customer_appointments aracını kullan.
    - Randevunun tüm detayları için: get_appointment_details aracını kullan.
    - Asla "göremiyorum" deme; ilgili araçları çağırarak verileri incele ve personele sun.
+   - Araç sonucu boşsa bile yalnızca SORGULADIĞIN aralık/durum için "kayıt bulunamadı" de ve alternatif bir aralık önner; genel olarak "sistemde hiç rezervasyon yok" gibi bir genelleme yapma.
 3. Hizmet ve çalışan bilgileri için get_services ve get_providers araçlarını kullan.
 4. Müsaitlik sorgulamak için check_availability aracını kullan.
 5. Randevu oluşturma, iptal etme, saat değiştirme veya müşteri güncelleme taleplerinde ilgili propose_* aracını çağır.

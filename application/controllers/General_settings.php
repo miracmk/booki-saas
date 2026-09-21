@@ -87,6 +87,7 @@ class General_settings extends EA_Controller
         'company_email',
         'company_link',
         'company_logo',
+        'white_label_enabled',
         'company_color',
         'company_working_plan',
         'book_advance_timeout',
