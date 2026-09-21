@@ -24,6 +24,25 @@ class Zadarma_client
         if ($l === '') { $l = (string)(master_setting('zadarma_sip_login') ?: ''); }
         return trim($l);
     }
+    /**
+     * Callback 'from' icin PBX dahili numarasi.
+     * Resmi dokuman: "from – your phone/SIP number, the PBX extension or the PBX scenario".
+     * '325384-100' formatindaki login -> dahili '100' dondurur; duz SIP numarasi ise aynen doner.
+     */
+    public function pbx_extension(): string {
+        $login = $this->sip_login();
+        if ($login === '') { return ''; }
+        if (preg_match('/^(\d+)-(\d+)$/', $login, $m)) { return $m[2]; }
+        return preg_replace('/[^0-9]/', '', $login) ?? '';
+    }
+    /**
+     * Callback 'to' formati: dokuman orneklerinde + isaretsiz uluslararasi hane dizisi
+     * (orn: 905062505562, 442037691881). normalize_phone sonucundaki '+' atilir.
+     */
+    public function e164_digits(string $raw): string {
+        $n = $this->normalize_phone($raw);
+        return preg_replace('/[^0-9]/', '', $n) ?? '';
+    }
     public function normalize_phone(string $raw): string {
         $p = trim($raw);
         $plus = str_starts_with($p, '+');
@@ -85,10 +104,22 @@ class Zadarma_client
         if (!$ok) { $error = is_array($body) ? ($body['message'] ?? ('Zadarma hatasi HTTP ' . $code)) : ('Zadarma hatasi HTTP ' . $code); }
         return ['ok' => $ok, 'http_code' => $code, 'body' => $body, 'error' => (string)$error];
     }
+    /**
+     * GET /v1/request/callback/ (resmi dokuman metodu 'get' olarak belirtilir).
+     * from: PBX dahili (orn 100) veya SIP numarasi - Zadarma once BU cihazi calar.
+     * to:   hedef numara, +'siz uluslararasi hane dizisi (orn 905062505562).
+     * sip:  opsiyonel - giden bacakta CallerID olarak kullanilacak SIP/dahili (orn 100).
+     * GET 400 donerse (bazi hesaplar POST kabul eder) tek kez POST ile denenir.
+     */
     public function request_callback(string $from, string $to, ?string $sip = null): array {
         $p = ['from' => $from, 'to' => $to];
         if ($sip !== null && $sip !== '') { $p['sip'] = $sip; }
-        return $this->call('/v1/request/callback/', $p, 'POST');
+        $res = $this->call('/v1/request/callback/', $p, 'GET');
+        if (!$res['ok'] && (int) $res['http_code'] === 400) {
+            log_message('debug', 'Zadarma callback GET 400, POST fallback deneniyor');
+            $res = $this->call('/v1/request/callback/', $p, 'POST');
+        }
+        return $res;
     }
     public function balance(): array { return $this->call('/v1/info/balance/', [], 'GET'); }
 }

@@ -1028,7 +1028,7 @@ class Superadmin_tenants extends EA_Controller
             /** @var Zadarma_client $zc */
             $zc = $this->zadarma_client;
 
-            $from = $zc->sip_login();
+            $from = $zc->pbx_extension();
             if ($from === '') {
                 throw new InvalidArgumentException(
                     'Zadarma SIP Login tanımlı değil. Platform Ayarları > Zadarma SIP bölümünden ' .
@@ -1037,8 +1037,9 @@ class Superadmin_tenants extends EA_Controller
             }
 
             $raw_target = (string) ($lead['phone'] ?: $lead['whatsapp'] ?: '');
-            $to = $zc->normalize_phone($raw_target);
-            if ($to === '' || strlen(preg_replace('/[^0-9]/', '', $to)) < 10) {
+            // Dokuman formati: to = +'siz uluslararasi hane dizisi (orn 905062505562)
+            $to = $zc->e164_digits($raw_target);
+            if ($to === '' || strlen($to) < 10) {
                 throw new InvalidArgumentException(
                     'Aranacak numara geçersiz: "' . $raw_target . '". Numarayı uluslararası formatta girin (örn: 905XXXXXXXXX).'
                 );
