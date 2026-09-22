@@ -769,10 +769,14 @@ class Appointments_model extends EA_Model
      *
      * @return array
      */
-    private function decrypt_user_pii(array $row): array
+    private function decrypt_user_pii(?array $row): ?array
     {
+        if (empty($row)) {
+            return null;
+        }
+
         foreach (['email', 'phone_number', 'address', 'state', 'zip_code', 'notes'] as $field) {
-            if (array_key_exists($field, $row) && sf_pii_is_encrypted($row[$field])) {
+            if (array_key_exists($field, $row) && is_string($row[$field]) && sf_pii_is_encrypted($row[$field])) {
                 $row[$field] = sf_pii_decrypt($row[$field]);
             }
         }
@@ -797,33 +801,26 @@ class Appointments_model extends EA_Model
         foreach ($resources as $resource) {
             switch ($resource) {
                 case 'service':
-                    $appointment['service'] = $this->db
-                        ->get_where('services', [
-                            'id' => $appointment['id_services'] ?? ($appointment['serviceId'] ?? null),
-                        ])
-                        ->row_array();
+                    $service_id = $appointment['id_services'] ?? ($appointment['serviceId'] ?? null);
+                    $appointment['service'] = $service_id ? $this->db
+                        ->get_where('services', ['id' => $service_id])
+                        ->row_array() : null;
                     break;
 
                 case 'provider':
-                    // Salon Flora customization - raw fetch bypasses Providers_model, decrypt PII here.
-                    $appointment['provider'] = $this->decrypt_user_pii(
-                        $this->db
-                            ->get_where('users', [
-                                'id' => $appointment['id_users_provider'] ?? ($appointment['providerId'] ?? null),
-                            ])
-                            ->row_array(),
-                    );
+                    $provider_id = $appointment['id_users_provider'] ?? ($appointment['providerId'] ?? null);
+                    $row = $provider_id ? $this->db
+                        ->get_where('users', ['id' => $provider_id])
+                        ->row_array() : null;
+                    $appointment['provider'] = $this->decrypt_user_pii($row);
                     break;
 
                 case 'customer':
-                    // Salon Flora customization - raw fetch bypasses Customers_model, decrypt PII here.
-                    $appointment['customer'] = $this->decrypt_user_pii(
-                        $this->db
-                            ->get_where('users', [
-                                'id' => $appointment['id_users_customer'] ?? ($appointment['customerId'] ?? null),
-                            ])
-                            ->row_array(),
-                    );
+                    $customer_id = $appointment['id_users_customer'] ?? ($appointment['customerId'] ?? null);
+                    $row = $customer_id ? $this->db
+                        ->get_where('users', ['id' => $customer_id])
+                        ->row_array() : null;
+                    $appointment['customer'] = $this->decrypt_user_pii($row);
                     break;
 
                 default:

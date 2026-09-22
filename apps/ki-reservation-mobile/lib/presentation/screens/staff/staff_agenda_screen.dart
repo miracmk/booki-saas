@@ -13,27 +13,49 @@ class StaffAgendaScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final todayAsync = ref.watch(todayAppointmentsProvider);
+    final selectedDate = ref.watch(selectedAgendaDateProvider);
+    final appointmentsAsync = ref.watch(agendaAppointmentsProvider);
     final authState = ref.watch(authProvider);
     final user = authState.user;
 
-    final todayFormatted =
-        DateFormat('d MMMM yyyy, EEEE', 'tr_TR').format(DateTime.now());
+    final now = DateTime.now();
+    final isToday = selectedDate.year == now.year &&
+        selectedDate.month == now.month &&
+        selectedDate.day == now.day;
+    final isYesterday = selectedDate.year == now.year &&
+        selectedDate.month == now.month &&
+        selectedDate.day == now.subtract(const Duration(days: 1)).day;
+    final isTomorrow = selectedDate.year == now.year &&
+        selectedDate.month == now.month &&
+        selectedDate.day == now.add(const Duration(days: 1)).day;
+
+    String dateLabelPrefix = '';
+    if (isToday) {
+      dateLabelPrefix = 'Bugün, ';
+    } else if (isYesterday) {
+      dateLabelPrefix = 'Dün, ';
+    } else if (isTomorrow) {
+      dateLabelPrefix = 'Yarın, ';
+    }
+
+    final dateFormatted =
+        '$dateLabelPrefix${DateFormat('d MMMM yyyy, EEEE', 'tr_TR').format(selectedDate)}';
 
     return Scaffold(
       appBar: AppBar(
         title: const TenantBadge(),
         actions: [
           IconButton(
+            tooltip: 'Yenile',
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => ref.invalidate(todayAppointmentsProvider),
+            onPressed: () => ref.invalidate(agendaAppointmentsProvider),
           ),
         ],
       ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            ref.invalidate(todayAppointmentsProvider);
+            ref.invalidate(agendaAppointmentsProvider);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -41,29 +63,33 @@ class StaffAgendaScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Personel Karşılama
+                // Personel Karşılama & Rol Bilgisi
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bugünün Ajandası',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          todayFormatted,
-                          style: const TextStyle(
-                            color: AppTheme.textSecondaryLight,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.firstName != null && user!.firstName.isNotEmpty
+                                ? 'Merhaba, ${user.firstName}'
+                                : 'İşletme Ajandası',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Randevu ve müşteri akışını takip edin',
+                            style: TextStyle(
+                              color: AppTheme.textSecondaryLight,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -83,17 +109,119 @@ class StaffAgendaScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
+
+                // Tarih Seçici Çubuğu (Date Navigation Bar)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.borderLight),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left_rounded),
+                        tooltip: 'Önceki Gün',
+                        onPressed: () {
+                          ref.read(selectedAgendaDateProvider.notifier).setDate(
+                              selectedDate.subtract(const Duration(days: 1)));
+                        },
+                      ),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              ref.read(selectedAgendaDateProvider.notifier).setDate(picked);
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(10),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 16,
+                                  color: AppTheme.primaryColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    dateFormatted,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: AppTheme.textPrimaryLight,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right_rounded),
+                        tooltip: 'Sonraki Gün',
+                        onPressed: () {
+                          ref.read(selectedAgendaDateProvider.notifier).setDate(
+                              selectedDate.add(const Duration(days: 1)));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                if (!isToday) ...[
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        ref.read(selectedAgendaDateProvider.notifier).setDate(DateTime.now());
+                      },
+                      icon: const Icon(Icons.today_rounded, size: 16),
+                      label: const Text('Bugüne Dön', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      ),
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 16),
 
                 // İstatistik Sayaçları (Stats Summary)
-                todayAsync.when(
+                appointmentsAsync.when(
                   data: (list) {
                     final total = list.length;
                     final pending = list
-                        .where((a) => a.status == AppointmentStatus.reserved)
+                        .where((a) =>
+                            a.status == AppointmentStatus.reserved ||
+                            a.status == AppointmentStatus.confirmed)
                         .length;
                     final completed = list
-                        .where((a) => a.status == AppointmentStatus.completed || a.status == AppointmentStatus.arrived)
+                        .where((a) =>
+                            a.status == AppointmentStatus.completed ||
+                            a.status == AppointmentStatus.arrived)
                         .length;
 
                     return Row(
@@ -121,50 +249,120 @@ class StaffAgendaScreen extends ConsumerWidget {
                       ],
                     );
                   },
-                  loading: () => const SizedBox.shrink(),
+                  loading: () => Row(
+                    children: [
+                      _kpiCard(
+                        label: 'Toplam',
+                        count: '-',
+                        color: AppTheme.primaryColor,
+                        icon: Icons.event_note_rounded,
+                      ),
+                      const SizedBox(width: 12),
+                      _kpiCard(
+                        label: 'Bekleyen',
+                        count: '-',
+                        color: AppTheme.accentWarning,
+                        icon: Icons.hourglass_top_rounded,
+                      ),
+                      const SizedBox(width: 12),
+                      _kpiCard(
+                        label: 'Geldi/Bitti',
+                        count: '-',
+                        color: AppTheme.accentSuccess,
+                        icon: Icons.check_circle_outline_rounded,
+                      ),
+                    ],
+                  ),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
 
                 const SizedBox(height: 24),
-                const Text(
-                  'Bugünkü Randevular',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textPrimaryLight,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      isToday ? 'Bugünkü Randevular' : 'Randevu Listesi',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimaryLight,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryColor),
+                      tooltip: 'Hızlı Randevu Ekle',
+                      onPressed: () {
+                        ref.read(staffNavIndexProvider.notifier).setIndex(2);
+                      },
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
 
-                // Randevu Listesi
-                todayAsync.when(
+                // Randevu Listesi Alanı
+                appointmentsAsync.when(
                   data: (appointments) {
                     if (appointments.isEmpty) {
                       return Container(
-                        padding: const EdgeInsets.all(32),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: AppTheme.borderLight),
                         ),
-                        child: const Center(
-                          child: Column(
-                            children: [
-                              Icon(
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
                                 Icons.calendar_today_outlined,
-                                size: 48,
+                                size: 40,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              isToday
+                                  ? 'Bugün için planlanmış randevu yok'
+                                  : 'Bu tarihte planlanmış randevu yok',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimaryLight,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Yeni bir randevu ekleyebilir veya takvimden diğer günleri inceleyebilirsiniz.',
+                              style: TextStyle(
+                                fontSize: 13,
                                 color: AppTheme.textSecondaryLight,
                               ),
-                              SizedBox(height: 12),
-                              Text(
-                                'Bugün için planlanmış randevu yok.',
-                                style: TextStyle(
-                                  color: AppTheme.textSecondaryLight,
-                                  fontWeight: FontWeight.w600,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                ref.read(staffNavIndexProvider.notifier).setIndex(2);
+                              },
+                              icon: const Icon(Icons.add_rounded),
+                              label: const Text('Randevu Oluştur'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       );
                     }
@@ -187,7 +385,7 @@ class StaffAgendaScreen extends ConsumerWidget {
                               await ref
                                   .read(appointmentRepositoryProvider)
                                   .updateStatus(appt.id, newStatus);
-                              ref.invalidate(todayAppointmentsProvider);
+                              ref.invalidate(agendaAppointmentsProvider);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
@@ -208,14 +406,72 @@ class StaffAgendaScreen extends ConsumerWidget {
                       },
                     );
                   },
-                  loading: () => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(32),
-                      child: CircularProgressIndicator(),
+                  loading: () => Container(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    alignment: Alignment.center,
+                    child: Column(
+                      children: const [
+                        CircularProgressIndicator(strokeWidth: 3),
+                        SizedBox(height: 16),
+                        Text(
+                          'Randevular yükleniyor...',
+                          style: TextStyle(
+                            color: AppTheme.textSecondaryLight,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  error: (e, _) => Center(
-                    child: Text('Randevular yüklenemedi: $e'),
+                  error: (e, _) => Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentDanger.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.accentDanger.withValues(alpha: 0.2)),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.error_outline_rounded,
+                          color: AppTheme.accentDanger,
+                          size: 40,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Randevular Yüklenemedi',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimaryLight,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Sunucu ile bağlantı kurulamadı veya bir hata oluştu.',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.textSecondaryLight,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => ref.invalidate(agendaAppointmentsProvider),
+                          icon: const Icon(Icons.refresh_rounded, size: 18),
+                          label: const Text('Tekrar Dene'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -267,4 +523,3 @@ class StaffAgendaScreen extends ConsumerWidget {
     );
   }
 }
-

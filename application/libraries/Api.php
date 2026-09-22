@@ -320,12 +320,16 @@ class Api
      */
     public function request_with(): ?array
     {
-        $with = request('with');
+        $with = request('with') ?? request('with[]');
 
-        if (!$with) {
+        if (empty($with)) {
             return null;
         }
 
-        return array_map('trim', explode(',', $with));
+        if (is_array($with)) {
+            return array_values(array_filter(array_map('trim', $with)));
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', (string) $with))));
     }
 }

@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/appointments_provider.dart';
 import 'staff_agenda_screen.dart';
 import 'staff_calendar_screen.dart';
 import 'staff_quick_book_screen.dart';
 import 'staff_profile_screen.dart';
 
-class StaffShell extends StatefulWidget {
+class StaffShell extends ConsumerWidget {
   const StaffShell({super.key});
 
-  @override
-  State<StaffShell> createState() => _StaffShellState();
-}
-
-class _StaffShellState extends State<StaffShell> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = const [
+  static const List<Widget> _screens = [
     StaffAgendaScreen(),
     StaffCalendarScreen(),
     StaffQuickBookScreen(),
@@ -22,18 +17,18 @@ class _StaffShellState extends State<StaffShell> {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentIndex = ref.watch(staffNavIndexProvider);
+
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
+        index: currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
+        selectedIndex: currentIndex,
         onDestinationSelected: (idx) {
-          setState(() {
-            _currentIndex = idx;
-          });
+          ref.read(staffNavIndexProvider.notifier).setIndex(idx);
         },
         destinations: const [
           NavigationDestination(

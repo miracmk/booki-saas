@@ -81,12 +81,42 @@ final appointmentsListProvider =
   );
 });
 
-// Today's appointments for staff agenda
-final todayAppointmentsProvider =
+// Navigation provider for staff shell
+class StaffNavIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void setIndex(int index) => state = index;
+}
+
+final staffNavIndexProvider =
+    NotifierProvider<StaffNavIndexNotifier, int>(StaffNavIndexNotifier.new);
+
+// Selected date for staff agenda view
+class SelectedAgendaDateNotifier extends Notifier<DateTime> {
+  @override
+  DateTime build() => DateTime.now();
+
+  void setDate(DateTime date) => state = date;
+}
+
+final selectedAgendaDateProvider =
+    NotifierProvider<SelectedAgendaDateNotifier, DateTime>(
+        SelectedAgendaDateNotifier.new);
+
+// Filtered appointments for staff agenda based on selected date
+final agendaAppointmentsProvider =
     FutureProvider<List<AppointmentModel>>((ref) async {
   final repo = ref.watch(appointmentRepositoryProvider);
-  final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  final selectedDate = ref.watch(selectedAgendaDateProvider);
+  final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
 
-  return await repo.getAppointments(date: todayStr);
+  return await repo.getAppointments(date: dateStr);
+});
+
+// Backward-compatible alias for today's appointments
+final todayAppointmentsProvider =
+    FutureProvider<List<AppointmentModel>>((ref) async {
+  return ref.watch(agendaAppointmentsProvider.future);
 });
 

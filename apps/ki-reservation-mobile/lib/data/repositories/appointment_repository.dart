@@ -23,7 +23,7 @@ class AppointmentRepository {
           if (till != null) 'till': till,
           if (customerId != null) 'customerId': customerId,
           if (providerId != null) 'providerId': providerId,
-          'with[]': ['service', 'provider', 'customer'],
+          'with': 'service,provider,customer',
         },
       );
 
