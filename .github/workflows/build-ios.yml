@@ -26,10 +26,12 @@ jobs:
     name: Build iOS IPA Package
     runs-on: macos-latest
     env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
     defaults:
       run:
         working-directory: apps/ki-reservation-mobile
+
 
     steps:
       - name: 📥 Checkout Repository
