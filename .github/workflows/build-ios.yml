@@ -25,6 +25,8 @@ jobs:
   build-ios:
     name: Build iOS IPA Package
     runs-on: macos-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
     defaults:
       run:
         working-directory: apps/ki-reservation-mobile
@@ -54,15 +56,10 @@ jobs:
       - name: 🧪 Run Automated Tests
         run: flutter test
 
-      - name: 🍎 CocoaPods Install
-        run: |
-          cd ios
-          pod install --repo-update
-          cd ..
-
       - name: 🔨 Build iOS (Release, Unsigned)
         run: |
           flutter build ios --release --no-codesign
+
 
       - name: 📦 Package into .ipa Bundle
         run: |
@@ -80,3 +77,4 @@ jobs:
           path: apps/ki-reservation-mobile/build/ios/ipa/BooKi-iOS-unsigned.ipa
           retention-days: 14
           if-no-files-found: error
+
