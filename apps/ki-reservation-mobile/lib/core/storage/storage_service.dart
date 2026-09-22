@@ -90,5 +90,29 @@ class StorageService {
     await deleteUser();
     await deleteTenant();
   }
+
+  // Last Business / Tenant Code
+  static const String _keyLastBusinessCode = 'last_business_code';
+  static const String _keyLastBusinessName = 'last_business_name';
+
+  Future<void> saveLastBusinessCode(String code, {String? name}) async {
+    await _prefs.setString(_keyLastBusinessCode, code);
+    if (name != null) {
+      await _prefs.setString(_keyLastBusinessName, name);
+    }
+  }
+
+  String? getLastBusinessCode() {
+    return _prefs.getString(_keyLastBusinessCode);
+  }
+
+  String? getLastBusinessName() {
+    return _prefs.getString(_keyLastBusinessName);
+  }
+
+  Future<void> clearLastBusinessCode() async {
+    await _prefs.remove(_keyLastBusinessCode);
+    await _prefs.remove(_keyLastBusinessName);
+  }
 }
 

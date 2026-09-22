@@ -2,20 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primaryColor = Color(0xFF4F46E5); // Indigo 600
-  static const Color primaryLight = Color(0xFF6366F1);
-  static const Color primaryDark = Color(0xFF3730A3);
+  // Official BooKi Brand Palette
+  static const Color primaryColor = Color(0xFF1B5E64); // BooKi Deep Pine/Teal
+  static const Color primaryLight = Color(0xFF267D85);
+  static const Color primaryDark = Color(0xFF103F44);
   
-  static const Color secondaryColor = Color(0xFF0EA5E9); // Sky 500
+  static const Color secondaryColor = Color(0xFF50C8C2); // BooKi Aqua/Cyan Accent
+  static const Color accentNavy = Color(0xFF0A1724); // BooKi Deep Navy
+  static const Color darkNavy = Color(0xFF0A1724); // BooKi Deep Navy Alias
+  static const Color accentCoral = Color(0xFFF2C5B4); // BooKi Warm Coral
   static const Color accentSuccess = Color(0xFF10B981); // Emerald 500
   static const Color accentWarning = Color(0xFFF59E0B); // Amber 500
   static const Color accentDanger = Color(0xFFEF4444); // Red 500
 
-  static const Color surfaceLight = Color(0xFFF8FAFC); // Slate 50
+  static const Color surfaceLight = Color(0xFFF4F7F8); // BooKi Soft Surface
   static const Color cardLight = Colors.white;
-  static const Color textPrimaryLight = Color(0xFF0F172A); // Slate 900
-  static const Color textSecondaryLight = Color(0xFF64748B); // Slate 500
-  static const Color borderLight = Color(0xFFE2E8F0); // Slate 200
+  static const Color textPrimaryLight = Color(0xFF10202D); // BooKi Ink
+  static const Color textSecondaryLight = Color(0xFF496275); // BooKi Slate
+  static const Color borderLight = Color(0xFFDCE6E9); // BooKi Border
 
   static ThemeData get lightTheme {
     return ThemeData(

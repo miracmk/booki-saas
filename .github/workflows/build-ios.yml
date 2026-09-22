@@ -75,9 +75,10 @@ jobs:
         run: |
           flutter build ios --simulator
           cd build/ios/iphonesimulator
-          zip -r -q BooKi-Appetize-iOS-Simulator.zip Runner.app
+          zip -r -q booki-appetize-iOS.zip Runner.app
+          ln -sf booki-appetize-iOS.zip BooKi-Appetize-iOS-Simulator.zip
           echo "Appetize.io Simulator bundle created"
-          ls -lh BooKi-Appetize-iOS-Simulator.zip
+          ls -lh booki-appetize-iOS.zip
 
       - name: 🚀 Upload Device IPA Artifact
         uses: actions/upload-artifact@v4
@@ -90,8 +91,8 @@ jobs:
       - name: 🚀 Upload Appetize.io Simulator Artifact (.zip)
         uses: actions/upload-artifact@v4
         with:
-          name: BooKi-Appetize-iOS-Simulator
-          path: apps/ki-reservation-mobile/build/ios/iphonesimulator/BooKi-Appetize-iOS-Simulator.zip
+          name: booki-appetize-iOS
+          path: apps/ki-reservation-mobile/build/ios/iphonesimulator/booki-appetize-iOS.zip
           retention-days: 14
           if-no-files-found: error
 
