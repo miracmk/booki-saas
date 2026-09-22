@@ -58,10 +58,9 @@ jobs:
       - name: 🧪 Run Automated Tests
         run: flutter test
 
-      - name: 🔨 Build iOS (Release, Unsigned)
+      - name: 🔨 Build iOS (Release, Unsigned Device IPA)
         run: |
           flutter build ios --release --no-codesign
-
 
       - name: 📦 Package into .ipa Bundle
         run: |
@@ -72,11 +71,28 @@ jobs:
           echo "IPA bundle successfully created at build/ios/ipa/BooKi-iOS-unsigned.ipa"
           ls -lh BooKi-iOS-unsigned.ipa
 
-      - name: 🚀 Upload IPA Artifact
+      - name: 🌐 Build iOS Simulator for Appetize.io (.zip)
+        run: |
+          flutter build ios --simulator
+          cd build/ios/iphonesimulator
+          zip -r -q BooKi-Appetize-iOS-Simulator.zip Runner.app
+          echo "Appetize.io Simulator bundle created"
+          ls -lh BooKi-Appetize-iOS-Simulator.zip
+
+      - name: 🚀 Upload Device IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: BooKi-iOS-IPA
           path: apps/ki-reservation-mobile/build/ios/ipa/BooKi-iOS-unsigned.ipa
           retention-days: 14
           if-no-files-found: error
+
+      - name: 🚀 Upload Appetize.io Simulator Artifact (.zip)
+        uses: actions/upload-artifact@v4
+        with:
+          name: BooKi-Appetize-iOS-Simulator
+          path: apps/ki-reservation-mobile/build/ios/iphonesimulator/BooKi-Appetize-iOS-Simulator.zip
+          retention-days: 14
+          if-no-files-found: error
+
 
