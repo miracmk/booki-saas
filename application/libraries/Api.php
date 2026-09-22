@@ -59,18 +59,25 @@ class Api
     }
 
     /**
-     * Authorize the API request (Basic Auth or Bearer Token supported).
+     * Authorize the API request (Basic Auth, Static Bearer Token, or User JWT Token supported).
      */
     public function auth(): void
     {
         try {
             // Bearer token.
-            $api_token = setting('api_token');
             $provided_token = $this->get_bearer_token();
 
-            // Use timing-safe comparison to prevent timing attacks
-            if (!empty($api_token) && !empty($provided_token) && hash_equals($api_token, $provided_token)) {
-                return;
+            if (!empty($provided_token)) {
+                // 1. Static API token check
+                $api_token = setting('api_token');
+                if (!empty($api_token) && hash_equals($api_token, $provided_token)) {
+                    return;
+                }
+
+                // 2. User JWT token check (Mobile App Auth)
+                if ($this->validate_user_token($provided_token)) {
+                    return;
+                }
             }
 
             // Basic auth.
@@ -90,6 +97,63 @@ class Api
         } catch (Throwable) {
             $this->request_authentication();
         }
+    }
+
+    /**
+     * Validate a mobile user JWT token and establish session.
+     */
+    public function validate_user_token(string $jwt): bool
+    {
+        $parts = explode('.', $jwt);
+        if (count($parts) !== 3) {
+            return false;
+        }
+
+        [$header64, $payload64, $sig64] = $parts;
+        $secret = config_item('encryption_key') ?: 'booki-secret-jwt-key-2026';
+        $expected_sig = hash_hmac('sha256', "$header64.$payload64", $secret, true);
+        $expected_sig64 = rtrim(strtr(base64_encode($expected_sig), '+/', '-_'), '=');
+
+        if (!hash_equals($expected_sig64, $sig64)) {
+            return false;
+        }
+
+        $payload_json = base64_decode(strtr($payload64, '-_', '+/'));
+        $payload = json_decode($payload_json, true);
+
+        if (empty($payload) || !isset($payload['exp']) || $payload['exp'] < time()) {
+            return false;
+        }
+
+        // Establish session for downstream controllers and models
+        $this->CI->session->set_userdata([
+            'user_id' => $payload['user_id'],
+            'role_slug' => $payload['role_slug'],
+            'user_email' => $payload['email'] ?? '',
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Generate a signed mobile user JWT token.
+     */
+    public static function generate_user_token(array $payload_data): string
+    {
+        $header = ['alg' => 'HS256', 'typ' => 'JWT'];
+        $payload = array_merge([
+            'iat' => time(),
+            'exp' => time() + (86400 * 90), // 90 days
+        ], $payload_data);
+
+        $header64 = rtrim(strtr(base64_encode(json_encode($header)), '+/', '-_'), '=');
+        $payload64 = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');
+
+        $secret = config_item('encryption_key') ?: 'booki-secret-jwt-key-2026';
+        $sig = hash_hmac('sha256', "$header64.$payload64", $secret, true);
+        $sig64 = rtrim(strtr(base64_encode($sig), '+/', '-_'), '=');
+
+        return "$header64.$payload64.$sig64";
     }
 
     /**

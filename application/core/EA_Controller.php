@@ -191,6 +191,7 @@ class EA_Controller extends CI_Controller
             || strtolower((string) $this->router->class) === 'landing'
             || strtolower((string) $this->router->class) === 'customer_onboarding'
             || strtolower((string) $this->router->class) === 'zadarma'
+            || strtolower((string) $this->router->class) === 'meta'
         ) {
             return;
         }
@@ -206,7 +207,15 @@ class EA_Controller extends CI_Controller
             return;
         }
 
-        $tenant = $this->db->get_where('tenants', ['custom_domain' => $host])->row_array();
+        // BooKi Mobile - Check X-Tenant-Subdomain or X-Tenant header for direct tenant resolution
+        $tenant_header = $_SERVER['HTTP_X_TENANT_SUBDOMAIN'] ?? $_SERVER['HTTP_X_TENANT'] ?? null;
+        if (!empty($tenant_header)) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => strtolower(trim((string) $tenant_header))])->row_array();
+        }
+
+        if (empty($tenant)) {
+            $tenant = $this->db->get_where('tenants', ['custom_domain' => $host])->row_array();
+        }
 
         if (!$tenant) {
             // Kiracı subdomain'i iki kalıptan biriyle çözülür: "acme-reservationapp.kibusiness.co"
@@ -223,7 +232,13 @@ class EA_Controller extends CI_Controller
         if (!$tenant || $tenant['status'] !== 'active') {
             // Bare app-domain exception: the "which company are you with?" portal is the ONE thing
             // allowed to run against the master DB with no tenant resolved - see Portal.php's docblock.
-            if ($host === $app_domain && strtolower((string) $this->router->class) === 'portal') {
+            // Also allow auth_api_v1 for multi-tenant mobile authentication discovery before tenant selection.
+            if (($host === $app_domain || empty($tenant)) && in_array(strtolower((string) $this->router->class), ['portal', 'auth_api_v1'], true)) {
+                return;
+            }
+
+            // BooKi - Central Webhooks & OAuth Relay: Meta (Facebook, Ads, LeadGen), WhatsApp, Instagram
+            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram'], true)) {
                 return;
             }
 

@@ -26,3 +26,11 @@ node_modules/
 /playwright-report/
 /scratch/
 
+# Flutter Mobile
+apps/**/build/
+apps/**/.dart_tool/
+apps/**/.flutter-plugins-dependencies
+apps/**/.pub-cache/
+apps/**/.pub/
+
+

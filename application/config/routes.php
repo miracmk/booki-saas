@@ -62,7 +62,18 @@ if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'boo
     $route['default_controller'] = 'portal';
     $route['portal'] = 'portal/index';
     $route['portal/(:any)'] = 'portal/$1';
+    $route['login'] = 'portal/index';
+    $route['find_tenant'] = 'portal/find_tenant';
+    $route['meta/webhook'] = 'meta/webhook';
+    $route['meta/oauth_callback'] = 'meta/oauth_callback';
+    $route['whatsapp/webhook'] = 'whatsapp/webhook';
+    $route['instagram/webhook'] = 'instagram/webhook';
+    $route['instagram/oauth_callback'] = 'meta/oauth_callback';
 }
+
+$route['meta/webhook'] = 'meta/webhook';
+$route['meta/oauth_callback'] = 'meta/oauth_callback';
+$route['instagram/oauth_callback'] = 'meta/oauth_callback';
 
 // BooKi (2026-08-26) - SaaS admin panel: admin-bookiapp.kibusiness.co has no booking page
 // either - it's the super-admin login/dashboard. See EA_Controller::resolve_tenant()'s superadmin
@@ -271,6 +282,12 @@ $route['api/v1/settings/(:any)']['put'] = 'api/v1/settings_api_v1/update/$1';
 
 $route['api/v1/availabilities']['get'] = 'api/v1/availabilities_api_v1/get';
 
+// BooKi Mobile Auth & Multi-Tenant API
+$route['api/v1/auth/login']['post'] = 'api/v1/auth_api_v1/login';
+$route['api/v1/auth/register']['post'] = 'api/v1/auth_api_v1/register';
+$route['api/v1/auth/me']['get'] = 'api/v1/auth_api_v1/me';
+$route['api/v1/auth/tenants']['get'] = 'api/v1/auth_api_v1/tenants';
+
 /*
 | -------------------------------------------------------------------------
 | AGENT API ROUTING (server-to-server customer-representative agents)
@@ -347,6 +364,12 @@ if ($portal_host !== (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) 
 // BooKi (2026-09-18) - Industry Blueprints & Onboarding Wizard
 $route['onboarding'] = 'onboarding/index';
 $route['onboarding/(:any)'] = 'onboarding/$1';
+
+// CLI console
+$route['console'] = 'console/index';
+$route['console/(:any)'] = 'console/$1';
+$route['console/(:any)/(:any)'] = 'console/$1/$2';
+$route['console/(:any)/(:any)/(:any)'] = 'console/$1/$2/$3';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

@@ -108,6 +108,15 @@ class Appointments_api_v1 extends EA_Controller
                 $where['id_users_customer'] = $customer_id;
             }
 
+            // Role-based scoping for authenticated mobile users
+            $session_role = session('role_slug');
+            $session_user_id = session('user_id');
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                $where['id_users_customer'] = $session_user_id;
+            } elseif ($session_role === DB_SLUG_PROVIDER && empty($provider_id)) {
+                $where['id_users_provider'] = $session_user_id;
+            }
+
             $appointments = empty($keyword)
                 ? $this->appointments_model->get($where, $limit, $offset, $order_by)
                 : $this->appointments_model->search($keyword, $limit, $offset, $order_by);
