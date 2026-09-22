@@ -8,7 +8,7 @@ import '../models/appointment_model.dart';
 class BookingRepository {
   final ApiClient _apiClient;
 
-  BookingRepository({required ApiClient apiClient}) : _apiClient = apiClient;
+  BookingRepository({required this._apiClient});
 
   Future<List<ServiceModel>> getServices() async {
     try {

@@ -207,4 +207,97 @@ class Customers_api_v1 extends EA_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * GET /api/v1/customers/:id/mini-crm
+     * Returns Mini-CRM profile for the customer (visits, spend, no-show score, past appointments).
+     */
+    public function mini_crm(int $id): void
+    {
+        try {
+            $customer = $this->customers_model->find($id);
+            if (!$customer) {
+                response('', 404);
+                return;
+            }
+
+            $this->load->model('appointments_model');
+            $this->load->model('services_model');
+
+            // Fetch customer appointments
+            $appts = $this->db
+                ->from('appointments')
+                ->where('id_users_customer', $id)
+                ->order_by('start_datetime', 'DESC')
+                ->get()
+                ->result_array();
+
+            $total_appointments = count($appts);
+            $completed_visits = 0;
+            $no_shows = 0;
+            $cancelled = 0;
+            $total_spent = 0.0;
+            $past_appointments = [];
+
+            foreach ($appts as $appt) {
+                $status = strtolower($appt['status'] ?? '');
+                $srv = $this->services_model->find($appt['id_services']);
+                $srv_price = (float)($srv['price'] ?? 0.0);
+
+                if (in_array($status, ['completed', 'tamamlandı', 'closed', 'arrived'], true)) {
+                    $completed_visits++;
+                    $total_spent += $srv_price;
+                } elseif (in_array($status, ['no_show', 'no-show', 'gelmedi'], true)) {
+                    $no_shows++;
+                } elseif (in_array($status, ['cancelled', 'iptal'], true)) {
+                    $cancelled++;
+                }
+
+                if (count($past_appointments) < 5) {
+                    $past_appointments[] = [
+                        'id' => (int)$appt['id'],
+                        'service_name' => $srv['name'] ?? 'Hizmet',
+                        'start_datetime' => $appt['start_datetime'],
+                        'status' => $appt['status'],
+                        'price' => $srv_price,
+                    ];
+                }
+            }
+
+            // Calculate No-Show Score: 100 base, -25 per no-show (min 0)
+            $no_show_score = max(0, 100 - ($no_shows * 25));
+
+            $phone_clean = preg_replace('/[^\d+]/', '', $customer['phone_number'] ?? '');
+            if (!str_starts_with($phone_clean, '+') && strlen($phone_clean) === 10 && str_starts_with($phone_clean, '5')) {
+                $phone_clean = '+90' . $phone_clean;
+            }
+
+            $crm_data = [
+                'customer_id' => $id,
+                'name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')),
+                'first_name' => $customer['first_name'] ?? '',
+                'last_name' => $customer['last_name'] ?? '',
+                'phone' => $customer['phone_number'] ?? '',
+                'clean_phone' => $phone_clean,
+                'email' => $customer['email'] ?? '',
+                'notes' => $customer['notes'] ?? '',
+                'allergy_notes' => $customer['custom_field_allergy'] ?? ($customer['notes'] ?? 'Bilinen bir alerji veya kısıt bulunmamaktadır.'),
+                'total_visits' => $completed_visits,
+                'total_appointments' => $total_appointments,
+                'no_shows' => $no_shows,
+                'cancelled' => $cancelled,
+                'no_show_score' => $no_show_score,
+                'total_spent' => round($total_spent, 2),
+                'currency' => setting('currency') ?: '₺',
+                'whatsapp_url' => !empty($phone_clean) ? 'https://wa.me/' . ltrim($phone_clean, '+') : null,
+                'call_url' => !empty($phone_clean) ? 'tel:' . $phone_clean : null,
+                'past_appointments' => $past_appointments,
+            ];
+
+            json_response($crm_data);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }
+

@@ -274,6 +274,15 @@ route_api_resource($route, 'webhooks', 'api/v1/');
 
 route_api_resource($route, 'blocked_periods', 'api/v1/');
 
+route_api_resource($route, 'stations', 'api/v1/');
+
+$route['api/v1/operations/live']['get'] = 'api/v1/operations_api_v1/live';
+$route['api/v1/operations/status']['post'] = 'api/v1/operations_api_v1/update_status';
+$route['api/v1/operations/checkin']['post'] = 'api/v1/operations_api_v1/checkin';
+$route['api/v1/operations/floor-plan']['get'] = 'api/v1/operations_api_v1/floor_plan';
+$route['api/v1/operations/validate-conflict']['post'] = 'api/v1/operations_api_v1/validate_conflict';
+$route['api/v1/customers/(:num)/mini-crm']['get'] = 'api/v1/customers_api_v1/mini_crm/$1';
+
 $route['api/v1/settings']['get'] = 'api/v1/settings_api_v1/index';
 
 $route['api/v1/settings/(:any)']['get'] = 'api/v1/settings_api_v1/show/$1';

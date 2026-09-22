@@ -6,8 +6,8 @@ class ApiClient {
   final StorageService _storageService;
   late final Dio dio;
 
-  ApiClient({required StorageService storageService})
-      : _storageService = storageService {
+  ApiClient({required this._storageService}) {
+
     final baseUrl = _storageService.getBaseUrl() ?? ApiConstants.defaultProductionUrl;
 
     dio = Dio(

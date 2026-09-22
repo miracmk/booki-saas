@@ -15,9 +15,9 @@ class StorageService {
 
   StorageService({
     FlutterSecureStorage? secureStorage,
-    required SharedPreferences prefs,
-  })  : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
-        _prefs = prefs;
+    required this._prefs,
+  }) : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+
 
   static Future<StorageService> init() async {
     final prefs = await SharedPreferences.getInstance();

@@ -30,10 +30,11 @@ class AuthRepository {
   final StorageService _storageService;
 
   AuthRepository({
-    required ApiClient apiClient,
-    required StorageService storageService,
-  })  : _apiClient = apiClient,
-        _storageService = storageService;
+    required this._apiClient,
+    required this._storageService,
+  });
+
+
 
   Future<AuthResult> login({
     required String identifier,
@@ -119,7 +120,7 @@ class AuthRepository {
           'last_name': lastName,
           'email': email,
           'password': password,
-          if (phoneNumber != null) 'phone_number': phoneNumber,
+          'phone_number': ?phoneNumber,
         },
       );
 

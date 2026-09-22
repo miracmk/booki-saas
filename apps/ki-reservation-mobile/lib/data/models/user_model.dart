@@ -24,6 +24,9 @@ class UserModel {
     return name.isNotEmpty ? name : (email.isNotEmpty ? email : 'Kullanıcı #$id');
   }
 
+  String get name => fullName;
+  String get phone => phoneNumber ?? '';
+
   bool get isCustomer => role.toLowerCase() == 'customer';
   bool get isProvider => role.toLowerCase() == 'provider';
   bool get isAdmin => role.toLowerCase() == 'admin';

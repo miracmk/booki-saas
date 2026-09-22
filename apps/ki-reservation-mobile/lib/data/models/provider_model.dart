@@ -20,6 +20,7 @@ class ProviderModel {
   });
 
   String get fullName => '$firstName $lastName'.trim();
+  String get name => fullName;
 
   factory ProviderModel.fromJson(Map<String, dynamic> json) {
     List<int> services = [];

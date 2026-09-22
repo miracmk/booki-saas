@@ -202,7 +202,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                     );
                   },
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const Text('Hizmetler yüklenemedi'),
+                  error: (e, s) => const Text('Hizmetler yüklenemedi'),
                 ),
                 const SizedBox(height: 14),
 
@@ -231,7 +231,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                     );
                   },
                   loading: () => const LinearProgressIndicator(),
-                  error: (_, __) => const Text('Personel yüklenemedi'),
+                  error: (e, s) => const Text('Personel yüklenemedi'),
                 ),
                 const SizedBox(height: 14),
 

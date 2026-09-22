@@ -16,6 +16,14 @@ class ApiConstants {
   static const String appointmentsEndpoint = '/api/v1/appointments';
   static const String customersEndpoint = '/api/v1/customers';
   static const String settingsEndpoint = '/api/v1/settings';
+  static const String stationsEndpoint = '/api/v1/stations';
+
+  // Canlı Operasyon, QR & Kroki Uç Noktaları
+  static const String operationsLiveEndpoint = '/api/v1/operations/live';
+  static const String operationsStatusEndpoint = '/api/v1/operations/status';
+  static const String operationsCheckinEndpoint = '/api/v1/operations/checkin';
+  static const String operationsFloorPlanEndpoint = '/api/v1/operations/floor-plan';
+  static const String operationsValidateConflictEndpoint = '/api/v1/operations/validate-conflict';
 
   // Header isimleri
   static const String tenantHeader = 'X-Tenant-Subdomain';

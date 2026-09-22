@@ -107,7 +107,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                       child: CircularProgressIndicator(),
                     ),
                   ),
-                  error: (_, __) => _buildNoAppointmentCard(context, ref),
+                  error: (err, stack) => _buildNoAppointmentCard(context, ref),
                 ),
 
                 const SizedBox(height: 28),

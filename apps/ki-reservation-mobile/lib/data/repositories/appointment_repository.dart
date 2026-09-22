@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
 import '../models/appointment_model.dart';
@@ -5,7 +6,7 @@ import '../models/appointment_model.dart';
 class AppointmentRepository {
   final ApiClient _apiClient;
 
-  AppointmentRepository({required ApiClient apiClient}) : _apiClient = apiClient;
+  AppointmentRepository({required this._apiClient});
 
   Future<List<AppointmentModel>> getAppointments({
     String? date,
@@ -15,16 +16,18 @@ class AppointmentRepository {
     int? providerId,
   }) async {
     try {
+      final query = <String, dynamic>{
+        'with': 'service,provider,customer',
+      };
+      if (date != null) query['date'] = date;
+      if (from != null) query['from'] = from;
+      if (till != null) query['till'] = till;
+      if (customerId != null) query['customerId'] = customerId;
+      if (providerId != null) query['providerId'] = providerId;
+
       final response = await _apiClient.dio.get(
         ApiConstants.appointmentsEndpoint,
-        queryParameters: {
-          if (date != null) 'date': date,
-          if (from != null) 'from': from,
-          if (till != null) 'till': till,
-          if (customerId != null) 'customerId': customerId,
-          if (providerId != null) 'providerId': providerId,
-          'with': 'service,provider,customer',
-        },
+        queryParameters: query,
       );
 
       if (response.data is List) {
@@ -47,6 +50,38 @@ class AppointmentRepository {
       return response.statusCode == 200;
     } catch (e) {
       throw Exception('Randevu durumu güncellenemedi: $e');
+    }
+  }
+
+  Future<AppointmentModel> createAppointment({
+    required int serviceId,
+    required int providerId,
+    required DateTime startDatetime,
+    required DateTime endDatetime,
+    String? notes,
+    Map<String, dynamic>? customer,
+  }) async {
+    try {
+      final payload = {
+        'id_services': serviceId,
+        'id_users_provider': providerId,
+        'start_datetime': DateFormat('yyyy-MM-dd HH:mm:ss').format(startDatetime),
+        'end_datetime': DateFormat('yyyy-MM-dd HH:mm:ss').format(endDatetime),
+        'notes': ?notes,
+        'customer': ?customer,
+      };
+
+      final response = await _apiClient.dio.post(
+        ApiConstants.appointmentsEndpoint,
+        data: payload,
+      );
+
+      if (response.data is Map<String, dynamic>) {
+        return AppointmentModel.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw Exception('Geçersiz sunucu yanıtı.');
+    } catch (e) {
+      throw Exception('Randevu oluşturulamadı: $e');
     }
   }
 
