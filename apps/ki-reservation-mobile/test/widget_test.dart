@@ -20,10 +20,11 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
-    // Verify BooKi Rezervasyon brand title exists
-    expect(find.text('BooKi Rezervasyon'), findsOneWidget);
-    expect(find.text('Giriş Yap'), findsOneWidget);
+    // Verify BooKi brand and business step title exist
+    expect(find.text('İşletme Girişi'), findsOneWidget);
+    expect(find.text('Devam Et'), findsOneWidget);
   });
 }

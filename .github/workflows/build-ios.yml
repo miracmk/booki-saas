@@ -71,14 +71,15 @@ jobs:
           echo "IPA bundle successfully created at build/ios/ipa/BooKi-iOS-unsigned.ipa"
           ls -lh BooKi-iOS-unsigned.ipa
 
-      - name: 🌐 Build iOS Simulator for Appetize.io (.zip)
+      - name: 🌐 Build iOS Simulator for Appetize.io (.zip & .tar.gz)
         run: |
           flutter build ios --simulator
           cd build/ios/iphonesimulator
-          zip -r -q booki-appetize-iOS.zip Runner.app
+          zip -r -y -q booki-appetize-iOS.zip Runner.app
           ln -sf booki-appetize-iOS.zip BooKi-Appetize-iOS-Simulator.zip
-          echo "Appetize.io Simulator bundle created"
-          ls -lh booki-appetize-iOS.zip
+          tar -czf booki-appetize-iOS.tar.gz Runner.app
+          echo "Appetize.io Simulator bundles created"
+          ls -lh booki-appetize-iOS.zip booki-appetize-iOS.tar.gz
 
       - name: 🚀 Upload Device IPA Artifact
         uses: actions/upload-artifact@v4
