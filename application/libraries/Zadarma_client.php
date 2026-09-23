@@ -43,6 +43,37 @@ class Zadarma_client
         $n = $this->normalize_phone($raw);
         return preg_replace('/[^0-9]/', '', $n) ?? '';
     }
+
+    /**
+     * Zadarma PBX / Outbound dial formatı:
+     * Zadarma santralinde '90' ülke kodu ön eki tanımlı olduğunda, '00' olmadan
+     * gönderilen numaralar yerel kabul edilerek '90' ön eki tekrar eklenir (9090...).
+     * '00' ile başlayan numaralar uluslararası çıkış kodu sayılır ve mükerrer 90 engellenir.
+     */
+    public function format_dial_digits(string $raw): string {
+        $trimmed = trim($raw);
+        if ($trimmed === '') return '';
+        // Kısa dahili (örn: 100, 101)
+        if (preg_match('/^\d{1,5}$/', $trimmed)) {
+            return $trimmed;
+        }
+        $digits = preg_replace('/[^0-9]/', '', $trimmed) ?? '';
+        if ($digits === '') return '';
+        if (str_starts_with($digits, '00')) {
+            return $digits;
+        }
+        if (str_starts_with($digits, '0') && strlen($digits) === 11) {
+            return '0090' . substr($digits, 1);
+        }
+        if (strlen($digits) === 10 && str_starts_with($digits, '5')) {
+            return '0090' . $digits;
+        }
+        if (strlen($digits) === 12 && str_starts_with($digits, '90')) {
+            return '00' . $digits;
+        }
+        return '00' . $digits;
+    }
+
     public function normalize_phone(string $raw): string {
         $p = trim($raw);
         $plus = str_starts_with($p, '+');
@@ -73,11 +104,21 @@ class Zadarma_client
         $url = self::API_BASE . $method;
         $headers = ['Authorization: ' . $key . ':' . $sig];
         $ch = curl_init();
-        if (strtoupper($http) === 'POST') {
+        $http_upper = strtoupper($http);
+        if ($http_upper === 'POST') {
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
             $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+        } elseif ($http_upper === 'PUT') {
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($params));
+            $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+        } elseif ($http_upper === 'DELETE') {
+            $qs = http_build_query($params);
+            curl_setopt($ch, CURLOPT_URL, $url . ($qs !== '' ? '?' . $qs : ''));
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         } else {
             $qs = http_build_query($params);
             curl_setopt($ch, CURLOPT_URL, $url . ($qs !== '' ? '?' . $qs : ''));
@@ -112,7 +153,9 @@ class Zadarma_client
      * GET 400 donerse (bazi hesaplar POST kabul eder) tek kez POST ile denenir.
      */
     public function request_callback(string $from, string $to, ?string $sip = null): array {
-        $p = ['from' => $from, 'to' => $to];
+        $from_formatted = $this->format_dial_digits($from);
+        $to_formatted = $this->format_dial_digits($to);
+        $p = ['from' => $from_formatted, 'to' => $to_formatted];
         if ($sip !== null && $sip !== '') { $p['sip'] = $sip; }
         $res = $this->call('/v1/request/callback/', $p, 'GET');
         if (!$res['ok'] && (int) $res['http_code'] === 400) {
@@ -121,5 +164,58 @@ class Zadarma_client
         }
         return $res;
     }
+    /**
+     * WebRTC webphone widget key (GET /v1/webrtc/get_key/).
+     * Anahtar 72 saat gecerlidir; sip parametresi login veya dahili kabul eder.
+     */
+    public function webrtc_key(string $sip): array {
+        return $this->call('/v1/webrtc/get_key/', ['sip' => $sip], 'GET');
+    }
+
+    /**
+     * WebRTC widget entegrasyon bilgisi (GET /v1/webrtc/).
+     * is_exists (bool), domains (array), settings (shape, position) doner.
+     */
+    public function webrtc_info(): array {
+        return $this->call('/v1/webrtc/', [], 'GET');
+    }
+
+    /**
+     * WebRTC widget entegrasyonu olusturma (POST /v1/webrtc/create/).
+     */
+    public function webrtc_create(string $domain): array {
+        return $this->call('/v1/webrtc/create/', ['domain' => $domain], 'POST');
+    }
+
+    /**
+     * WebRTC widget'a yeni domain ekleme (POST /v1/webrtc/domain/).
+     */
+    public function webrtc_add_domain(string $domain): array {
+        return $this->call('/v1/webrtc/domain/', ['domain' => $domain], 'POST');
+    }
+
+    /**
+     * WebRTC widget'tan domain silme (DELETE /v1/webrtc/domain/).
+     */
+    public function webrtc_delete_domain(string $domain): array {
+        return $this->call('/v1/webrtc/domain/', ['domain' => $domain], 'DELETE');
+    }
+
+    /**
+     * WebRTC widget ayarlarini guncelleme (PUT /v1/webrtc/).
+     * shape: 'square' | 'rounded'
+     * position: 'top_left' | 'top_right' | 'bottom_right' | 'bottom_left'
+     */
+    public function webrtc_update_settings(string $shape = 'square', string $position = 'bottom_right'): array {
+        return $this->call('/v1/webrtc/', ['shape' => $shape, 'position' => $position], 'PUT');
+    }
+
+    /**
+     * WebRTC widget entegrasyonunu tamamen silme (DELETE /v1/webrtc/).
+     */
+    public function webrtc_delete(): array {
+        return $this->call('/v1/webrtc/', [], 'DELETE');
+    }
+
     public function balance(): array { return $this->call('/v1/info/balance/', [], 'GET'); }
 }

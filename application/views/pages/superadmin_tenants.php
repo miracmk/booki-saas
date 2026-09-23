@@ -56,7 +56,7 @@
 
         /* --- SIDEBAR --- */
         aside.app-sidebar {
-            width: 260px;
+            width: 275px;
             background: var(--sidebar-bg);
             color: var(--sidebar-text);
             display: flex;
@@ -65,35 +65,59 @@
             border-right: 1px solid #1e293b;
             z-index: 20;
             user-select: none;
+            transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .sidebar-brand {
-            padding: 1.25rem 1.25rem;
+            padding: 1.15rem 1.25rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid rgba(255,255,255,0.06);
+            gap: 0.5rem;
         }
         .sidebar-brand .logo-title {
             color: #ffffff;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             letter-spacing: -0.02em;
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex: 1;
+            overflow: hidden;
+            white-space: nowrap;
         }
         .sidebar-brand .badge-tag {
             background: rgba(37,99,235,0.2);
             color: #60a5fa;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.45rem;
+            font-size: 0.68rem;
+            padding: 0.18rem 0.45rem;
             border-radius: var(--radius-sm);
-            font-weight: 600;
+            font-weight: 700;
             border: 1px solid rgba(96,165,250,0.3);
+            white-space: nowrap;
+        }
+        .sidebar-toggle-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #94a3b8;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .sidebar-toggle-btn:hover {
+            background: rgba(255,255,255,0.15);
+            color: #ffffff;
         }
         .sidebar-nav {
             flex: 1;
-            padding: 1rem 0.75rem;
+            padding: 0.85rem 0.75rem;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -115,11 +139,12 @@
             color: var(--sidebar-text);
             text-decoration: none;
             border-radius: var(--radius);
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             font-weight: 500;
             transition: all 0.15s ease;
             cursor: pointer;
             border: 1px solid transparent;
+            position: relative;
         }
         .nav-item:hover {
             background: var(--sidebar-hover);
@@ -135,12 +160,20 @@
             display: flex;
             align-items: center;
             gap: 0.65rem;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .nav-item-left span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .nav-item svg {
             width: 18px;
             height: 18px;
             stroke-width: 2;
             opacity: 0.85;
+            flex-shrink: 0;
         }
         .nav-badge {
             background: rgba(255,255,255,0.1);
@@ -149,10 +182,78 @@
             padding: 0.15rem 0.45rem;
             border-radius: var(--radius-full);
             font-weight: 600;
+            flex-shrink: 0;
         }
         .nav-badge.danger {
             background: var(--danger);
             color: #ffffff;
+        }
+
+        /* Collapsed Sidebar Styles */
+        aside.app-sidebar.collapsed {
+            width: 72px;
+        }
+        aside.app-sidebar.collapsed .sidebar-brand {
+            padding: 1.15rem 0.5rem;
+            justify-content: center;
+        }
+        aside.app-sidebar.collapsed .sidebar-brand .logo-title span,
+        aside.app-sidebar.collapsed .sidebar-brand .badge-tag {
+            display: none;
+        }
+        aside.app-sidebar.collapsed .nav-section-title {
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+            margin: 0.6rem 0.4rem;
+            padding: 0;
+            font-size: 0;
+            overflow: hidden;
+        }
+        aside.app-sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 0.75rem 0;
+        }
+        aside.app-sidebar.collapsed .nav-item-left span,
+        aside.app-sidebar.collapsed .nav-badge {
+            display: none;
+        }
+        aside.app-sidebar.collapsed .nav-item svg {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            opacity: 0.95;
+        }
+        aside.app-sidebar.collapsed .nav-item::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 0.45rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            z-index: 1000;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        aside.app-sidebar.collapsed .nav-item:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) translateX(2px);
+        }
+        aside.app-sidebar.collapsed .sidebar-footer {
+            padding: 0.85rem 0.5rem;
+            justify-content: center;
+        }
+        aside.app-sidebar.collapsed .sidebar-footer .user-info,
+        aside.app-sidebar.collapsed .sidebar-footer .btn-logout {
+            display: none;
         }
         .sidebar-footer {
             padding: 1rem;
@@ -721,6 +822,36 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
         }
+        .search-box {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .search-box .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            color: var(--text-light);
+            pointer-events: none;
+        }
+        .search-box .search-input {
+            width: 100%;
+            padding: 0.45rem 0.65rem 0.45rem 2.2rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.82rem;
+            color: var(--text-main);
+            background: #ffffff;
+            outline: none;
+            transition: all 0.15s;
+        }
+        .search-box .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
 
         /* --- DRAWERS & MODALS --- */
         .drawer-overlay, .modal-backdrop {
@@ -1024,6 +1155,209 @@
             .topbar-left { max-width: 100%; }
         }
         .mobile-menu-btn { display: none; }
+
+        /* --- GOOGLE PLACES CRAWLER STYLES --- */
+        .places-config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+        @media (max-width: 960px) {
+            .places-config-grid { grid-template-columns: 1fr; }
+        }
+        .places-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .places-card-header {
+            padding: 0.9rem 1.2rem;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .places-card-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .places-card-body {
+            padding: 1.2rem;
+            flex: 1;
+        }
+        .places-mode-selector {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 3px;
+            margin-bottom: 1rem;
+            gap: 3px;
+        }
+        .places-mode-btn {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        .places-mode-btn.active {
+            background: #ffffff;
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .places-district-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.45rem;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-bottom: 0.75rem;
+        }
+        .places-district-item {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.78rem;
+            padding: 0.35rem 0.55rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.12s;
+            user-select: none;
+        }
+        .places-district-item:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .places-district-item input {
+            cursor: pointer;
+        }
+        .places-district-item.checked {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e40af;
+            font-weight: 600;
+        }
+        .places-pills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 0.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-bottom: 0.75rem;
+        }
+        .places-pill-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            padding: 0.45rem 0.65rem;
+            border: 1px solid var(--border-color);
+            border-radius: 7px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .places-pill-item:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+        }
+        .places-pill-item.checked {
+            background: #f5f3ff;
+            border-color: #c4b5fd;
+            color: #5b21b6;
+            font-weight: 600;
+        }
+        .places-pill-item input {
+            cursor: pointer;
+        }
+        .places-map-box {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            background: #e2e8f0;
+            height: 250px;
+            margin-bottom: 0.75rem;
+        }
+        .places-map-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #f8fafc;
+            padding: 0.65rem 0.85rem;
+            border-radius: 7px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 0.5rem;
+        }
+        .places-job-monitor {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid #334155;
+            display: none;
+        }
+        .places-job-monitor.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        .places-progress-track {
+            background: rgba(255,255,255,0.15);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0.85rem 0 0.6rem;
+            position: relative;
+        }
+        .places-progress-fill {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+            height: 100%;
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        .places-badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .places-badge-status.operational { background: #dcfce7; color: #166534; }
+        .places-badge-status.temp_closed { background: #fef3c7; color: #92400e; }
+        .places-badge-status.perm_closed { background: #fee2e2; color: #991b1b; }
+        .places-badge-enriched { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+        .places-badge-discovered { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -1038,19 +1372,22 @@
                 <span>BooKi <span style="font-weight:400;color:#94a3b8;font-size:0.85rem;">Admin</span></span>
             </div>
             <span class="badge-tag">ENTERPRISE</span>
+            <button type="button" class="sidebar-toggle-btn" id="sidebar-toggle-btn" onclick="toggleSidebarCollapse()" title="Menüyü Daralt / Genişlet">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
         </div>
 
         <nav class="sidebar-nav">
             <div class="nav-section-title">SATIŞ & OPERASYON</div>
             
-            <a class="nav-item <?= vars('active_tab') === 'dashboard' ? 'active' : '' ?>" onclick="switchTab('dashboard')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'dashboard' ? 'active' : '' ?>" onclick="switchTab('dashboard')" data-tooltip="Genel Bakış">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                     <span>Genel Bakış</span>
                 </div>
             </a>
 
-            <a class="nav-item <?= vars('active_tab') === 'pipeline' ? 'active' : '' ?>" onclick="switchTab('pipeline')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'pipeline' ? 'active' : '' ?>" onclick="switchTab('pipeline')" data-tooltip="Satış Hattı (Kanban)">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                     <span>Satış Hattı (Kanban)</span>
@@ -1058,14 +1395,31 @@
                 <span class="nav-badge" id="badge-pipeline-count"><?= (int) (vars('crm_kpis')['total_leads'] ?? 560) ?></span>
             </a>
 
-            <a class="nav-item <?= vars('active_tab') === 'leads' ? 'active' : '' ?>" onclick="switchTab('leads')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'leads' ? 'active' : '' ?>" onclick="switchTab('leads')" data-tooltip="Lead Havuzu">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Lead Havuzu (560)</span>
+                    <span>Lead Havuzu</span>
                 </div>
+                <span class="nav-badge" id="badge-leads-count"><?= (int) (vars('crm_kpis')['total_leads'] ?? 0) ?></span>
             </a>
 
-            <a class="nav-item <?= vars('active_tab') === 'tasks' ? 'active' : '' ?>" onclick="switchTab('tasks')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'places-crawler' ? 'active' : '' ?>" onclick="switchTab('places-crawler')" data-tooltip="Lead Keşfi (Places API)">
+                <div class="nav-item-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                    <span>Lead Keşfi (Places API)</span>
+                </div>
+                <span class="nav-badge" style="background:#8b5cf6;">PRO 🎯</span>
+            </a>
+
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'map' ? 'active' : '' ?>" onclick="switchTab('map')" data-tooltip="Saha Haritası">
+                <div class="nav-item-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <span>Saha Haritası</span>
+                </div>
+                <span class="nav-badge" style="background:#059669;">🗺️</span>
+            </a>
+
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'tasks' ? 'active' : '' ?>" onclick="switchTab('tasks')" data-tooltip="Saha & Görevler">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
                     <span>Saha & Görevler</span>
@@ -1078,7 +1432,7 @@
 
             <div class="nav-section-title">PLATFORM & TENANT</div>
 
-            <a class="nav-item <?= vars('active_tab') === 'tenants' ? 'active' : '' ?>" onclick="switchTab('tenants')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'tenants' ? 'active' : '' ?>" onclick="switchTab('tenants')" data-tooltip="Kiracılar (Tenants)">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                     <span>Kiracılar (Tenants)</span>
@@ -1086,7 +1440,7 @@
                 <span class="nav-badge"><?= (int) vars('total_tenants') ?></span>
             </a>
 
-            <a class="nav-item <?= vars('active_tab') === 'onboarding' ? 'active' : '' ?>" onclick="switchTab('onboarding')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'onboarding' ? 'active' : '' ?>" onclick="switchTab('onboarding')" data-tooltip="Onboarding Takibi">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                     <span>Onboarding Takibi</span>
@@ -1097,14 +1451,14 @@
                 <?php endif; ?>
             </a>
 
-            <a class="nav-item <?= vars('active_tab') === 'import' ? 'active' : '' ?>" onclick="switchTab('import')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'import' ? 'active' : '' ?>" onclick="switchTab('import')" data-tooltip="İçe Aktar (Excel/CSV)">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     <span>İçe Aktar (Excel/CSV)</span>
                 </div>
             </a>
 
-            <a class="nav-item <?= vars('active_tab') === 'reports' ? 'active' : '' ?>" onclick="switchTab('reports')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'reports' ? 'active' : '' ?>" onclick="switchTab('reports')" data-tooltip="Raporlar & Analitik">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                     <span>Raporlar & Analitik</span>
@@ -1113,7 +1467,7 @@
 
             <div class="nav-section-title">YÖNETİM</div>
 
-            <a class="nav-item <?= vars('active_tab') === 'settings' ? 'active' : '' ?>" onclick="switchTab('settings')">
+            <a href="javascript:void(0)" class="nav-item <?= vars('active_tab') === 'settings' ? 'active' : '' ?>" onclick="switchTab('settings')" data-tooltip="Platform Ayarları">
                 <div class="nav-item-left">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                     <span>Platform Ayarları</span>
@@ -1138,7 +1492,10 @@
         <!-- TOPBAR -->
         <header class="app-topbar">
             <div class="topbar-left">
-                <button class="btn btn-secondary btn-icon mobile-menu-btn" onclick="toggleMobileSidebar()">
+                <button class="btn btn-secondary btn-icon mobile-menu-btn" onclick="toggleMobileSidebar()" title="Mobil Menü">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <button class="btn btn-secondary btn-icon desktop-collapse-btn" onclick="toggleSidebarCollapse()" title="Menüyü Daralt / Genişlet" style="margin-right: 0.5rem; display: inline-flex;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 <div class="omnisearch-trigger" onclick="openOmnisearch()">
@@ -1418,9 +1775,17 @@
                             </tbody>
                         </table>
                     </div>
-                    <div style="padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border-color);background:#ffffff;">
-                        <div style="font-size:0.8rem;color:var(--text-muted);" id="leads-pagination-info">—</div>
-                        <div style="display:flex;gap:0.35rem;" id="leads-pagination-buttons"></div>
+                    <div style="padding:0.9rem 1.25rem;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border-color);background:#ffffff;flex-wrap:wrap;gap:0.75rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;">
+                            <div style="font-size:0.82rem;color:var(--text-muted);" id="leads-pagination-info">—</div>
+                            <select class="filter-select" id="leads-per-page-select" onchange="loadLeadsTable(1)" style="font-size:0.78rem;padding:0.25rem 0.5rem;height:auto;" title="Sayfa Başına Kayıt Sayısı">
+                                <option value="25" selected>25 / sayfa</option>
+                                <option value="50">50 / sayfa</option>
+                                <option value="100">100 / sayfa</option>
+                                <option value="250">250 / sayfa</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;" id="leads-pagination-buttons"></div>
                     </div>
                 </div>
             </div>
@@ -1571,6 +1936,58 @@
                                 <?php endif; ?>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: SAHA HARİTASI (MAP VIEW) -->
+            <div class="tab-content-panel <?= vars('active_tab') === 'map' ? 'active' : '' ?>" id="tab-map">
+                <div class="filter-toolbar" style="flex-wrap:wrap;gap:0.5rem;">
+                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                        <span style="font-weight:700;font-size:0.95rem;">🗺️ Saha Haritası — Lead Konumları</span>
+                        <span id="map-lead-count" style="font-size:0.78rem;color:var(--text-muted);"></span>
+                    </div>
+                    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                        <select class="form-control" id="map-stage-filter" onchange="loadMapLeads()" style="min-width:140px;">
+                            <option value="">Tüm Aşamalar</option>
+                            <?php foreach (vars('stage_definitions') as $k => $lbl): ?>
+                                <option value="<?= e($k) ?>"><?= e($lbl) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select class="form-control" id="map-sector-filter" onchange="loadMapLeads()" style="min-width:120px;">
+                            <option value="">Tüm Sektörler</option>
+                            <?php foreach ((array) vars('sectors') as $s): ?>
+                                <option value="<?= e($s['sector']) ?>"><?= e($s['sector']) ?> (<?= $s['count'] ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                        <select class="form-control" id="map-district-filter" onchange="loadMapLeads()" style="min-width:120px;">
+                            <option value="">Tüm İlçeler</option>
+                            <?php foreach ((array) vars('districts') as $d): ?>
+                                <option value="<?= e($d['district']) ?>"><?= e($d['district']) ?> (<?= $d['count'] ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button class="btn btn-secondary btn-sm" onclick="batchGeocodeLeads()" id="btn-batch-geocode" title="Adresi olan ama koordinatı olmayan lead'leri otomatik konumla">
+                            📍 Toplu Konumla
+                        </button>
+                    </div>
+                </div>
+                <div id="map-container" style="width:100%;height:calc(100vh - 180px);border-radius:8px;overflow:hidden;border:1px solid var(--border-color);position:relative;">
+                    <div id="leads-map" style="width:100%;height:100%;"></div>
+                    <!-- Legend -->
+                    <div id="map-legend" style="position:absolute;bottom:12px;left:12px;background:rgba(255,255,255,0.95);padding:0.6rem 0.8rem;border-radius:8px;border:1px solid var(--border-color);font-size:0.72rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:5;">
+                        <div style="font-weight:700;margin-bottom:0.35rem;font-size:0.75rem;">Aşama Renkleri</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:0.35rem 0.75rem;">
+                            <span>🔵 Yeni / Nitelikli</span>
+                            <span>🟡 Ziyaret</span>
+                            <span>🟠 Demo / Takip</span>
+                            <span>🟢 Kazanıldı</span>
+                            <span>🔴 Kaybedildi</span>
+                        </div>
+                    </div>
+                    <!-- Unlocated warning -->
+                    <div id="map-unlocated-bar" style="display:none;position:absolute;top:12px;left:12px;right:12px;background:#fffbeb;border:1px solid #fef3c7;padding:0.5rem 0.75rem;border-radius:8px;font-size:0.78rem;color:#92400e;z-index:5;display:flex;justify-content:space-between;align-items:center;">
+                        <span id="map-unlocated-text"></span>
+                        <button class="btn btn-primary btn-sm" onclick="batchGeocodeLeads()" style="font-size:0.72rem;padding:0.25rem 0.5rem;">Otomatik Konumla</button>
                     </div>
                 </div>
             </div>
@@ -1857,6 +2274,9 @@
                                 <button type="button" class="btn btn-sm btn-success" id="btn-zadarma-test" onclick="testZadarmaConnection()" style="background:#10b981;border-color:#10b981;">
                                     🔌 Bağlantıyı Test Et
                                 </button>
+                                <button type="button" class="btn btn-sm" id="btn-zadarma-webrtc-sync" onclick="syncZadarmaWebRTC()" style="background:#eff6ff;border:1px solid #3b82f6;color:#2563eb;font-weight:600;">
+                                    🌐 WebRTC Domaini Eşitle (API)
+                                </button>
                                 <span id="zadarma-test-result" style="font-size:0.78rem;color:var(--text-muted);align-self:center;"></span>
                             </div>
 
@@ -1999,6 +2419,11 @@
                                 <label>Project ID</label>
                                 <input type="text" id="ps_google_project_id" class="form-control" value="<?= e($ps['google_project_id'] ?? '') ?>">
                             </div>
+                            <div class="form-group">
+                                <label>Google Maps Platform API Key (Harita & Geocoding)</label>
+                                <input type="text" id="ps_google_maps_key" class="form-control" value="<?= e($ps['google_maps_key'] ?? 'AIzaSyAscIARfxTG_KzedaskCabzuRSTj-0bulA') ?>" placeholder="AIzaSy...">
+                                <small style="font-size:0.7rem;color:var(--text-muted);">Saha haritası markerları ve lead adres geocoding için kullanılır.</small>
+                            </div>
                         </div>
                     </div>
 
@@ -2023,6 +2448,382 @@
                     </div>
 
                 </div>
+            </div>
+
+            <!-- TAB: GOOGLE PLACES PROSPECT CRAWLER -->
+            <div class="tab-content-panel <?= vars('active_tab') === 'places-crawler' ? 'active' : '' ?>" id="tab-places-crawler">
+                <!-- HEADER & ACTIONS -->
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <h2 style="font-size:1.35rem;font-weight:800;color:var(--text-main);margin:0;">Google Places Prospect & Lead Keşfi</h2>
+                            <span class="badge" style="background:#8b5cf6;color:#ffffff;font-weight:700;">PRO NEW API</span>
+                        </div>
+                        <p style="font-size:0.82rem;color:var(--text-muted);margin:0.25rem 0 0;">
+                            Bursa 17 ilçe veya Haritada Pin + Yarıçap (KM) çemberi ile BooKi randevu sektörlerinde faal işletmeleri otomatik keşfedin, <code>place_id</code> bazlı tekilleştirin ve isteğe bağlı zenginleştirin.
+                        </p>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <button class="btn btn-secondary btn-sm" onclick="exportPlacesCsv()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>CSV Dışa Aktar</span>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="loadPlacesStats()" title="API İstatistiklerini Yenile">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+                            <span>İstatistikler</span>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="clearAllLeadsConfirm()" style="background:#fee2e2;color:#991b1b;border-color:#fecaca;" title="Tüm CRM Lead havuzunu sıfırlar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>Havuzu Sıfırla</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI STATS SUMMARY -->
+                <div class="kpi-grid" style="margin-bottom:1.25rem;">
+                    <div class="kpi-card accent-purple" onclick="switchCrawlerTableEnrichFilter('all')">
+                        <div class="kpi-label">
+                            <span>Toplam Keşfedilen Prospect</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                        </div>
+                        <div class="kpi-value" id="places-stat-total-discovered">—</div>
+                        <div class="kpi-subtext">Google Places tabanlı tekil lead</div>
+                    </div>
+
+                    <div class="kpi-card accent-emerald" onclick="switchCrawlerTableEnrichFilter('enriched')">
+                        <div class="kpi-label">
+                            <span>Zenginleştirilmiş İşletmeler</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        </div>
+                        <div class="kpi-value" id="places-stat-enriched">—</div>
+                        <div class="kpi-subtext">Telefon, Web, Puan, Çalışma Saati</div>
+                    </div>
+
+                    <div class="kpi-card accent-blue">
+                        <div class="kpi-label">
+                            <span>Bugünkü API Çağrısı</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        </div>
+                        <div class="kpi-value" id="places-stat-api-today">—</div>
+                        <div class="kpi-subtext">Text Search / Place Details</div>
+                    </div>
+
+                    <div class="kpi-card accent-amber">
+                        <div class="kpi-label">
+                            <span>Kapsama Alanı</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+                        </div>
+                        <div class="kpi-value" style="font-size:1.35rem;">17 İlçe / 12 Sektör</div>
+                        <div class="kpi-subtext">Bursa & Çevre Bölgeler</div>
+                    </div>
+                </div>
+
+                <!-- DIRECT SEARCH BAR (CANLI GOOGLE PLACES İSİM / KELİME ARAMA) -->
+                <div class="places-card" style="margin-bottom:1.25rem;border-left:4px solid #8b5cf6;">
+                    <div class="places-card-header" style="background:#f8fafc;display:flex;justify-content:space-between;align-items:center;padding:0.9rem 1.25rem;">
+                        <div class="places-card-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <span>Doğrudan İşletme Adı veya Anahtar Kelime ile Canlı Arama</span>
+                        </div>
+                        <span class="badge" style="background:#ede9fe;color:#6d28d9;font-weight:700;font-size:0.7rem;">ANINDA KEŞFET & ZENGİNLEŞTİR</span>
+                    </div>
+                    <div class="places-card-body" style="padding:1.15rem 1.25rem;">
+                        <form id="places-direct-search-form" onsubmit="handlePlacesDirectSearch(event)" style="display:flex;flex-direction:column;gap:0.85rem;">
+                            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:0.75rem;">
+                                <div style="position:relative;">
+                                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-main);margin-bottom:0.35rem;display:block;">İşletme Adı / Özel Arama (Yakınsak / Canlı):</label>
+                                    <input type="text" id="direct-search-query" class="filter-input" placeholder="Örn: Elegance Güzellik Salonu, Masterhair, Dt. Ahmet..." required style="width:100%;font-size:0.85rem;" autocomplete="off" oninput="handleDirectSearchInput(this.value)" onfocus="handleDirectSearchInput(this.value)">
+                                    <div id="direct-search-suggest-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:1000;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.12);max-height:280px;overflow-y:auto;margin-top:4px;"></div>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-main);margin-bottom:0.35rem;display:block;">Bölge / İlçe:</label>
+                                    <select id="direct-search-district" class="filter-select" style="width:100%;font-size:0.85rem;">
+                                        <option value="">Tüm Bursa (Geniş Kapsam)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.78rem;font-weight:700;color:var(--text-main);margin-bottom:0.35rem;display:block;">BooKi Sektörü:</label>
+                                    <select id="direct-search-category" class="filter-select" style="width:100%;font-size:0.85rem;">
+                                        <!-- populated dynamically from taxonomy -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;padding-top:0.4rem;border-top:1px dashed var(--border-color);">
+                                <div style="display:flex;align-items:center;gap:1.25rem;font-size:0.82rem;">
+                                    <span style="font-weight:700;color:var(--text-muted);">Arama Modu:</span>
+                                    <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+                                        <input type="radio" name="direct_search_mode" value="basic" checked>
+                                        <span>⚡ <strong>Temel (Basic)</strong> — Google Text Search (Konum, Puan, Adres)</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+                                        <input type="radio" name="direct_search_mode" value="enriched">
+                                        <span>✨ <strong>Zenginleştirilmiş (Enriched)</strong> — Place Details (Tel, Web, Çalışma Saatleri)</span>
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-sm" id="btn-direct-search" style="padding:0.5rem 1.25rem;font-weight:700;background:#7c3aed;border-color:#7c3aed;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                    <span>Google'da Canlı Ara & Kaydet</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Direct Search Results Container -->
+                        <div id="direct-search-results-container" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border-color);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+                                <div style="font-weight:700;font-size:0.84rem;color:var(--text-main);" id="direct-search-results-title">Bulunan İşletmeler:</div>
+                                <button type="button" class="btn btn-secondary btn-xs" onclick="document.getElementById('direct-search-results-container').style.display='none'">Gizle</button>
+                            </div>
+                            <div id="direct-search-results-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.75rem;">
+                                <!-- Rendered results -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CRAWLER CONFIGURATION GRID (2 COLUMNS) -->
+                <div class="places-config-grid">
+                    
+                    <!-- COLUMN 1: COĞRAFİ HEDEFLEME -->
+                    <div class="places-card">
+                        <div class="places-card-header">
+                            <div class="places-card-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                <span>1. Coğrafi Hedefleme (Konum & Alan)</span>
+                            </div>
+                        </div>
+                        <div class="places-card-body">
+                            
+                            <!-- Mode Switcher -->
+                            <div class="places-mode-selector">
+                                <button type="button" class="places-mode-btn active" id="btn-mode-districts" onclick="switchCrawlerGeoMode('districts')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                                    <span>Bursa 17 İlçe Seçimi</span>
+                                </button>
+                                <button type="button" class="places-mode-btn" id="btn-mode-radius" onclick="switchCrawlerGeoMode('radius')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <span>Haritada Pin + Yarıçap (KM)</span>
+                                </button>
+                            </div>
+
+                            <!-- DISTRICT SELECTOR MODE -->
+                            <div id="crawler-geo-districts-container">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;font-size:0.75rem;">
+                                    <span style="font-weight:600;color:var(--text-muted);">Hedef İlçeler:</span>
+                                    <div style="display:flex;gap:0.35rem;">
+                                        <button type="button" class="btn btn-secondary btn-xs" onclick="selectCrawlerDistricts('all')">Tümü</button>
+                                        <button type="button" class="btn btn-secondary btn-xs" onclick="selectCrawlerDistricts('center')">Merkez 5</button>
+                                        <button type="button" class="btn btn-secondary btn-xs" onclick="selectCrawlerDistricts('none')">Temizle</button>
+                                    </div>
+                                </div>
+                                <div class="places-district-grid" id="crawler-district-checkboxes">
+                                    <!-- Dynamic from taxonomy or static fallback -->
+                                </div>
+                            </div>
+
+                            <!-- PIN + RADIUS MAP MODE -->
+                            <div id="crawler-geo-radius-container" style="display:none;">
+                                <div class="places-map-slider-row">
+                                    <span style="font-size:0.78rem;font-weight:700;color:var(--text-main);white-space:nowrap;">🎯 Arama Yarıçapı:</span>
+                                    <input type="range" id="crawler-radius-slider" min="1" max="30" value="5" step="1" style="flex:1;" oninput="updateCrawlerRadius(this.value)">
+                                    <span class="badge" style="background:#2563eb;color:#fff;font-weight:700;min-width:55px;text-align:center;" id="crawler-radius-badge">5 km</span>
+                                </div>
+                                <div class="places-map-box" id="crawler-radius-map">
+                                    <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-light);font-size:0.8rem;">
+                                        Harita yükleniyor...
+                                    </div>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;font-size:0.73rem;color:var(--text-muted);">
+                                    <div>📍 Merkez: <strong id="crawler-center-label" style="color:var(--text-main);">40.2185, 28.9345 (Bursa)</strong></div>
+                                    <div>🌐 Kapsam: <strong id="crawler-area-label" style="color:var(--text-main);">~78.5 km²</strong></div>
+                                </div>
+                                <p style="font-size:0.7rem;color:var(--text-light);margin:0.35rem 0 0;">
+                                    💡 Haritaya tıklayarak veya pini sürükleyerek arama çemberinizin merkezini serbestçe belirleyebilirsiniz.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- COLUMN 2: BOOKI KATEGORİ & DERİNLİK -->
+                    <div class="places-card">
+                        <div class="places-card-header">
+                            <div class="places-card-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                <span>2. BooKi Randevu Sektörleri & Derinlik</span>
+                            </div>
+                        </div>
+                        <div class="places-card-body">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;font-size:0.75rem;">
+                                <span style="font-weight:600;color:var(--text-muted);">Sektörler:</span>
+                                <div style="display:flex;gap:0.35rem;">
+                                    <button type="button" class="btn btn-secondary btn-xs" onclick="selectCrawlerCategories('all')">Tümü</button>
+                                    <button type="button" class="btn btn-secondary btn-xs" onclick="selectCrawlerCategories('popular')">Popüler</button>
+                                    <button type="button" class="btn btn-secondary btn-xs" onclick="selectCrawlerCategories('none')">Temizle</button>
+                                </div>
+                            </div>
+                            <div class="places-pills-grid" id="crawler-category-checkboxes">
+                                <!-- Dynamic from taxonomy -->
+                            </div>
+
+                            <hr style="border:none;border-top:1px solid var(--border-color);margin:0.85rem 0;">
+
+                            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;font-size:0.8rem;">
+                                <div>
+                                    <span style="font-weight:700;color:var(--text-main);display:block;margin-bottom:0.35rem;">Arama Derinliği (Sayfa / Sonuç):</span>
+                                    <div style="display:flex;gap:0.75rem;align-items:center;">
+                                        <label style="display:flex;align-items:center;gap:0.35rem;cursor:pointer;">
+                                            <input type="radio" name="crawler_depth" value="standard" checked onchange="updatePlacesPreview()">
+                                            <span>Standart (1 Sayfa - 20 Sonuç / ~1 Çağrı)</span>
+                                        </label>
+                                        <label style="display:flex;align-items:center;gap:0.35rem;cursor:pointer;">
+                                            <input type="radio" name="crawler_depth" value="deep" onchange="updatePlacesPreview()">
+                                            <span>Derin Tarama (Maks 60 Sonuç / ~3 Çağrı)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:0.75rem;font-size:0.78rem;color:var(--text-muted);">
+                                <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+                                    <input type="checkbox" id="crawler_filter_operational" checked>
+                                    <span>Yalnızca faal işletmeleri ekle (<code>OPERATIONAL</code>). Kapalı işletmeleri filtrele.</span>
+                                </label>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- PREVIEW & ACTION BAR -->
+                <div class="places-card" style="margin-bottom:1.25rem;background:#f8fafc;">
+                    <div style="padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                        <div style="display:flex;align-items:center;gap:0.75rem;">
+                            <div style="background:#eff6ff;color:#2563eb;width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+                                🎯
+                            </div>
+                            <div>
+                                <div style="font-size:0.86rem;font-weight:700;color:var(--text-main);" id="crawler-preview-title">Tarama Özeti & Tahmin</div>
+                                <div style="font-size:0.76rem;color:var(--text-muted);" id="crawler-preview-details">Hesaplanıyor...</div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:0.5rem;align-items:center;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="updatePlacesPreview()">
+                                <span>🔄 Önizlemeyi Güncelle</span>
+                            </button>
+                            <button type="button" class="btn btn-primary" id="btn-start-places-crawl" onclick="startPlacesCrawl()" style="background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;padding:0.65rem 1.35rem;font-weight:700;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+                                <span>🚀 Canlı Keşfi Başlat</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE JOB MONITOR -->
+                <div class="places-job-monitor" id="places-job-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.6rem;">
+                            <span class="badge" style="background:#10b981;color:#fff;font-weight:700;" id="places-job-badge">ÇALIŞIYOR ⚡</span>
+                            <span style="font-size:0.85rem;font-weight:700;color:#f8fafc;" id="places-job-title">Canlı Tarama Görevi</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:0.75rem;">
+                            <span style="font-size:0.75rem;color:#94a3b8;" id="places-job-timer">0s</span>
+                            <button type="button" class="btn btn-secondary btn-xs" onclick="cancelPlacesJob()" style="background:rgba(239,68,68,0.2);color:#fca5a5;border-color:rgba(239,68,68,0.4);">
+                                ⏹️ Taramayı Durdur
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="font-size:0.82rem;color:#93c5fd;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="places-job-query-label">
+                        Sorgu hazırlanıyor...
+                    </div>
+
+                    <div class="places-progress-track">
+                        <div class="places-progress-fill" id="places-job-progress-bar"></div>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;color:#cbd5e1;flex-wrap:wrap;gap:0.5rem;">
+                        <div>
+                            <span>İlerleme: <strong id="places-job-progress-pct" style="color:#ffffff;">0%</strong></span>
+                            <span style="margin:0 0.5rem;color:#64748b;">|</span>
+                            <span>Sorgular: <strong id="places-job-queries-done" style="color:#ffffff;">0</strong> / <strong id="places-job-queries-total">0</strong></span>
+                        </div>
+                        <div style="display:flex;gap:0.85rem;">
+                            <span>Bulunan: <strong id="places-job-found-count" style="color:#60a5fa;">0</strong></span>
+                            <span>Yeni Lead: <strong id="places-job-created-count" style="color:#34d399;">0</strong></span>
+                            <span>Güncellenen: <strong id="places-job-updated-count" style="color:#fbbf24;">0</strong></span>
+                            <span>Hata: <strong id="places-job-failed-count" style="color:#f87171;">0</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DISCOVERED PROSPECTS TABLE -->
+                <div class="table-container">
+                    
+                    <!-- Table Toolbar -->
+                    <div class="filter-toolbar">
+                        <div class="filter-group">
+                            <input type="text" id="crawler-search-input" class="filter-input" placeholder="İşletme adı, adres, telefon ara..." style="width:260px;" oninput="handleCrawlerSearchInput(this.value)">
+
+                            <select id="crawler-sector-filter" class="filter-select" onchange="loadCrawlerLeadsTable(1)">
+                                <option value="">Tüm Sektörler</option>
+                            </select>
+
+                            <select id="crawler-district-filter" class="filter-select" onchange="loadCrawlerLeadsTable(1)">
+                                <option value="">Tüm İlçeler</option>
+                            </select>
+
+                            <select id="crawler-enrich-filter" class="filter-select" onchange="loadCrawlerLeadsTable(1)">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="enriched">✨ Sadece Zenginleştirilenler</option>
+                                <option value="not_enriched">🎯 Henüz Zenginleştirilmemiş</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <button class="btn btn-secondary btn-sm" onclick="bulkEnrichPlaceLeads()" style="background:#7c3aed;color:#ffffff;border:none;box-shadow:0 1px 3px rgba(124,58,237,0.3);">
+                                <span>✨ Seçilenleri Zenginleştir</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table Responsive -->
+                    <div class="table-responsive">
+                        <table class="data-table" id="crawler-leads-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:36px;text-align:center;">
+                                        <input type="checkbox" id="crawler-select-all" onchange="toggleSelectAllCrawlerLeads(this.checked)">
+                                    </th>
+                                    <th>İşletme & Google Türü</th>
+                                    <th>BooKi Sektörü</th>
+                                    <th>İlçe & Adres</th>
+                                    <th>Durum</th>
+                                    <th>Google Harita</th>
+                                    <th>İletişim & Detaylar</th>
+                                    <th style="text-align:right;">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crawler-leads-tbody">
+                                <tr>
+                                    <td colspan="8" style="text-align:center;padding:2.5rem;color:var(--text-light);">
+                                        Yükleniyor...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Table Footer / Pagination -->
+                    <div class="table-footer" style="display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1rem;background:#f8fafc;border-top:1px solid var(--border-color);font-size:0.8rem;flex-wrap:wrap;gap:0.5rem;">
+                        <div id="crawler-pagination-info" style="color:var(--text-muted);">0 işletme gösteriliyor</div>
+                        <div id="crawler-pagination-buttons" style="display:flex;gap:0.35rem;"></div>
+                    </div>
+
+                </div>
+
             </div>
 
         </div>
@@ -2927,6 +3728,36 @@
                     </div>
                 </div>
 
+                <!-- TARGET PHONE & CHANNEL SELECTOR -->
+                <div style="background:#f8fafc;border:1px solid var(--border-color);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;">
+                    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;margin-bottom:0.6rem;">
+                        <span style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">📞 Aranacak Numara:</span>
+                        <input type="text" id="call-target-phone" class="form-control" style="max-width:200px;font-size:0.9rem;padding:0.3rem 0.6rem;height:auto;font-weight:700;background:#fff;" value="" placeholder="905xxxxxxxxx">
+                        <span style="font-size:0.72rem;color:var(--text-muted);">(Doğrudan buradan da değiştirebilir veya test edebilirsiniz)</span>
+                    </div>
+
+                    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                        <span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Arama Yöntemi:</span>
+                        <button type="button" id="zd-ch-browser" class="btn btn-sm" onclick="setZadarmaDialChannel('browser')" style="border:1px solid var(--border-color);">
+                            🌐 Tarayıcıdan Konuş (WebRTC)
+                        </button>
+                        <button type="button" id="zd-ch-callback" class="btn btn-sm" onclick="setZadarmaDialChannel('callback')" style="border:1px solid var(--border-color);">
+                            📱 Telefonumu Çaldır (Callback)
+                        </button>
+                        <span id="zd-widget-status" style="font-size:0.72rem;color:var(--text-muted);"></span>
+                    </div>
+
+                    <div id="zd-callback-box" style="display:none;margin-top:0.6rem;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:0.6rem 0.75rem;">
+                        <div style="font-size:0.75rem;font-weight:700;color:#92400e;margin-bottom:0.25rem;">
+                            📱 Önce Sizin Hangi Telefonunuz Çalsın?
+                        </div>
+                        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                            <input type="text" id="zd-callback-phone" class="form-control" style="max-width:220px;font-size:0.85rem;padding:0.35rem 0.6rem;height:auto;font-weight:700;background:#fff;" value="<?= e($ps['zadarma_caller_id'] ?? '05062505562') ?>" placeholder="Örn: 05062505562 veya 100">
+                            <span style="font-size:0.72rem;color:#b45309;">Aramayı Başlat deyince önce bu telefonunuz çalar; siz açınca müşteri bağlanır.</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- LIVE TRANSCRIPT FEED -->
                 <div class="form-group" style="margin-bottom:1rem;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
@@ -3145,6 +3976,10 @@
                 loadLeadsTable();
             } else if (tabId === 'onboarding') {
                 loadOnboardingSessions();
+            } else if (tabId === 'map') {
+                initMapIfNeeded();
+            } else if (tabId === 'places-crawler') {
+                initPlacesCrawlerTab();
             }
 
             // Update URL hash
@@ -3157,6 +3992,17 @@
             const backdrop = document.getElementById('sidebar-backdrop');
             sidebar.classList.toggle('mobile-open');
             backdrop.classList.toggle('open');
+        }
+
+        // DESKTOP SIDEBAR COLLAPSE
+        function toggleSidebarCollapse() {
+            const sidebar = document.getElementById('app-sidebar');
+            if (!sidebar) return;
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            try {
+                localStorage.setItem('booki_sidebar_collapsed', isCollapsed ? '1' : '0');
+            } catch (e) {}
         }
 
         // --- PIPELINE KANBAN CONTROLLER ---
@@ -3309,17 +4155,21 @@
 
         // --- LEADS TABLE CONTROLLER ---
         let currentLeadsPage = 1;
+        let currentLeadsLimit = 25;
+
         function loadLeadsTable(page = 1) {
-            currentLeadsPage = page;
+            currentLeadsPage = parseInt(page, 10) || 1;
             const q = document.getElementById('leads-search')?.value || '';
             const sector = document.getElementById('leads-sector-filter')?.value || '';
             const district = document.getElementById('leads-district-filter')?.value || '';
             const stage = document.getElementById('leads-stage-filter')?.value || '';
+            const limitSelect = document.getElementById('leads-per-page-select');
+            if (limitSelect) currentLeadsLimit = parseInt(limitSelect.value, 10) || 25;
 
             const tbody = document.getElementById('leads-table-tbody');
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-light);">Yükleniyor...</td></tr>';
 
-            const params = new URLSearchParams({ q, sector, district, stage, page, limit: 25 });
+            const params = new URLSearchParams({ q, sector, district, stage, page: currentLeadsPage, limit: currentLeadsLimit });
             fetch(`<?= site_url('superadmin_tenants/api_leads') ?>?${params.toString()}`)
                 .then(r => r.json())
                 .then(data => {
@@ -3329,7 +4179,11 @@
                     }
 
                     renderLeadsTableRows(data.leads);
-                    renderLeadsPagination(data.total, data.limit, data.page);
+                    renderLeadsPagination(data.total || 0, data.limit || currentLeadsLimit, data.page || data.current_page || currentLeadsPage);
+                })
+                .catch(err => {
+                    console.error('Leads load error:', err);
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#b91c1c;">Sunucu bağlantı hatası oluştu.</td></tr>';
                 });
         }
 
@@ -3398,35 +4252,101 @@
         }
 
         function renderLeadsPagination(total, limit, page) {
+            total = Number(total) || 0;
+            limit = Number(limit) || 25;
+            page = Number(page) || 1;
+
             const info = document.getElementById('leads-pagination-info');
             const btns = document.getElementById('leads-pagination-buttons');
             const totalPages = Math.max(1, Math.ceil(total / limit));
 
-            info.textContent = `Toplam ${total.toLocaleString('tr-TR')} kayıttan ${(page - 1) * limit + 1} - ${Math.min(total, page * limit)} arası gösteriliyor`;
-            btns.innerHTML = '';
+            const start = total === 0 ? 0 : (page - 1) * limit + 1;
+            const end = Math.min(total, page * limit);
+            if (info) {
+                info.textContent = `Toplam ${total.toLocaleString('tr-TR')} işletmeden ${start} - ${end} arası gösteriliyor (Sayfa ${page}/${totalPages})`;
+            }
 
+            if (!btns) return;
+            btns.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            // First & Prev
             if (page > 1) {
+                const first = document.createElement('button');
+                first.className = 'btn btn-secondary btn-sm';
+                first.innerHTML = '&laquo;';
+                first.title = 'İlk Sayfa';
+                first.onclick = () => loadLeadsTable(1);
+                btns.appendChild(first);
+
                 const prev = document.createElement('button');
                 prev.className = 'btn btn-secondary btn-sm';
-                prev.textContent = 'Önceki';
+                prev.textContent = '‹ Önceki';
                 prev.onclick = () => loadLeadsTable(page - 1);
                 btns.appendChild(prev);
             }
 
-            for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++) {
+            // Numeric page buttons
+            let startPage = Math.max(1, page - 2);
+            let endPage = Math.min(totalPages, page + 2);
+
+            if (startPage > 1) {
+                const b = document.createElement('button');
+                b.className = 'btn btn-secondary btn-sm';
+                b.textContent = '1';
+                b.onclick = () => loadLeadsTable(1);
+                btns.appendChild(b);
+
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.style.padding = '0.35rem 0.4rem';
+                    dots.style.color = 'var(--text-light)';
+                    dots.textContent = '...';
+                    btns.appendChild(dots);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
                 const b = document.createElement('button');
                 b.className = `btn ${i === page ? 'btn-primary' : 'btn-secondary'} btn-sm`;
                 b.textContent = i;
+                if (i === page) {
+                    b.style.fontWeight = '700';
+                }
                 b.onclick = () => loadLeadsTable(i);
                 btns.appendChild(b);
             }
 
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.style.padding = '0.35rem 0.4rem';
+                    dots.style.color = 'var(--text-light)';
+                    dots.textContent = '...';
+                    btns.appendChild(dots);
+                }
+
+                const b = document.createElement('button');
+                b.className = 'btn btn-secondary btn-sm';
+                b.textContent = totalPages;
+                b.onclick = () => loadLeadsTable(totalPages);
+                btns.appendChild(b);
+            }
+
+            // Next & Last
             if (page < totalPages) {
                 const next = document.createElement('button');
                 next.className = 'btn btn-secondary btn-sm';
-                next.textContent = 'Sonraki';
+                next.textContent = 'Sonraki ›';
                 next.onclick = () => loadLeadsTable(page + 1);
                 btns.appendChild(next);
+
+                const last = document.createElement('button');
+                last.className = 'btn btn-secondary btn-sm';
+                last.innerHTML = '&raquo;';
+                last.title = 'Son Sayfa';
+                last.onclick = () => loadLeadsTable(totalPages);
+                btns.appendChild(last);
             }
         }
 
@@ -3532,6 +4452,31 @@
                             </div>
                         </div>
 
+                        <div style="background:#f8fafc;padding:0.75rem;border-radius:6px;border:1px solid var(--border-color);margin-bottom:1.25rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+                                <div style="font-size:0.72rem;color:var(--text-light);text-transform:uppercase;">Adres & Harita Konumu</div>
+                                <span class="badge-tag" style="font-size:0.68rem;${(ld.latitude && ld.longitude) ? 'background:#ecfdf5;color:#047857;' : 'background:#fff1f2;color:#be123c;'}">
+                                    ${(ld.latitude && ld.longitude) ? '📍 Konum Kayıtlı' : '⚠️ Konum Yok'}
+                                </span>
+                            </div>
+                            <div style="font-size:0.82rem;color:var(--text-main);margin-bottom:0.5rem;">${ld.address ? `${ld.address}, ${ld.district || ''}` : 'Adres girilmemiş'}</div>
+                            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                                ${(ld.latitude && ld.longitude) ? `
+                                    <button class="btn btn-secondary btn-sm" onclick="focusLeadOnMap(${ld.latitude}, ${ld.longitude}, ${ld.id})" style="font-size:0.75rem;">
+                                        🗺️ Haritada Göster
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-secondary btn-sm" onclick="geocodeLeadAddress(${ld.id})" id="btn-geocode-${ld.id}" style="font-size:0.75rem;">
+                                    📍 Adresten Konum Bul
+                                </button>
+                                ${(ld.latitude && ld.longitude) ? `
+                                    <a href="https://maps.google.com/?q=${encodeURIComponent(ld.latitude + ',' + ld.longitude)}" target="_blank" class="btn btn-secondary btn-sm" style="font-size:0.75rem;">
+                                        Google Maps ↗
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+
                         <div style="margin-bottom:1.25rem;">
                             <label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--text-light);">Aşama Durumu</label>
                             <select class="form-control" style="margin-top:0.35rem;" onchange="updateLeadStage(${ld.id}, this.value)">
@@ -3588,9 +4533,8 @@
             const note = input.value.trim();
             if (!note) return;
 
-            post('<?= site_url('superadmin_tenants/api_lead_detail') ?>', {
+            post('<?= site_url('superadmin_tenants/api_add_quick_note') ?>', {
                 lead_id: leadId,
-                action: 'add_note',
                 title: 'Saha Notu',
                 note: note
             }).then(data => {
@@ -3598,8 +4542,315 @@
                     showToast('Not eklendi', 'success');
                     input.value = '';
                     openLeadDrawer(leadId);
+                } else {
+                    showToast(data.message || 'Hata oluştu', 'error');
                 }
             });
+        }
+
+        function geocodeLeadAddress(leadId) {
+            const btn = document.getElementById(`btn-geocode-${leadId}`);
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Konum aranıyor...';
+            }
+            post('<?= site_url('superadmin_tenants/api_geocode_lead') ?>', {
+                lead_id: leadId
+            }).then(data => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '📍 Adresten Konum Bul';
+                }
+                if (data.success) {
+                    showToast('Konum başarıyla belirlendi ve kaydedildi ✓', 'success');
+                    openLeadDrawer(leadId);
+                    if (typeof loadMapLeads === 'function') loadMapLeads();
+                } else {
+                    showToast(data.message || 'Konum bulunamadı.', 'error');
+                }
+            });
+        }
+
+        function focusLeadOnMap(lat, lng, leadId) {
+            closeLeadDrawer();
+            switchTab('map');
+            setTimeout(() => {
+                if (googleMapInstance) {
+                    googleMapInstance.setCenter({ lat: Number(lat), lng: Number(lng) });
+                    googleMapInstance.setZoom(16);
+                    if (mapMarkers[leadId]) {
+                        google.maps.event.trigger(mapMarkers[leadId], 'click');
+                    }
+                }
+            }, 400);
+        }
+
+        // =========================================================================
+        // SAHA HARİTASI (GOOGLE MAPS) CONTROLLER
+        // =========================================================================
+        let googleMapInstance = null;
+        let mapMarkers = {};
+        let mapInfoWindow = null;
+        let isMapScriptLoaded = false;
+        const GOOGLE_MAPS_KEY = '<?= e($ps['google_maps_key'] ?? 'AIzaSyAscIARfxTG_KzedaskCabzuRSTj-0bulA') ?>';
+
+        function loadGoogleMapsScript(callback) {
+            if (window.google && window.google.maps) {
+                isMapScriptLoaded = true;
+                callback();
+                return;
+            }
+
+            const existing = document.getElementById('google-maps-sdk');
+            if (existing) {
+                if (window.google && window.google.maps) {
+                    callback();
+                } else {
+                    existing.addEventListener('load', () => callback());
+                }
+                return;
+            }
+
+            // Google Maps JS API async loader per developer guidelines
+            window.__initGoogleMapCallback = function() {
+                isMapScriptLoaded = true;
+                callback();
+            };
+
+            const script = document.createElement('script');
+            script.id = 'google-maps-sdk';
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&loading=async&callback=__initGoogleMapCallback&v=weekly`;
+            script.async = true;
+            script.defer = true;
+            script.onerror = () => {
+                showToast('Google Haritalar SDK yüklenemedi. API Anahtarını kontrol edin.', 'error');
+                const mapEl = document.getElementById('leads-map');
+                if (mapEl) {
+                    mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#b91c1c;padding:2rem;text-align:center;">Google Haritalar yüklenemedi. Platform Ayarlarından Google Maps API Anahtarını doğrulayın.</div>';
+                }
+            };
+            document.head.appendChild(script);
+        }
+
+        function initMapIfNeeded() {
+            loadGoogleMapsScript(() => {
+                if (!googleMapInstance) {
+                    initGoogleMap();
+                } else {
+                    google.maps.event.trigger(googleMapInstance, 'resize');
+                    loadMapLeads();
+                }
+            });
+        }
+
+        function initGoogleMap() {
+            const mapEl = document.getElementById('leads-map');
+            if (!mapEl) return;
+
+            // Bursa / Nilüfer center by default
+            const bursaCenter = { lat: 40.2185, lng: 28.9345 };
+
+            googleMapInstance = new google.maps.Map(mapEl, {
+                center: bursaCenter,
+                zoom: 12,
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+                    position: google.maps.ControlPosition.TOP_RIGHT
+                },
+                streetViewControl: true,
+                fullscreenControl: true,
+                zoomControl: true,
+                styles: [
+                    { featureType: 'poi.business', stylers: [{ visibility: 'on' }] }
+                ]
+            });
+
+            mapInfoWindow = new google.maps.InfoWindow();
+
+            loadMapLeads();
+        }
+
+        function getStageColor(stage) {
+            switch (stage) {
+                case 'Won':
+                    return '#10b981'; // Green
+                case 'Trial Started':
+                case 'Demo Presented':
+                    return '#8b5cf6'; // Purple
+                case 'Follow-up':
+                    return '#ea580c'; // Orange
+                case 'Visit Planned':
+                case 'Visited':
+                case 'Meeting':
+                    return '#f59e0b'; // Amber
+                case 'Lost':
+                    return '#ef4444'; // Red
+                case 'New Lead':
+                case 'Qualified':
+                default:
+                    return '#2563eb'; // Blue
+            }
+        }
+
+        function createCustomPin(color, labelText) {
+            // SVG Pin with dynamic background color
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+                    <defs>
+                        <filter id="shadow" x="-20%" y="-10%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.3"/>
+                        </filter>
+                    </defs>
+                    <path d="M16 0C7.16 0 0 7.16 0 16c0 10 16 26 16 26s16-16 16-26c0-8.84-7.16-16-16-16z" fill="${color}" filter="url(#shadow)"/>
+                    <circle cx="16" cy="15" r="7" fill="#ffffff"/>
+                </svg>
+            `;
+            return {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                scaledSize: new google.maps.Size(32, 42),
+                anchor: new google.maps.Point(16, 42)
+            };
+        }
+
+        function loadMapLeads() {
+            if (!googleMapInstance) return;
+
+            const stage = document.getElementById('map-stage-filter')?.value || '';
+            const sector = document.getElementById('map-sector-filter')?.value || '';
+            const district = document.getElementById('map-district-filter')?.value || '';
+
+            const url = `<?= site_url('superadmin_tenants/api_leads_map') ?>?stage=${encodeURIComponent(stage)}&sector=${encodeURIComponent(sector)}&district=${encodeURIComponent(district)}`;
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        showToast('Harita lead verileri alınamadı', 'error');
+                        return;
+                    }
+
+                    // Clear old markers
+                    Object.values(mapMarkers).forEach(m => m.setMap(null));
+                    mapMarkers = {};
+
+                    const leads = data.leads || [];
+                    const unlocatedCount = data.unlocated_count || 0;
+                    const totalCount = data.total || 0;
+
+                    // Update UI counters
+                    const countEl = document.getElementById('map-lead-count');
+                    if (countEl) {
+                        countEl.textContent = `(${leads.length} konumlu / ${totalCount} toplam)`;
+                    }
+
+                    const unlocatedBar = document.getElementById('map-unlocated-bar');
+                    const unlocatedText = document.getElementById('map-unlocated-text');
+                    if (unlocatedBar && unlocatedText) {
+                        if (unlocatedCount > 0) {
+                            unlocatedBar.style.display = 'flex';
+                            unlocatedText.textContent = `⚠️ ${unlocatedCount} lead'in henüz harita koordinatı tanımlanmamış. "Otomatik Konumla" butonu ile adreslerden bulunmasını sağlayabilirsiniz.`;
+                        } else {
+                            unlocatedBar.style.display = 'none';
+                        }
+                    }
+
+                    if (leads.length === 0) {
+                        return;
+                    }
+
+                    const bounds = new google.maps.LatLngBounds();
+
+                    leads.forEach(ld => {
+                        const pos = { lat: Number(ld.latitude), lng: Number(ld.longitude) };
+                        if (isNaN(pos.lat) || isNaN(pos.lng)) return;
+
+                        bounds.extend(pos);
+
+                        const pinColor = getStageColor(ld.stage);
+                        const marker = new google.maps.Marker({
+                            position: pos,
+                            map: googleMapInstance,
+                            title: ld.name,
+                            icon: createCustomPin(pinColor, ld.name),
+                            animation: google.maps.Animation.DROP
+                        });
+
+                        marker.addListener('click', () => {
+                            const safeName = (ld.name || '').replace(/"/g, '&quot;');
+                            const phone = ld.phone || ld.whatsapp || '—';
+                            const infoContent = `
+                                <div style="font-family:inherit;padding:4px;max-width:260px;">
+                                    <div style="font-weight:800;font-size:0.95rem;color:#0f172a;margin-bottom:2px;">${safeName}</div>
+                                    <div style="font-size:0.75rem;color:#64748b;margin-bottom:6px;">${ld.sector || ''} • ${ld.district || ''}</div>
+                                    <div style="margin-bottom:8px;">
+                                        <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:700;background:${pinColor}15;color:${pinColor};border:1px solid ${pinColor}40;">
+                                            ${ld.stage || 'Yeni'}
+                                        </span>
+                                    </div>
+                                    <div style="font-size:0.78rem;color:#334155;margin-bottom:8px;">
+                                        📞 ${phone}
+                                    </div>
+                                    ${ld.address ? `<div style="font-size:0.72rem;color:#64748b;margin-bottom:8px;">📍 ${ld.address}</div>` : ''}
+                                    <div style="display:flex;gap:4px;">
+                                        <button onclick="openLeadDrawer(${ld.id})" style="flex:1;padding:5px 8px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;">
+                                            Detay & Ara
+                                        </button>
+                                        <a href="https://maps.google.com/?q=${encodeURIComponent(ld.latitude + ',' + ld.longitude)}" target="_blank" style="padding:5px 8px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;border-radius:6px;font-size:0.75rem;text-decoration:none;display:inline-flex;align-items:center;">
+                                            Yol Tarifi ↗
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                            mapInfoWindow.setContent(infoContent);
+                            mapInfoWindow.open(googleMapInstance, marker);
+                        });
+
+                        mapMarkers[ld.id] = marker;
+                    });
+
+                    if (leads.length > 1) {
+                        googleMapInstance.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+                    } else if (leads.length === 1) {
+                        googleMapInstance.setCenter({ lat: Number(leads[0].latitude), lng: Number(leads[0].longitude) });
+                        googleMapInstance.setZoom(15);
+                    }
+                })
+                .catch(err => {
+                    console.error('Map leads load error:', err);
+                    showToast('Harita yüklenirken hata oluştu', 'error');
+                });
+        }
+
+        function batchGeocodeLeads() {
+            const btn = document.getElementById('btn-batch-geocode');
+            const originalText = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Konumlanıyor...';
+            }
+
+            post('<?= site_url('superadmin_tenants/api_batch_geocode') ?>', {})
+                .then(data => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                    if (data && data.success) {
+                        showToast(`İşlem tamamlandı! ${data.geocoded} lead konumlandı (${data.failed} başarısız, ${data.remaining} kalan).`, 'success');
+                        loadMapLeads();
+                    } else {
+                        showToast((data && data.message) ? data.message : 'Toplu konumlandırma başarısız', 'error');
+                    }
+                })
+                .catch(err => {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                    console.error('Batch geocode error:', err);
+                    showToast('İstek sırasında hata oluştu: ' + err.message, 'error');
+                });
         }
 
         // --- FIELD VISIT MODAL CONTROLLER ---
@@ -4806,6 +6057,8 @@
             document.getElementById('call-lead-id').value = leadId;
             document.getElementById('call-lead-phone').value = phone;
             document.getElementById('call-lead-sector').value = sector;
+            const targetPhoneInput = document.getElementById('call-target-phone');
+            if (targetPhoneInput) targetPhoneInput.value = phone || '';
             document.getElementById('call-modal-lead-title').textContent = `${name} • ${contact || 'Yetkili'} (${phone || 'Numara yok'}) — ${sector || 'Genel'}`;
 
             // Reset state
@@ -4836,6 +6089,7 @@
             if (hwHintOpen) hwHintOpen.textContent = 'Mikrofon izni sorgulanıyor — bağlanmak için mavi butona bas.';
 
             switchCallProvider('zadarma');
+            updateZadarmaDialButtons();
             document.getElementById('call-modal').classList.add('open');
 
             // Akıllı mikrofon izin & donanım kontrolü (Lenovo Tab 11 / Android Chrome)
@@ -4948,35 +6202,55 @@
                 speakWithAiVoice(`İyi günler ${name}, ${contact} ile mi görüşüyorum? BooKi randevu platformu adına arıyorum.`);
                 showToast('ElevenLabs Conversational AI sesli temsilcisi bağlandı 🎧', 'info');
             } else {
-                // Zadarma SIP Call (GERCEK API callback - 2026-09-21)
-                // Once YONETICININ dahili telefonu calar, acinca MUSTERI aranir.
-                // Konusma SIP cihazindan yapilir, tarayicidan ses gitmez.
+                const targetInput = document.getElementById('call-target-phone');
+                const actualTargetPhone = (targetInput && targetInput.value.trim()) || phone;
+
+                // Zadarma arama yöntemi: Tarayıcı (WebRTC widget) ya da Callback (SIP cihazı)
+                if (zadarmaDialChannel === 'browser') {
+                    const ok = await zadarmaStartBrowserCall(actualTargetPhone);
+                    if (!ok) {
+                        document.getElementById('btn-start-call').style.display = 'inline-flex';
+                        document.getElementById('btn-end-call').style.display = 'none';
+                        document.getElementById('call-status-dot').style.background = '#ef4444';
+                        document.getElementById('call-status-text').textContent = 'Arama Başarısız';
+                    }
+                    return;
+                }
+                // Zadarma SIP Call (GERÇEK API callback)
+                // Önce YÖNETİCİNİN telefonu çalar; açılınca MÜŞTERİ aranır.
                 document.getElementById('call-status-dot').style.background = '#f59e0b';
-                document.getElementById('call-status-text').textContent = 'Arama Istegi Gonderiliyor...';
+                document.getElementById('call-status-text').textContent = 'Arama İsteği Gönderiliyor...';
                 const btnStart = document.getElementById('btn-start-call');
-                if (btnStart) { btnStart.disabled = true; btnStart.textContent = 'Baglaniyor...'; }
-                post('<?= site_url('superadmin_tenants/api_zadarma_call') ?>', { lead_id: currentCallLead.id })
+                if (btnStart) { btnStart.disabled = true; btnStart.textContent = 'Bağlanıyor...'; }
+
+                const cbInput = document.getElementById('zd-callback-phone');
+                const callbackPhone = (cbInput && cbInput.value.trim()) || '';
+
+                post('<?= site_url('superadmin_tenants/api_zadarma_call') ?>', {
+                    lead_id: currentCallLead.id,
+                    target_phone: actualTargetPhone,
+                    callback_phone: callbackPhone
+                })
                     .then(res => {
                         if (btnStart) { btnStart.disabled = false; }
-                        console.log('[Zadarma] callback yaniti:', res);
+                        console.log('[Zadarma] callback yanıtı:', res);
                         if (res && res.success) {
                             document.getElementById('call-status-dot').style.background = '#f59e0b';
-                            document.getElementById('call-status-text').textContent = 'Caliyor - Once Dahili Hattiniz Calacak';
-                            transcriptArea.value = `[00:01] Zadarma Callback Baslatildi\n` +
-                                `[00:01] FROM (dahili): ${res.from || ''} -> TO (musteri): ${res.target_phone || phone}\n` +
-                                `[00:02] Once SIZIN telefonunuz caliyor... Acinca musteri aranacak.\n` +
-                                `[00:02] NOT: Konusma tarayicidan DEGIL, SIP cihazinizdan yapilir.\n`;
-                            showToast(res.message || `Callback baslatildi (${res.target_phone || phone}).`, 'success');
-                            if (btnStart) { btnStart.textContent = 'Aramayi Baslat'; }
+                            document.getElementById('call-status-text').textContent = 'Çalıyor - Önce Telefonunuz Çalacak';
+                            transcriptArea.value = `[00:01] Zadarma Callback Başlatıldı\n` +
+                                `[00:01] 📱 Önce çalacak telefonunuz: ${res.from || callbackPhone}\n` +
+                                `[00:01] 👤 Müşteri (aranacak): ${res.target_phone || actualTargetPhone}\n` +
+                                `[00:02] Telefonunuz çalıyor... Açtığınızda müşteri bağlanacak 🎧\n`;
+                            showToast(res.message || `Callback başlatıldı (${res.target_phone || actualTargetPhone}).`, 'success');
+                            if (btnStart) { btnStart.textContent = 'Aramayı Başlat'; }
                             pollZadarmaCallStatus(res);
                         } else {
                             document.getElementById('call-status-dot').style.background = '#ef4444';
-                            document.getElementById('call-status-text').textContent = 'Arama Basarisiz';
+                            document.getElementById('call-status-text').textContent = 'Arama Başarısız';
                             if (btnStart) { btnStart.style.display = 'inline-flex'; btnStart.textContent = 'Tekrar Dene'; }
                             document.getElementById('btn-end-call').style.display = 'none';
-                            transcriptArea.value = `[HATA] ${(res && res.message) ? res.message : 'Zadarma baglanti hatasi'}\n` +
-                                `F12 > Network > api_zadarma_call yanitini kontrol edin.\n`;
-                            showToast((res && res.message) || 'Zadarma baglanti hatasi', 'error');
+                            transcriptArea.value = `[HATA] ${(res && res.message) ? res.message : 'Zadarma bağlantı hatası'}\n`;
+                            showToast((res && res.message) || 'Zadarma bağlantı hatası', 'error');
                         }
                     });
             }
@@ -4997,16 +6271,167 @@
                 }
                 if (step === 5) {
                     if (dot) dot.style.background = '#3b82f6';
-                    if (txt) txt.textContent = 'Dahili Caliyor... (Telefonunuzu Acin)';
+                    if (txt) txt.textContent = 'Dahili/Telefon Çalıyor... (Lütfen Açın)';
                 } else if (step === 12) {
                     if (dot) dot.style.background = '#10b981';
-                    if (txt) txt.textContent = 'Gorusme Suruyor... (SIP Cihazinizdan Konusun)';
+                    if (txt) txt.textContent = 'Görüşme Sürüyor...';
                     const ta = document.getElementById('call-transcript');
-                    if (ta) ta.value += '[00:15] Musteri hatti baglaniyor... Konusma SIP cihaziniz uzerinden yapilir.\n';
+                    if (ta) ta.value += '[00:15] Müşteri hattı bağlandı... Görüşme cihazınız üzerinden yapılıyor.\n';
                 } else if (step > 90) {
                     clearInterval(zadarmaPollTimer);
                 }
             }, 1000);
+        }
+
+        // --- ZADARMA BROWSER CALL (WebRTC webphone widget — resmi entegrasyon) ---
+        let zadarmaDialChannel = (function () {
+            try { return localStorage.getItem('zd_dial_channel') || 'browser'; } catch (e) { return 'browser'; }
+        })();
+        let zadarmaWidgetLoaded = false;
+
+        function setZadarmaDialChannel(ch) {
+            zadarmaDialChannel = ch;
+            try { localStorage.setItem('zd_dial_channel', ch); } catch (e) {}
+            updateZadarmaDialButtons();
+        }
+
+        function updateZadarmaDialButtons() {
+            const b = document.getElementById('zd-ch-browser');
+            const c = document.getElementById('zd-ch-callback');
+            const badge = document.getElementById('zd-widget-status');
+            const cbBox = document.getElementById('zd-callback-box');
+            if (b) {
+                b.style.background = zadarmaDialChannel === 'browser' ? '#0ea5e9' : '#fff';
+                b.style.color = zadarmaDialChannel === 'browser' ? '#fff' : 'var(--text-main)';
+                b.style.borderColor = zadarmaDialChannel === 'browser' ? '#0ea5e9' : 'var(--border-color)';
+            }
+            if (c) {
+                c.style.background = zadarmaDialChannel === 'callback' ? '#f59e0b' : '#fff';
+                c.style.color = zadarmaDialChannel === 'callback' ? '#fff' : 'var(--text-main)';
+                c.style.borderColor = zadarmaDialChannel === 'callback' ? '#f59e0b' : 'var(--border-color)';
+            }
+            if (cbBox) {
+                cbBox.style.display = zadarmaDialChannel === 'callback' ? 'block' : 'none';
+            }
+            if (badge) {
+                badge.textContent = zadarmaDialChannel === 'browser'
+                    ? '🎧 Webphone hazır — doğrudan bu tarayıcı üzerinden konuşursunuz'
+                    : '📱 Önce sizin telefonunuz çalar; açtığınızda müşteri bağlanır';
+            }
+        }
+
+        function zadarmaInjectScript(src) {
+            return new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.async = false;
+                s.onload = resolve;
+                s.onerror = () => reject(new Error('Script yüklenemedi: ' + src));
+                document.body.appendChild(s);
+            });
+        }
+
+        async function zadarmaLoadWidget() {
+            if (zadarmaWidgetLoaded) return;
+            const keyRes = await post('<?= site_url('superadmin_tenants/api_zadarma_webrtc_key') ?>', {});
+            if (!keyRes || !keyRes.success) {
+                throw new Error((keyRes && keyRes.message) || 'WebRTC key alınamadı');
+            }
+            // Resmi v9 widget loader'ları (my.zadarma.com)
+            await zadarmaInjectScript('https://my.zadarma.com/webphoneWebRTCWidget/v9/js/loader-phone-lib.js?sub_v=1');
+            await zadarmaInjectScript('https://my.zadarma.com/webphoneWebRTCWidget/v9/js/loader-phone-fn.js?sub_v=1');
+            const t0 = Date.now();
+            while ((typeof ZadarmaWebphoneAPI === 'undefined' || typeof zadarmaWidgetFn !== 'function') && Date.now() - t0 < 15000) {
+                await new Promise(r => setTimeout(r, 150));
+            }
+            if (typeof ZadarmaWebphoneAPI === 'undefined' || typeof zadarmaWidgetFn !== 'function') {
+                throw new Error('Zadarma webphone widget yüklenemedi (ağ/CSP)');
+            }
+            window.zadarmaWidgetFn(keyRes.key, keyRes.sip_login, 'square', 'en', true, { right: '10px', bottom: '5px' });
+            zadarmaWidgetLoaded = true;
+            const st = document.getElementById('zd-widget-status');
+            if (st) st.textContent = '🎧 Webphone hazır — aramalar tarayıcı mikrofonunuzla yapılır';
+
+            // Çağrı durumu dinleyicisi (JsSIP oturum olayları)
+            setTimeout(() => {
+                try {
+                    if (window.zdrmWebPhone && window.zdrmWebPhone.webPhoneUA) {
+                        window.zdrmWebPhone.webPhoneUA.on('newRTCSession', function(e) {
+                            const session = e.session;
+                            if (session && session.direction === 'outgoing') {
+                                const ta = document.getElementById('call-transcript');
+                                const dot = document.getElementById('call-status-dot');
+                                const txt = document.getElementById('call-status-text');
+                                if (dot) dot.style.background = '#f59e0b';
+                                if (txt) txt.textContent = 'Çalıyor... (Müşteri aranıyor)';
+                                if (ta) ta.value += `[00:01] Telefon çalıyor, yanıt bekleniyor...\n`;
+
+                                session.on('progress', function() {
+                                    if (dot) dot.style.background = '#f59e0b';
+                                    if (txt) txt.textContent = 'Çalıyor...';
+                                });
+                                session.on('confirmed', function() {
+                                    if (dot) dot.style.background = '#10b981';
+                                    if (txt) txt.textContent = 'Görüşme Başladı (Müşteri Açtı)';
+                                    if (ta) ta.value += `[00:03] Müşteri çağrıyı yanıtladı. Canlı görüşme başladı 🎧\n`;
+                                });
+                                session.on('ended', function(cause) {
+                                    if (dot) dot.style.background = '#3b82f6';
+                                    if (txt) txt.textContent = 'Görüşme Sona Erdi';
+                                    if (ta) ta.value += `[Sonlandı] Çağrı tamamlandı (${cause && cause.cause ? cause.cause : 'Bitti'}).\n`;
+                                });
+                                session.on('failed', function(cause) {
+                                    if (dot) dot.style.background = '#ef4444';
+                                    const reason = cause && cause.cause ? cause.cause : 'Bağlantı kurulamadı';
+                                    if (txt) txt.textContent = 'Arama Başarısız: ' + reason;
+                                    if (ta) ta.value += `[Hata] Arama başarısız oldu: ${reason}\n`;
+                                    showToast('Zadarma araması başarısız: ' + reason, 'error');
+                                });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn('[Zadarma] newRTCSession hook:', err);
+                }
+            }, 800);
+        }
+
+        async function zadarmaStartBrowserCall(phone) {
+            try {
+                await zadarmaLoadWidget();
+            } catch (e) {
+                showToast(e.message || 'Webphone yüklenemedi', 'error');
+                return false;
+            }
+            const digits = String(phone || '').replace(/[^0-9]/g, '');
+            let target = digits;
+            if (target.length <= 5) {
+                // Kısa dahili (örn: 100, 101)
+            } else if (target.startsWith('00')) {
+                // Uluslararası çıkış kodu mevcut
+            } else if (target.startsWith('0') && target.length === 11) {
+                target = '0090' + target.slice(1);
+            } else if (target.length === 10 && target.startsWith('5')) {
+                target = '0090' + target;
+            } else if (target.length === 12 && target.startsWith('90')) {
+                target = '00' + target;
+            } else {
+                target = '00' + target;
+            }
+            if (!window.zdrmWebPhone || typeof window.zdrmWebPhone.call !== 'function') {
+                showToast('Webphone henüz hazır değil; lütfen birkaç saniye bekleyin.', 'warning');
+                return false;
+            }
+            try {
+                window.zdrmWebPhone.call(target);
+                const ta = document.getElementById('call-transcript');
+                if (ta) ta.value += `[00:00] Tarayıcı (WebRTC v9) araması başlatıldı -> ${target}\n`;
+                return true;
+            } catch (e) {
+                console.error('[Zadarma] widget call hatası:', e);
+                showToast('Widget araması başlatılamadı: ' + (e.message || e), 'error');
+                return false;
+            }
         }
 
         function testZadarmaConnection() {
@@ -5016,7 +6441,7 @@
                 .then(res => {
                     console.log('[Zadarma] test yaniti:', res);
                     if (res && res.success) {
-                        if (el) { el.textContent = 'Baglanti OK'; el.style.color = '#16a34a'; }
+                        if (el) { el.textContent = 'Baglanti OK (Bakiye: ' + (res.balance && res.balance.balance ? res.balance.balance + ' ' + res.balance.currency : 'OK') + ')'; el.style.color = '#16a34a'; }
                         showToast(res.message || 'Zadarma baglantisi dogrulandi', 'success');
                     } else {
                         if (el) { el.textContent = (res && res.message) || 'Baglanti basarisiz'; el.style.color = '#dc2626'; }
@@ -5025,9 +6450,38 @@
                 });
         }
 
+        function syncZadarmaWebRTC() {
+            const el = document.getElementById('zadarma-test-result');
+            const btn = document.getElementById('btn-zadarma-webrtc-sync');
+            if (el) { el.textContent = 'Zadarma WebRTC senkronize ediliyor...'; el.style.color = '#2563eb'; }
+            if (btn) btn.disabled = true;
+            post('<?= site_url('superadmin_tenants/api_zadarma_webrtc_sync') ?>', {})
+                .then(res => {
+                    if (btn) btn.disabled = false;
+                    console.log('[Zadarma] WebRTC sync yanıtı:', res);
+                    if (res && res.success) {
+                        if (el) { el.textContent = 'WebRTC Domainleri OK (' + (res.domains || []).join(', ') + ')'; el.style.color = '#16a34a'; }
+                        showToast(res.message || 'Zadarma WebRTC senkronize edildi', 'success');
+                        zadarmaWidgetLoaded = false;
+                    } else {
+                        if (el) { el.textContent = (res && res.message) || 'Senkronizasyon hatası'; el.style.color = '#dc2626'; }
+                        showToast((res && res.message) || 'WebRTC senkronizasyon hatası', 'error');
+                    }
+                })
+                .catch(err => {
+                    if (btn) btn.disabled = false;
+                    if (el) { el.textContent = 'Bağlantı hatası'; el.style.color = '#dc2626'; }
+                    showToast('Hata: ' + (err.message || 'Bağlantı hatası'), 'error');
+                });
+        }
+
         function endCallSession() {
             clearInterval(callTimerInterval);
             clearInterval(zadarmaPollTimer);
+            // Webphone (tarayıcı) çağrısını da kapat
+            if (window.zdrmWebPhone && typeof window.zdrmWebPhone.finishCall === 'function') {
+                try { window.zdrmWebPhone.finishCall(); } catch (e) { console.warn('[Zadarma] finishCall:', e); }
+            }
             document.getElementById('btn-start-call').style.display = 'inline-flex';
             document.getElementById('btn-start-call').textContent = 'Tekrar Ara';
             document.getElementById('btn-end-call').style.display = 'none';
@@ -5145,10 +6599,11 @@
                 platform_smtp_from_name: getVal('ps_platform_smtp_from_name'),
                 platform_smtp_from_address: getVal('ps_platform_smtp_from_address'),
 
-                // Google Cloud OAuth
+                // Google Cloud OAuth & Maps
                 google_client_id: getVal('ps_google_client_id'),
                 google_client_secret: getVal('ps_google_client_secret'),
                 google_project_id: getVal('ps_google_project_id'),
+                google_maps_key: getVal('ps_google_maps_key'),
 
                 // Marketplace
                 marketplace_commission_rate: getVal('ps_marketplace_commission_rate')
@@ -5161,8 +6616,1094 @@
             });
         }
 
-        // Initialize URL hash navigation on load
+        // =========================================================================
+        // GOOGLE PLACES PROSPECT & LEAD CRAWLER JAVASCRIPT CONTROLLER
+        // =========================================================================
+        let placesTaxonomyData = null;
+        let crawlerGeoMode = 'districts'; // 'districts' | 'radius'
+        let crawlerRadiusMapInstance = null;
+        let crawlerRadiusMarker = null;
+        let crawlerRadiusCircle = null;
+        let crawlerCenter = { lat: 40.2185, lng: 28.9345, address: 'Nilüfer, Bursa' };
+        let crawlerRadiusKm = 5;
+        let activeCrawlerJobId = null;
+        let crawlerPollTimer = null;
+        let crawlerJobStartTime = null;
+        let crawlerJobTimerInterval = null;
+        let currentCrawlerLeadsPage = 1;
+        let crawlerSearchDebounce = null;
+        const selectedCrawlerLeadIds = new Set();
+
+        function initPlacesCrawlerTab() {
+            if (!placesTaxonomyData) {
+                loadPlacesTaxonomy();
+            }
+            loadPlacesStats();
+            loadCrawlerLeadsTable(currentCrawlerLeadsPage);
+        }
+
+        function switchCrawlerGeoMode(mode) {
+            crawlerGeoMode = mode;
+            const btnDistricts = document.getElementById('btn-mode-districts');
+            const btnRadius = document.getElementById('btn-mode-radius');
+            const containerDistricts = document.getElementById('crawler-geo-districts-container');
+            const containerRadius = document.getElementById('crawler-geo-radius-container');
+
+            if (mode === 'districts') {
+                btnDistricts.classList.add('active');
+                btnRadius.classList.remove('active');
+                containerDistricts.style.display = 'block';
+                containerRadius.style.display = 'none';
+            } else {
+                btnRadius.classList.add('active');
+                btnDistricts.classList.remove('active');
+                containerDistricts.style.display = 'none';
+                containerRadius.style.display = 'block';
+                setTimeout(() => {
+                    initCrawlerRadiusMap();
+                }, 100);
+            }
+            updatePlacesPreview();
+        }
+
+        function initCrawlerRadiusMap() {
+            loadGoogleMapsScript(() => {
+                const mapEl = document.getElementById('crawler-radius-map');
+                if (!mapEl) return;
+
+                if (!crawlerRadiusMapInstance) {
+                    const centerPos = { lat: crawlerCenter.lat, lng: crawlerCenter.lng };
+
+                    crawlerRadiusMapInstance = new google.maps.Map(mapEl, {
+                        center: centerPos,
+                        zoom: 12,
+                        mapTypeControl: false,
+                        streetViewControl: false,
+                        fullscreenControl: false,
+                        zoomControl: true
+                    });
+
+                    // Draggable center marker
+                    crawlerRadiusMarker = new google.maps.Marker({
+                        position: centerPos,
+                        map: crawlerRadiusMapInstance,
+                        draggable: true,
+                        title: 'Arama Merkezi'
+                    });
+
+                    // Overlay circle
+                    crawlerRadiusCircle = new google.maps.Circle({
+                        strokeColor: '#2563eb',
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: '#3b82f6',
+                        fillOpacity: 0.18,
+                        map: crawlerRadiusMapInstance,
+                        center: centerPos,
+                        radius: crawlerRadiusKm * 1000
+                    });
+
+                    // Marker drag handler
+                    crawlerRadiusMarker.addListener('dragend', (e) => {
+                        const newLat = e.latLng.lat();
+                        const newLng = e.latLng.lng();
+                        updateCrawlerCenterPosition(newLat, newLng);
+                    });
+
+                    // Map click handler
+                    crawlerRadiusMapInstance.addListener('click', (e) => {
+                        const newLat = e.latLng.lat();
+                        const newLng = e.latLng.lng();
+                        crawlerRadiusMarker.setPosition({ lat: newLat, lng: newLng });
+                        updateCrawlerCenterPosition(newLat, newLng);
+                    });
+                } else {
+                    google.maps.event.trigger(crawlerRadiusMapInstance, 'resize');
+                    crawlerRadiusMapInstance.setCenter({ lat: crawlerCenter.lat, lng: crawlerCenter.lng });
+                }
+            });
+        }
+
+        function updateCrawlerCenterPosition(lat, lng) {
+            crawlerCenter.lat = parseFloat(lat.toFixed(6));
+            crawlerCenter.lng = parseFloat(lng.toFixed(6));
+            if (crawlerRadiusCircle) {
+                crawlerRadiusCircle.setCenter({ lat: crawlerCenter.lat, lng: crawlerCenter.lng });
+            }
+            const label = document.getElementById('crawler-center-label');
+            if (label) {
+                label.textContent = `${crawlerCenter.lat}, ${crawlerCenter.lng}`;
+            }
+            updatePlacesPreview();
+        }
+
+        function updateCrawlerRadius(kmVal) {
+            crawlerRadiusKm = parseFloat(kmVal);
+            const badge = document.getElementById('crawler-radius-badge');
+            if (badge) badge.textContent = `${crawlerRadiusKm} km`;
+
+            const areaLabel = document.getElementById('crawler-area-label');
+            if (areaLabel) {
+                const area = (Math.PI * crawlerRadiusKm * crawlerRadiusKm).toFixed(1);
+                areaLabel.textContent = `~${area} km²`;
+            }
+
+            if (crawlerRadiusCircle) {
+                crawlerRadiusCircle.setRadius(crawlerRadiusKm * 1000);
+            }
+            updatePlacesPreview();
+        }
+
+        function selectCrawlerDistricts(mode) {
+            const checkboxes = document.querySelectorAll('#crawler-district-checkboxes input[type="checkbox"]');
+            const centerDistricts = ['Nilüfer', 'Osmangazi', 'Yıldırım', 'Mudanya', 'Gemlik'];
+
+            checkboxes.forEach(cb => {
+                if (mode === 'all') {
+                    cb.checked = true;
+                } else if (mode === 'none') {
+                    cb.checked = false;
+                } else if (mode === 'center') {
+                    cb.checked = centerDistricts.includes(cb.value);
+                }
+                const parent = cb.closest('.places-district-item');
+                if (parent) {
+                    if (cb.checked) parent.classList.add('checked');
+                    else parent.classList.remove('checked');
+                }
+            });
+            updatePlacesPreview();
+        }
+
+        function selectCrawlerCategories(mode) {
+            const checkboxes = document.querySelectorAll('#crawler-category-checkboxes input[type="checkbox"]');
+            const popularKeys = ['guzellik_kuafor', 'spa_masaj', 'klinik_saglik', 'dis_klinigi', 'spor_fitness', 'veteriner_pet'];
+
+            checkboxes.forEach(cb => {
+                if (mode === 'all') {
+                    cb.checked = true;
+                } else if (mode === 'none') {
+                    cb.checked = false;
+                } else if (mode === 'popular') {
+                    cb.checked = popularKeys.includes(cb.value);
+                }
+                const parent = cb.closest('.places-pill-item');
+                if (parent) {
+                    if (cb.checked) parent.classList.add('checked');
+                    else parent.classList.remove('checked');
+                }
+            });
+            updatePlacesPreview();
+        }
+
+        function handleCrawlerCheckboxChange(el) {
+            const parent = el.closest('.places-district-item, .places-pill-item');
+            if (parent) {
+                if (el.checked) parent.classList.add('checked');
+                else parent.classList.remove('checked');
+            }
+            updatePlacesPreview();
+        }
+
+        function loadPlacesTaxonomy() {
+            fetch('<?= site_url('superadmin_tenants/api_places_taxonomy') ?>')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) return;
+                    placesTaxonomyData = data;
+
+                    // 1. Render Districts
+                    const distContainer = document.getElementById('crawler-district-checkboxes');
+                    const distSelect = document.getElementById('crawler-district-filter');
+                    const directDistSelect = document.getElementById('direct-search-district');
+                    if (distContainer) distContainer.innerHTML = '';
+                    if (distSelect) distSelect.innerHTML = '<option value="">Tüm İlçeler</option>';
+                    if (directDistSelect) directDistSelect.innerHTML = '<option value="">Tüm Bursa (Geniş Kapsam)</option>';
+
+                    const initialCheckedDistricts = ['Nilüfer', 'Osmangazi', 'Yıldırım'];
+                    const districtsList = Array.isArray(data.districts) ? data.districts : (Array.isArray(data.regions) ? data.regions : Object.values(data.districts || data.regions || {}));
+
+                    districtsList.forEach(d => {
+                        const distName = typeof d === 'string' ? d : (d.name || d.label || d.slug || '');
+                        if (!distName) return;
+                        const isChecked = initialCheckedDistricts.includes(distName);
+                        if (distContainer) {
+                            const item = document.createElement('label');
+                            item.className = `places-district-item ${isChecked ? 'checked' : ''}`;
+                            item.innerHTML = `
+                                <input type="checkbox" value="${distName}" ${isChecked ? 'checked' : ''} onchange="handleCrawlerCheckboxChange(this)">
+                                <span>${distName}</span>
+                            `;
+                            distContainer.appendChild(item);
+                        }
+
+                        if (distSelect) {
+                            const opt = document.createElement('option');
+                            opt.value = distName;
+                            opt.textContent = distName;
+                            distSelect.appendChild(opt);
+                        }
+
+                        if (directDistSelect) {
+                            const opt = document.createElement('option');
+                            opt.value = distName;
+                            opt.textContent = distName;
+                            directDistSelect.appendChild(opt);
+                        }
+                    });
+
+                    // 2. Render Categories
+                    const catContainer = document.getElementById('crawler-category-checkboxes');
+                    const sectorSelect = document.getElementById('crawler-sector-filter');
+                    const directCatSelect = document.getElementById('direct-search-category');
+                    if (catContainer) catContainer.innerHTML = '';
+                    if (sectorSelect) sectorSelect.innerHTML = '<option value="">Tüm Sektörler</option>';
+                    if (directCatSelect) directCatSelect.innerHTML = '';
+
+                    const initialCheckedCategories = ['guzellik_kuafor', 'spa_masaj', 'klinik_saglik', 'dis_klinigi', 'spor_fitness'];
+                    const rawCategories = data.categories || [];
+                    const categoriesList = Array.isArray(rawCategories) 
+                        ? rawCategories 
+                        : Object.entries(rawCategories).map(([k, v]) => ({ slug: k, ...v }));
+
+                    categoriesList.forEach(cat => {
+                        const slug = cat.slug || cat.key || '';
+                        const label = cat.label || cat.name || slug;
+                        const icon = cat.icon ? (cat.icon + ' ') : '';
+                        if (!slug) return;
+
+                        const isChecked = initialCheckedCategories.includes(slug);
+                        if (catContainer) {
+                            const item = document.createElement('label');
+                            item.className = `places-pill-item ${isChecked ? 'checked' : ''}`;
+                            item.innerHTML = `
+                                <input type="checkbox" value="${slug}" ${isChecked ? 'checked' : ''} onchange="handleCrawlerCheckboxChange(this)">
+                                <span>${icon}${label}</span>
+                            `;
+                            catContainer.appendChild(item);
+                        }
+
+                        if (sectorSelect) {
+                            const opt = document.createElement('option');
+                            opt.value = label;
+                            opt.textContent = `${icon}${label}`;
+                            sectorSelect.appendChild(opt);
+                        }
+
+                        if (directCatSelect) {
+                            const opt = document.createElement('option');
+                            opt.value = slug;
+                            opt.textContent = `${icon}${label}`;
+                            directCatSelect.appendChild(opt);
+                        }
+                    });
+
+                    updatePlacesPreview();
+                })
+                .catch(err => console.error('Taxonomy load error:', err));
+        }
+
+        // DIRECT GOOGLE PLACES SEARCH & LIVE SUGGEST
+        let directSearchSuggestDebounce = null;
+        function handleDirectSearchInput(val) {
+            const dropdown = document.getElementById('direct-search-suggest-dropdown');
+            if (!dropdown) return;
+            const query = (val || '').trim();
+            if (query.length < 2) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+                return;
+            }
+
+            if (directSearchSuggestDebounce) clearTimeout(directSearchSuggestDebounce);
+            directSearchSuggestDebounce = setTimeout(() => {
+                fetch(`<?= site_url('superadmin_tenants/api_global_search') ?>?q=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const leads = Array.isArray(data) ? data : (data.leads || []);
+                        let html = '';
+
+                        // Action option: Search on Google Places
+                        html += `
+                            <div onclick="selectDirectSearchOption('${escapeJs(query)}', true)" style="padding:0.6rem 0.85rem;cursor:pointer;background:#f5f3ff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;color:#6d28d9;font-weight:700;font-size:0.8rem;">
+                                <span>⚡ <strong>Google Places'da Canlı Ara & Kaydet:</strong> "${escapeHtml(query)}"</span>
+                                <span class="badge" style="background:#8b5cf6;color:#fff;font-size:0.65rem;">Google Keşif</span>
+                            </div>
+                        `;
+
+                        if (leads.length > 0) {
+                            html += `<div style="padding:0.35rem 0.85rem;font-size:0.7rem;font-weight:700;color:var(--text-light);background:#f8fafc;border-bottom:1px solid #f1f5f9;">CRM HAVUZUNDA BULUNANLAR (${leads.length}):</div>`;
+                            leads.slice(0, 6).forEach(ld => {
+                                html += `
+                                    <div onclick="selectDirectSearchLead(${ld.id})" style="padding:0.5rem 0.85rem;cursor:pointer;border-bottom:1px solid #f8fafc;display:flex;justify-content:space-between;align-items:center;transition:background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                                        <div>
+                                            <div style="font-weight:700;font-size:0.82rem;color:var(--text-main);">${escapeHtml(ld.name)}</div>
+                                            <div style="font-size:0.72rem;color:var(--text-muted);">📍 ${escapeHtml(ld.district || 'Bursa')} | ${escapeHtml(ld.sector || '')} ${ld.phone ? '• 📞 ' + escapeHtml(ld.phone) : ''}</div>
+                                        </div>
+                                        <span class="badge ${ld.stage ? 'active' : 'pending'}" style="font-size:0.65rem;">${escapeHtml(ld.stage || 'Lead')}</span>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        dropdown.innerHTML = html;
+                        dropdown.style.display = 'block';
+                    })
+                    .catch(() => {
+                        dropdown.style.display = 'none';
+                    });
+            }, 250);
+        }
+
+        function selectDirectSearchOption(val, autoSubmit = false) {
+            const input = document.getElementById('direct-search-query');
+            const dropdown = document.getElementById('direct-search-suggest-dropdown');
+            if (input) input.value = val;
+            if (dropdown) dropdown.style.display = 'none';
+            if (autoSubmit) {
+                directPlacesSearch();
+            }
+        }
+
+        function selectDirectSearchLead(leadId) {
+            const dropdown = document.getElementById('direct-search-suggest-dropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            openLeadDrawer(leadId);
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('direct-search-suggest-dropdown');
+            const input = document.getElementById('direct-search-query');
+            if (dropdown && dropdown.style.display === 'block') {
+                if (!dropdown.contains(e.target) && e.target !== input) {
+                    dropdown.style.display = 'none';
+                }
+            }
+        });
+
+        function handlePlacesDirectSearch(e) {
+            if (e) e.preventDefault();
+            const dropdown = document.getElementById('direct-search-suggest-dropdown');
+            if (dropdown) dropdown.style.display = 'none';
+            directPlacesSearch();
+        }
+
+        function directPlacesSearch() {
+            const query = (document.getElementById('direct-search-query')?.value || '').trim();
+            if (!query) {
+                showToast('Lütfen aranacak bir işletme adı veya anahtar kelime girin.', 'warning');
+                return;
+            }
+
+            const district = document.getElementById('direct-search-district')?.value || '';
+            const category = document.getElementById('direct-search-category')?.value || 'guzellik_kuafor';
+            const mode = document.querySelector('input[name="direct_search_mode"]:checked')?.value || 'basic';
+            const autoEnrich = mode === 'enriched';
+
+            const btn = document.getElementById('btn-direct-search');
+            const originalBtn = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>⏳ Google Aranıyor...</span>';
+            }
+
+            const resContainer = document.getElementById('direct-search-results-container');
+            const resGrid = document.getElementById('direct-search-results-grid');
+            const resTitle = document.getElementById('direct-search-results-title');
+
+            post('<?= site_url('superadmin_tenants/api_places_direct_search') ?>', {
+                query: query,
+                district: district,
+                category: category,
+                auto_enrich: autoEnrich ? '1' : '0',
+                mode: mode
+            })
+            .then(data => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtn;
+                }
+
+                if (!data.success) {
+                    showToast(data.message || 'Arama sırasında bir hata oluştu.', 'error');
+                    return;
+                }
+
+                showToast(`${data.places_found} işletme bulundu (${data.leads_created} yeni, ${data.leads_updated} güncellendi)!`, 'success');
+                
+                // Refresh crawler table & stats & lead pool
+                loadPlacesStats();
+                loadCrawlerLeadsTable(1);
+                if (typeof loadLeadsTable === 'function') {
+                    loadLeadsTable(1);
+                }
+
+                // Display result cards
+                if (resContainer && resGrid) {
+                    resContainer.style.display = 'block';
+                    if (resTitle) {
+                        resTitle.textContent = `'${data.query}' için bulunan işletmeler (${data.places_found} Google sonucu - ${mode === 'enriched' ? 'Zenginleştirilmiş' : 'Temel Mod'}):`;
+                    }
+                    resGrid.innerHTML = '';
+
+                    const crmLeads = data.existing_crm_leads || [];
+                    const googleLeads = data.leads || [];
+
+                    // Render CRM existing leads if any
+                    if (crmLeads.length > 0) {
+                        const crmHeader = document.createElement('div');
+                        crmHeader.style.cssText = 'grid-column:1/-1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:0.6rem 0.85rem;display:flex;align-items:center;justify-content:space-between;';
+                        crmHeader.innerHTML = `
+                            <span style="font-weight:700;font-size:0.8rem;color:var(--text-main);">📦 CRM Havuzunda Kayıtlı Olan Eşleşmeler (${crmLeads.length} adet):</span>
+                            <span class="badge" style="background:#e0e7ff;color:#4338ca;font-size:0.65rem;">Mevcut Leadler</span>
+                        `;
+                        resGrid.appendChild(crmHeader);
+
+                        crmLeads.forEach(ld => {
+                            const card = document.createElement('div');
+                            card.style.cssText = 'background:#fdfdfe;border:1px solid #cbd5e1;border-radius:8px;padding:0.75rem 0.85rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);display:flex;flex-direction:column;justify-content:space-between;gap:0.5rem;';
+                            const safeName = escapeJs(ld.name || '');
+                            const safePh = escapeJs(ld.phone || '');
+                            const safeContact = escapeJs(ld.contact_person || '');
+                            const safeSector = escapeJs(ld.sector || '');
+
+                            card.innerHTML = `
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
+                                        <strong style="font-size:0.86rem;color:var(--primary);cursor:pointer;" onclick="openLeadDrawer(${ld.id})">${escapeHtml(ld.name)}</strong>
+                                        <span class="badge active" style="font-size:0.68rem;">${escapeHtml(ld.stage || 'Lead')}</span>
+                                    </div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">
+                                        📍 ${escapeHtml(ld.district || 'Bursa')} | ${escapeHtml(ld.sector || 'Sektör')}
+                                    </div>
+                                    ${ld.address ? `<div style="font-size:0.72rem;color:var(--text-light);margin-top:0.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(ld.address)}">${escapeHtml(ld.address)}</div>` : ''}
+                                    ${ld.phone ? `<div style="font-size:0.76rem;color:var(--text-main);margin-top:0.35rem;font-weight:600;">📞 ${escapeHtml(ld.phone)}</div>` : ''}
+                                </div>
+                                <div style="display:flex;gap:0.35rem;justify-content:flex-end;border-top:1px solid #f1f5f9;padding-top:0.5rem;margin-top:0.25rem;flex-wrap:wrap;">
+                                    <button type="button" class="btn btn-secondary btn-xs" onclick="openLeadDrawer(${ld.id})">Detay / Düzenle</button>
+                                    ${ld.phone ? `<button type="button" class="btn btn-primary btn-xs" onclick="openCallModal(${ld.id}, '${safeName}', '${safePh}', '${safeContact}', '${safeSector}')" style="background:#0f172a;border-color:#0f172a;">📞 Ara</button>` : ''}
+                                </div>
+                            `;
+                            resGrid.appendChild(card);
+                        });
+                    }
+
+                    if (googleLeads.length > 0) {
+                        if (crmLeads.length > 0) {
+                            const gHeader = document.createElement('div');
+                            gHeader.style.cssText = 'grid-column:1/-1;margin-top:0.5rem;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:0.6rem 0.85rem;display:flex;align-items:center;justify-content:space-between;';
+                            gHeader.innerHTML = `
+                                <span style="font-weight:700;font-size:0.8rem;color:#6d28d9;">🌐 Google Places Canlı Keşif Sonuçları (${googleLeads.length} adet):</span>
+                                <span class="badge" style="background:#8b5cf6;color:#fff;font-size:0.65rem;">Google Places</span>
+                            `;
+                            resGrid.appendChild(gHeader);
+                        }
+
+                        googleLeads.forEach(ld => {
+                            const card = document.createElement('div');
+                            card.style.cssText = 'background:#ffffff;border:1px solid var(--border-color);border-radius:8px;padding:0.75rem 0.85rem;box-shadow:0 1px 3px rgba(0,0,0,0.05);display:flex;flex-direction:column;justify-content:space-between;gap:0.5rem;';
+                            
+                            const isEnriched = ld.discovery_state === 'ENRICHED';
+                            const safeName = escapeJs(ld.name || '');
+                            const safePh = escapeJs(ld.phone || '');
+                            const safeContact = escapeJs(ld.contact_person || '');
+                            const safeSector = escapeJs(ld.sector || '');
+
+                            card.innerHTML = `
+                                <div>
+                                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
+                                        <strong style="font-size:0.86rem;color:var(--primary);cursor:pointer;" onclick="openLeadDrawer(${ld.id})">${escapeHtml(ld.name)}</strong>
+                                        <span class="badge ${isEnriched ? 'active' : 'pending'}" style="font-size:0.68rem;">${isEnriched ? '✨ Zengin' : '🎯 Temel'}</span>
+                                    </div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">
+                                        📍 ${escapeHtml(ld.district || 'Bursa')} | ${escapeHtml(ld.sector || 'Sektör')}
+                                    </div>
+                                    ${ld.address ? `<div style="font-size:0.72rem;color:var(--text-light);margin-top:0.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(ld.address)}">${escapeHtml(ld.address)}</div>` : ''}
+                                    ${ld.phone ? `<div style="font-size:0.76rem;color:var(--text-main);margin-top:0.35rem;font-weight:600;">📞 ${escapeHtml(ld.phone)}</div>` : '<div style="font-size:0.72rem;color:var(--text-light);margin-top:0.35rem;">📞 Telefon henüz zenginleştirilmedi</div>'}
+                                    ${ld.google_rating ? `<div style="font-size:0.74rem;color:#f59e0b;margin-top:0.2rem;">⭐ ${ld.google_rating} (${ld.google_user_ratings_total || 0} yorum)</div>` : ''}
+                                </div>
+                                <div style="display:flex;gap:0.35rem;justify-content:flex-end;border-top:1px solid #f1f5f9;padding-top:0.5rem;margin-top:0.25rem;flex-wrap:wrap;">
+                                    ${!isEnriched ? `<button type="button" class="btn btn-secondary btn-xs" onclick="enrichPlaceLead(${ld.id}, this)" style="color:#7c3aed;font-weight:700;">✨ Zenginleştir</button>` : ''}
+                                    <button type="button" class="btn btn-secondary btn-xs" onclick="openLeadDrawer(${ld.id})">Detay</button>
+                                    ${ld.phone ? `<button type="button" class="btn btn-primary btn-xs" onclick="openCallModal(${ld.id}, '${safeName}', '${safePh}', '${safeContact}', '${safeSector}')" style="background:#0f172a;border-color:#0f172a;">📞 Ara</button>` : ''}
+                                    ${ld.google_maps_url ? `<a href="${ld.google_maps_url}" target="_blank" class="btn btn-secondary btn-xs" title="Google Haritalar">🗺️</a>` : ''}
+                                </div>
+                            `;
+                            resGrid.appendChild(card);
+                        });
+                    }
+
+                    if (crmLeads.length === 0 && googleLeads.length === 0) {
+                        resGrid.innerHTML = `<div style="grid-column:1/-1;color:var(--text-muted);font-size:0.84rem;padding:1.25rem;background:#f8fafc;border:1px dashed var(--border-color);border-radius:8px;text-align:center;">
+                            <strong>'${escapeHtml(data.query)}'</strong> için Google Haritalar'da eşleşen yeni işletme kaydı bulunamadı.<br>
+                            <span style="font-size:0.78rem;color:var(--text-light);margin-top:0.35rem;display:block;">Aramayı daha geniş bir isim (örn. sadece 'Elegance') veya 'Tüm Bursa' bölgesini seçerek tekrar deneyebilirsiniz.</span>
+                        </div>`;
+                    }
+                }
+            })
+            .catch(err => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtn;
+                }
+                console.error('Direct search error:', err);
+                showToast('Bağlantı hatası oluştu.', 'error');
+            });
+        }
+
+        function loadPlacesStats() {
+            fetch('<?= site_url('superadmin_tenants/api_places_usage_stats') ?>')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) return;
+                    const stats = data.stats;
+                    const elDisc = document.getElementById('places-stat-total-discovered');
+                    const elEnr = document.getElementById('places-stat-enriched');
+                    const elApi = document.getElementById('places-stat-api-today');
+
+                    if (elDisc) elDisc.textContent = (stats.total_discovered_leads || 0).toLocaleString('tr-TR');
+                    if (elEnr) elEnr.textContent = (stats.total_enriched_leads || 0).toLocaleString('tr-TR');
+                    if (elApi) {
+                        const textCalls = stats.today_calls_text_search || 0;
+                        const detCalls = stats.today_calls_details || 0;
+                        elApi.textContent = `${textCalls} Text / ${detCalls} Detay`;
+                    }
+                })
+                .catch(err => console.error('Stats load error:', err));
+        }
+
+        function getSelectedCrawlerDistricts() {
+            const checkboxes = document.querySelectorAll('#crawler-district-checkboxes input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function getSelectedCrawlerCategories() {
+            const checkboxes = document.querySelectorAll('#crawler-category-checkboxes input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function getSelectedCrawlerDepth() {
+            const radio = document.querySelector('input[name="crawler_depth"]:checked');
+            return radio ? radio.value : 'standard';
+        }
+
+        function updatePlacesPreview() {
+            const categories = getSelectedCrawlerCategories();
+            const depth = getSelectedCrawlerDepth();
+            const previewTitle = document.getElementById('crawler-preview-title');
+            const previewDetails = document.getElementById('crawler-preview-details');
+
+            if (categories.length === 0) {
+                if (previewTitle) previewTitle.textContent = 'Lütfen en az bir BooKi sektörü seçin';
+                if (previewDetails) previewDetails.textContent = 'Hedef sektörler seçildiğinde sorgu ve tahmini keşif adedi hesaplanacaktır.';
+                return;
+            }
+
+            if (crawlerGeoMode === 'districts') {
+                const districts = getSelectedCrawlerDistricts();
+                if (districts.length === 0) {
+                    if (previewTitle) previewTitle.textContent = 'Lütfen en az bir ilçe seçin';
+                    if (previewDetails) previewDetails.textContent = 'Sol panelden Bursa ilçelerini işaretleyin.';
+                    return;
+                }
+
+                // Call server preview
+                const params = new URLSearchParams();
+                params.set('geo_mode', 'districts');
+                params.set('districts', districts.join(','));
+                params.set('categories', categories.join(','));
+                params.set('depth', depth);
+
+                fetch(`<?= site_url('superadmin_tenants/api_places_preview') ?>?${params.toString()}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (previewTitle) {
+                                previewTitle.textContent = `Tahmini ${data.estimated_queries} API Sorgusu • ~${data.estimated_leads_min} - ${data.estimated_leads_max} Potansiyel Lead`;
+                            }
+                            if (previewDetails) {
+                                previewDetails.textContent = `Hedef: ${districts.length} İlçe (${districts.slice(0, 4).join(', ')}${districts.length > 4 ? '...' : ''}) × ${categories.length} BooKi Sektörü | Mod: ${depth === 'deep' ? 'Derin (Maks 60 Sonuç/Sorgu)' : 'Standart (20 Sonuç/Sorgu)'}`;
+                            }
+                        }
+                    });
+            } else {
+                const params = new URLSearchParams();
+                params.set('geo_mode', 'radius');
+                params.set('center_lat', crawlerCenter.lat);
+                params.set('center_lng', crawlerCenter.lng);
+                params.set('radius_km', crawlerRadiusKm);
+                params.set('categories', categories.join(','));
+                params.set('depth', depth);
+
+                fetch(`<?= site_url('superadmin_tenants/api_places_preview') ?>?${params.toString()}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (previewTitle) {
+                                previewTitle.textContent = `Tahmini ${data.estimated_queries} API Sorgusu • ~${data.estimated_leads_min} - ${data.estimated_leads_max} Potansiyel Lead`;
+                            }
+                            if (previewDetails) {
+                                previewDetails.textContent = `Hedef: Pin Çemberi (Yarıçap: ${crawlerRadiusKm} km, ~${(Math.PI * crawlerRadiusKm * crawlerRadiusKm).toFixed(1)} km²) × ${categories.length} BooKi Sektörü`;
+                            }
+                        }
+                    });
+            }
+        }
+
+        function startPlacesCrawl() {
+            const categories = getSelectedCrawlerCategories();
+            if (categories.length === 0) {
+                showToast('Lütfen en az bir randevu sektörü seçin!', 'warning');
+                return;
+            }
+
+            const depth = getSelectedCrawlerDepth();
+            const filterOp = document.getElementById('crawler_filter_operational')?.checked ? 1 : 0;
+            const payload = {
+                geo_mode: crawlerGeoMode,
+                categories: JSON.stringify(categories),
+                depth: depth,
+                business_status: filterOp ? 'OPERATIONAL' : 'ALL'
+            };
+
+            if (crawlerGeoMode === 'districts') {
+                const districts = getSelectedCrawlerDistricts();
+                if (districts.length === 0) {
+                    showToast('Lütfen en az bir Bursa ilçesi seçin!', 'warning');
+                    return;
+                }
+                payload.districts = JSON.stringify(districts);
+            } else {
+                payload.center_lat = crawlerCenter.lat;
+                payload.center_lng = crawlerCenter.lng;
+                payload.radius_km = crawlerRadiusKm;
+            }
+
+            const btnStart = document.getElementById('btn-start-places-crawl');
+            if (btnStart) {
+                btnStart.disabled = true;
+                btnStart.innerHTML = '<span>⏳ Tarama Başlatılıyor...</span>';
+            }
+
+            post('<?= site_url('superadmin_tenants/api_places_start_crawl') ?>', payload)
+                .then(data => {
+                    if (btnStart) {
+                        btnStart.disabled = false;
+                        btnStart.innerHTML = '<span>🚀 Canlı Keşfi Başlat</span>';
+                    }
+
+                    if (!data.success) {
+                        showToast(data.message || 'Tarama başlatılamadı.', 'error');
+                        return;
+                    }
+
+                    activeCrawlerJobId = data.job_id;
+                    showToast(`Tarama görevi başlatıldı (#${activeCrawlerJobId})!`, 'success');
+                    
+                    // Show Job Monitor Card
+                    const jobCard = document.getElementById('places-job-card');
+                    if (jobCard) jobCard.classList.add('active');
+
+                    // Start timer & polling
+                    crawlerJobStartTime = Date.now();
+                    if (crawlerJobTimerInterval) clearInterval(crawlerJobTimerInterval);
+                    crawlerJobTimerInterval = setInterval(() => {
+                        const elapsedSec = Math.floor((Date.now() - crawlerJobStartTime) / 1000);
+                        const timerEl = document.getElementById('places-job-timer');
+                        if (timerEl) timerEl.textContent = `${elapsedSec}s`;
+                    }, 1000);
+
+                    pollPlacesJob(activeCrawlerJobId);
+                })
+                .catch(err => {
+                    if (btnStart) {
+                        btnStart.disabled = false;
+                        btnStart.innerHTML = '<span>🚀 Canlı Keşfi Başlat</span>';
+                    }
+                    showToast('Sunucu bağlantı hatası oluştu.', 'error');
+                });
+        }
+
+        function pollPlacesJob(jobId) {
+            if (crawlerPollTimer) clearTimeout(crawlerPollTimer);
+
+            fetch(`<?= site_url('superadmin_tenants/api_places_job_progress') ?>?job_id=${jobId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        stopCrawlerJobMonitor();
+                        return;
+                    }
+
+                    const job = data.job;
+                    updateCrawlerJobUI(job);
+
+                    if (job.status === 'completed') {
+                        stopCrawlerJobMonitor();
+                        showToast(`Tarama tamamlandı! ${job.leads_created} yeni lead havuza eklendi ✓`, 'success');
+                        loadCrawlerLeadsTable(1);
+                        loadPlacesStats();
+                        // Update header count badges
+                        const badgeLeads = document.getElementById('badge-leads-count');
+                        if (badgeLeads) {
+                            const cur = parseInt(badgeLeads.textContent) || 0;
+                            badgeLeads.textContent = cur + (job.leads_created || 0);
+                        }
+                    } else if (job.status === 'cancelled') {
+                        stopCrawlerJobMonitor();
+                        showToast('Tarama görevi durduruldu.', 'warning');
+                        loadCrawlerLeadsTable(1);
+                        loadPlacesStats();
+                    } else if (job.status === 'failed') {
+                        stopCrawlerJobMonitor();
+                        showToast(`Tarama hatası: ${job.error_message || 'Bilinmeyen hata'}`, 'error');
+                        loadCrawlerLeadsTable(1);
+                    } else {
+                        // Continue polling
+                        crawlerPollTimer = setTimeout(() => pollPlacesJob(jobId), 1200);
+                    }
+                })
+                .catch(err => {
+                    crawlerPollTimer = setTimeout(() => pollPlacesJob(jobId), 2000);
+                });
+        }
+
+        function updateCrawlerJobUI(job) {
+            const badge = document.getElementById('places-job-badge');
+            const queryLabel = document.getElementById('places-job-query-label');
+            const pBar = document.getElementById('places-job-progress-bar');
+            const pPct = document.getElementById('places-job-progress-pct');
+            const qDone = document.getElementById('places-job-queries-done');
+            const qTotal = document.getElementById('places-job-queries-total');
+            const statFound = document.getElementById('places-job-found-count');
+            const statCreated = document.getElementById('places-job-created-count');
+            const statUpdated = document.getElementById('places-job-updated-count');
+            const statFailed = document.getElementById('places-job-failed-count');
+
+            if (badge) {
+                if (job.status === 'completed') {
+                    badge.style.background = '#10b981';
+                    badge.textContent = 'TAMAMLANDI ✓';
+                } else if (job.status === 'cancelled') {
+                    badge.style.background = '#f59e0b';
+                    badge.textContent = 'DURDURULDU';
+                } else if (job.status === 'failed') {
+                    badge.style.background = '#ef4444';
+                    badge.textContent = 'HATA';
+                } else {
+                    badge.style.background = '#3b82f6';
+                    badge.textContent = 'ÇALIŞIYOR ⚡';
+                }
+            }
+
+            if (queryLabel) {
+                queryLabel.textContent = job.current_query ? `Sorgulanıyor: "${job.current_query}"` : 'Sorgular işleniyor...';
+            }
+
+            const pct = Math.min(100, Math.max(0, job.progress_percentage || 0));
+            if (pBar) pBar.style.width = `${pct}%`;
+            if (pPct) pPct.textContent = `${pct}%`;
+            if (qDone) qDone.textContent = job.queries_completed || 0;
+            if (qTotal) qTotal.textContent = job.total_queries || 0;
+            if (statFound) statFound.textContent = job.places_found || 0;
+            if (statCreated) statCreated.textContent = job.leads_created || 0;
+            if (statUpdated) statUpdated.textContent = job.leads_updated || 0;
+            if (statFailed) statFailed.textContent = job.queries_failed || 0;
+        }
+
+        function stopCrawlerJobMonitor() {
+            if (crawlerPollTimer) clearTimeout(crawlerPollTimer);
+            if (crawlerJobTimerInterval) clearInterval(crawlerJobTimerInterval);
+        }
+
+        function cancelPlacesJob() {
+            if (!activeCrawlerJobId) return;
+            post('<?= site_url('superadmin_tenants/api_places_cancel_job') ?>', { job_id: activeCrawlerJobId })
+                .then(data => {
+                    showToast('Durdurma isteği iletildi.', 'info');
+                });
+        }
+
+        function handleCrawlerSearchInput(val) {
+            if (crawlerSearchDebounce) clearTimeout(crawlerSearchDebounce);
+            crawlerSearchDebounce = setTimeout(() => {
+                loadCrawlerLeadsTable(1);
+            }, 300);
+        }
+
+        function switchCrawlerTableEnrichFilter(filterVal) {
+            const select = document.getElementById('crawler-enrich-filter');
+            if (select) {
+                select.value = filterVal === 'all' ? '' : filterVal;
+                loadCrawlerLeadsTable(1);
+            }
+        }
+
+        function loadCrawlerLeadsTable(page = 1) {
+            currentCrawlerLeadsPage = page;
+            const tbody = document.getElementById('crawler-leads-tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--text-light);">Yükleniyor...</td></tr>';
+
+            const q = document.getElementById('crawler-search-input')?.value || '';
+            const sector = document.getElementById('crawler-sector-filter')?.value || '';
+            const district = document.getElementById('crawler-district-filter')?.value || '';
+            const enrichFilter = document.getElementById('crawler-enrich-filter')?.value || '';
+
+            const params = new URLSearchParams({
+                q: q,
+                sector: sector,
+                district: district,
+                enrich_filter: enrichFilter,
+                is_places: 1,
+                page: page,
+                limit: 25,
+                sort: 'id',
+                order: 'desc'
+            });
+
+            fetch(`<?= site_url('superadmin_tenants/api_leads') ?>?${params.toString()}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success || !data.leads || data.leads.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--text-light);">Henüz Google Places ile keşfedilmiş lead bulunmuyor. Yukarıdan canlı keşif başlatabilirsiniz.</td></tr>';
+                        renderCrawlerPagination(0, 1, 25);
+                        return;
+                    }
+
+                    tbody.innerHTML = '';
+                    selectedCrawlerLeadIds.clear();
+                    const selectAllCb = document.getElementById('crawler-select-all');
+                    if (selectAllCb) selectAllCb.checked = false;
+
+                    data.leads.forEach(ld => {
+                        const tr = document.createElement('tr');
+                        tr.id = `crawler-row-${ld.id}`;
+
+                        // Status Badge
+                        let statusBadge = '<span class="places-badge-status operational">OPERATIONAL</span>';
+                        if (ld.business_status === 'CLOSED_TEMPORARILY') {
+                            statusBadge = '<span class="places-badge-status temp_closed">GEÇİCİ KAPALI</span>';
+                        } else if (ld.business_status === 'CLOSED_PERMANENTLY') {
+                            statusBadge = '<span class="places-badge-status perm_closed">KALICI KAPALI</span>';
+                        }
+
+                        // Google Maps link
+                        const mapsUri = ld.google_maps_uri || (ld.place_id ? `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${ld.place_id}` : '');
+                        const mapsLink = mapsUri ? `<a href="${mapsUri}" target="_blank" style="display:inline-flex;align-items:center;gap:0.25rem;color:#2563eb;font-size:0.75rem;text-decoration:none;" title="Google Haritalar'da Aç">📍 Harita ↗</a>` : '—';
+
+                        // Enrichment details
+                        let enrichHtml = '';
+                        if (ld.enriched_at) {
+                            const ratingHtml = ld.rating ? `⭐ <strong>${ld.rating}</strong> <span style="color:#64748b;">(${ld.user_rating_count || 0})</span>` : '';
+                            const phoneHtml = ld.phone ? `<div>📞 <a href="tel:${ld.phone}" style="color:var(--text-main);">${ld.phone}</a></div>` : '';
+                            const webHtml = ld.website ? `<div>🌐 <a href="${ld.website}" target="_blank" style="color:#2563eb;font-size:0.72rem;">${ld.website.replace(/^https?:\/\//, '').substring(0, 24)}...</a></div>` : '';
+                            enrichHtml = `
+                                <div style="font-size:0.75rem;line-height:1.4;">
+                                    <span class="places-badge-status places-badge-enriched" style="font-size:0.65rem;margin-bottom:0.2rem;">ZENGİNLEŞTİRİLDİ ✓</span>
+                                    ${ratingHtml ? `<div>${ratingHtml}</div>` : ''}
+                                    ${phoneHtml}
+                                    ${webHtml}
+                                </div>
+                            `;
+                        } else {
+                            enrichHtml = `
+                                <div style="font-size:0.75rem;color:var(--text-light);">
+                                    <span class="places-badge-status places-badge-discovered" style="font-size:0.65rem;margin-bottom:0.3rem;">KEŞFEDİLDİ (PRO)</span>
+                                    <div>Henüz zenginleştirilmedi</div>
+                                </div>
+                            `;
+                        }
+
+                        // Actions
+                        const enrichBtn = !ld.enriched_at ? `
+                            <button type="button" class="btn btn-secondary btn-xs btn-enrich-single" onclick="enrichPlaceLead(${ld.id}, this)" style="background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe;font-weight:600;" title="Place Details New (Telefon, Web, Puan) Çek">
+                                ✨ Zenginleştir
+                            </button>
+                        ` : '';
+
+                        tr.innerHTML = `
+                            <td style="text-align:center;">
+                                <input type="checkbox" value="${ld.id}" onchange="handleCrawlerRowSelect(${ld.id}, this.checked)">
+                            </td>
+                            <td>
+                                <div style="font-weight:700;color:var(--text-main);cursor:pointer;" onclick="openLeadDrawer(${ld.id})">
+                                    ${ld.name}
+                                </div>
+                                <div style="font-size:0.72rem;color:var(--text-muted);font-family:monospace;">
+                                    ${ld.primary_type || 'business'}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="card-tag sector">${ld.sector || 'Genel'}</span>
+                            </td>
+                            <td>
+                                <div style="font-weight:600;font-size:0.78rem;">${ld.district || 'Bursa'}</div>
+                                <div style="font-size:0.72rem;color:var(--text-light);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${ld.address || ''}">
+                                    ${ld.address || '—'}
+                                </div>
+                            </td>
+                            <td>${statusBadge}</td>
+                            <td>${mapsLink}</td>
+                            <td>${enrichHtml}</td>
+                            <td style="text-align:right;white-space:nowrap;">
+                                ${enrichBtn}
+                                <button type="button" class="btn btn-secondary btn-xs" onclick="openLeadDrawer(${ld.id})" title="CRM Lead Kartını Aç">
+                                    👤 Lead Kartı
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    renderCrawlerPagination(data.total, data.current_page, data.limit);
+                })
+                .catch(err => {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#b91c1c;">Veriler yüklenirken hata oluştu.</td></tr>';
+                });
+        }
+
+        function handleCrawlerRowSelect(leadId, isChecked) {
+            if (isChecked) {
+                selectedCrawlerLeadIds.add(leadId);
+            } else {
+                selectedCrawlerLeadIds.delete(leadId);
+            }
+        }
+
+        function toggleSelectAllCrawlerLeads(isChecked) {
+            const checkboxes = document.querySelectorAll('#crawler-leads-tbody input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                const id = parseInt(cb.value);
+                if (isChecked) selectedCrawlerLeadIds.add(id);
+                else selectedCrawlerLeadIds.delete(id);
+            });
+        }
+
+        function enrichPlaceLead(leadId, btnEl) {
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.textContent = '⏳ Çekiliyor...';
+            }
+
+            post('<?= site_url('superadmin_tenants/api_places_enrich_lead') ?>', { lead_id: leadId })
+                .then(data => {
+                    if (data.success) {
+                        showToast(`${data.place_name || 'İşletme'} başarıyla zenginleştirildi!`, 'success');
+                        loadCrawlerLeadsTable(currentCrawlerLeadsPage);
+                        loadPlacesStats();
+                    } else {
+                        if (btnEl) {
+                            btnEl.disabled = false;
+                            btnEl.textContent = '✨ Zenginleştir';
+                        }
+                        showToast(data.message || 'Zenginleştirme başarısız.', 'error');
+                    }
+                })
+                .catch(err => {
+                    if (btnEl) {
+                        btnEl.disabled = false;
+                        btnEl.textContent = '✨ Zenginleştir';
+                    }
+                    showToast('Sunucu bağlantı hatası oluştu.', 'error');
+                });
+        }
+
+        function bulkEnrichPlaceLeads() {
+            const ids = Array.from(selectedCrawlerLeadIds);
+            if (ids.length === 0) {
+                showToast('Lütfen tablodan en az bir işletme seçin!', 'warning');
+                return;
+            }
+
+            if (!confirm(`Seçilen ${ids.length} işletme için Google Place Details (New API) çağrısı yapılacak. Devam edilsin mi?`)) {
+                return;
+            }
+
+            showToast(`${ids.length} işletme zenginleştiriliyor, lütfen bekleyin...`, 'info');
+
+            post('<?= site_url('superadmin_tenants/api_places_bulk_enrich') ?>', { lead_ids: JSON.stringify(ids) })
+                .then(data => {
+                    if (data.success) {
+                        showToast(`${data.enriched_count} işletme başarıyla zenginleştirildi!`, 'success');
+                        loadCrawlerLeadsTable(currentCrawlerLeadsPage);
+                        loadPlacesStats();
+                    } else {
+                        showToast(data.message || 'Toplu zenginleştirme tamamlanamadı.', 'error');
+                    }
+                })
+                .catch(err => {
+                    showToast('Toplu zenginleştirme sırasında hata oluştu.', 'error');
+                });
+        }
+
+        function exportPlacesCsv() {
+            window.open('<?= site_url('superadmin_tenants/api_places_export_csv') ?>', '_blank');
+        }
+
+        function clearAllLeadsConfirm() {
+            if (!confirm('⚠️ TÜM CRM LEAD HAVUZU VE GEÇMİŞ AKTİVİTELER SİLİNECEKTİR!\n\nBu işlem geri alınamaz. Devam etmek istiyor musunuz?')) {
+                return;
+            }
+
+            post('<?= site_url('superadmin_tenants/api_clear_all_leads') ?>', { confirm: 'yes' })
+                .then(data => {
+                    if (data.success) {
+                        showToast('Tüm lead havuzu başarıyla sıfırlandı ✓', 'success');
+                        loadCrawlerLeadsTable(1);
+                        loadPlacesStats();
+                        const badgeLeads = document.getElementById('badge-leads-count');
+                        if (badgeLeads) badgeLeads.textContent = '0';
+                        const kpiLeads = document.getElementById('kpi-total-leads');
+                        if (kpiLeads) kpiLeads.textContent = '0';
+                    } else {
+                        showToast(data.message || 'Sıfırlama başarısız oldu.', 'error');
+                    }
+                })
+                .catch(err => {
+                    showToast('Sıfırlama sırasında hata oluştu.', 'error');
+                });
+        }
+
+        function renderCrawlerPagination(total, currentPage, limit) {
+            const info = document.getElementById('crawler-pagination-info');
+            const btns = document.getElementById('crawler-pagination-buttons');
+            if (!info || !btns) return;
+
+            const totalPages = Math.max(1, Math.ceil(total / limit));
+            info.textContent = `Toplam ${total} işletmeden ${(currentPage - 1) * limit + 1}-${Math.min(total, currentPage * limit)} arası gösteriliyor (Sayfa ${currentPage}/${totalPages})`;
+
+            btns.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            if (currentPage > 1) {
+                const prev = document.createElement('button');
+                prev.className = 'btn btn-secondary btn-xs';
+                prev.textContent = '← Önceki';
+                prev.onclick = () => loadCrawlerLeadsTable(currentPage - 1);
+                btns.appendChild(prev);
+            }
+
+            if (currentPage < totalPages) {
+                const next = document.createElement('button');
+                next.className = 'btn btn-secondary btn-xs';
+                next.textContent = 'Sonraki →';
+                next.onclick = () => loadCrawlerLeadsTable(currentPage + 1);
+                btns.appendChild(next);
+            }
+        }
+
+        // Initialize URL hash navigation and sidebar state on load
         window.addEventListener('DOMContentLoaded', () => {
+            try {
+                if (localStorage.getItem('booki_sidebar_collapsed') === '1') {
+                    const sb = document.getElementById('app-sidebar');
+                    if (sb) sb.classList.add('collapsed');
+                }
+            } catch (e) {}
+
             const hash = window.location.hash.replace('#', '');
             if (hash && document.getElementById(`tab-${hash}`)) {
                 switchTab(hash);

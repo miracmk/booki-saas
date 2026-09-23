@@ -28,6 +28,22 @@ class Marketplace extends EA_Controller
         }
 
         $this->load->library('review_service');
+        $this->load->model('leads_model');
+    }
+
+    /**
+     * Filter out demo / test / dummy tenants from marketplace discovery.
+     * These tenants are reserved for customer demos.
+     */
+    protected function filter_dummy_tenants(): void
+    {
+        $this->db->not_like('subdomain', 'demo-', 'after');
+        $this->db->not_like('subdomain', 'test-', 'after');
+        $this->db->where_not_in('subdomain', ['qatest', 'waveaudit', 'test']);
+        if ($this->db->field_exists('company_name', 'tenants')) {
+            $this->db->not_like('company_name', 'Test');
+            $this->db->not_like('company_name', 'Demo');
+        }
     }
 
     /**
@@ -61,17 +77,18 @@ class Marketplace extends EA_Controller
         $apply_filters = function () use ($q, $category, $city, $district, $has_company_name) {
             $this->db->where('marketplace_opt_in', 1);
             $this->db->where('status', 'active');
+            $this->filter_dummy_tenants();
 
             if ($q !== '') {
                 $this->db->group_start();
-                $this->db->like('tenants.subdomain', $q);
+                $this->db->like('subdomain', $q);
                 if ($has_company_name) {
-                    $this->db->or_like('tenants.company_name', $q);
+                    $this->db->or_like('company_name', $q);
                 }
-                $this->db->or_like('tenants.category', $q);
-                $this->db->or_like('tenants.short_description', $q);
-                $this->db->or_like('tenants.city', $q);
-                $this->db->or_like('tenants.district', $q);
+                $this->db->or_like('category', $q);
+                $this->db->or_like('short_description', $q);
+                $this->db->or_like('city', $q);
+                $this->db->or_like('district', $q);
                 $this->db->group_end();
             }
 
@@ -134,6 +151,7 @@ class Marketplace extends EA_Controller
             ->result_array();
 
         // Fetch distinct categories, cities, districts for filters
+        $this->filter_dummy_tenants();
         $categories = $this->db
             ->distinct()
             ->select('category')
@@ -144,6 +162,7 @@ class Marketplace extends EA_Controller
             ->get('tenants')
             ->result_array();
 
+        $this->filter_dummy_tenants();
         $cities = $this->db
             ->distinct()
             ->select('city')
@@ -154,6 +173,7 @@ class Marketplace extends EA_Controller
             ->get('tenants')
             ->result_array();
 
+        $this->filter_dummy_tenants();
         $districts = $this->db
             ->distinct()
             ->select('district')
@@ -285,6 +305,19 @@ class Marketplace extends EA_Controller
             ],
         ];
 
+        // Storefront leads: Only enriched or claimed members on homepage for high quality
+        $storefront_leads = [];
+        if ($this->db->table_exists('leads')) {
+            $lead_filters = [
+                'q' => $q,
+                'category' => $category,
+                'city' => $city,
+                'district' => $district,
+            ];
+            $lead_data = $this->leads_model->get_for_storefront($per_page, ($page - 1) * $per_page, $lead_filters);
+            $storefront_leads = $lead_data['leads'] ?? [];
+        }
+
         html_vars([
             'page_title' => 'RandevuBurada — Türkiye\'nin Online Randevu ve Hizmet Pazaryeri | by BooKi',
             'meta_description' => 'Şehrinizdeki en iyi kuaför, berber, güzellik merkezi ve klinikleri keşfedin. Gerçek müşteri yorumlarını okuyun, anında fiyatları görün ve 7/24 randevunuzu RandevuBurada ile kolayca alın.',
@@ -293,6 +326,7 @@ class Marketplace extends EA_Controller
             'faq_json_ld' => $faq_json_ld,
             'breadcrumb_json_ld' => $breadcrumb_json_ld,
             'tenants' => $tenants,
+            'leads' => $storefront_leads,
             'categories' => $category_list,
             'cities' => $city_list,
             'districts' => $district_list,
@@ -305,8 +339,8 @@ class Marketplace extends EA_Controller
             'lat' => $lat,
             'lng' => $lng,
             'page' => $page,
-            'total_pages' => max(1, (int) ceil($total / $per_page)),
-            'total' => $total,
+            'total_pages' => max(1, (int) ceil(($total + count($storefront_leads)) / $per_page)),
+            'total' => $total + count($storefront_leads),
             'per_page' => $per_page,
         ]);
 
@@ -1007,6 +1041,7 @@ class Marketplace extends EA_Controller
      */
     public function sitemap(): void
     {
+        $this->filter_dummy_tenants();
         $tenants = $this->db
             ->select('subdomain, updated_at')
             ->where('marketplace_opt_in', 1)
@@ -1015,6 +1050,7 @@ class Marketplace extends EA_Controller
             ->get('tenants')
             ->result_array();
 
+        $this->filter_dummy_tenants();
         $categories = $this->db
             ->distinct()
             ->select('category')
@@ -1096,6 +1132,9 @@ class Marketplace extends EA_Controller
         echo "User-agent: *\n";
         echo "Allow: /\n";
         echo "Allow: /business/*\n";
+        echo "Allow: /isletme/*\n";
+        echo "Allow: /kategori/*\n";
+        echo "Allow: /sahiplen/*\n";
         echo "Allow: /marketplace\n";
         echo "Allow: /marketplace/*\n";
         echo "Disallow: /admin\n";
@@ -1109,6 +1148,13 @@ class Marketplace extends EA_Controller
         }
 
         echo "Sitemap: https://{$domain}/sitemap.xml\n";
+        if ($this->db->table_exists('leads')) {
+            $total_slugs = $this->leads_model->count_slugs();
+            $chunks = max(1, (int) ceil($total_slugs / 5000));
+            for ($c = 1; $c <= $chunks; $c++) {
+                echo "Sitemap: https://{$domain}/sitemap-places-{$c}.xml\n";
+            }
+        }
         exit;
     }
 
@@ -1117,6 +1163,7 @@ class Marketplace extends EA_Controller
      */
     public function llms(): void
     {
+        $this->filter_dummy_tenants();
         $tenants = $this->db
             ->select('subdomain, company_name, category, city, district, short_description')
             ->where('marketplace_opt_in', 1)
@@ -1153,6 +1200,665 @@ class Marketplace extends EA_Controller
             echo "- Profil & Randevu: https://{$domain}/business/{$t['subdomain']}\n\n";
         }
 
+        exit;
+    }
+
+    // =========================================================================
+    //  pSEO & Lead Storefront Methods
+    // =========================================================================
+
+    /**
+     * Display a single lead's marketplace profile page with lazy enrichment.
+     *
+     * When a raw_lead is visited, Google Places Details API is called on-demand
+     * to enrich the lead before serving the page to the user or Googlebot.
+     *
+     * URL: /isletme/{slug}
+     */
+    public function isletme(string $slug = ''): void
+    {
+        method('get');
+
+        $slug = strtolower(trim($slug));
+
+        if ($slug === '' || $slug === 'contact') {
+            abort(404, 'Not Found');
+        }
+
+        $lead = $this->leads_model->get_by_slug($slug);
+
+        if (!$lead) {
+            abort(404, 'Not Found');
+        }
+
+        // Lazy Enrichment: if raw_lead, enrich on-demand via Google Places API
+        if (($lead['enrichment_status'] ?? 'raw_lead') === 'raw_lead' && !empty($lead['place_id'])) {
+            $this->load->library('lazy_enrichment');
+            $lead = $this->lazy_enrichment->enrich_on_visit((int) $lead['id']) ?: $lead;
+        }
+
+        // If claimed_member and linked to a tenant, redirect to the tenant's BooKi profile
+        if (($lead['membership_status'] ?? 'unclaimed') === 'claimed_member' && !empty($lead['claimed_tenant_id'])) {
+            $tenant = $this->db->get_where('tenants', [
+                'id' => $lead['claimed_tenant_id'],
+                'status' => 'active',
+            ])->row_array();
+
+            if ($tenant) {
+                redirect(randevuburada_url('business/' . urlencode($tenant['subdomain'])));
+                return;
+            }
+        }
+
+        // Parse photo references for proxy URLs
+        $photos = [];
+        if (!empty($lead['photo_references'])) {
+            $refs = json_decode($lead['photo_references'], true);
+            if (is_array($refs)) {
+                foreach ($refs as $ref) {
+                    $photos[] = randevuburada_url('api/places/photo?ref=' . urlencode($ref) . '&maxwidth=800');
+                }
+            }
+        }
+
+        // Parse opening hours
+        $opening_hours = null;
+        if (!empty($lead['opening_hours_json'])) {
+            $opening_hours = json_decode($lead['opening_hours_json'], true);
+        }
+
+        // Parse reviews
+        $google_reviews = [];
+        if (!empty($lead['reviews_json'])) {
+            $google_reviews = json_decode($lead['reviews_json'], true) ?: [];
+        }
+
+        $display_name = $lead['name'] ?? 'İşletme';
+        $page_url = randevuburada_url('isletme/' . urlencode($slug));
+        $city = $lead['city'] ?? '';
+        $district = $lead['district'] ?? '';
+        $neighborhood = $lead['neighborhood'] ?? '';
+
+        // Build claim URL
+        $claim_url = !empty($lead['claim_token'])
+            ? randevuburada_url('sahiplen/' . urlencode($lead['claim_token']))
+            : randevuburada_url();
+
+        // Build dynamic SEO meta tags
+        $location_parts = array_filter([$district, $city]);
+        $location_str = implode(', ', $location_parts);
+
+        $meta_title = $display_name;
+        if ($location_str !== '') {
+            $meta_title .= ' - ' . $location_str;
+        }
+        $meta_title .= ' Randevu & İletişim | RandevuBurada';
+
+        $meta_desc = $display_name;
+        if ($location_str !== '') {
+            $meta_desc .= ' ' . $location_str . ' adresinde hizmet vermektedir.';
+        }
+        $meta_desc .= ' Çalışma saatleri, adres, fotoğraflar ve randevu talebi için tıklayın.';
+
+        // Build Schema.org LocalBusiness / HealthAndBeautyBusiness JSON-LD
+        $schema_type = 'HealthAndBeautyBusiness';
+        $primary_type = $lead['primary_type'] ?? '';
+        if (stripos($primary_type, 'doctor') !== false || stripos($primary_type, 'hospital') !== false || stripos($primary_type, 'clinic') !== false) {
+            $schema_type = 'MedicalBusiness';
+        } elseif (stripos($primary_type, 'gym') !== false || stripos($primary_type, 'fitness') !== false) {
+            $schema_type = 'SportsActivityLocation';
+        }
+
+        $json_ld = [
+            '@context' => 'https://schema.org',
+            '@type' => $schema_type,
+            'name' => $display_name,
+            'url' => $page_url,
+            'description' => $meta_desc,
+        ];
+
+        // Images
+        if (!empty($photos)) {
+            $json_ld['image'] = $photos;
+        } elseif (!empty($lead['cover_image_url'])) {
+            $json_ld['image'] = $lead['cover_image_url'];
+        }
+
+        // Phone
+        if (!empty($lead['phone'])) {
+            $json_ld['telephone'] = $lead['phone'];
+        }
+
+        // Address
+        $json_ld['address'] = [
+            '@type' => 'PostalAddress',
+            'streetAddress' => $lead['address'] ?? null,
+            'addressLocality' => $district ?: null,
+            'addressRegion' => $city ?: null,
+            'addressCountry' => 'TR',
+        ];
+
+        // Geo coordinates
+        if (!empty($lead['latitude']) && !empty($lead['longitude'])) {
+            $json_ld['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => (float) $lead['latitude'],
+                'longitude' => (float) $lead['longitude'],
+            ];
+        }
+
+        // Aggregate Rating
+        if (!empty($lead['rating']) && (float) $lead['rating'] > 0) {
+            $json_ld['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round((float) $lead['rating'], 1),
+                'reviewCount' => (int) ($lead['user_rating_count'] ?? 1),
+                'bestRating' => '5',
+                'worstRating' => '1',
+            ];
+        }
+
+        // Opening Hours Specification
+        if ($opening_hours && !empty($opening_hours['periods'])) {
+            $day_map = [
+                0 => 'Sunday', 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday',
+                4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday',
+            ];
+            $specs = [];
+            foreach ($opening_hours['periods'] as $period) {
+                if (!empty($period['open'])) {
+                    $day_num = $period['open']['day'] ?? 0;
+                    $open_time = sprintf('%02d:%02d', $period['open']['hour'] ?? 9, $period['open']['minute'] ?? 0);
+                    $close_time = '23:59';
+                    if (!empty($period['close'])) {
+                        $close_time = sprintf('%02d:%02d', $period['close']['hour'] ?? 23, $period['close']['minute'] ?? 59);
+                    }
+                    $specs[] = [
+                        '@type' => 'OpeningHoursSpecification',
+                        'dayOfWeek' => $day_map[$day_num] ?? 'Monday',
+                        'opens' => $open_time,
+                        'closes' => $close_time,
+                    ];
+                }
+            }
+            if (!empty($specs)) {
+                $json_ld['openingHoursSpecification'] = $specs;
+            }
+        } elseif ($opening_hours && !empty($opening_hours['weekdayDescriptions'])) {
+            // Use weekday text descriptions as fallback
+            $json_ld['openingHours'] = $opening_hours['weekdayDescriptions'];
+        }
+
+        // Google Maps URL
+        if (!empty($lead['google_maps_uri'])) {
+            $json_ld['hasMap'] = $lead['google_maps_uri'];
+        }
+
+        // Breadcrumb JSON-LD
+        $breadcrumb_items = [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'RandevuBurada', 'item' => randevuburada_url()],
+        ];
+        if ($city !== '') {
+            $breadcrumb_items[] = [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $city,
+                'item' => randevuburada_url('kategori/' . urlencode(tr_slug($lead['sector'] ?? 'isletme')) . '/' . urlencode(tr_slug($city))),
+            ];
+        }
+        if ($district !== '') {
+            $breadcrumb_items[] = [
+                '@type' => 'ListItem',
+                'position' => count($breadcrumb_items) + 1,
+                'name' => $district,
+                'item' => randevuburada_url('kategori/' . urlencode(tr_slug($lead['sector'] ?? 'isletme')) . '/' . urlencode(tr_slug($city)) . '/' . urlencode(tr_slug($district))),
+            ];
+        }
+        $breadcrumb_items[] = [
+            '@type' => 'ListItem',
+            'position' => count($breadcrumb_items) + 1,
+            'name' => $display_name,
+            'item' => $page_url,
+        ];
+
+        $breadcrumb_json_ld = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => $breadcrumb_items,
+        ];
+
+        html_vars([
+            'page_title' => $meta_title,
+            'meta_description' => $meta_desc,
+            'canonical_url' => $page_url,
+            'json_ld' => $json_ld,
+            'breadcrumb_json_ld' => $breadcrumb_json_ld,
+            'lead' => $lead,
+            'display_name' => $display_name,
+            'photos' => $photos,
+            'opening_hours' => $opening_hours,
+            'google_reviews' => $google_reviews,
+            'claim_url' => $claim_url,
+            'is_claimed' => ($lead['membership_status'] ?? 'unclaimed') === 'claimed_member',
+        ]);
+
+        $this->load->view('pages/marketplace_isletme');
+    }
+
+    /**
+     * pSEO category / city / district directory pages.
+     *
+     * URL patterns:
+     *   /kategori/{category-slug}
+     *   /kategori/{category-slug}/{city}
+     *   /kategori/{category-slug}/{city}/{district}
+     */
+    public function category(string $category_slug = '', string $city_slug = '', string $district_slug = ''): void
+    {
+        method('get');
+
+        $page = max(1, (int) request('page', 1));
+        $per_page = 24;
+
+        // Map category slug back to display name
+        $category_map = [
+            'kuafor' => 'Kuaför', 'berber' => 'Berber', 'guzellik-salonu' => 'Güzellik Salonu',
+            'tirnak' => 'Tırnak & Estetik', 'masaj' => 'Masaj & Terapi', 'klinik' => 'Klinik',
+            'fitness' => 'Fitness', 'spa' => 'Spa & Hamam', 'dis-klinigi' => 'Diş Kliniği',
+            'goz-klinigi' => 'Göz Kliniği', 'veteriner' => 'Veteriner', 'oto-yikama' => 'Oto Yıkama',
+            'oto-detailing' => 'Oto Detailing', 'diyetisyen' => 'Diyetisyen', 'psikolog' => 'Psikolog',
+            'fizyoterapi' => 'Fizyoterapi', 'pet-kuafor' => 'Pet Kuaför',
+        ];
+
+        $category_display = $category_map[$category_slug] ?? str_replace('-', ' ', ucfirst($category_slug));
+
+        // Build filters
+        $filters = [];
+        if ($category_slug !== '') {
+            $filters['category'] = $category_display;
+        }
+        if ($city_slug !== '') {
+            // Reverse tr_slug is hard, so we do a LIKE search on city field
+            $filters['city_slug'] = $city_slug;
+        }
+        if ($district_slug !== '') {
+            $filters['district_slug'] = $district_slug;
+        }
+
+        // Query leads — directory shows ALL (raw + enriched) for pSEO fullness
+        $this->db->where('business_status', 'OPERATIONAL');
+
+        if (!empty($filters['category'])) {
+            $this->db->group_start()
+                ->like('sector', $filters['category'])
+                ->or_like('primary_type', $category_slug)
+                ->or_like('matched_categories', $filters['category'])
+                ->group_end();
+        }
+
+        if (!empty($filters['city_slug'])) {
+            // Match slug-like city (e.g., 'istanbul' matches 'İstanbul')
+            $this->db->group_start()
+                ->like('LOWER(city)', str_replace('-', ' ', $city_slug))
+                ->or_like('LOWER(city)', str_replace('-', '', $city_slug))
+                ->group_end();
+        }
+
+        if (!empty($filters['district_slug'])) {
+            $this->db->group_start()
+                ->like('LOWER(district)', str_replace('-', ' ', $district_slug))
+                ->or_like('LOWER(district)', str_replace('-', '', $district_slug))
+                ->group_end();
+        }
+
+        $total = $this->db->count_all_results('leads');
+
+        // Re-apply filters for data
+        $this->db->where('business_status', 'OPERATIONAL');
+        if (!empty($filters['category'])) {
+            $this->db->group_start()
+                ->like('sector', $filters['category'])
+                ->or_like('primary_type', $category_slug)
+                ->or_like('matched_categories', $filters['category'])
+                ->group_end();
+        }
+        if (!empty($filters['city_slug'])) {
+            $this->db->group_start()
+                ->like('LOWER(city)', str_replace('-', ' ', $city_slug))
+                ->or_like('LOWER(city)', str_replace('-', '', $city_slug))
+                ->group_end();
+        }
+        if (!empty($filters['district_slug'])) {
+            $this->db->group_start()
+                ->like('LOWER(district)', str_replace('-', ' ', $district_slug))
+                ->or_like('LOWER(district)', str_replace('-', '', $district_slug))
+                ->group_end();
+        }
+
+        $this->db->order_by("FIELD(enrichment_status, 'enriched_lead', 'raw_lead')", '', false);
+        $this->db->order_by('rating', 'desc');
+
+        $leads = $this->db
+            ->limit($per_page, ($page - 1) * $per_page)
+            ->get('leads')
+            ->result_array();
+
+        // Build SEO title
+        $title_parts = [$category_display];
+        $city_display = !empty($city_slug) ? ucfirst(str_replace('-', ' ', $city_slug)) : '';
+        $district_display = !empty($district_slug) ? ucfirst(str_replace('-', ' ', $district_slug)) : '';
+
+        if ($district_display !== '') {
+            $title_parts[] = $district_display;
+        }
+        if ($city_display !== '') {
+            $title_parts[] = $city_display;
+        }
+
+        $seo_title = implode(' ', $title_parts) . ' — Randevu & İletişim | RandevuBurada';
+        $seo_desc = $category_display;
+        if ($city_display !== '') {
+            $seo_desc .= ' ' . $city_display;
+        }
+        if ($district_display !== '') {
+            $seo_desc .= ' ' . $district_display;
+        }
+        $seo_desc .= ' bölgesindeki en iyi işletmeleri keşfedin. Çalışma saatleri, müşteri yorumları ve online randevu.';
+
+        $canonical_parts = ['kategori', $category_slug];
+        if ($city_slug !== '') $canonical_parts[] = $city_slug;
+        if ($district_slug !== '') $canonical_parts[] = $district_slug;
+        $canonical_url = randevuburada_url(implode('/', $canonical_parts));
+
+        // Breadcrumb JSON-LD
+        $breadcrumb_items = [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'RandevuBurada', 'item' => randevuburada_url()],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => $category_display, 'item' => randevuburada_url('kategori/' . urlencode($category_slug))],
+        ];
+        if ($city_slug !== '') {
+            $breadcrumb_items[] = ['@type' => 'ListItem', 'position' => 3, 'name' => $city_display, 'item' => randevuburada_url('kategori/' . urlencode($category_slug) . '/' . urlencode($city_slug))];
+        }
+        if ($district_slug !== '') {
+            $breadcrumb_items[] = ['@type' => 'ListItem', 'position' => count($breadcrumb_items) + 1, 'name' => $district_display, 'item' => $canonical_url];
+        }
+
+        // ItemList JSON-LD for the directory
+        $json_ld = [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'name' => implode(' ', $title_parts),
+            'description' => $seo_desc,
+            'url' => $canonical_url,
+            'numberOfItems' => $total,
+            'itemListElement' => [],
+        ];
+
+        foreach ($leads as $idx => $l) {
+            $item = [
+                '@type' => 'ListItem',
+                'position' => (($page - 1) * $per_page) + $idx + 1,
+                'item' => [
+                    '@type' => 'LocalBusiness',
+                    'name' => $l['name'] ?? 'İşletme',
+                    'url' => !empty($l['slug']) ? randevuburada_url('isletme/' . urlencode($l['slug'])) : '#',
+                ],
+            ];
+            if (!empty($l['address'])) {
+                $item['item']['address'] = [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => $l['address'],
+                    'addressLocality' => $l['district'] ?? null,
+                    'addressRegion' => $l['city'] ?? null,
+                    'addressCountry' => 'TR',
+                ];
+            }
+            if (!empty($l['rating']) && (float) $l['rating'] > 0) {
+                $item['item']['aggregateRating'] = [
+                    '@type' => 'AggregateRating',
+                    'ratingValue' => round((float) $l['rating'], 1),
+                    'reviewCount' => (int) ($l['user_rating_count'] ?? 1),
+                ];
+            }
+            $json_ld['itemListElement'][] = $item;
+        }
+
+        $distinct_cities = $this->leads_model->get_distinct_cities();
+        $city_list = array_values(array_filter(array_column($distinct_cities, 'city')));
+        $district_list = [];
+        if (!empty($city_display)) {
+            $distinct_districts = $this->leads_model->get_neighborhoods($city_display);
+            $district_list = array_values(array_filter(array_column($distinct_districts, 'neighborhood')));
+        }
+
+        html_vars([
+            'page_title' => $seo_title,
+            'meta_description' => $seo_desc,
+            'canonical_url' => $canonical_url,
+            'json_ld' => $json_ld,
+            'breadcrumb_json_ld' => ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => $breadcrumb_items],
+            'tenants' => [],
+            'leads' => $leads,
+            'cities' => $city_list,
+            'districts' => $district_list,
+            'selected_category' => $category_display,
+            'selected_city' => $city_display,
+            'selected_district' => $district_display,
+            'category_display' => $category_display,
+            'category_slug' => $category_slug,
+            'city_display' => $city_display,
+            'city_slug' => $city_slug,
+            'district_display' => $district_display,
+            'district_slug' => $district_slug,
+            'page' => $page,
+            'total_pages' => max(1, (int) ceil($total / $per_page)),
+            'total' => $total,
+            'per_page' => $per_page,
+        ]);
+
+        $this->load->view('pages/marketplace_index');
+    }
+
+    /**
+     * Handle contact / appointment request from unclaimed lead profile.
+     *
+     * Sends a WhatsApp message to the business via the Baileys Bridge,
+     * notifying them that a customer wants to book.
+     *
+     * POST /isletme/contact
+     */
+    public function contact_request(): void
+    {
+        try {
+            method('post');
+
+            check('lead_id', 'numeric');
+            check('customer_name', 'string');
+            check('customer_phone', 'string');
+
+            $lead_id = (int) request('lead_id');
+            $customer_name = trim((string) request('customer_name'));
+            $customer_phone = trim((string) request('customer_phone'));
+
+            if ($customer_name === '' || $customer_phone === '') {
+                throw new InvalidArgumentException('Lütfen adınızı ve telefon numaranızı girin.');
+            }
+
+            $lead = $this->db->get_where('leads', ['id' => $lead_id])->row_array();
+
+            if (!$lead) {
+                throw new InvalidArgumentException('İşletme bulunamadı.');
+            }
+
+            // Determine WhatsApp target number
+            $wa_number = $lead['whatsapp_number'] ?: $lead['whatsapp'] ?: $lead['phone'] ?: '';
+            $clean_wa = preg_replace('/[^0-9]/', '', $wa_number);
+            if ($clean_wa !== '' && !str_starts_with($clean_wa, '90')) {
+                $clean_wa = '90' . ltrim($clean_wa, '0');
+            }
+
+            // Build claim URL
+            $claim_url = !empty($lead['claim_token'])
+                ? randevuburada_url('sahiplen/' . urlencode($lead['claim_token']))
+                : randevuburada_url();
+
+            // WhatsApp message text (updated per user feedback)
+            $message = "Merhaba, ben BooKi! 💈\n\n"
+                . "Bir müşteriniz RandevuBurada sayfanız üzerinden sizinle iletişime geçmek ve randevu almak istedi.\n\n"
+                . "👤 Müşteri: {$customer_name}\n"
+                . "📞 İletişim: {$customer_phone}\n\n"
+                . "Bu talepten başlayarak, rezervasyon süreçlerinizi otomatik hale getirmek, telefon trafiğinden kurtulmak, "
+                . "3 katmanlı çakışma önleyici sistemimizle birlikte profesyonel portföyünüzü sitemizde sergilemek "
+                . "için profilinizi hemen sahiplenin:\n"
+                . "👉 {$claim_url}";
+
+            $wa_sent = false;
+
+            // Try to send via Baileys Bridge (Platform Admin's bridge)
+            if ($clean_wa !== '') {
+                try {
+                    $this->load->model('messaging_settings_model');
+
+                    // Get platform-level (superadmin) messaging settings
+                    // The bridge URL is stored in the master DB's messaging_settings or via env
+                    $bridge_url = getenv('WHATSAPP_BRIDGE_URL') ?: '';
+                    $bridge_secret = getenv('WHATSAPP_BRIDGE_SECRET') ?: '';
+
+                    if ($bridge_url === '' && $this->db->table_exists('messaging_settings')) {
+                        $ms = $this->db->get_where('messaging_settings', ['name' => 'whatsapp_bridge_url'])->row_array();
+                        if ($ms) {
+                            $bridge_url = $ms['value'] ?? '';
+                        }
+                        $ms2 = $this->db->get_where('messaging_settings', ['name' => 'whatsapp_bridge_secret'])->row_array();
+                        if ($ms2) {
+                            $bridge_secret = $ms2['value'] ?? '';
+                        }
+                    }
+
+                    if ($bridge_url !== '') {
+                        $bridge = new Whatsapp_bridge($bridge_url, $bridge_secret);
+                        $result = $bridge->send('platform', $clean_wa, $message);
+                        $wa_sent = !empty($result['success']);
+                    }
+                } catch (Throwable $e) {
+                    log_message('error', 'Marketplace contact_request WhatsApp send failed: ' . $e->getMessage());
+                }
+            }
+
+            // Log the contact request in lead_activities
+            $this->leads_model->add_activity(
+                $lead_id,
+                'marketplace_contact',
+                'RandevuBurada Randevu Talebi',
+                "Müşteri: {$customer_name} ({$customer_phone})" . ($wa_sent ? ' — WhatsApp gönderildi ✓' : ' — WhatsApp gönderilemedi'),
+                'RandevuBurada'
+            );
+
+            json_response([
+                'success' => true,
+                'message' => 'Talebiniz işletmeye iletildi! En kısa sürede sizinle iletişime geçeceklerdir.',
+                'whatsapp_sent' => $wa_sent,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Start the profile claim (sahiplenme) process for an unclaimed lead.
+     *
+     * GET /sahiplen/{claim_token}
+     */
+    public function claim(string $token = ''): void
+    {
+        method('get');
+
+        $token = trim($token);
+
+        if ($token === '') {
+            abort(404, 'Not Found');
+        }
+
+        $lead = $this->leads_model->get_by_claim_token($token);
+
+        if (!$lead) {
+            abort(404, 'Bu sahiplenme bağlantısı geçersiz veya süresi dolmuş.');
+        }
+
+        if (($lead['membership_status'] ?? 'unclaimed') === 'claimed_member') {
+            // Already claimed — redirect to business profile
+            if (!empty($lead['slug'])) {
+                redirect(randevuburada_url('isletme/' . urlencode($lead['slug'])));
+            } else {
+                redirect(randevuburada_url());
+            }
+            return;
+        }
+
+        // Log the claim visit
+        $this->leads_model->add_activity(
+            (int) $lead['id'],
+            'claim_visit',
+            'Profil Sahiplenme Sayfası Ziyaret Edildi',
+            'İşletme sahibi sahiplenme bağlantısını açtı.',
+            'RandevuBurada'
+        );
+
+        // Redirect to onboarding wizard with claim context
+        // The onboarding flow will handle tenant creation
+        $onboarding_url = randevuburada_url('customer/portal?claim_token=' . urlencode($token) . '&lead_id=' . $lead['id']);
+
+        // For now: show a claim landing page
+        $display_name = $lead['name'] ?? 'İşletme';
+
+        html_vars([
+            'page_title' => $display_name . ' — Profilinizi Sahiplenin | RandevuBurada',
+            'meta_description' => $display_name . ' profilini sahiplenin. BooKi ile randevu yönetimi, müşteri portföyü ve online rezervasyon.',
+            'lead' => $lead,
+            'display_name' => $display_name,
+            'claim_token' => $token,
+            'onboarding_url' => $onboarding_url,
+        ]);
+
+        $this->load->view('pages/marketplace_isletme');
+    }
+
+    /**
+     * Chunked XML sitemap for lead directory pages (pSEO).
+     *
+     * /sitemap-places-{n}.xml — Each chunk contains up to 5000 URLs.
+     */
+    public function sitemap_places(int $chunk = 1): void
+    {
+        $per_chunk = 5000;
+        $offset = ($chunk - 1) * $per_chunk;
+
+        $leads = $this->leads_model->get_all_slugs($per_chunk, $offset);
+
+        if (empty($leads) && $chunk > 1) {
+            abort(404, 'Sitemap chunk not found');
+        }
+
+        header('Content-Type: application/xml; charset=utf-8');
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+
+        foreach ($leads as $l) {
+            if (empty($l['slug'])) {
+                continue;
+            }
+            $loc = randevuburada_url('isletme/' . urlencode($l['slug']));
+            $lastmod = !empty($l['updated_at']) ? date('Y-m-d', strtotime($l['updated_at'])) : date('Y-m-d');
+            $priority = ($l['enrichment_status'] ?? 'raw_lead') === 'enriched_lead' ? '0.8' : '0.6';
+
+            echo '  <url>' . PHP_EOL;
+            echo '    <loc>' . htmlspecialchars($loc) . '</loc>' . PHP_EOL;
+            echo '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
+            echo '    <changefreq>weekly</changefreq>' . PHP_EOL;
+            echo '    <priority>' . $priority . '</priority>' . PHP_EOL;
+            echo '  </url>' . PHP_EOL;
+        }
+
+        echo '</urlset>';
         exit;
     }
 }

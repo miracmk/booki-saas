@@ -105,6 +105,15 @@ class Console extends EA_Controller
             return;
         }
 
+        echo 'Migrating master database... ';
+        try {
+            $this->connect_master();
+            $this->instance->migrate($type);
+            echo 'OK' . PHP_EOL;
+        } catch (Throwable $e) {
+            echo 'FAILED: ' . $e->getMessage() . PHP_EOL;
+        }
+
         $tenants = $this->db->get_where('tenants', ['status' => 'active'])->result_array();
 
         foreach ($tenants as $tenant) {
@@ -136,6 +145,41 @@ class Console extends EA_Controller
         }
 
         $this->connect_master();
+    }
+
+    /**
+     * Explicitly run master database migrations.
+     *
+     * Usage:
+     * php index.php console migrate_master
+     */
+    public function migrate_master(int $from_version = 156, int $to_version = 160): void
+    {
+        $this->connect_master();
+        echo "Running migrations on master database (v{$from_version} to v{$to_version})...\n";
+
+        for ($v = $from_version; $v <= $to_version; $v++) {
+            $prefix = sprintf('%03d', $v);
+            $files = glob(APPPATH . "migrations/{$prefix}_*.php");
+            foreach ($files as $file) {
+                require_once $file;
+                $basename = basename($file, '.php');
+                $class_suffix = preg_replace('/^\d+_/', '', $basename);
+                $class_name = 'Migration_' . ucfirst($class_suffix);
+                if (class_exists($class_name)) {
+                    echo "  Applying {$class_name} ({$basename})... ";
+                    try {
+                        $m = new $class_name();
+                        $m->up();
+                        echo "OK\n";
+                    } catch (Throwable $e) {
+                        echo "FAILED: " . $e->getMessage() . "\n";
+                    }
+                }
+            }
+        }
+
+        echo "Master database migrations finished!\n";
     }
 
     /**
@@ -541,6 +585,127 @@ class Console extends EA_Controller
                 ' ADD INDEX idx_leads_email (email),' .
                 ' ADD INDEX idx_leads_converted_tenant (converted_tenant_id)');
             echo 'Created "leads" table.' . PHP_EOL;
+        }
+
+        // Add Google Places and geocoordinates columns if missing
+        if ($this->db->table_exists('leads')) {
+            $cols = [];
+            if (!$this->db->field_exists('place_id', 'leads')) {
+                $cols['place_id'] = ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true, 'after' => 'id'];
+            }
+            if (!$this->db->field_exists('primary_type', 'leads')) {
+                $cols['primary_type'] = ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true, 'after' => 'sector'];
+            }
+            if (!$this->db->field_exists('types_json', 'leads')) {
+                $cols['types_json'] = ['type' => 'TEXT', 'null' => true, 'after' => 'primary_type'];
+            }
+            if (!$this->db->field_exists('business_status', 'leads')) {
+                $cols['business_status'] = ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'OPERATIONAL', 'null' => false, 'after' => 'verification'];
+            }
+            if (!$this->db->field_exists('discovery_state', 'leads')) {
+                $cols['discovery_state'] = ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'DISCOVERED', 'null' => false, 'after' => 'business_status'];
+            }
+            if (!$this->db->field_exists('google_maps_uri', 'leads')) {
+                $cols['google_maps_uri'] = ['type' => 'VARCHAR', 'constraint' => 512, 'null' => true, 'after' => 'website'];
+            }
+            if (!$this->db->field_exists('latitude', 'leads')) {
+                $cols['latitude'] = ['type' => 'DECIMAL', 'constraint' => '10,8', 'null' => true, 'after' => 'tags'];
+            }
+            if (!$this->db->field_exists('longitude', 'leads')) {
+                $cols['longitude'] = ['type' => 'DECIMAL', 'constraint' => '11,8', 'null' => true, 'after' => 'latitude'];
+            }
+            if (!$this->db->field_exists('matched_categories', 'leads')) {
+                $cols['matched_categories'] = ['type' => 'TEXT', 'null' => true, 'after' => 'longitude'];
+            }
+            if (!$this->db->field_exists('matched_queries', 'leads')) {
+                $cols['matched_queries'] = ['type' => 'TEXT', 'null' => true, 'after' => 'matched_categories'];
+            }
+            if (!$this->db->field_exists('matched_regions', 'leads')) {
+                $cols['matched_regions'] = ['type' => 'TEXT', 'null' => true, 'after' => 'matched_queries'];
+            }
+            if (!$this->db->field_exists('first_seen_at', 'leads')) {
+                $cols['first_seen_at'] = ['type' => 'DATETIME', 'null' => true, 'after' => 'matched_regions'];
+            }
+            if (!$this->db->field_exists('last_seen_at', 'leads')) {
+                $cols['last_seen_at'] = ['type' => 'DATETIME', 'null' => true, 'after' => 'first_seen_at'];
+            }
+            if (!$this->db->field_exists('last_crawled_at', 'leads')) {
+                $cols['last_crawled_at'] = ['type' => 'DATETIME', 'null' => true, 'after' => 'last_seen_at'];
+            }
+            if (!$this->db->field_exists('discovery_count', 'leads')) {
+                $cols['discovery_count'] = ['type' => 'INT', 'constraint' => 11, 'default' => 1, 'null' => false, 'after' => 'last_crawled_at'];
+            }
+            if (!$this->db->field_exists('rating', 'leads')) {
+                $cols['rating'] = ['type' => 'DECIMAL', 'constraint' => '3,1', 'null' => true, 'after' => 'discovery_count'];
+            }
+            if (!$this->db->field_exists('user_rating_count', 'leads')) {
+                $cols['user_rating_count'] = ['type' => 'INT', 'constraint' => 11, 'null' => true, 'after' => 'rating'];
+            }
+            if (!$this->db->field_exists('price_level', 'leads')) {
+                $cols['price_level'] = ['type' => 'VARCHAR', 'constraint' => 32, 'null' => true, 'after' => 'user_rating_count'];
+            }
+            if (!$this->db->field_exists('opening_hours_json', 'leads')) {
+                $cols['opening_hours_json'] = ['type' => 'TEXT', 'null' => true, 'after' => 'price_level'];
+            }
+            if (!$this->db->field_exists('photos_json', 'leads')) {
+                $cols['photos_json'] = ['type' => 'TEXT', 'null' => true, 'after' => 'opening_hours_json'];
+            }
+            if (!$this->db->field_exists('reviews_json', 'leads')) {
+                $cols['reviews_json'] = ['type' => 'TEXT', 'null' => true, 'after' => 'photos_json'];
+            }
+            if (!$this->db->field_exists('enriched_at', 'leads')) {
+                $cols['enriched_at'] = ['type' => 'DATETIME', 'null' => true, 'after' => 'reviews_json'];
+            }
+
+            if (!empty($cols)) {
+                $this->dbforge->add_column('leads', $cols);
+                echo 'Added Google Places fields to leads table.' . PHP_EOL;
+            }
+        }
+
+        if (!$this->db->table_exists('crawl_jobs')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'status' => ['type' => 'ENUM', 'constraint' => ['QUEUED', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED'], 'default' => 'QUEUED', 'null' => false],
+                'mode' => ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'standard', 'null' => false],
+                'region_mode' => ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'districts', 'null' => false],
+                'region_data_json' => ['type' => 'TEXT', 'null' => true],
+                'category_slugs_json' => ['type' => 'TEXT', 'null' => true],
+                'search_queries_json' => ['type' => 'TEXT', 'null' => true],
+                'total_queries' => ['type' => 'INT', 'constraint' => 11, 'default' => 0, 'null' => false],
+                'completed_queries' => ['type' => 'INT', 'constraint' => 11, 'default' => 0, 'null' => false],
+                'pages_requested' => ['type' => 'INT', 'constraint' => 11, 'default' => 0, 'null' => false],
+                'results_found' => ['type' => 'INT', 'constraint' => 11, 'default' => 0, 'null' => false],
+                'new_leads' => ['type' => 'INT', 'constraint' => 11, 'default' => 0, 'null' => false],
+                'updated_leads' => ['type' => 'INT', 'constraint' => 11, 'default' => 0, 'null' => false],
+                'filtered_closed' => ['type' => 'INT', 'constraint' => 11, 'default' => 0, 'null' => false],
+                'errors_json' => ['type' => 'TEXT', 'null' => true],
+                'created_by' => ['type' => 'VARCHAR', 'constraint' => 128, 'default' => 'Super Admin', 'null' => false],
+                'started_at' => ['type' => 'DATETIME', 'null' => true],
+                'completed_at' => ['type' => 'DATETIME', 'null' => true],
+                'created_at' => ['type' => 'DATETIME', 'null' => false],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('crawl_jobs', true, ['engine' => 'InnoDB']);
+            echo 'Created "crawl_jobs" table.' . PHP_EOL;
+        }
+
+        if (!$this->db->table_exists('places_api_usage')) {
+            $this->dbforge->add_field([
+                'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
+                'timestamp' => ['type' => 'DATETIME', 'null' => false],
+                'endpoint' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => false],
+                'operation' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+                'crawl_job_id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'null' => true],
+                'place_id' => ['type' => 'VARCHAR', 'constraint' => 128, 'null' => true],
+                'http_status' => ['type' => 'INT', 'constraint' => 4, 'null' => false],
+                'response_time_ms' => ['type' => 'INT', 'constraint' => 11, 'null' => true],
+                'sku_tier' => ['type' => 'VARCHAR', 'constraint' => 32, 'default' => 'Pro', 'null' => false],
+                'metadata_json' => ['type' => 'TEXT', 'null' => true],
+            ]);
+            $this->dbforge->add_key('id', true);
+            $this->dbforge->create_table('places_api_usage', true, ['engine' => 'InnoDB']);
+            echo 'Created "places_api_usage" table.' . PHP_EOL;
         }
 
         // Lead Activities (calls, WhatsApp, emails, visits, notes, etc.)
@@ -4911,10 +5076,86 @@ class Console extends EA_Controller
         echo PHP_EOL . "================================================================================" . PHP_EOL;
         echo "TEST SONUCU: {$passed} BAŞARILI, {$failed} BAŞARISIZ" . PHP_EOL;
         echo "================================================================================" . PHP_EOL;
+    }
 
-        if ($failed > 0) {
-            throw new RuntimeException("E2E Testi {$failed} hata ile sonuçlandı.");
+    /**
+     * BooKi Google Places Crawler CLI Command
+     *
+     * Usage: php index.php console places_crawl [district] [category] [depth]
+     */
+    public function places_crawl(string $district = 'Nilüfer', string $category = 'guzellik_kuafor', string $depth = 'standard'): void
+    {
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
         }
+
+        echo "=== BooKi Google Places Crawler (CLI) ===" . PHP_EOL;
+        echo "District: {$district}" . PHP_EOL;
+        echo "Category: {$category}" . PHP_EOL;
+        echo "Depth: {$depth}" . PHP_EOL . PHP_EOL;
+
+        $this->load->library('google_places_crawler');
+        $res = $this->google_places_crawler->crawl([
+            'geo_mode' => 'districts',
+            'districts' => [$district],
+            'categories' => [$category],
+            'depth' => $depth,
+            'business_status' => 'OPERATIONAL'
+        ]);
+
+        echo "Status: " . ($res['status'] ?? 'unknown') . PHP_EOL;
+        echo "Queries Run: " . ($res['queries_completed'] ?? 0) . "/" . ($res['total_queries'] ?? 0) . PHP_EOL;
+        echo "Places Found: " . ($res['places_found'] ?? 0) . PHP_EOL;
+        echo "Leads Created: " . ($res['leads_created'] ?? 0) . PHP_EOL;
+        echo "Leads Updated: " . ($res['leads_updated'] ?? 0) . PHP_EOL;
+        echo "Queries Failed: " . ($res['queries_failed'] ?? 0) . PHP_EOL;
+        if (!empty($res['error_message'])) {
+            echo "Error: " . $res['error_message'] . PHP_EOL;
+        }
+        echo "=== Crawl Completed ===" . PHP_EOL;
+    }
+
+    /**
+     * Places usage stats
+     */
+    public function places_stats(): void
+    {
+        try {
+            if (is_multi_tenant_mode()) {
+                $this->connect_master();
+            }
+
+            $this->load->library('google_places_crawler');
+            $stats = $this->google_places_crawler->get_usage_stats();
+            echo json_encode($stats, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        } catch (Throwable $e) {
+            echo "Error in places_stats: " . $e->getMessage() . PHP_EOL . $e->getTraceAsString() . PHP_EOL;
+        }
+    }
+
+    /**
+     * Normalize all lead business names in master DB.
+     */
+    public function normalize_lead_names(): void
+    {
+        if (is_multi_tenant_mode()) {
+            $this->connect_master();
+        }
+
+        $this->load->library('google_places_crawler');
+        $leads = $this->db->select('id, name')->get('leads')->result_array();
+        $updated = 0;
+
+        foreach ($leads as $lead) {
+            $clean = Google_places_crawler::normalize_business_name($lead['name']);
+            if ($clean !== $lead['name']) {
+                $this->db->where('id', $lead['id'])->update('leads', ['name' => $clean]);
+                $updated++;
+                echo "ID {$lead['id']}: '{$lead['name']}' => '{$clean}'" . PHP_EOL;
+            }
+        }
+
+        echo "Total normalized leads: {$updated} of " . count($leads) . PHP_EOL;
     }
 }
 

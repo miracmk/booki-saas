@@ -452,6 +452,9 @@ $config['csrf_exclude_uris'] = [
     'checkin/.*',
     'finance/.*',
     'expenses/.*',
+    // Public Marketplace lead contact request (visitor contact form)
+    'isletme/contact',
+    'marketplace/isletme/contact',
 ];
 
 /*

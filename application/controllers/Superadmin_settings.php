@@ -36,6 +36,9 @@ class Superadmin_settings extends EA_Controller
             'superadmin_username' => session('superadmin_username'),
             'google_client_id' => master_setting('google_client_id') ?? '',
             'google_client_secret_set' => !empty(master_setting('google_client_secret')),
+            'meta_app_id' => master_setting('meta_app_id') ?? '',
+            'meta_app_secret_set' => !empty(master_setting('meta_app_secret')),
+            'meta_webhook_verify_token' => master_setting('meta_webhook_verify_token') ?? 'bookiapp_meta_webhook_secret_2026',
             'platform_smtp_host' => master_setting('platform_smtp_host') ?? '',
             'platform_smtp_port' => master_setting('platform_smtp_port') ?? '',
             'platform_smtp_crypto' => master_setting('platform_smtp_crypto') ?? 'tls',
@@ -111,6 +114,9 @@ class Superadmin_settings extends EA_Controller
 
             check('google_client_id', 'string|null');
             check('google_client_secret', 'string|null');
+            check('meta_app_id', 'string|null');
+            check('meta_app_secret', 'string|null');
+            check('meta_webhook_verify_token', 'string|null');
             check('platform_smtp_host', 'string|null');
             check('platform_smtp_port', 'string|null');
             check('platform_smtp_crypto', 'string|null');
@@ -144,6 +150,19 @@ class Superadmin_settings extends EA_Controller
             $secret = trim((string) request('google_client_secret'));
             if ($secret !== '') {
                 master_setting('google_client_secret', $secret);
+            }
+
+            if (request('meta_app_id') !== null) {
+                master_setting('meta_app_id', trim((string) request('meta_app_id')));
+            }
+
+            $meta_sec = trim((string) request('meta_app_secret'));
+            if ($meta_sec !== '') {
+                master_setting('meta_app_secret', $meta_sec);
+            }
+
+            if (request('meta_webhook_verify_token') !== null) {
+                master_setting('meta_webhook_verify_token', trim((string) request('meta_webhook_verify_token')));
             }
 
             $plaintext_fields = [

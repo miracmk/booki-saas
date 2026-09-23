@@ -8,7 +8,10 @@
       <i class="fas fa-cash-register me-2 text-primary"></i>
       <?= vars('page_title') ?>
     </h4>
-    <div>
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <?php if ((vars('active_gateway') ?? '') === 'iyzico'): ?>
+        <img src="<?= asset_url('assets/img/iyzico/iyzico_ile_ode.svg') ?>" alt="iyzico ile Öde" style="height:42px;width:auto;" loading="lazy">
+      <?php endif; ?>
       <span class="badge bg-light text-dark border py-2 px-3">
         <i class="fas fa-credit-card me-1 text-primary"></i>
         Aktif Sanal POS: <strong class="text-primary"><?= htmlspecialchars(vars('active_gateway_name') ?? 'Tanımsız') ?></strong>

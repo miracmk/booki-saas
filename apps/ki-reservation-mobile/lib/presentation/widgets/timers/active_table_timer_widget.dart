@@ -254,3 +254,4 @@ class _ActiveTableTimerWidgetState extends ConsumerState<ActiveTableTimerWidget>
     );
   }
 }
+

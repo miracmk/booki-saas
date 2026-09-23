@@ -12,6 +12,11 @@ $company_name = setting('company_name', $default_name) ?: $default_name;
 ?>
 
 <footer id="frame-footer" role="contentinfo" class="p-3 text-center border-top">
+    <div class="d-flex flex-wrap align-items-center justify-content-center mb-2" style="display:flex !important;gap:1rem;">
+        <img src="<?= asset_url('assets/img/iyzico/footer_iyzico_ile_ode_color.svg') ?>" alt="iyzico ile Öde" style="height:28px;width:auto;" loading="lazy">
+        <img src="<?= asset_url('assets/img/iyzico/visa.svg') ?>" alt="Visa" style="height:22px;width:auto;" loading="lazy">
+        <img src="<?= asset_url('assets/img/iyzico/mastercard.svg') ?>" alt="Mastercard" style="height:24px;width:auto;" loading="lazy">
+    </div>
     <small class="d-block d-md-flex align-items-center">
         <span class="footer-powered-by small d-block w-100 w-md-50 text-center text-md-start p-1 pe-md-0">
             &copy; <?= date('Y') ?> <?= e($company_name) ?>
@@ -25,6 +30,11 @@ $company_name = setting('company_name', $default_name) ?: $default_name;
                 <span>|</span>
                 <a href="<?= e($imprint_url) ?>" target="_blank"><?= lang('imprint') ?></a>
             <?php endif; ?>
+
+            <span>|</span>
+            <a href="<?= base_url('mesafeli-satis') ?>" target="_blank">Mesafeli Satış Sözleşmesi</a>
+            <span>|</span>
+            <a href="<?= base_url('teslimat-iade') ?>" target="_blank">Teslimat &amp; İade</a>
         </span>
 
         <span class="footer-options d-block w-100 w-md-50 text-center text-md-end">

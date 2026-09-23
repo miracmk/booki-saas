@@ -224,8 +224,179 @@ class Appointments_api_v1 extends EA_Controller
                 unset($appointment['id']);
             }
 
-            if (!array_key_exists('end_datetime', $appointment)) {
-                $appointment['end_datetime'] = $this->appointments_model->calculate_end_datetime($appointment);
+            // 1. Service Resolution:
+            $service_id = (int) ($appointment['id_services'] ?? 0);
+            $service = null;
+            if ($service_id > 0) {
+                $service = $this->db->get_where('services', ['id' => $service_id])->row_array();
+            }
+            if (empty($service)) {
+                $fallback_service = $this->db->select('*')
+                    ->from('services')
+                    ->order_by('id', 'ASC')
+                    ->limit(1)
+                    ->get()
+                    ->row_array();
+                if (!empty($fallback_service['id'])) {
+                    $appointment['id_services'] = (int) $fallback_service['id'];
+                    $service = $fallback_service;
+                }
+            }
+
+            // 2. Provider Resolution:
+            $provider_id = (int) ($appointment['id_users_provider'] ?? 0);
+            $is_valid_provider = false;
+            if ($provider_id > 0) {
+                $is_valid_provider = (bool) $this->db
+                    ->from('users')
+                    ->join('roles', 'roles.id = users.id_roles', 'inner')
+                    ->where('users.id', $provider_id)
+                    ->where('roles.slug', DB_SLUG_PROVIDER)
+                    ->count_all_results();
+            }
+
+            if (!$is_valid_provider) {
+                $assigned_provider = !empty($appointment['id_services'])
+                    ? $this->db->select('id_users')
+                        ->from('services_providers')
+                        ->where('id_services', $appointment['id_services'])
+                        ->limit(1)
+                        ->get()
+                        ->row_array()
+                    : null;
+
+                if (!empty($assigned_provider['id_users'])) {
+                    $appointment['id_users_provider'] = (int) $assigned_provider['id_users'];
+                } else {
+                    $fallback_provider = $this->db->select('users.id')
+                        ->from('users')
+                        ->join('roles', 'roles.id = users.id_roles', 'inner')
+                        ->where('roles.slug', DB_SLUG_PROVIDER)
+                        ->order_by('users.id', 'ASC')
+                        ->limit(1)
+                        ->get()
+                        ->row_array();
+
+                    if (!empty($fallback_provider['id'])) {
+                        $appointment['id_users_provider'] = (int) $fallback_provider['id'];
+                    }
+                }
+            }
+
+            // 3. Customer Resolution:
+            $customer_payload = $appointment['customer'] ?? request('customer');
+            unset($appointment['customer']); // Do not pass to ea_appointments table
+
+            if (!empty($customer_payload) && is_array($customer_payload)) {
+                $first_name = trim($customer_payload['first_name'] ?? '');
+                $last_name = trim($customer_payload['last_name'] ?? '');
+                $phone = trim($customer_payload['phone_number'] ?? '');
+                $email = trim($customer_payload['email'] ?? '');
+
+                $matched_customer_id = null;
+                if (!empty($phone)) {
+                    $existing = $this->db->select('users.id')
+                        ->from('users')
+                        ->join('roles', 'roles.id = users.id_roles', 'inner')
+                        ->where('roles.slug', DB_SLUG_CUSTOMER)
+                        ->where('users.phone_number', $phone)
+                        ->limit(1)
+                        ->get()
+                        ->row_array();
+                    if (!empty($existing['id'])) {
+                        $matched_customer_id = (int) $existing['id'];
+                    }
+                }
+
+                if (!$matched_customer_id) {
+                    $customer_role_row = $this->db->get_where('roles', ['slug' => DB_SLUG_CUSTOMER])->row_array();
+                    $customer_role = (int) ($customer_role_row['id'] ?? 3);
+                    $new_id = $this->customers_model->add([
+                        'first_name' => $first_name ?: 'Müşteri',
+                        'last_name' => $last_name ?: 'Mobil',
+                        'phone_number' => $phone ?: '+905000000000',
+                        'email' => !empty($email) ? $email : ('customer_' . time() . '_' . random_int(100, 999) . '@bookiapp.co'),
+                        'id_roles' => $customer_role,
+                    ]);
+                    $matched_customer_id = $new_id;
+                }
+                $appointment['id_users_customer'] = $matched_customer_id;
+            }
+
+            $customer_id = (int) ($appointment['id_users_customer'] ?? 0);
+            $is_valid_customer = false;
+            if ($customer_id > 0) {
+                $is_valid_customer = (bool) $this->db
+                    ->from('users')
+                    ->join('roles', 'roles.id = users.id_roles', 'inner')
+                    ->where('users.id', $customer_id)
+                    ->where('roles.slug', DB_SLUG_CUSTOMER)
+                    ->count_all_results();
+            }
+
+            if (!$is_valid_customer) {
+                $customer_role_row = $this->db->get_where('roles', ['slug' => DB_SLUG_CUSTOMER])->row_array();
+                $customer_role = (int) ($customer_role_row['id'] ?? 3);
+
+                $notes = (string) ($appointment['notes'] ?? '');
+                $customer_name = null;
+                $customer_phone = null;
+                if (preg_match('/Müşteri:\s*([^|]+)/i', $notes, $m)) {
+                    $customer_name = trim($m[1]);
+                }
+                if (preg_match('/Tel:\s*([^|]+)/i', $notes, $m)) {
+                    $customer_phone = trim($m[1]);
+                }
+
+                if (!empty($customer_name) && !empty($customer_phone)) {
+                    $parts = explode(' ', $customer_name, 2);
+                    $first_name = $parts[0] ?? 'Müşteri';
+                    $last_name = $parts[1] ?? 'Walk-in';
+
+                    $new_id = $this->customers_model->add([
+                        'first_name' => $first_name,
+                        'last_name' => $last_name,
+                        'phone_number' => $customer_phone,
+                        'email' => 'walkin_' . time() . '_' . random_int(100, 999) . '@bookiapp.co',
+                        'id_roles' => $customer_role,
+                    ]);
+                    $appointment['id_users_customer'] = $new_id;
+                } else {
+                    $first_cust = $this->db
+                        ->select('users.id')
+                        ->from('users')
+                        ->join('roles', 'roles.id = users.id_roles', 'inner')
+                        ->where('roles.slug', DB_SLUG_CUSTOMER)
+                        ->order_by('users.id', 'ASC')
+                        ->limit(1)
+                        ->get()
+                        ->row_array();
+
+                    if (!empty($first_cust['id'])) {
+                        $appointment['id_users_customer'] = (int) $first_cust['id'];
+                    } else {
+                        $new_id = $this->customers_model->add([
+                            'first_name' => 'Kapı Müşterisi',
+                            'last_name' => '(Walk-in)',
+                            'phone_number' => '+905000000000',
+                            'email' => 'walkin@bookiapp.co',
+                            'id_roles' => $customer_role,
+                        ]);
+                        $appointment['id_users_customer'] = $new_id;
+                    }
+                }
+            }
+
+            // 4. DateTime & End Duration calculation:
+            if (empty($appointment['start_datetime'])) {
+                $appointment['start_datetime'] = date('Y-m-d H:i:s');
+            }
+
+            if (empty($appointment['end_datetime'])) {
+                $duration = !empty($service['duration']) ? (int) $service['duration'] : 30;
+                $appointment['end_datetime'] = (new DateTime($appointment['start_datetime']))
+                    ->add(new DateInterval('PT' . $duration . 'M'))
+                    ->format('Y-m-d H:i:s');
             }
 
             $appointment_id = $this->appointments_model->save($appointment);

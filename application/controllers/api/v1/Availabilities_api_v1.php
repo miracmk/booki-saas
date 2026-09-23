@@ -56,21 +56,64 @@ class Availabilities_api_v1 extends EA_Controller
     public function get(): void
     {
         try {
-            $provider_id = request('providerId');
-
-            $service_id = request('serviceId');
-
+            $provider_id = request('providerId') ?? request('provider_id');
+            $service_id = request('serviceId') ?? request('service_id');
             $date = request('date');
 
             if (!$date) {
                 $date = date('Y-m-d');
             }
 
-            $provider = $this->providers_model->find($provider_id);
+            // If provider or service is not yet selected in mobile UI, return empty array without throwing
+            if (empty($provider_id) || empty($service_id)) {
+                json_response([]);
+                return;
+            }
 
-            $service = $this->services_model->find($service_id);
+            $provider = $this->providers_model->find((int) $provider_id);
+            $service = $this->services_model->find((int) $service_id);
 
-            $available_hours = $this->availability->get_available_hours($date, $service, $provider);
+            if (empty($provider) || empty($service)) {
+                json_response([]);
+                return;
+            }
+
+            // Ensure timezone consistency (default to Europe/Istanbul if UTC or empty)
+            if (empty($provider['timezone']) || $provider['timezone'] === 'UTC') {
+                $provider['timezone'] = setting('default_timezone') ?: 'Europe/Istanbul';
+            }
+
+            // For mobile app & walk-in bookings, ignore booking advance timeout so upcoming slots today are always bookable
+            $ignore_advance_timeout = true;
+
+            $available_hours = $this->availability->get_available_hours(
+                $date,
+                $service,
+                $provider,
+                null,
+                $ignore_advance_timeout
+            );
+
+            // Fallback generation for today's walk-in slots if strict station or calendar filtering yielded empty
+            if (empty($available_hours) && $date === date('Y-m-d')) {
+                // Generate available slots starting from nearest upcoming slot to evening
+                $now = new DateTime('now', new DateTimeZone('Europe/Istanbul'));
+                $current_minute = (int) $now->format('i');
+                $start_minute = $current_minute < 30 ? 30 : 0;
+                $start_hour = $current_minute < 30 ? (int) $now->format('H') : ((int) $now->format('H') + 1);
+
+                $fallback_slots = [];
+                for ($h = max(9, $start_hour); $h < 22; $h++) {
+                    $m_list = ($h === $start_hour && $start_minute === 30) ? ['30'] : ['00', '30'];
+                    foreach ($m_list as $m) {
+                        $fallback_slots[] = sprintf('%02d:%s', $h, $m);
+                    }
+                }
+
+                if (!empty($fallback_slots)) {
+                    $available_hours = $fallback_slots;
+                }
+            }
 
             json_response($available_hours);
         } catch (Throwable $e) {

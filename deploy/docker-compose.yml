@@ -22,6 +22,8 @@ services:
       # Marketplace (tüketici keşif sitesi) bu domain'de - EA_Controller::resolve_tenant() bu host'ta
       # da master DB'de kalır, sadece "Marketplace" controller'ına izin verir.
       MARKETPLACE_DOMAIN: booki.kibusiness.co
+      RANDEVUBURADA_DOMAIN: randevuburada.kibusiness.co
+      GOOGLE_PLACES_API_KEY: "${GOOGLE_PLACES_API_KEY:-AIzaSyAscIARfxTG_KzedaskCabzuRSTj-0bulA}"
       LANGUAGE: turkish
       DEBUG_MODE: "FALSE"
       # 'default' connection group = the MASTER DB (holds only the `tenants` catalog). Each request is

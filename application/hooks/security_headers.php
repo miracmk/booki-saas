@@ -50,21 +50,13 @@ function add_security_headers(): void
     // email_template_settings.js) and the booking-confirmation preview iframe.
     header(
         "Content-Security-Policy: default-src 'self'; " .
-            "script-src 'self' 'unsafe-inline'; " .
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " .
-            "img-src 'self' data:; " .
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://my.zadarma.com https://api.zadarma.com https://maps.googleapis.com https://*.googleapis.com; " .
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://my.zadarma.com; " .
+            "img-src 'self' data: blob: https://my.zadarma.com https://maps.gstatic.com https://*.googleapis.com https://*.ggpht.com https://*.googleusercontent.com https://*.google.com https://*.gstatic.com; " .
             "font-src 'self' data: https://fonts.gstatic.com; " .
-            // NOTE (2026-09-21, superadmin voice-call fix): `connect-src 'self'`
-            // alone breaks future direct-browser AI/SIP media (ElevenLabs, Gemini,
-            // Zadarma) and `media-src` absence blocks blob: playback of TTS /
-            // recorded audio. getUserMedia() itself needs no CSP, but once the mic
-            // IS granted the call modal needs these. Keep 'self' first, allow-list
-            // only the voice-AI/SIP origins actually used.
-            "connect-src 'self' https://api.elevenlabs.io https://*.elevenlabs.io " .
-            "https://generativelanguage.googleapis.com https://*.googleapis.com " .
-            "https://api.zadarma.com https://*.zadarma.com wss: ws: blob:; " .
-            "media-src 'self' blob: data:; " .
-            "frame-src 'self'; " .
+            "connect-src 'self' https://api.elevenlabs.io https://*.elevenlabs.io https://generativelanguage.googleapis.com https://*.googleapis.com https://api.zadarma.com https://*.zadarma.com https://maps.googleapis.com wss: ws: blob:; " .
+            "media-src 'self' blob: data: https://my.zadarma.com; " .
+            "frame-src 'self' https://www.google.com; " .
             "frame-ancestors 'self'; " .
             "form-action 'self'; " .
             "base-uri 'self'; " .

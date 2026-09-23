@@ -879,12 +879,22 @@ class Appointments_model extends EA_Model
             $decoded_resource['book_datetime'] = $appointment['book'];
         }
 
+        // Start datetime (support both start, start_datetime, startDateTime)
         if (array_key_exists('start', $appointment)) {
             $decoded_resource['start_datetime'] = $appointment['start'];
+        } elseif (array_key_exists('start_datetime', $appointment)) {
+            $decoded_resource['start_datetime'] = $appointment['start_datetime'];
+        } elseif (array_key_exists('startDateTime', $appointment)) {
+            $decoded_resource['start_datetime'] = $appointment['startDateTime'];
         }
 
+        // End datetime (support end, end_datetime, endDateTime)
         if (array_key_exists('end', $appointment)) {
             $decoded_resource['end_datetime'] = $appointment['end'];
+        } elseif (array_key_exists('end_datetime', $appointment)) {
+            $decoded_resource['end_datetime'] = $appointment['end_datetime'];
+        } elseif (array_key_exists('endDateTime', $appointment)) {
+            $decoded_resource['end_datetime'] = $appointment['endDateTime'];
         }
 
         if (array_key_exists('hash', $appointment)) {
@@ -907,16 +917,40 @@ class Appointments_model extends EA_Model
             $decoded_resource['notes'] = $appointment['notes'];
         }
 
+        // Customer ID (support customerId, id_users_customer, customer_id)
         if (array_key_exists('customerId', $appointment)) {
             $decoded_resource['id_users_customer'] = $appointment['customerId'];
+        } elseif (array_key_exists('id_users_customer', $appointment)) {
+            $decoded_resource['id_users_customer'] = $appointment['id_users_customer'];
+        } elseif (array_key_exists('customer_id', $appointment)) {
+            $decoded_resource['id_users_customer'] = $appointment['customer_id'];
         }
 
+        // Provider ID (support providerId, id_users_provider, provider_id)
         if (array_key_exists('providerId', $appointment)) {
             $decoded_resource['id_users_provider'] = $appointment['providerId'];
+        } elseif (array_key_exists('id_users_provider', $appointment)) {
+            $decoded_resource['id_users_provider'] = $appointment['id_users_provider'];
+        } elseif (array_key_exists('provider_id', $appointment)) {
+            $decoded_resource['id_users_provider'] = $appointment['provider_id'];
         }
 
+        // Service ID (support serviceId, id_services, service_id)
         if (array_key_exists('serviceId', $appointment)) {
             $decoded_resource['id_services'] = $appointment['serviceId'];
+        } elseif (array_key_exists('id_services', $appointment)) {
+            $decoded_resource['id_services'] = $appointment['id_services'];
+        } elseif (array_key_exists('service_id', $appointment)) {
+            $decoded_resource['id_services'] = $appointment['service_id'];
+        }
+
+        // Station ID (support stationId, id_stations, station_id)
+        if (array_key_exists('stationId', $appointment)) {
+            $decoded_resource['id_stations'] = $appointment['stationId'];
+        } elseif (array_key_exists('id_stations', $appointment)) {
+            $decoded_resource['id_stations'] = $appointment['id_stations'];
+        } elseif (array_key_exists('station_id', $appointment)) {
+            $decoded_resource['id_stations'] = $appointment['station_id'];
         }
 
         if (array_key_exists('googleCalendarId', $appointment)) {
@@ -929,6 +963,10 @@ class Appointments_model extends EA_Model
 
         if (array_key_exists('meetingLink', $appointment)) {
             $decoded_resource['meeting_link'] = $appointment['meetingLink'];
+        }
+
+        if (array_key_exists('customer', $appointment)) {
+            $decoded_resource['customer'] = $appointment['customer'];
         }
 
         $decoded_resource['is_unavailability'] = false;

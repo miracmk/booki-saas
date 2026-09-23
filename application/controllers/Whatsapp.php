@@ -159,23 +159,47 @@ class Whatsapp extends EA_Controller
     private function webhook_verify(): void
     {
         try {
-            $mode = request('hub_mode');
-            $token = request('hub_verify_token');
-            $challenge = request('hub_challenge');
+            $mode = request('hub_mode') ?? (request('hub.mode') ?? ($_GET['hub_mode'] ?? ($_GET['hub.mode'] ?? null)));
+            $token = request('hub_verify_token') ?? (request('hub.verify_token') ?? ($_GET['hub_verify_token'] ?? ($_GET['hub.verify_token'] ?? null)));
+            $challenge = request('hub_challenge') ?? (request('hub.challenge') ?? ($_GET['hub_challenge'] ?? ($_GET['hub.challenge'] ?? null)));
+
+            if (empty($mode) || empty($challenge)) {
+                parse_str($_SERVER['QUERY_STRING'] ?? '', $qs);
+                $mode = $mode ?: ($qs['hub_mode'] ?? ($qs['hub.mode'] ?? null));
+                $token = $token ?: ($qs['hub_verify_token'] ?? ($qs['hub.verify_token'] ?? null));
+                $challenge = $challenge ?: ($qs['hub_challenge'] ?? ($qs['hub.challenge'] ?? null));
+            }
 
             if (!$mode || !$token || !$challenge) {
                 abort(403, 'Forbidden');
             }
 
-            $settings = $this->messaging_settings_model->get_settings();
+            // Platform master token for central SaaS integration
+            $master_token = master_setting('meta_webhook_verify_token')
+                ?: (getenv('META_WEBHOOK_VERIFY_TOKEN') ?: 'bookiapp_meta_webhook_secret_2026');
 
-            $expected_token = $settings['whatsapp_webhook_verify_token'];
-
-            if (empty($expected_token) || !hash_equals($expected_token, $token)) {
-                abort(403, 'Forbidden');
+            if ($mode === 'subscribe' && hash_equals($master_token, (string) $token)) {
+                $this->output
+                    ->set_status_header(200)
+                    ->set_content_type('text/plain', 'UTF-8')
+                    ->set_output((string) $challenge);
+                return;
             }
 
-            echo $challenge;
+            // Check tenant-specific settings if table exists in current DB
+            if ($this->db->table_exists('messaging_settings')) {
+                $settings = $this->messaging_settings_model->get_settings();
+                $expected_token = $settings['whatsapp_webhook_verify_token'] ?? null;
+                if (!empty($expected_token) && hash_equals($expected_token, (string) $token)) {
+                    $this->output
+                        ->set_status_header(200)
+                        ->set_content_type('text/plain', 'UTF-8')
+                        ->set_output((string) $challenge);
+                    return;
+                }
+            }
+
+            abort(403, 'Forbidden');
         } catch (Throwable $e) {
             log_message('error', 'Whatsapp::webhook_verify - ' . $e->getMessage());
 

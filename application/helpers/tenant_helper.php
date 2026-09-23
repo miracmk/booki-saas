@@ -351,3 +351,55 @@ if (!function_exists('booki_site_url')) {
         return 'https://' . $domain . ($path !== '' ? '/' . $path : '');
     }
 }
+
+if (!function_exists('tr_slug')) {
+    /**
+     * Simple Turkish-safe slug generator.
+     */
+    function tr_slug(string $text): string
+    {
+        $tr_map = [
+            'ş' => 's', 'Ş' => 's', 'ç' => 'c', 'Ç' => 'c',
+            'ğ' => 'g', 'Ğ' => 'g', 'ü' => 'u', 'Ü' => 'u',
+            'ö' => 'o', 'Ö' => 'o', 'ı' => 'i', 'İ' => 'i',
+            'â' => 'a', 'Â' => 'a', 'î' => 'i', 'Î' => 'i',
+            'û' => 'u', 'Û' => 'u',
+        ];
+        $slug = strtr($text, $tr_map);
+        $slug = mb_strtolower($slug, 'UTF-8');
+        $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', $slug);
+        return trim($slug, '-');
+    }
+}
+
+if (!function_exists('generate_lead_slug')) {
+    /**
+     * Generate an SEO-friendly slug from business name, district, and city.
+     * Turkish characters are transliterated and uniqueness is ensured via DB check.
+     */
+    function generate_lead_slug(string $name, string $district = '', string $city = ''): string
+    {
+        $parts = array_filter([$name, $district, $city], fn($p) => trim($p) !== '');
+        $raw = implode(' ', $parts);
+
+        $slug = tr_slug($raw);
+
+        if ($slug === '') {
+            $slug = 'isletme-' . bin2hex(random_bytes(4));
+        }
+
+        $CI =& get_instance();
+        if (isset($CI->db) && $CI->db->table_exists('leads')) {
+            $base_slug = $slug;
+            $counter = 1;
+            while ($CI->db->where('slug', $slug)->count_all_results('leads') > 0) {
+                $counter++;
+                $slug = $base_slug . '-' . $counter;
+            }
+        }
+
+        return $slug;
+    }
+}
+

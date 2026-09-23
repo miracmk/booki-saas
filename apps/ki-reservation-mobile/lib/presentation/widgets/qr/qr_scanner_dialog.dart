@@ -369,3 +369,4 @@ class _QrScannerDialogState extends ConsumerState<QrScannerDialog> {
     );
   }
 }
+

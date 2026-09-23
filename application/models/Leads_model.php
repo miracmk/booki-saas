@@ -55,9 +55,10 @@ class Leads_model extends CI_Model
         return [
             'success' => true,
             'leads' => $leads,
-            'total' => $total,
-            'limit' => $limit,
-            'offset' => $offset,
+            'total' => (int) $total,
+            'limit' => (int) $limit,
+            'offset' => (int) $offset,
+            'page' => (int) floor($offset / max(1, $limit)) + 1,
             'total_pages' => max(1, (int) ceil($total / max(1, $limit))),
             'current_page' => (int) floor($offset / max(1, $limit)) + 1,
         ];
@@ -895,6 +896,14 @@ class Leads_model extends CI_Model
     }
 
     /**
+     * Public wrapper for apply_lead_filters — used by controller for map queries.
+     */
+    public function apply_lead_filters_public(array $filters): void
+    {
+        $this->apply_lead_filters($filters);
+    }
+
+    /**
      * Apply query filters on leads query builder.
      */
     private function apply_lead_filters(array $filters): void
@@ -943,5 +952,215 @@ class Leads_model extends CI_Model
         if (!empty($filters['package']) && $filters['package'] !== 'ALL') {
             $this->db->where('package', $filters['package']);
         }
+
+        if (!empty($filters['is_places'])) {
+            $this->db->where('place_id IS NOT NULL', null, false);
+        }
+
+        if (!empty($filters['enrich_filter'])) {
+            if ($filters['enrich_filter'] === 'enriched') {
+                $this->db->where('enriched_at IS NOT NULL', null, false);
+            } elseif ($filters['enrich_filter'] === 'not_enriched') {
+                $this->db->where('enriched_at IS NULL', null, false);
+            }
+        }
+
+        if (!empty($filters['business_status']) && $filters['business_status'] !== 'ALL') {
+            $this->db->where('business_status', $filters['business_status']);
+        }
+    }
+
+    /**
+     * Get a single lead by its SEO slug.
+     */
+    public function get_by_slug(string $slug): ?array
+    {
+        $lead = $this->db->get_where('leads', ['slug' => $slug])->row_array();
+        return $lead ? $this->format_lead_metadata($lead) : null;
+    }
+
+    /**
+     * Get leads for marketplace storefront (homepage).
+     * Only enriched or claimed leads are shown on the homepage for quality.
+     */
+    public function get_for_storefront(int $limit = 12, int $offset = 0, array $filters = []): array
+    {
+        $this->db->group_start();
+        $this->db->where('enrichment_status', 'enriched_lead');
+        $this->db->or_where('membership_status', 'claimed_member');
+        $this->db->group_end();
+        $this->db->where('business_status', 'OPERATIONAL');
+
+        $this->apply_marketplace_filters($filters);
+        $total = $this->db->count_all_results('leads');
+
+        $this->db->group_start();
+        $this->db->where('enrichment_status', 'enriched_lead');
+        $this->db->or_where('membership_status', 'claimed_member');
+        $this->db->group_end();
+        $this->db->where('business_status', 'OPERATIONAL');
+        $this->apply_marketplace_filters($filters);
+
+        $this->db->order_by('rating', 'desc');
+        $this->db->order_by('user_rating_count', 'desc');
+        $leads = $this->db->limit($limit, $offset)->get('leads')->result_array();
+
+        foreach ($leads as &$l) {
+            $l = $this->format_lead_metadata($l);
+        }
+        unset($l);
+
+        return ['leads' => $leads, 'total' => (int) $total];
+    }
+
+    /**
+     * Get leads for pSEO category/city/district pages.
+     * Shows all operational leads (prioritizing enriched) to ensure full pSEO coverage.
+     */
+    public function get_for_directory(int $limit = 24, int $offset = 0, array $filters = []): array
+    {
+        $this->db->where('business_status', 'OPERATIONAL');
+        $this->apply_marketplace_filters($filters);
+        $total = $this->db->count_all_results('leads');
+
+        $this->db->where('business_status', 'OPERATIONAL');
+        $this->apply_marketplace_filters($filters);
+
+        $this->db->order_by("FIELD(enrichment_status, 'enriched_lead', 'raw_lead')", '', false);
+        $this->db->order_by('rating', 'desc');
+        $leads = $this->db->limit($limit, $offset)->get('leads')->result_array();
+
+        foreach ($leads as &$l) {
+            $l = $this->format_lead_metadata($l);
+        }
+        unset($l);
+
+        return ['leads' => $leads, 'total' => (int) $total];
+    }
+
+    /**
+     * Get all slugs for sitemap generation.
+     */
+    public function get_all_slugs(int $limit = 5000, int $offset = 0): array
+    {
+        return $this->db
+            ->select('slug, name, city, district, sector, enrichment_status, updated_at')
+            ->where('slug IS NOT NULL', null, false)
+            ->where('slug !=', '')
+            ->where('business_status', 'OPERATIONAL')
+            ->where('name NOT LIKE', '%Test%')
+            ->where('name NOT LIKE', '%Demo%')
+            ->order_by('id', 'asc')
+            ->limit($limit, $offset)
+            ->get('leads')
+            ->result_array();
+    }
+
+    /**
+     * Count all leads with slugs for sitemap pagination.
+     */
+    public function count_slugs(): int
+    {
+        return (int) $this->db
+            ->where('slug IS NOT NULL', null, false)
+            ->where('slug !=', '')
+            ->where('business_status', 'OPERATIONAL')
+            ->where('name NOT LIKE', '%Test%')
+            ->where('name NOT LIKE', '%Demo%')
+            ->count_all_results('leads');
+    }
+
+    /**
+     * Get distinct cities for marketplace filters.
+     */
+    public function get_distinct_cities(): array
+    {
+        return $this->db
+            ->select('city, COUNT(*) as count', false)
+            ->where('city IS NOT NULL', null, false)
+            ->where('city !=', '')
+            ->where('business_status', 'OPERATIONAL')
+            ->where('name NOT LIKE', '%Test%')
+            ->where('name NOT LIKE', '%Demo%')
+            ->group_by('city')
+            ->order_by('count', 'desc')
+            ->get('leads')
+            ->result_array();
+    }
+
+    /**
+     * Get distinct neighborhoods for a city + district.
+     */
+    public function get_neighborhoods(string $city = '', string $district = ''): array
+    {
+        $this->db->select('neighborhood, COUNT(*) as count', false)
+            ->where('neighborhood IS NOT NULL', null, false)
+            ->where('neighborhood !=', '')
+            ->where('business_status', 'OPERATIONAL')
+            ->where('name NOT LIKE', '%Test%')
+            ->where('name NOT LIKE', '%Demo%');
+
+        if ($city !== '') {
+            $this->db->where('city', $city);
+        }
+        if ($district !== '') {
+            $this->db->where('district', $district);
+        }
+
+        return $this->db
+            ->group_by('neighborhood')
+            ->order_by('count', 'desc')
+            ->get('leads')
+            ->result_array();
+    }
+
+    /**
+     * Get lead by claim token.
+     */
+    public function get_by_claim_token(string $token): ?array
+    {
+        $lead = $this->db->get_where('leads', ['claim_token' => $token])->row_array();
+        return $lead ? $this->format_lead_metadata($lead) : null;
+    }
+
+    /**
+     * Apply marketplace-specific search filters.
+     */
+    public function apply_marketplace_filters(array $filters): void
+    {
+        // Exclude dummy test/demo leads from marketplace
+        $this->db->where('name NOT LIKE', '%Test%');
+        $this->db->where('name NOT LIKE', '%Demo%');
+        if (!empty($filters['q'])) {
+            $q = trim($filters['q']);
+            $this->db->group_start()
+                ->like('name', $q)
+                ->or_like('sector', $q)
+                ->or_like('district', $q)
+                ->or_like('city', $q)
+                ->or_like('neighborhood', $q)
+                ->or_like('address', $q)
+                ->group_end();
+        }
+        if (!empty($filters['sector'])) {
+            $this->db->like('sector', $filters['sector']);
+        }
+        if (!empty($filters['city'])) {
+            $this->db->where('city', $filters['city']);
+        }
+        if (!empty($filters['district'])) {
+            $this->db->where('district', $filters['district']);
+        }
+        if (!empty($filters['neighborhood'])) {
+            $this->db->where('neighborhood', $filters['neighborhood']);
+        }
+        if (!empty($filters['category'])) {
+            $this->db->group_start()
+                ->like('sector', $filters['category'])
+                ->or_like('primary_type', $filters['category'])
+                ->or_like('matched_categories', $filters['category'])
+                ->group_end();
+        }
     }
 }
+

@@ -126,6 +126,33 @@
             </form>
         </div>
 
+        <!-- META PLATFORM ENTEGRASYONU (WHATSAPP, INSTAGRAM, ADS, FACEBOOK) -->
+        <div class="card" style="border-top: 4px solid #1877f2;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="font-size:1.05rem;margin-top:0;color:#1877f2;">Meta Platform Entegrasyonu (WhatsApp, Instagram, Ads, Facebook)</h2>
+                <span class="badge" style="background:#e7f3ff;color:#1877f2;">Merkezi SaaS</span>
+            </div>
+            <p class="hint">
+                Tüm kiracıların (tenant'ların) WhatsApp, Instagram, Lead Ads ve Meta Business hesaplarını tek bir Meta App üzerinden bağlaması için ortak platform kimlikleri.
+            </p>
+            <form id="meta-settings-form">
+                <label>Meta App ID</label>
+                <input type="text" id="meta_app_id" placeholder="123456789012345" value="<?= e(vars('meta_app_id')) ?>">
+                <label>
+                    Meta App Secret
+                    <?= vars('meta_app_secret_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓ - değiştirmek için doldurun)</span>' : '<span class="hint">(developers.facebook.com App Secret)</span>' ?>
+                </label>
+                <input type="password" id="meta_app_secret" placeholder="<?= vars('meta_app_secret_set') ? '••••••••' : '' ?>">
+                <label>
+                    Meta Webhook Verify Token (Ortak Doğrulama Anahtarı)
+                </label>
+                <input type="text" id="meta_webhook_verify_token" value="<?= e(vars('meta_webhook_verify_token')) ?>" placeholder="bookiapp_meta_webhook_secret_2026">
+                <span class="hint" style="display:block;margin-top:4px;">Meta Developer Webhook paneline yapıştıracağınız Verify Token. Varsayılan: <code>bookiapp_meta_webhook_secret_2026</code></span>
+                <div class="msg" id="meta-settings-msg"></div>
+                <button type="submit" style="background:#1877f2;">Meta Ayarlarını Kaydet</button>
+            </form>
+        </div>
+
         <div class="card">
             <h2 style="font-size:1.05rem;margin-top:0;">Platform SMTP / IMAP</h2>
             <p class="hint">
@@ -323,6 +350,34 @@
                     msg.textContent = data.success ? 'Kaydedildi.' : (data.message || 'Hata oluştu.');
                     if (data.success) {
                         window.location.reload();
+                    }
+                });
+        });
+
+        // Meta Platform Settings Form
+        document.getElementById('meta-settings-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const msg = document.getElementById('meta-settings-msg');
+
+            const params = new URLSearchParams({
+                csrf_token: '<?= e(vars('csrf_token')) ?>',
+                meta_app_id: document.getElementById('meta_app_id').value,
+                meta_app_secret: document.getElementById('meta_app_secret').value,
+                meta_webhook_verify_token: document.getElementById('meta_webhook_verify_token').value,
+            });
+
+            fetch('<?= site_url('superadmin_settings/save') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params.toString(),
+            })
+                .then((r) => r.json())
+                .then((data) => {
+                    msg.style.display = 'block';
+                    msg.className = 'msg ' + (data.success ? 'ok' : 'err');
+                    msg.textContent = data.success ? 'Meta ayarları başarıyla kaydedildi.' : (data.message || 'Hata oluştu.');
+                    if (data.success) {
+                        setTimeout(() => window.location.reload(), 800);
                     }
                 });
         });

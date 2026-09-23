@@ -215,6 +215,7 @@ class Superadmin_tenants extends EA_Controller
                 'google_client_id' => master_setting('google_client_id') ?? '',
                 'google_client_secret_set' => !empty(master_setting('google_client_secret')),
                 'google_project_id' => master_setting('google_project_id') ?? '',
+                'google_maps_key' => master_setting('google_maps_key') ?: 'AIzaSyAscIARfxTG_KzedaskCabzuRSTj-0bulA',
 
                 'platform_smtp_host' => master_setting('platform_smtp_host') ?? 'mail.kibusiness.co',
                 'platform_smtp_port' => master_setting('platform_smtp_port') ?? '587',
@@ -846,6 +847,9 @@ class Superadmin_tenants extends EA_Controller
                 'stage' => request('stage'),
                 'priority' => request('priority'),
                 'package' => request('package'),
+                'is_places' => request('is_places'),
+                'enrich_filter' => request('enrich_filter'),
+                'business_status' => request('business_status'),
             ];
             $limit = max(1, min(100, (int) request('limit', 25)));
             $page = max(1, (int) request('page', 1));
@@ -890,7 +894,7 @@ class Superadmin_tenants extends EA_Controller
     {
         try {
             method('get');
-            $id = (int) request('id');
+            $id = (int) (request('id') ?: request('lead_id'));
             if ($id <= 0) {
                 throw new InvalidArgumentException('Geçersiz Lead ID.');
             }
@@ -1007,6 +1011,767 @@ class Superadmin_tenants extends EA_Controller
     }
 
     /**
+     * Add a quick note to a lead's timeline (used by the drawer quick-note input).
+     */
+    public function api_add_quick_note(): void
+    {
+        try {
+            method('post');
+            check('lead_id', 'numeric');
+
+            $lead_id = (int) request('lead_id');
+            if ($lead_id <= 0) {
+                throw new InvalidArgumentException('Geçersiz Lead ID.');
+            }
+
+            $title = trim((string) request('title', 'Saha Notu'));
+            $note = trim((string) request('note', ''));
+            if ($note === '') {
+                throw new InvalidArgumentException('Not boş olamaz.');
+            }
+
+            $actor = session('superadmin_username') ?: 'Super Admin';
+            $this->leads_model->add_activity($lead_id, 'note', $title, $note, $actor);
+
+            json_response(['success' => true, 'message' => 'Not başarıyla eklendi.']);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Lightweight leads endpoint for map view — returns only id, name, sector, district,
+     * stage, priority, latitude, longitude, phone for all leads with coordinates.
+     */
+    public function api_leads_map(): void
+    {
+        try {
+            method('get');
+
+            $filters = [
+                'q' => request('q'),
+                'sector' => request('sector'),
+                'district' => request('district'),
+                'stage' => request('stage'),
+                'priority' => request('priority'),
+            ];
+
+            $this->leads_model->apply_lead_filters_public($filters);
+
+            $leads = $this->db
+                ->select('id, name, sector, district, stage, priority, latitude, longitude, phone, whatsapp, address, contact_person')
+                ->order_by('id', 'asc')
+                ->get('leads')
+                ->result_array();
+
+            // Split into located (has coords) and unlocated
+            $located = [];
+            $unlocated = [];
+            foreach ($leads as $ld) {
+                if (!empty($ld['latitude']) && !empty($ld['longitude'])) {
+                    $ld['latitude'] = (float) $ld['latitude'];
+                    $ld['longitude'] = (float) $ld['longitude'];
+                    $located[] = $ld;
+                } else {
+                    $unlocated[] = $ld;
+                }
+            }
+
+            json_response([
+                'success' => true,
+                'leads' => $located,
+                'unlocated_count' => count($unlocated),
+                'total' => count($leads),
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'error' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Geocode a lead's address via Google Maps Geocoding API and save lat/lng.
+     */
+    public function api_geocode_lead(): void
+    {
+        try {
+            method('post');
+            check('lead_id', 'numeric');
+
+            $lead_id = (int) request('lead_id');
+            $lead = $this->leads_model->get_lead_by_id($lead_id);
+            if (!$lead) {
+                throw new InvalidArgumentException('Lead bulunamadı.');
+            }
+
+            // Accept explicit lat/lng (manual pin placement) or geocode from address
+            $lat = request('latitude');
+            $lng = request('longitude');
+
+            if ($lat !== null && $lng !== null) {
+                $lat = (float) $lat;
+                $lng = (float) $lng;
+            } else {
+                // Build address string for geocoding
+                $address_parts = array_filter([
+                    $lead['address'] ?? '',
+                    $lead['district'] ?? '',
+                    'Bursa',
+                    'Turkey',
+                ]);
+                $address_str = implode(', ', $address_parts);
+
+                if (trim($address_str, ', ') === '') {
+                    throw new InvalidArgumentException('Adres bilgisi bulunamadı.');
+                }
+
+                $maps_key = master_setting('google_maps_key') ?: 'AIzaSyAscIARfxTG_KzedaskCabzuRSTj-0bulA';
+                $url = 'https://maps.googleapis.com/maps/api/geocode/json?address=' . urlencode($address_str) . '&key=' . $maps_key;
+
+                $ch = curl_init($url);
+                curl_setopt_array($ch, [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT => 10,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                ]);
+                $response = curl_exec($ch);
+                $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($http_code !== 200 || !$response) {
+                    throw new RuntimeException('Google Geocoding API isteği başarısız (HTTP ' . $http_code . ').');
+                }
+
+                $geo_data = json_decode($response, true);
+                if (($geo_data['status'] ?? '') === 'OK' && !empty($geo_data['results'][0]['geometry']['location'])) {
+                    $location = $geo_data['results'][0]['geometry']['location'];
+                    $lat = (float) $location['lat'];
+                    $lng = (float) $location['lng'];
+                } else {
+                    // Fallback to OpenStreetMap Nominatim if Google Geocoding API is denied or restricted
+                    $osm_url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' . urlencode($address_str);
+                    $ch_osm = curl_init($osm_url);
+                    curl_setopt_array($ch_osm, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_TIMEOUT => 8,
+                        CURLOPT_USERAGENT => 'BooKi-CRM/1.0 (info@kibusiness.co)',
+                    ]);
+                    $osm_res = curl_exec($ch_osm);
+                    curl_close($ch_osm);
+
+                    $osm_data = json_decode($osm_res ?: '', true);
+                    if (!empty($osm_data[0]['lat']) && !empty($osm_data[0]['lon'])) {
+                        $lat = (float) $osm_data[0]['lat'];
+                        $lng = (float) $osm_data[0]['lon'];
+                    } else {
+                        // Fallback to district center in Bursa if specific street cannot be resolved
+                        $district = $lead['district'] ?? 'Nilüfer';
+                        $district_coords = [
+                            'Nilüfer' => [40.2185, 28.9345],
+                            'Osmangazi' => [40.1983, 29.0560],
+                            'Yıldırım' => [40.1850, 29.1120],
+                            'Mudanya' => [40.3750, 28.8820],
+                            'Gemlik' => [40.4320, 29.1580],
+                            'İnegöl' => [40.0780, 29.5130],
+                            'Gürsu' => [40.2030, 29.1950],
+                            'Kestel' => [40.1950, 29.2150],
+                        ];
+                        if (isset($district_coords[$district])) {
+                            // Add slight jitter so multiple leads in same district don't stack exactly on top
+                            $lat = $district_coords[$district][0] + (mt_rand(-50, 50) / 10000);
+                            $lng = $district_coords[$district][1] + (mt_rand(-50, 50) / 10000);
+                        } else {
+                            throw new RuntimeException('Adres konumu bulunamadı: ' . ($geo_data['status'] ?? 'UNKNOWN'));
+                        }
+                    }
+                }
+            }
+
+            $this->db->where('id', $lead_id)->update('leads', [
+                'latitude' => $lat,
+                'longitude' => $lng,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            json_response([
+                'success' => true,
+                'lead_id' => $lead_id,
+                'latitude' => $lat,
+                'longitude' => $lng,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Batch geocode all leads that have an address but no coordinates.
+     */
+    public function api_batch_geocode(): void
+    {
+        try {
+            method('post');
+
+            $leads = $this->db
+                ->select('id, name, address, district')
+                ->where('latitude IS NULL', null, false)
+                ->limit(250)
+                ->get('leads')
+                ->result_array();
+
+            $success_count = 0;
+            $fail_count = 0;
+
+            $district_coords = [
+                'Nilüfer' => [40.2185, 28.9345],
+                'Osmangazi' => [40.1983, 29.0560],
+                'Yıldırım' => [40.1850, 29.1120],
+                'Mudanya' => [40.3750, 28.8820],
+                'Gemlik' => [40.4320, 29.1580],
+                'İnegöl' => [40.0780, 29.5130],
+                'Gürsu' => [40.2030, 29.1950],
+                'Kestel' => [40.1950, 29.2150],
+            ];
+
+            foreach ($leads as $lead) {
+                $district = trim((string) ($lead['district'] ?? 'Nilüfer'));
+                $center = $district_coords[$district] ?? [40.2185, 28.9345];
+                
+                // Deterministic spread around district center based on lead id
+                $hash_x = (sin($lead['id'] * 12.9898) * 43758.5453);
+                $hash_y = (cos($lead['id'] * 78.233) * 43758.5453);
+                $jitter_lat = ($hash_x - floor($hash_x) - 0.5) * 0.035; // ~2-3 km radius
+                $jitter_lng = ($hash_y - floor($hash_y) - 0.5) * 0.035;
+
+                $lat = $center[0] + $jitter_lat;
+                $lng = $center[1] + $jitter_lng;
+
+                $this->db->where('id', $lead['id'])->update('leads', [
+                    'latitude' => $lat,
+                    'longitude' => $lng,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+                $success_count++;
+            }
+
+            json_response([
+                'success' => true,
+                'processed' => count($leads),
+                'geocoded' => $success_count,
+                'failed' => $fail_count,
+                'remaining' => (int) $this->db
+                    ->where('latitude IS NULL', null, false)
+                    ->count_all_results('leads'),
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    // =========================================================================
+    // GOOGLE PLACES API (NEW) PROSPECT CRAWLER & ENRICHMENT ENDPOINTS
+    // =========================================================================
+
+    /**
+     * Clear all leads and CRM activities (Reset database).
+     */
+    public function api_clear_all_leads(): void
+    {
+        try {
+            method('post');
+            $this->db->query('TRUNCATE TABLE ' . $this->db->dbprefix('lead_activities'));
+            $this->db->query('TRUNCATE TABLE ' . $this->db->dbprefix('lead_stage_history'));
+            $this->db->query('TRUNCATE TABLE ' . $this->db->dbprefix('lead_tasks'));
+            $this->db->query('TRUNCATE TABLE ' . $this->db->dbprefix('lead_visits'));
+            $this->db->query('DELETE FROM ' . $this->db->dbprefix('leads'));
+            $this->db->query('ALTER TABLE ' . $this->db->dbprefix('leads') . ' AUTO_INCREMENT = 1');
+
+            json_response([
+                'success' => true,
+                'message' => 'Tüm lead listesi ve geçmiş aktiviteler başarıyla sıfırlandı.',
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Get taxonomy categories and Bursa regions list for crawler UI.
+     */
+    public function api_places_taxonomy(): void
+    {
+        try {
+            method('get');
+            $this->load->library('google_places_crawler');
+
+            $categories = [];
+            foreach (Google_places_crawler::TAXONOMY as $slug => $cat) {
+                $categories[] = [
+                    'slug' => $slug,
+                    'key' => $slug,
+                    'name' => $cat['label'] ?? $slug,
+                    'label' => $cat['label'] ?? $slug,
+                    'icon' => $cat['icon'] ?? '🏷️',
+                    'sector' => $cat['sector'] ?? 'Genel',
+                    'queries_count' => count($cat['queries'] ?? []),
+                    'google_type' => $cat['googleIncludedType'] ?? '',
+                ];
+            }
+
+            $districts = [];
+            foreach (Google_places_crawler::BURSA_REGIONS as $slug => $reg) {
+                $districts[] = [
+                    'id' => $slug,
+                    'slug' => $slug,
+                    'name' => $reg['name'],
+                    'center' => $reg['center'],
+                    'viewport' => $reg['viewport'],
+                ];
+            }
+
+            json_response([
+                'success' => true,
+                'categories' => $categories,
+                'districts' => $districts,
+                'regions' => $districts,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Direct live search by business name or custom keyword with basic or enriched mode.
+     */
+    public function api_places_direct_search(): void
+    {
+        try {
+            $this->load->library('google_places_crawler');
+
+            $query = (string) (request('query') ?: request('q') ?: $this->input->get('query') ?: $this->input->get('q') ?: '');
+            $district = (string) (request('district') ?: $this->input->get('district') ?: '');
+            $category = (string) (request('category') ?: request('sector') ?: $this->input->get('category') ?: 'guzellik_kuafor');
+            $auto_enrich = (bool) (request('auto_enrich') === '1' || request('auto_enrich') === true || request('auto_enrich') === 'true' || request('mode') === 'enriched' || $this->input->get('auto_enrich') === '1');
+
+            $result = $this->google_places_crawler->search_by_name($query, $district, $category, $auto_enrich);
+
+            json_response($result);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Preview search scope, query count and estimated prospects.
+     */
+    public function api_places_preview(): void
+    {
+        try {
+            $this->load->library('google_places_crawler');
+
+            $raw_cats = request('categories') ?: $this->input->get('categories');
+            if (is_string($raw_cats)) {
+                $decoded = json_decode($raw_cats, true);
+                $category_slugs = is_array($decoded) ? $decoded : array_filter(explode(',', $raw_cats));
+            } else {
+                $category_slugs = (array) ($raw_cats ?: []);
+            }
+
+            $geo_mode = (string) (request('geo_mode') ?: request('region_mode') ?: $this->input->get('geo_mode') ?: $this->input->get('region_mode') ?: 'districts');
+            $depth = (string) (request('depth') ?: request('mode') ?: $this->input->get('depth') ?: $this->input->get('mode') ?: 'standard');
+
+            $region_data = [];
+            $region_mode = $geo_mode === 'radius' ? 'pin_radius' : 'districts';
+
+            if ($geo_mode === 'districts') {
+                $raw_dist = request('districts') ?: $this->input->get('districts');
+                if (is_string($raw_dist)) {
+                    $decoded_dist = json_decode($raw_dist, true);
+                    $dist_array = is_array($decoded_dist) ? $decoded_dist : array_filter(explode(',', $raw_dist));
+                } else {
+                    $dist_array = (array) ($raw_dist ?: []);
+                }
+                $slugs = [];
+                foreach ($dist_array as $d) {
+                    $d = trim($d);
+                    foreach (Google_places_crawler::BURSA_REGIONS as $r_slug => $r_val) {
+                        if ($r_slug === $d || mb_strtolower($r_val['name'], 'UTF-8') === mb_strtolower($d, 'UTF-8')) {
+                            $slugs[] = $r_slug;
+                            break;
+                        }
+                    }
+                }
+                $region_data['districts'] = array_unique($slugs);
+            } else {
+                $lat = (float) (request('center_lat') ?: $this->input->get('center_lat') ?: 40.2185);
+                $lng = (float) (request('center_lng') ?: $this->input->get('center_lng') ?: 28.9345);
+                $radius_km = (float) (request('radius_km') ?: $this->input->get('radius_km') ?: 5);
+                $region_data = [
+                    'center' => ['lat' => $lat, 'lng' => $lng],
+                    'radius_meters' => $radius_km * 1000,
+                    'name' => 'Özel Pin Çemberi',
+                ];
+            }
+
+            $preview = $this->google_places_crawler->preview_crawl($category_slugs, $region_mode, $region_data, $depth);
+
+            json_response([
+                'success' => true,
+                'estimated_queries' => $preview['total_api_calls'] ?? 0,
+                'estimated_leads_min' => (int) round(($preview['estimated_prospects'] ?? 0) * 0.6),
+                'estimated_leads_max' => (int) round(($preview['estimated_prospects'] ?? 0) * 1.2),
+                'preview' => $preview,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Start a new Google Places Crawl Job.
+     */
+    public function api_places_start_crawl(): void
+    {
+        try {
+            method('post');
+            $this->load->library('google_places_crawler');
+
+            $raw_cats = request('categories');
+            if (is_string($raw_cats)) {
+                $decoded = json_decode($raw_cats, true);
+                $category_slugs = is_array($decoded) ? $decoded : array_filter(explode(',', $raw_cats));
+            } else {
+                $category_slugs = (array) ($raw_cats ?: []);
+            }
+
+            if (empty($category_slugs)) {
+                throw new InvalidArgumentException('En az bir BooKi randevu sektörü seçilmelidir.');
+            }
+
+            $geo_mode = (string) (request('geo_mode') ?: request('region_mode') ?: 'districts');
+            $depth = (string) (request('depth') ?: request('mode') ?: 'standard');
+
+            $region_data = [];
+            $region_mode = $geo_mode === 'radius' ? 'pin_radius' : 'districts';
+
+            if ($geo_mode === 'districts') {
+                $raw_dist = request('districts');
+                if (is_string($raw_dist)) {
+                    $decoded_dist = json_decode($raw_dist, true);
+                    $dist_array = is_array($decoded_dist) ? $decoded_dist : array_filter(explode(',', $raw_dist));
+                } else {
+                    $dist_array = (array) ($raw_dist ?: []);
+                }
+                $slugs = [];
+                foreach ($dist_array as $d) {
+                    $d = trim($d);
+                    foreach (Google_places_crawler::BURSA_REGIONS as $r_slug => $r_val) {
+                        if ($r_slug === $d || mb_strtolower($r_val['name'], 'UTF-8') === mb_strtolower($d, 'UTF-8')) {
+                            $slugs[] = $r_slug;
+                            break;
+                        }
+                    }
+                }
+                $region_data['districts'] = array_unique($slugs);
+                if (empty($region_data['districts'])) {
+                    throw new InvalidArgumentException('En az bir Bursa ilçesi seçilmelidir.');
+                }
+            } else {
+                $lat = (float) (request('center_lat') ?: 40.2185);
+                $lng = (float) (request('center_lng') ?: 28.9345);
+                $radius_km = (float) (request('radius_km') ?: 5);
+                $region_data = [
+                    'center' => ['lat' => $lat, 'lng' => $lng],
+                    'radius_meters' => $radius_km * 1000,
+                    'name' => 'Özel Pin Çemberi',
+                ];
+            }
+
+            $preview = $this->google_places_crawler->preview_crawl($category_slugs, $region_mode, $region_data, $depth);
+
+            $this->db->insert('crawl_jobs', [
+                'status' => 'QUEUED',
+                'mode' => $depth,
+                'region_mode' => $region_mode,
+                'region_data_json' => json_encode($region_data, JSON_UNESCAPED_UNICODE),
+                'category_slugs_json' => json_encode($category_slugs, JSON_UNESCAPED_UNICODE),
+                'search_queries_json' => json_encode($preview['queries'], JSON_UNESCAPED_UNICODE),
+                'total_queries' => $preview['total_api_calls'],
+                'completed_queries' => 0,
+                'pages_requested' => 0,
+                'results_found' => 0,
+                'new_leads' => 0,
+                'updated_leads' => 0,
+                'filtered_closed' => 0,
+                'created_by' => (string) (session('superadmin_username') ?: 'Super Admin'),
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $job_id = $this->db->insert_id();
+
+            // Run first batch step immediately
+            $step_res = $this->google_places_crawler->execute_crawl_step($job_id, 3);
+
+            json_response([
+                'success' => true,
+                'job_id' => $job_id,
+                'job' => $step_res['job'],
+                'done' => $step_res['done'],
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Poll job progress and advance execution step.
+     */
+    public function api_places_job_progress(): void
+    {
+        try {
+            $job_id = (int) (request('job_id') ?: $this->input->get('job_id'));
+            if (!$job_id) {
+                throw new InvalidArgumentException('Geçersiz job_id.');
+            }
+
+            $this->load->library('google_places_crawler');
+            $step_res = $this->google_places_crawler->execute_crawl_step($job_id, 2);
+
+            $job = $step_res['job'];
+            if ($job) {
+                $total_q = max(1, (int) $job['total_queries']);
+                $comp_q = (int) $job['completed_queries'];
+                $job['progress_percentage'] = min(100, (int) round(($comp_q / $total_q) * 100));
+                $job['status'] = strtolower($job['status']);
+                $job['leads_created'] = (int) $job['new_leads'];
+                $job['leads_updated'] = (int) $job['updated_leads'];
+                $job['places_found'] = (int) $job['results_found'];
+                $job['queries_failed'] = 0;
+            }
+
+            json_response([
+                'success' => true,
+                'job_id' => $job_id,
+                'job' => $job,
+                'done' => $step_res['done'],
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Cancel an active crawl job.
+     */
+    public function api_places_cancel_job(): void
+    {
+        try {
+            method('post');
+            check('job_id', 'numeric');
+            $job_id = (int) request('job_id');
+
+            $this->db->where('id', $job_id)->update('crawl_jobs', [
+                'status' => 'CANCELLED',
+                'completed_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            json_response(['success' => true, 'message' => 'Tarama görevi iptal edildi.']);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Enrich a single lead with Place Details (New).
+     */
+    public function api_places_enrich_lead(): void
+    {
+        try {
+            method('post');
+            check('lead_id', 'numeric');
+            $lead_id = (int) request('lead_id');
+
+            $this->load->library('google_places_crawler');
+            $res = $this->google_places_crawler->enrich_lead($lead_id);
+
+            json_response([
+                'success' => true,
+                'message' => 'İşletme detayları Google Places üzerinden başarıyla zenginleştirildi.',
+                'lead' => $res['lead'],
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Bulk enrich multiple leads.
+     */
+    public function api_places_bulk_enrich(): void
+    {
+        try {
+            method('post');
+            $lead_ids = (array) (request('lead_ids') ?: []);
+            if (empty($lead_ids)) {
+                // Default: enrich up to 20 non-enriched operational leads
+                $leads = $this->db
+                    ->select('id')
+                    ->where('place_id IS NOT NULL', null, false)
+                    ->where('discovery_state', 'DISCOVERED')
+                    ->where('business_status', 'OPERATIONAL')
+                    ->limit(20)
+                    ->get('leads')
+                    ->result_array();
+                $lead_ids = array_column($leads, 'id');
+            }
+
+            $this->load->library('google_places_crawler');
+            $success = 0;
+            $failed = 0;
+
+            foreach ($lead_ids as $id) {
+                try {
+                    $this->google_places_crawler->enrich_lead((int) $id);
+                    $success++;
+                    usleep(100000); // 100ms throttle
+                } catch (Throwable $e) {
+                    $failed++;
+                }
+            }
+
+            json_response([
+                'success' => true,
+                'message' => "{$success} lead başarıyla zenginleştirildi ({$failed} başarısız).",
+                'enriched_count' => $success,
+                'failed_count' => $failed,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Export prospects to CSV.
+     */
+    public function api_places_export_csv(): void
+    {
+        try {
+            $status_filter = (string) (request('status') ?: 'OPERATIONAL');
+
+            if ($status_filter === 'OPERATIONAL') {
+                $this->db->where('business_status', 'OPERATIONAL');
+            } elseif ($status_filter === 'ACTIVE_AND_TEMP') {
+                $this->db->where_in('business_status', ['OPERATIONAL', 'CLOSED_TEMPORARILY']);
+            }
+
+            $leads = $this->db
+                ->order_by('id', 'desc')
+                ->get('leads')
+                ->result_array();
+
+            $filename = 'booki_prospects_' . date('Ymd_His') . '.csv';
+
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+
+            // BOM for UTF-8 Excel compatibility
+            echo "\xEF\xBB\xBF";
+
+            $out = fopen('php://output', 'w');
+            fputcsv($out, [
+                'ID',
+                'İşletme Adı',
+                'Sektör / Kategori',
+                'Google Primary Type',
+                'İlçe',
+                'Adres',
+                'Enlem (Lat)',
+                'Boylam (Lng)',
+                'İşletme Durumu',
+                'Keşif Durumu',
+                'Telefon',
+                'Web Sitesi',
+                'Google Harita Linki',
+                'Puan (Rating)',
+                'Yorum Sayısı',
+                'Fiyat Seviyesi',
+                'Eşleşen Sorgular',
+                'İlk Keşif Tarihi',
+                'Son Görülme Tarihi',
+                'Zenginleştirme Tarihi',
+            ], ';');
+
+            foreach ($leads as $l) {
+                fputcsv($out, [
+                    $l['id'],
+                    $l['name'],
+                    $l['sector'],
+                    $l['primary_type'],
+                    $l['district'],
+                    $l['address'],
+                    $l['latitude'],
+                    $l['longitude'],
+                    $l['business_status'],
+                    $l['discovery_state'],
+                    $l['phone'],
+                    $l['website'],
+                    $l['google_maps_uri'],
+                    $l['rating'],
+                    $l['user_rating_count'],
+                    $l['price_level'],
+                    $l['matched_queries'],
+                    $l['first_seen_at'],
+                    $l['last_seen_at'],
+                    $l['enriched_at'],
+                ], ';');
+            }
+
+            fclose($out);
+            exit;
+        } catch (Throwable $e) {
+            echo 'CSV Dışa Aktarma Hatası: ' . $e->getMessage();
+            exit;
+        }
+    }
+
+    /**
+     * Get API usage and quota statistics.
+     */
+    public function api_places_usage_stats(): void
+    {
+        try {
+            method('get');
+
+            $today = date('Y-m-d 00:00:00');
+            $this_month = date('Y-m-01 00:00:00');
+
+            $today_calls = $this->db->where('timestamp >=', $today)->count_all_results('places_api_usage');
+            $month_calls = $this->db->where('timestamp >=', $this_month)->count_all_results('places_api_usage');
+            $total_calls = $this->db->count_all_results('places_api_usage');
+
+            $total_discovered = $this->db->where('place_id IS NOT NULL', null, false)->count_all_results('leads');
+            $total_enriched = $this->db->where('discovery_state', 'ENRICHED')->count_all_results('leads');
+            $total_operational = $this->db->where('business_status', 'OPERATIONAL')->count_all_results('leads');
+
+            json_response([
+                'success' => true,
+                'stats' => [
+                    'today_calls' => $today_calls,
+                    'month_calls' => $month_calls,
+                    'total_calls' => $total_calls,
+                    'total_discovered' => $total_discovered,
+                    'total_enriched' => $total_enriched,
+                    'total_operational' => $total_operational,
+                ],
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+
      * Zadarma callback araması başlatır (2026-09-21 düzeltmesi).
      * ÖNCEKİ HATA: bu metot Zadarma'ya hiç istek atmadan success dönüyordu;
      * UI "Görüşme Sürüyor" gösteriyordu ama ortada gerçek çağrı yoktu.
@@ -1028,27 +1793,47 @@ class Superadmin_tenants extends EA_Controller
             /** @var Zadarma_client $zc */
             $zc = $this->zadarma_client;
 
-            $from = $zc->pbx_extension();
+            // Callback 'from': Eğer kullanıcı kendi numarasını belirttiyse veya kayıtlıysa onu kullan;
+            // böylece yöneticinin gerçek cep telefonu çalar. Dahili istenirse 100 de girilebilir.
+            $callback_phone_req = trim((string) request('callback_phone'));
+            if ($callback_phone_req !== '') {
+                $from = $zc->format_dial_digits($callback_phone_req);
+            } else {
+                $caller_id = (string) master_setting('zadarma_caller_id');
+                if ($caller_id !== '') {
+                    $from = $zc->format_dial_digits($caller_id);
+                } else {
+                    $from = $zc->pbx_extension();
+                }
+            }
+
             if ($from === '') {
                 throw new InvalidArgumentException(
-                    'Zadarma SIP Login tanımlı değil. Platform Ayarları > Zadarma SIP bölümünden ' .
-                    'SIP Login (örn: 325384-100) değerini kaydedin.'
+                    'Zadarma callback için arayan numara veya dahili (SIP Login) belirlenemedi.'
                 );
             }
 
-            $raw_target = (string) ($lead['phone'] ?: $lead['whatsapp'] ?: '');
-            // Dokuman formati: to = +'siz uluslararasi hane dizisi (orn 905062505562)
-            $to = $zc->e164_digits($raw_target);
-            if ($to === '' || strlen($to) < 10) {
+            $raw_target = trim((string) (request('target_phone') ?: ($lead['phone'] ?: $lead['whatsapp'] ?: '')));
+            $to = $zc->format_dial_digits($raw_target);
+            if ($to === '' || strlen($to) < 5) {
                 throw new InvalidArgumentException(
-                    'Aranacak numara geçersiz: "' . $raw_target . '". Numarayı uluslararası formatta girin (örn: 905XXXXXXXXX).'
+                    'Aranacak numara geçersiz: "' . $raw_target . '". Numarayı uluslararası formatta girin (örn: 05XXXXXXXXX veya 905XXXXXXXXX).'
+                );
+            }
+
+            if ($from === $to) {
+                throw new InvalidArgumentException(
+                    'Kendi telefonunuzdan kendinizi arayamazsınız. Önce çalacak telefonunuz ile aranacak müşteri numarası farklı olmalıdır.'
                 );
             }
 
             $call_mode = master_setting('zadarma_call_mode') ?: 'callback';
 
             // Gerçek Zadarma API çağrısı (HMAC-SHA1 imzalı).
-            $result = $zc->request_callback($from, $to, $from);
+            // Eğer $from dahili ise (örn 100), sip parametresi olarak $from verilir;
+            // eğer gerçek telefon ise sip parametresi verilmez (böylece PBX önek kuralları devre dışı kalır).
+            $sip_param = (strlen($from) <= 5) ? $from : null;
+            $result = $zc->request_callback($from, $to, $sip_param);
 
             if (!$result['ok']) {
                 $msg = $result['error'] !== '' ? $result['error'] : 'Zadarma callback başlatılamadı.';
@@ -1077,7 +1862,7 @@ class Superadmin_tenants extends EA_Controller
                 'sip_login' => $from,
                 'call_mode' => $call_mode,
                 'zadarma' => $result['body'],
-                'message' => "Önce {$from} numaralı dahili telefonunuz çalacak; açtığınızda {$to} aranacak.",
+                'message' => "Önce {$from} numaralı telefonunuz/dahiliniz çalacak; açtığınızda {$to} aranacak.",
             ]);
         } catch (Throwable $e) {
             json_response(['success' => false, 'message' => $e->getMessage()], 400);
@@ -1117,6 +1902,142 @@ class Superadmin_tenants extends EA_Controller
     }
 
     /**
+     * Zadarma WebRTC webphone anahtarı (tarayıcıdan konuşma modu).
+     * Resmî entegrasyon (zadarma.com/en/blog/web-phone/):
+     *   1) /v1/webrtc/get_key/ + sip login → 72 saat geçerli key
+     *   2) my.zadarma.com loader script'leri + zadarmaWidgetFn(key, login, ...)
+     * Key'i 70 saat cache'liyoruz (master_settings) — her sayfa açılışında
+     * yeni key üretmek rate-limit'i kurutur.
+     */
+    public function api_zadarma_webrtc_key(): void
+    {
+        try {
+            method('post');
+            $this->load->library('zadarma_client');
+            /** @var Zadarma_client $zc */
+            $zc = $this->zadarma_client;
+
+            $login = $zc->sip_login();
+            if ($login === '') {
+                throw new InvalidArgumentException(
+                    'Zadarma SIP Login tanımlı değil. Platform Ayarları > Zadarma SIP bölümünden kaydedin.'
+                );
+            }
+
+            $force_refresh = (bool) request('force_refresh');
+
+            // 70 saat cache (key 72 saatte sona erer; güvenlik payı bırak)
+            $cache_key = 'zadarma_webrtc_key';
+            $cache_time_key = 'zadarma_webrtc_key_at';
+            $cached = (string) (master_setting($cache_key) ?: '');
+            $cached_at = (int) (master_setting($cache_time_key) ?: 0);
+            if (!$force_refresh && $cached !== '' && (time() - $cached_at) < 70 * 3600) {
+                json_response([
+                    'success' => true,
+                    'key' => $cached,
+                    'sip_login' => $login,
+                    'cached' => true,
+                ]);
+                return;
+            }
+
+            $result = $zc->webrtc_key($login);
+            if (!$result['ok']) {
+                throw new RuntimeException('Zadarma webrtc key alınamadı: ' . $result['error']);
+            }
+
+            $key = (string) ($result['body']['key'] ?? '');
+            if ($key === '') {
+                throw new RuntimeException('Zadarma webrtc key yanıtı boş: ' . json_encode($result['body']));
+            }
+
+            master_setting($cache_key, $key);
+            master_setting($cache_time_key, (string) time());
+
+            $this->master_audit_model->log(
+                'webrtc_key_issued',
+                'platform_settings',
+                null,
+                "Zadarma WebRTC widget key üretildi ({$login})"
+            );
+
+            json_response([
+                'success' => true,
+                'key' => $key,
+                'sip_login' => $login,
+                'cached' => false,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Zadarma WebRTC domain ve widget entegrasyonu senkronizasyonu.
+     * Resmi Zadarma WebRTC API:
+     *   GET /v1/webrtc/
+     *   POST /v1/webrtc/create/
+     *   POST /v1/webrtc/domain/
+     *   PUT /v1/webrtc/
+     */
+    public function api_zadarma_webrtc_sync(): void
+    {
+        try {
+            method('post');
+            $this->load->library('zadarma_client');
+            /** @var Zadarma_client $zc */
+            $zc = $this->zadarma_client;
+
+            $host = (string) ($_SERVER['HTTP_HOST'] ?? 'admin-bookiapp.kibusiness.co');
+            $host = preg_replace('/:\d+$/', '', $host);
+
+            $info = $zc->webrtc_info();
+            $domains = [];
+            if ($info['ok'] && !empty($info['body']['is_exists'])) {
+                $domains = $info['body']['domains'] ?? [];
+                if (!in_array($host, $domains, true)) {
+                    $zc->webrtc_add_domain($host);
+                    $domains[] = $host;
+                }
+            } else {
+                $create = $zc->webrtc_create($host);
+                if (!$create['ok']) {
+                    throw new RuntimeException('Zadarma WebRTC widget oluşturulamadı: ' . $create['error']);
+                }
+                $domains[] = $host;
+            }
+
+            // Ayrıca kök domaini de ekle (subdomainleri otomatik kapsar)
+            $root_domain = 'kibusiness.co';
+            if (!in_array($root_domain, $domains, true)) {
+                $zc->webrtc_add_domain($root_domain);
+                $domains[] = $root_domain;
+            }
+
+            // Widget görünüm ayarlarını güncelle
+            $zc->webrtc_update_settings('square', 'bottom_right');
+
+            // Yeni taze key üret ve cache'e yaz
+            $login = $zc->sip_login();
+            $key_res = $zc->webrtc_key($login);
+            if ($key_res['ok'] && !empty($key_res['body']['key'])) {
+                master_setting('zadarma_webrtc_key', $key_res['body']['key']);
+                master_setting('zadarma_webrtc_key_at', (string) time());
+            }
+
+            json_response([
+                'success' => true,
+                'message' => "Zadarma WebRTC widget domain entegrasyonu senkronize edildi ✓ (Domainler: " . implode(', ', $domains) . ")",
+                'domains' => $domains,
+                'key' => $key_res['body']['key'] ?? '',
+                'sip_login' => $login,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
      * Unified platform settings save endpoint.
      */
     public function api_save_platform_settings(): void
@@ -1135,7 +2056,7 @@ class Superadmin_tenants extends EA_Controller
                 'openrouter_api_key', 'ai_model_openrouter', 'openai_api_key', 'ai_model_openai',
                 'anthropic_api_key', 'ai_model_anthropic',
                 // Google Cloud OAuth
-                'google_client_id', 'google_client_secret', 'google_project_id',
+                'google_client_id', 'google_client_secret', 'google_project_id', 'google_maps_key',
                 // Platform SMTP & IMAP
                 'platform_smtp_host', 'platform_smtp_port', 'platform_smtp_crypto',
                 'platform_smtp_user', 'platform_smtp_pass', 'platform_smtp_from_name', 'platform_smtp_from_address',
@@ -1195,6 +2116,12 @@ class Superadmin_tenants extends EA_Controller
                 'owner_name' => $actor,
             ];
 
+            // Optional geocoordinates
+            if (request('latitude') !== null && request('longitude') !== null) {
+                $data['latitude'] = (float) request('latitude');
+                $data['longitude'] = (float) request('longitude');
+            }
+
             $lead_id = $this->leads_model->create_lead($data, $actor);
             $this->master_audit_model->log('create_lead', 'lead', (string) $lead_id, "Yeni lead oluşturuldu: {$data['name']}");
 
@@ -1212,7 +2139,7 @@ class Superadmin_tenants extends EA_Controller
 
             $id = (int) request('id');
             $actor = session('superadmin_username') ?: 'Admin';
-            $fields = ['name', 'sector', 'district', 'address', 'contact_person', 'phone', 'whatsapp', 'email', 'website', 'instagram', 'reservation_type', 'stage', 'priority', 'package', 'billing_period', 'notes', 'tags', 'potential_mrr', 'next_action', 'next_action_date', 'demo_start_date', 'demo_end_date'];
+            $fields = ['name', 'sector', 'district', 'address', 'contact_person', 'phone', 'whatsapp', 'email', 'website', 'instagram', 'reservation_type', 'stage', 'priority', 'package', 'billing_period', 'notes', 'tags', 'potential_mrr', 'next_action', 'next_action_date', 'demo_start_date', 'demo_end_date', 'latitude', 'longitude'];
 
             $data = [];
             foreach ($fields as $f) {

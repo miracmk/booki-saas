@@ -92,12 +92,26 @@ if ($portal_host !== '' && $portal_host === $marketplace_domain) {
     $route['default_controller'] = 'landing';
     $route['privacy'] = 'landing/privacy';
     $route['terms'] = 'landing/terms';
+    $route['about'] = 'landing/about';
+    $route['hakkimizda'] = 'landing/about';
+    $route['mesafeli-satis'] = 'landing/mesafeli_satis';
+    $route['mesafeli-satis-sozlesmesi'] = 'landing/mesafeli_satis';
+    $route['teslimat-iade'] = 'landing/teslimat_iade';
+    $route['iade-teslimat'] = 'landing/teslimat_iade';
     $route['marketplace'] = 'marketplace/index';
     $route['marketplace/business/(:any)'] = 'marketplace/business/$1';
     $route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
     $route['marketplace/get_slots/(:any)'] = 'marketplace/get_slots/$1';
     $route['marketplace/create_booking/(:any)'] = 'marketplace/create_booking/$1';
+    $route['marketplace/isletme/contact'] = 'marketplace/contact_request';
+    $route['marketplace/isletme/(:any)'] = 'marketplace/isletme/$1';
+    $route['marketplace/kategori/(:any)/(:any)/(:any)'] = 'marketplace/category/$1/$2/$3';
+    $route['marketplace/kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
+    $route['marketplace/kategori/(:any)'] = 'marketplace/category/$1';
+    $route['marketplace/sahiplen/(:any)'] = 'marketplace/claim/$1';
     $route['sitemap.xml'] = 'marketplace/sitemap';
+    $route['sitemap-places-(:num).xml'] = 'marketplace/sitemap_places/$1';
+    $route['api/places/photo'] = 'places_photo/index';
     $route['robots.txt'] = 'marketplace/robots';
     $route['llms.txt'] = 'marketplace/llms';
 }
@@ -110,29 +124,69 @@ if ($portal_host !== '' && $portal_host === $randevuburada_domain) {
     $route['services_preview/(:any)'] = 'marketplace/services_preview/$1';
     $route['get_slots/(:any)'] = 'marketplace/get_slots/$1';
     $route['create_booking/(:any)'] = 'marketplace/create_booking/$1';
+    $route['isletme/contact'] = 'marketplace/contact_request';
+    $route['isletme/(:any)'] = 'marketplace/isletme/$1';
+    $route['kategori/(:any)/(:any)/(:any)'] = 'marketplace/category/$1/$2/$3';
+    $route['kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
+    $route['kategori/(:any)'] = 'marketplace/category/$1';
+    $route['sahiplen/(:any)'] = 'marketplace/claim/$1';
     $route['marketplace'] = 'marketplace/index';
     $route['marketplace/business/(:any)'] = 'marketplace/business/$1';
     $route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
     $route['marketplace/get_slots/(:any)'] = 'marketplace/get_slots/$1';
     $route['marketplace/create_booking/(:any)'] = 'marketplace/create_booking/$1';
+    $route['marketplace/isletme/contact'] = 'marketplace/contact_request';
+    $route['marketplace/isletme/(:any)'] = 'marketplace/isletme/$1';
+    $route['marketplace/kategori/(:any)/(:any)/(:any)'] = 'marketplace/category/$1/$2/$3';
+    $route['marketplace/kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
+    $route['marketplace/kategori/(:any)'] = 'marketplace/category/$1';
+    $route['marketplace/sahiplen/(:any)'] = 'marketplace/claim/$1';
     $route['sitemap.xml'] = 'marketplace/sitemap';
+    $route['sitemap-places-(:num).xml'] = 'marketplace/sitemap_places/$1';
+    $route['api/places/photo'] = 'places_photo/index';
     $route['robots.txt'] = 'marketplace/robots';
     $route['llms.txt'] = 'marketplace/llms';
     $route['privacy'] = 'landing/privacy';
     $route['terms'] = 'landing/terms';
+    $route['about'] = 'landing/about';
+    $route['hakkimizda'] = 'landing/about';
+    $route['mesafeli-satis'] = 'landing/mesafeli_satis';
+    $route['mesafeli-satis-sozlesmesi'] = 'landing/mesafeli_satis';
+    $route['teslimat-iade'] = 'landing/teslimat_iade';
+    $route['iade-teslimat'] = 'landing/teslimat_iade';
 }
 
-// Global legal, sitemap, robots and marketplace routes
+// Global legal, sitemap, robots, photo proxy and marketplace routes
 $route['privacy'] = 'landing/privacy';
 $route['terms'] = 'landing/terms';
+$route['about'] = 'landing/about';
+$route['hakkimizda'] = 'landing/about';
+$route['mesafeli-satis'] = 'landing/mesafeli_satis';
+$route['mesafeli-satis-sozlesmesi'] = 'landing/mesafeli_satis';
+$route['teslimat-iade'] = 'landing/teslimat_iade';
+$route['iade-teslimat'] = 'landing/teslimat_iade';
 $route['sitemap.xml'] = 'marketplace/sitemap';
+$route['sitemap-places-(:num).xml'] = 'marketplace/sitemap_places/$1';
 $route['robots.txt'] = 'marketplace/robots';
 $route['llms.txt'] = 'marketplace/llms';
+$route['api/places/photo'] = 'places_photo/index';
 $route['marketplace'] = 'marketplace/index';
 $route['marketplace/business/(:any)'] = 'marketplace/business/$1';
 $route['marketplace/services_preview/(:any)'] = 'marketplace/services_preview/$1';
 $route['marketplace/get_slots/(:any)'] = 'marketplace/get_slots/$1';
 $route['marketplace/create_booking/(:any)'] = 'marketplace/create_booking/$1';
+$route['isletme/contact'] = 'marketplace/contact_request';
+$route['isletme/(:any)'] = 'marketplace/isletme/$1';
+$route['kategori/(:any)/(:any)/(:any)'] = 'marketplace/category/$1/$2/$3';
+$route['kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
+$route['kategori/(:any)'] = 'marketplace/category/$1';
+$route['sahiplen/(:any)'] = 'marketplace/claim/$1';
+$route['marketplace/isletme/contact'] = 'marketplace/contact_request';
+$route['marketplace/isletme/(:any)'] = 'marketplace/isletme/$1';
+$route['marketplace/kategori/(:any)/(:any)/(:any)'] = 'marketplace/category/$1/$2/$3';
+$route['marketplace/kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
+$route['marketplace/kategori/(:any)'] = 'marketplace/category/$1';
+$route['marketplace/sahiplen/(:any)'] = 'marketplace/claim/$1';
 
 // Customer Onboarding Routes
 $route['onboarding/(:any)'] = 'customer_onboarding/index/$1';

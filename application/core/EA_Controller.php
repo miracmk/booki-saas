@@ -192,6 +192,7 @@ class EA_Controller extends CI_Controller
             || strtolower((string) $this->router->class) === 'customer_onboarding'
             || strtolower((string) $this->router->class) === 'zadarma'
             || strtolower((string) $this->router->class) === 'meta'
+            || strtolower((string) $this->router->class) === 'places_photo'
         ) {
             return;
         }

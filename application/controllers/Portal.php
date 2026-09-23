@@ -48,10 +48,9 @@ class Portal extends EA_Controller
     }
 
     /**
-     * Given a username/email, find which active tenant it belongs to and return that tenant's login
-     * URL. Fans out to each active tenant's own database in turn (small tenant counts expected for
-     * the foreseeable future - same tradeoff Console.php's tenant loops already accept) rather than
-     * keeping a separate, syncable email-&gt;tenant index.
+     * Given an enterprise identifier (business username / tenant subdomain, custom domain, or staff username/email),
+     * resolve which active tenant it belongs to and return that tenant's login URL.
+     * Checks the master tenants catalog first for instant response, and falls back to scanning tenant user tables.
      */
     public function find_tenant(): void
     {
@@ -62,22 +61,63 @@ class Portal extends EA_Controller
 
             check('identifier', 'string');
 
-            $identifier = trim((string) request('identifier'));
+            $raw_identifier = trim((string) request('identifier'));
 
-            if ($identifier === '' || strlen($identifier) > 255) {
+            if ($raw_identifier === '' || strlen($raw_identifier) > 255) {
                 throw new InvalidArgumentException(lang('invalid_credentials_provided'));
             }
 
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+            $app_domain_pattern = preg_quote($app_domain, '/');
+
+            // Normalize identifier: strip protocol, paths, ports, leading @
+            $clean_identifier = preg_replace('#^https?://#i', '', $raw_identifier);
+            $clean_identifier = preg_replace('#/.*$#', '', $clean_identifier);
+            $clean_identifier = preg_replace('#:\d+$#', '', $clean_identifier);
+
+            if (preg_match('/^([a-z0-9-]+)-' . $app_domain_pattern . '$/i', $clean_identifier, $m)
+                || preg_match('/^([a-z0-9-]+)\.' . $app_domain_pattern . '$/i', $clean_identifier, $m)) {
+                $subdomain_candidate = strtolower($m[1]);
+            } else {
+                $subdomain_candidate = strtolower(ltrim($clean_identifier, '@'));
+            }
+
+            // Step 1: Direct lookup in master tenants catalog by subdomain or custom_domain
+            $this->db->group_start()
+                ->where('subdomain', $subdomain_candidate)
+                ->or_where('custom_domain', $clean_identifier)
+                ->or_where('custom_domain', $raw_identifier);
+
+            if ($this->db->field_exists('company_name', 'tenants')) {
+                $this->db->or_where('company_name', $raw_identifier);
+            }
+
+            $tenant = $this->db->group_end()
+                ->where('status', 'active')
+                ->get('tenants')
+                ->row_array();
+
+            if (!empty($tenant)) {
+                $host = $tenant['custom_domain'] ?: ($tenant['subdomain'] . '-' . $app_domain);
+                json_response([
+                    'success' => true,
+                    'tenant_name' => $tenant['subdomain'],
+                    'login_url' => 'https://' . $host . '/login',
+                ]);
+                return;
+            }
+
+            // Step 2: Fallback across active tenant DBs for username / email matching
             $tenants = $this->db
                 ->get_where('tenants', ['status' => 'active'])
                 ->result_array();
 
-            foreach ($tenants as $tenant) {
+            foreach ($tenants as $t) {
                 $tenant_db_config = [
-                    'hostname' => $tenant['db_host'],
-                    'username' => $tenant['db_username'],
-                    'password' => tenant_master_decrypt($tenant['db_password']),
-                    'database' => $tenant['db_name'],
+                    'hostname' => $t['db_host'],
+                    'username' => $t['db_username'],
+                    'password' => tenant_master_decrypt($t['db_password']),
+                    'database' => $t['db_name'],
                     'dbdriver' => 'mysqli',
                     'dbprefix' => 'ea_',
                     'pconnect' => false,
@@ -92,35 +132,27 @@ class Portal extends EA_Controller
                 try {
                     $tenant_db = $this->load->database($tenant_db_config, true);
 
-                    // Plain '=' (not LOWER()) - utf8mb4_unicode_ci is already case-insensitive, and
-                    // CI3's Query Builder mishandles the dbprefix substitution for table references
-                    // wrapped inside a raw SQL function expression used as a where() key.
                     $match = $tenant_db
                         ->select('user_settings.username')
                         ->from('user_settings')
                         ->join('users', 'users.id = user_settings.id_users')
-                        ->where('user_settings.username', $identifier)
-                        ->or_where('users.email', $identifier)
+                        ->where('user_settings.username', $raw_identifier)
+                        ->or_where('users.email', $raw_identifier)
                         ->get()
                         ->row_array();
 
                     $tenant_db->close();
                 } catch (Throwable $e) {
-                    // An unreachable/broken tenant DB should not block resolving the others.
                     log_message('error', 'Portal::find_tenant() could not query tenant "' .
-                        $tenant['subdomain'] . '": ' . $e->getMessage());
+                        $t['subdomain'] . '": ' . $e->getMessage());
                     continue;
                 }
 
                 if (!empty($match)) {
-                    $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
-                    $host = $tenant['custom_domain'] ?: ($tenant['subdomain'] . '-' . $app_domain);
-
-                    // Constant-time-ish: always do the same amount of work whether found early or late
-                    // is not critical here (unlike password checks) - which tenant owns a given
-                    // username is not itself secret in the way a password is.
+                    $host = $t['custom_domain'] ?: ($t['subdomain'] . '-' . $app_domain);
                     json_response([
                         'success' => true,
+                        'tenant_name' => $t['subdomain'],
                         'login_url' => 'https://' . $host . '/login?u=' . rawurlencode($match['username']),
                     ]);
                     return;
@@ -129,7 +161,7 @@ class Portal extends EA_Controller
 
             json_response([
                 'success' => false,
-                'message' => lang('invalid_credentials_provided'),
+                'message' => 'Belirtilen işletme kullanıcı adı ("' . htmlspecialchars($raw_identifier, ENT_QUOTES, 'UTF-8') . '") bulunamadı. Lütfen işletme adınızı kontrol edin.',
             ]);
         } catch (Throwable $e) {
             json_exception($e);

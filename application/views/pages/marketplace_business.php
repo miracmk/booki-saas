@@ -11,7 +11,7 @@ $rating_dist = $rating_dist ?? [5 => 0, 4 => 0, 3 => 0, 2 => 0, 1 => 0];
 $total_reviews = (int) ($tenant['review_count'] ?? count($reviews));
 $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
 $portal_url = 'https://' . $app_domain . '/portal';
-$login_url = 'https://' . $app_domain . '/login';
+$login_url = $portal_url;
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -615,6 +615,153 @@ $login_url = 'https://' . $app_domain . '/login';
             .profile-action-box { width: 100%; align-items: stretch; }
             .btn-book-hero { width: 100%; justify-content: center; }
         }
+
+        /* Tenant Login Modal */
+        .tenant-login-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .tenant-login-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+        }
+        .tenant-login-dialog {
+            position: relative;
+            background: #ffffff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 440px;
+            padding: 2.2rem 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            text-align: left;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .tenant-login-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.2rem;
+            background: none;
+            border: none;
+            font-size: 1.7rem;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .tenant-login-close:hover { color: #0f172a; }
+        .tenant-modal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: #ccfbf1;
+            color: #0f766e;
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 0.8rem;
+        }
+        .tenant-modal-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+        }
+        .tenant-modal-desc {
+            font-size: 0.88rem;
+            color: #64748b;
+            margin-bottom: 1.4rem;
+            line-height: 1.45;
+        }
+        .tenant-input-group label {
+            display: block;
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+        }
+        .tenant-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .tenant-input-wrap i {
+            position: absolute;
+            left: 0.9rem;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        .tenant-input-wrap input {
+            width: 100%;
+            padding: 0.7rem 0.9rem 0.7rem 2.4rem;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .tenant-input-wrap input:focus {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+        .tenant-modal-preview {
+            margin-top: 0.5rem;
+            font-size: 0.78rem;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            word-break: break-all;
+        }
+        .tenant-modal-preview strong {
+            color: #0f766e;
+        }
+        .tenant-modal-btn {
+            width: 100%;
+            margin-top: 1.1rem;
+            padding: 0.8rem;
+            background: #0f766e;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background 0.15s, transform 0.15s;
+        }
+        .tenant-modal-btn:hover {
+            background: #115e59;
+            transform: translateY(-1px);
+        }
+        .tenant-modal-footer {
+            margin-top: 1.2rem;
+            text-align: center;
+            font-size: 0.82rem;
+        }
+        .tenant-modal-portal-link {
+            color: #0f766e;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .tenant-modal-portal-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -634,8 +781,8 @@ $login_url = 'https://' . $app_domain . '/login';
                 <a href="https://booki.kibusiness.co" target="_blank" rel="noopener" class="partner-software-link">
                     <i class="fas fa-desktop me-1"></i> BooKi Yazılımı ↗
                 </a>
-                <a href="<?php echo $portal_url; ?>" style="font-size:0.85rem; font-weight:600; color:var(--text-muted); text-decoration:none; padding:0.4rem 0.75rem;">
-                    İşletme Girişi
+                <a href="<?php echo $portal_url; ?>" onclick="openTenantLoginModal(event)" style="font-size:0.85rem; font-weight:600; color:var(--text-muted); text-decoration:none; padding:0.4rem 0.75rem;">
+                    <i class="fas fa-user-circle me-1"></i> İşletme Girişi
                 </a>
             </div>
         </div>
@@ -1029,7 +1176,7 @@ $login_url = 'https://' . $app_domain . '/login';
                         <li style="margin-bottom:0.5rem;"><a href="https://booki.kibusiness.co" target="_blank" rel="noopener" style="color:#34d399; font-weight:700;"><i class="fas fa-desktop me-1"></i> BooKi Yazılımı (booki.kibusiness.co)</a></li>
                         <li style="margin-bottom:0.5rem;"><a href="https://booki.kibusiness.co/#ozellikler" target="_blank" rel="noopener">Salon Yazılımı Özellikleri</a></li>
                         <li style="margin-bottom:0.5rem;"><a href="https://booki.kibusiness.co/#fiyatlandirma" target="_blank" rel="noopener">Fiyatlar & Paketler</a></li>
-                        <li style="margin-bottom:0.5rem;"><a href="<?php echo $login_url; ?>">İşletme Girişi</a></li>
+                        <li style="margin-bottom:0.5rem;"><a href="<?php echo $portal_url; ?>" onclick="openTenantLoginModal(event)">İşletme Girişi</a></li>
                         <li><a href="https://booki.kibusiness.co/marketplace">booki.kibusiness.co/marketplace</a></li>
                     </ul>
                 </div>
@@ -1241,6 +1388,114 @@ $login_url = 'https://' . $app_domain . '/login';
                 errDiv.textContent = 'Bağlantı hatası: ' + err.message;
             });
     }
+
+    const tenantAppDomain = '<?php echo $app_domain; ?>';
+
+    function sanitizeSlug(raw) {
+        let val = (raw || '').trim().toLowerCase();
+        val = val.replace(/^https?:\/\//i, '');
+        val = val.replace(/\/.*$/, '');
+        val = val.replace(/:\d+$/, '');
+        const pattern = tenantAppDomain.replace('.', '\\.');
+        val = val.replace(new RegExp('[-.]' + pattern + '$', 'i'), '');
+        val = val.replace(/^@/, '');
+        return val;
+    }
+
+    function openTenantLoginModal(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById('tenantLoginModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            const input = document.getElementById('tenantModalInput');
+            if (input) {
+                input.focus();
+                updateTenantPreview();
+            }
+        }
+    }
+
+    function closeTenantLoginModal() {
+        const modal = document.getElementById('tenantLoginModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function updateTenantPreview() {
+        const input = document.getElementById('tenantModalInput');
+        const preview = document.getElementById('tenantModalPreviewUrl');
+        if (!input || !preview) return;
+        const slug = sanitizeSlug(input.value);
+        if (slug && !slug.includes('@') && !slug.includes('.')) {
+            preview.textContent = 'https://' + slug + '-' + tenantAppDomain + '/login';
+        } else if (input.value.trim()) {
+            preview.textContent = 'İşletme aranıyor...';
+        } else {
+            preview.textContent = 'https://...-' + tenantAppDomain + '/login';
+        }
+    }
+
+    document.getElementById('tenantModalInput')?.addEventListener('input', updateTenantPreview);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeTenantLoginModal();
+    });
+
+    function handleTenantModalSubmit(e) {
+        e.preventDefault();
+        const input = document.getElementById('tenantModalInput');
+        const btn = document.getElementById('tenantModalBtn');
+        const rawVal = (input ? input.value : '').trim();
+        if (!rawVal) return;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span>Yönlendiriliyor...</span> <i class="fas fa-spinner fa-spin"></i>';
+        }
+
+        const slug = sanitizeSlug(rawVal);
+        if (slug && /^[a-z0-9-]+$/.test(slug)) {
+            window.location.href = 'https://' + slug + '-' + tenantAppDomain + '/login';
+        } else {
+            window.location.href = '<?php echo $portal_url; ?>';
+        }
+    }
     </script>
+
+    <!-- Tenant Login Modal -->
+    <div id="tenantLoginModal" class="tenant-login-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="tenantModalTitle">
+        <div class="tenant-login-backdrop" onclick="closeTenantLoginModal()"></div>
+        <div class="tenant-login-dialog">
+            <button type="button" class="tenant-login-close" onclick="closeTenantLoginModal()" aria-label="Kapat">&times;</button>
+            <div class="tenant-modal-badge"><i class="fas fa-store"></i> BooKi İşletme Girişi</div>
+            <h3 id="tenantModalTitle" class="tenant-modal-title">Yönetim Panelinize Giriş Yapın</h3>
+            <p class="tenant-modal-desc">Superadmin'de belirlenen işletme kullanıcı adınızı (subdomain) girerek yönetim panelinize doğrudan ulaşın.</p>
+            
+            <form id="tenantModalForm" onsubmit="handleTenantModalSubmit(event)">
+                <div class="tenant-input-group">
+                    <label for="tenantModalInput">İşletme Kullanıcı Adı (Subdomain)</label>
+                    <div class="tenant-input-wrap">
+                        <i class="fas fa-store"></i>
+                        <input type="text" id="tenantModalInput" placeholder="isletme-kullanici-adi" autocomplete="off" spellcheck="false" required>
+                    </div>
+                    <div class="tenant-modal-preview">
+                        Adres: <strong id="tenantModalPreviewUrl">https://...-bookiapp.kibusiness.co/login</strong>
+                    </div>
+                </div>
+                
+                <button type="submit" id="tenantModalBtn" class="tenant-modal-btn">
+                    <span>Giriş Ekranına Git</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+            
+            <div class="tenant-modal-footer">
+                <a href="<?php echo $portal_url; ?>" class="tenant-modal-portal-link">
+                    <i class="fas fa-search"></i> İşletme adınızı hatırlamıyor musunuz? E-posta ile bulun
+                </a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -70,7 +70,7 @@ class Landing extends EA_Controller
             'page_title' => 'BooKi — Online Randevu ve Salon Yönetim Sistemi',
             'featured_tenants' => $featured,
             'app_domain' => $app_domain,
-            'portal_url' => 'https://' . $app_domain . '/',
+            'portal_url' => 'https://' . $app_domain . '/portal',
         ]);
 
         $this->load->view('pages/landing_home');
@@ -88,7 +88,7 @@ class Landing extends EA_Controller
         html_vars([
             'page_title' => 'BooKi — Privacy Policy / Gizlilik Politikası',
             'app_domain' => $app_domain,
-            'portal_url' => 'https://' . $app_domain . '/',
+            'portal_url' => 'https://' . $app_domain . '/portal',
         ]);
 
         $this->load->view('pages/privacy_policy');
@@ -106,9 +106,65 @@ class Landing extends EA_Controller
         html_vars([
             'page_title' => 'BooKi — Terms of Service / Kullanım Şartları',
             'app_domain' => $app_domain,
-            'portal_url' => 'https://' . $app_domain . '/',
+            'portal_url' => 'https://' . $app_domain . '/portal',
         ]);
 
         $this->load->view('pages/terms_of_service');
+    }
+
+    /**
+     * Render the public "About Us / Hakkımızda" page.
+     */
+    public function about(): void
+    {
+        method('get');
+
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+
+        html_vars([
+            'page_title' => 'BooKi — About Us / Hakkımızda',
+            'app_domain' => $app_domain,
+            'portal_url' => 'https://' . $app_domain . '/portal',
+        ]);
+
+        $this->load->view('pages/about_us');
+    }
+
+    /**
+     * Render the Distance Sales Contract / Mesafeli Satış Sözleşmesi page
+     * (required for e-commerce / iyzico merchant approval).
+     */
+    public function mesafeli_satis(): void
+    {
+        method('get');
+
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+
+        html_vars([
+            'page_title' => 'BooKi — Mesafeli Satış Sözleşmesi / Distance Sales Contract',
+            'app_domain' => $app_domain,
+            'portal_url' => 'https://' . $app_domain . '/portal',
+        ]);
+
+        $this->load->view('pages/mesafeli_satis');
+    }
+
+    /**
+     * Render the Delivery & Returns / Teslimat ve İade page
+     * (required for e-commerce / iyzico merchant approval).
+     */
+    public function teslimat_iade(): void
+    {
+        method('get');
+
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+
+        html_vars([
+            'page_title' => 'BooKi — Teslimat ve İade Politikası / Delivery & Returns Policy',
+            'app_domain' => $app_domain,
+            'portal_url' => 'https://' . $app_domain . '/portal',
+        ]);
+
+        $this->load->view('pages/teslimat_iade');
     }
 }

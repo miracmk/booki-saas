@@ -14,7 +14,28 @@ $canonical_url = $canonical_url ?? base_url('marketplace');
 $meta_description = $meta_description ?? 'Şehrinizdeki en iyi kuaför, berber, güzellik merkezi ve klinikleri keşfedin, müşteri yorumlarını inceleyin ve hemen online randevu alın.';
 $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
 $portal_url = 'https://' . $app_domain . '/portal';
-$login_url = 'https://' . $app_domain . '/login';
+$login_url = $portal_url;
+
+$cities = $cities ?? [];
+$districts = $districts ?? [];
+$popular_categories = $popular_categories ?? [
+    ['name' => 'Kuaför & Saç', 'icon' => 'fas fa-cut'],
+    ['name' => 'Güzellik & Bakım', 'icon' => 'fas fa-spa'],
+    ['name' => 'Tırnak & Estetik', 'icon' => 'fas fa-paint-brush'],
+    ['name' => 'Berber & Erkek', 'icon' => 'fas fa-scissors'],
+    ['name' => 'Masaj & Terapi', 'icon' => 'fas fa-hand-sparkles'],
+    ['name' => 'Klinik & Sağlık', 'icon' => 'fas fa-stethoscope'],
+    ['name' => 'Fitness & PT', 'icon' => 'fas fa-dumbbell'],
+    ['name' => 'Oto Detailing', 'icon' => 'fas fa-car'],
+];
+$tenants = $tenants ?? [];
+$leads = $leads ?? [];
+$total = $total ?? (count($tenants) + count($leads));
+$total_pages = $total_pages ?? 1;
+$page = $page ?? 1;
+$category_display = $category_display ?? '';
+$city_display = $city_display ?? '';
+$district_display = $district_display ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="tr">
@@ -22,8 +43,10 @@ $login_url = 'https://' . $app_domain . '/login';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title ?? 'RandevuBurada — Türkiye\'nin Online Randevu ve Hizmet Pazaryeri | by BooKi'); ?></title>
-    <meta name="description" content="<?php echo htmlspecialchars($meta_description ?? 'RandevuBurada; kuaför, berber, güzellik salonu, spa ve kliniklerden 7/24 online randevu alabileceğiniz BooKi hizmet pazaryeridir.'); ?>">
     <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url('assets/img/randevuburada-favicon-32.png'); ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?php echo base_url('assets/img/randevuburada-favicon-192.png'); ?>">
+    <link rel="shortcut icon" href="<?php echo base_url('assets/img/randevuburada-favicon.ico'); ?>">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -224,6 +247,154 @@ $login_url = 'https://' . $app_domain . '/login';
             transition: background-color 0.15s;
         }
         .btn-nav-login:hover { background-color: var(--surface-alt, #f1f5f9); color: #0f172a; }
+        
+        /* Tenant Login Modal */
+        .tenant-login-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .tenant-login-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+        }
+        .tenant-login-dialog {
+            position: relative;
+            background: #ffffff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 440px;
+            padding: 2.2rem 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            text-align: left;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .tenant-login-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.2rem;
+            background: none;
+            border: none;
+            font-size: 1.7rem;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .tenant-login-close:hover { color: #0f172a; }
+        .tenant-modal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: #ccfbf1;
+            color: #0f766e;
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 0.8rem;
+        }
+        .tenant-modal-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+        }
+        .tenant-modal-desc {
+            font-size: 0.88rem;
+            color: #64748b;
+            margin-bottom: 1.4rem;
+            line-height: 1.45;
+        }
+        .tenant-input-group label {
+            display: block;
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+        }
+        .tenant-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .tenant-input-wrap i {
+            position: absolute;
+            left: 0.9rem;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        .tenant-input-wrap input {
+            width: 100%;
+            padding: 0.7rem 0.9rem 0.7rem 2.4rem;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .tenant-input-wrap input:focus {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+        .tenant-modal-preview {
+            margin-top: 0.5rem;
+            font-size: 0.78rem;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            word-break: break-all;
+        }
+        .tenant-modal-preview strong {
+            color: #0f766e;
+        }
+        .tenant-modal-btn {
+            width: 100%;
+            margin-top: 1.1rem;
+            padding: 0.8rem;
+            background: #0f766e;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: background 0.15s, transform 0.15s;
+        }
+        .tenant-modal-btn:hover {
+            background: #115e59;
+            transform: translateY(-1px);
+        }
+        .tenant-modal-footer {
+            margin-top: 1.2rem;
+            text-align: center;
+            font-size: 0.82rem;
+        }
+        .tenant-modal-portal-link {
+            color: #0f766e;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .tenant-modal-portal-link:hover { text-decoration: underline; }
+        
         .btn-nav-business {
             background-color: #0f766e;
             color: #ffffff !important;
@@ -771,9 +942,8 @@ $login_url = 'https://' . $app_domain . '/login';
     <!-- Top Navigation -->
     <header class="navbar">
         <div class="container navbar-content">
-            <a href="<?php echo function_exists('randevuburada_url') ? randevuburada_url() : 'https://randevuburada.kibusiness.co'; ?>" class="nav-brand">
-                <i class="fas fa-calendar-check" style="color:var(--primary)"></i>
-                <span>RandevuBurada</span>
+            <a href="<?php echo function_exists('randevuburada_url') ? randevuburada_url() : 'https://randevuburada.kibusiness.co'; ?>" class="nav-brand" style="display:flex; align-items:center; gap:0.5rem; text-decoration:none;">
+                <img src="<?php echo base_url('assets/img/randevuburada-logo.png'); ?>" alt="RandevuBurada" style="height:38px; width:auto; display:block;">
                 <span class="nav-brand-badge">by BooKi</span>
             </a>
 
@@ -789,7 +959,7 @@ $login_url = 'https://' . $app_domain . '/login';
                 <a href="https://booki.kibusiness.co" target="_blank" rel="noopener" class="partner-software-link">
                     <i class="fas fa-desktop me-1"></i> BooKi Yazılımı ↗
                 </a>
-                <a href="<?php echo $login_url; ?>" class="btn-nav-login">
+                <a href="<?php echo $portal_url; ?>" class="btn-nav-login" onclick="openTenantLoginModal(event)">
                     <i class="fas fa-user-circle me-1"></i> Giriş Yap
                 </a>
                 <a href="https://booki.kibusiness.co" target="_blank" rel="noopener" class="btn-nav-business">
@@ -907,7 +1077,18 @@ $login_url = 'https://' . $app_domain . '/login';
         <div class="discovery-header">
             <div>
                 <h2 class="discovery-title" style="display:inline-block;">
-                    <?php echo !empty($selected_category) ? htmlspecialchars($selected_category) : 'Öne Çıkan İşletmeler'; ?>
+                    <?php 
+                    if (!empty($category_display)) {
+                        $hdr = htmlspecialchars($category_display);
+                        if (!empty($district_display)) $hdr .= ' - ' . htmlspecialchars($district_display);
+                        if (!empty($city_display)) $hdr .= ', ' . htmlspecialchars($city_display);
+                        echo $hdr;
+                    } elseif (!empty($selected_category)) {
+                        echo htmlspecialchars($selected_category);
+                    } else {
+                        echo 'Öne Çıkan İşletmeler';
+                    }
+                    ?>
                 </h2>
                 <span class="discovery-count">(<?php echo (int) $total; ?> işletme bulundu)</span>
             </div>
@@ -934,78 +1115,123 @@ $login_url = 'https://' . $app_domain . '/login';
         </div>
 
         <!-- Businesses Grid -->
-        <?php if (!empty($tenants)): ?>
+        <?php 
+        $all_cards = [];
+        if (!empty($tenants)) {
+            foreach ($tenants as $tenant) {
+                $displayName = !empty($tenant['company_name']) ? $tenant['company_name'] : $tenant['subdomain'];
+                $all_cards[] = [
+                    'title' => $displayName,
+                    'url' => randevuburada_url('business/' . urlencode($tenant['subdomain'])),
+                    'image' => $tenant['cover_image_url'] ?? '',
+                    'category' => $tenant['category'] ?? '',
+                    'verified' => true,
+                    'rating' => ((int)($tenant['review_count'] ?? 0) > 0) ? round((float)$tenant['avg_rating'], 1) : null,
+                    'review_count' => (int)($tenant['review_count'] ?? 0),
+                    'location' => implode(', ', array_filter([$tenant['district'] ?? null, $tenant['city'] ?? null])) ?: 'Türkiye',
+                    'distance' => $tenant['distance'] ?? null,
+                    'description' => $tenant['short_description'] ?? 'Seçkin randevulu hizmetler, profesyonel uzman kadrosu ve anında online onay ile randevu imkanı.',
+                    'price' => $tenant['price_range'] ?? '₺₺',
+                    'btn_text' => 'Randevu Al',
+                ];
+            }
+        }
+        if (!empty($leads)) {
+            foreach ($leads as $l) {
+                $displayName = $l['name'] ?? 'İşletme';
+                $cover = '';
+                if (!empty($l['photo_references'])) {
+                    $refs = is_array($l['photo_references']) ? $l['photo_references'] : json_decode($l['photo_references'], true);
+                    if (!empty($refs[0])) {
+                        $cover = randevuburada_url('api/places/photo?ref=' . urlencode($refs[0]) . '&maxwidth=600');
+                    }
+                }
+                $isClaimed = ($l['membership_status'] ?? 'unclaimed') === 'claimed_member';
+                $all_cards[] = [
+                    'title' => $displayName,
+                    'url' => !empty($l['slug']) ? randevuburada_url('isletme/' . urlencode($l['slug'])) : '#',
+                    'image' => $cover ?: ($l['cover_image_url'] ?? ''),
+                    'category' => $l['sector'] ?? ($l['primary_type'] ?? ''),
+                    'verified' => $isClaimed,
+                    'rating' => (!empty($l['rating']) && (float)$l['rating'] > 0) ? round((float)$l['rating'], 1) : null,
+                    'review_count' => (int)($l['user_rating_count'] ?? 0),
+                    'location' => implode(', ', array_filter([$l['neighborhood'] ?? null, $l['district'] ?? null, $l['city'] ?? null])) ?: 'Türkiye',
+                    'distance' => null,
+                    'description' => !empty($l['address']) ? $l['address'] : 'RandevuBurada randevu ve rezervasyon noktası.',
+                    'price' => $l['price_level'] ?? '₺₺',
+                    'btn_text' => $isClaimed ? 'Randevu Al' : 'İncele & Randevu İste',
+                ];
+            }
+        }
+        ?>
+
+        <?php if (!empty($all_cards)): ?>
             <div class="businesses-grid">
-                <?php foreach ($tenants as $tenant): 
-                    $displayName = !empty($tenant['company_name']) ? $tenant['company_name'] : $tenant['subdomain'];
-                    $detailUrl = base_url('marketplace/business/' . urlencode($tenant['subdomain']));
-                ?>
+                <?php foreach ($all_cards as $card): ?>
                     <article class="business-card">
                         <div class="card-cover">
-                            <?php if (!empty($tenant['cover_image_url'])): ?>
-                                <img src="<?php echo htmlspecialchars($tenant['cover_image_url']); ?>" alt="<?php echo htmlspecialchars($displayName); ?>" loading="lazy">
+                            <?php if (!empty($card['image'])): ?>
+                                <img src="<?php echo htmlspecialchars($card['image']); ?>" alt="<?php echo htmlspecialchars($card['title']); ?>" loading="lazy" onerror="this.style.display='none'; var ph = this.nextElementSibling; if(ph) ph.style.display='flex';">
+                                <div class="card-cover-placeholder" style="display:none;">
+                                    <i class="fas fa-spa"></i>
+                                </div>
                             <?php else: ?>
                                 <div class="card-cover-placeholder">
                                     <i class="fas fa-spa"></i>
                                 </div>
                             <?php endif; ?>
 
-                            <div class="badge-verified">
-                                <i class="fas fa-check-circle"></i> Doğrulanmış
-                            </div>
+                            <?php if ($card['verified']): ?>
+                                <div class="badge-verified">
+                                    <i class="fas fa-check-circle"></i> Doğrulanmış
+                                </div>
+                            <?php else: ?>
+                                <div class="badge-verified" style="background:rgba(245,158,11,0.9); color:#fff;">
+                                    <i class="fas fa-map-pin"></i> Keşfedilen
+                                </div>
+                            <?php endif; ?>
 
-                            <?php if (!empty($tenant['category'])): ?>
-                                <span class="badge-category"><?php echo htmlspecialchars($tenant['category']); ?></span>
+                            <?php if (!empty($card['category'])): ?>
+                                <span class="badge-category"><?php echo htmlspecialchars($card['category']); ?></span>
                             <?php endif; ?>
                         </div>
 
                         <div class="card-body">
                             <div class="card-title-row">
-                                <a href="<?php echo $detailUrl; ?>" class="card-title">
-                                    <?php echo htmlspecialchars($displayName); ?>
+                                <a href="<?php echo $card['url']; ?>" class="card-title">
+                                    <?php echo htmlspecialchars($card['title']); ?>
                                 </a>
                                 <div class="card-rating-badge">
                                     <i class="fas fa-star" style="color:#d97706;"></i>
-                                    <span><?php echo ((int)$tenant['review_count'] > 0) ? round((float)$tenant['avg_rating'], 1) : 'Yeni'; ?></span>
-                                    <?php if ((int)$tenant['review_count'] > 0): ?>
-                                        <small style="color:#78350f;">(<?php echo $tenant['review_count']; ?>)</small>
+                                    <span><?php echo ($card['rating'] !== null) ? $card['rating'] : 'Yeni'; ?></span>
+                                    <?php if ($card['review_count'] > 0): ?>
+                                        <small style="color:#78350f;">(<?php echo $card['review_count']; ?>)</small>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
                             <div class="card-location">
                                 <i class="fas fa-map-marker-alt" style="color:var(--primary)"></i>
-                                <span>
-                                    <?php 
-                                    $locParts = array_filter([$tenant['district'] ?? null, $tenant['city'] ?? null]);
-                                    echo htmlspecialchars(!empty($locParts) ? implode(', ', $locParts) : 'Türkiye');
-                                    ?>
-                                </span>
-                                <?php if (isset($tenant['distance'])): ?>
+                                <span><?php echo htmlspecialchars($card['location']); ?></span>
+                                <?php if (isset($card['distance']) && $card['distance'] !== null): ?>
                                     <span style="color:var(--primary); font-weight:700; margin-left:auto;">
-                                        <?php echo number_format((float) $tenant['distance'], 1); ?> km
+                                        <?php echo number_format((float) $card['distance'], 1); ?> km
                                     </span>
                                 <?php endif; ?>
                             </div>
 
-                            <?php if (!empty($tenant['short_description'])): ?>
-                                <p class="card-description">
-                                    <?php echo htmlspecialchars($tenant['short_description']); ?>
-                                </p>
-                            <?php else: ?>
-                                <p class="card-description">
-                                    Seçkin randevulu hizmetler, profesyonel uzman kadrosu ve anında online onay ile randevu imkanı.
-                                </p>
-                            <?php endif; ?>
+                            <p class="card-description">
+                                <?php echo htmlspecialchars($card['description']); ?>
+                            </p>
 
                             <div class="card-footer-action">
                                 <div class="card-price-hint">
                                     Fiyat Seviyesi
-                                    <strong><?php echo htmlspecialchars($tenant['price_range'] ?? '₺₺'); ?></strong>
+                                    <strong><?php echo htmlspecialchars($card['price']); ?></strong>
                                 </div>
 
-                                <a href="<?php echo $detailUrl; ?>" class="btn-card-book">
-                                    Randevu Al <i class="fas fa-arrow-right"></i>
+                                <a href="<?php echo $card['url']; ?>" class="btn-card-book">
+                                    <?php echo htmlspecialchars($card['btn_text']); ?> <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
                         </div>
@@ -1100,8 +1326,7 @@ $login_url = 'https://' . $app_domain . '/login';
             <div class="footer-grid">
                 <div>
                     <div class="footer-brand-title" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
-                        <i class="fas fa-calendar-check" style="color:#34d399;"></i>
-                        <span>RandevuBurada</span>
+                        <img src="<?php echo base_url('assets/img/randevuburada-logo.png'); ?>" alt="RandevuBurada" style="height:32px; width:auto; display:block; filter:brightness(0) invert(1);">
                         <span style="font-size:0.7rem; font-weight:700; color:#34d399; background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:12px;">by BooKi</span>
                     </div>
                     <p class="footer-desc" style="font-size:0.92rem; color:#e2e8f0; font-weight:600; margin-bottom:0.4rem;">
@@ -1144,26 +1369,144 @@ $login_url = 'https://' . $app_domain . '/login';
                         <li><a href="https://booki.kibusiness.co/#ozellikler" target="_blank" rel="noopener">Salon Yazılımı Özellikleri</a></li>
                         <li><a href="https://booki.kibusiness.co/#fiyatlandirma" target="_blank" rel="noopener">Paketler & Fiyatlar</a></li>
                         <li><a href="https://booki.kibusiness.co/#pazar-yeri" target="_blank" rel="noopener">Pazaryeri Büyüme Motoru</a></li>
-                        <li><a href="<?php echo $login_url; ?>" target="_blank" rel="noopener">İşletme Yönetim Girişi</a></li>
+                        <li><a href="<?php echo $portal_url; ?>" onclick="openTenantLoginModal(event)">İşletme Yönetim Girişi</a></li>
                         <li><a href="https://booki.kibusiness.co/marketplace">booki.kibusiness.co/marketplace</a></li>
                     </ul>
                 </div>
             </div>
 
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;padding-top:1.75rem;border-top:1px solid #1e293b;margin-bottom:1.75rem;">
+                <span style="font-size:0.78rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em;">Güvenli Ödeme</span>
+                <img src="<?= asset_url('assets/img/iyzico/footer_iyzico_ile_ode.svg') ?>" alt="iyzico ile Öde" style="height:28px;width:auto;" loading="lazy">
+                <img src="<?= asset_url('assets/img/iyzico/visa.svg') ?>" alt="Visa" style="height:24px;width:auto;" loading="lazy">
+                <img src="<?= asset_url('assets/img/iyzico/mastercard.svg') ?>" alt="Mastercard" style="height:26px;width:auto;" loading="lazy">
+            </div>
+
             <div class="footer-bottom">
                 <div>&copy; <?php echo date('Y'); ?> RandevuBurada · <strong>RandevuBurada, BooKi Hizmet Pazaryeridir.</strong> Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</div>
                 <div>
+                    <a href="<?php echo base_url('about'); ?>" style="color:#64748b; margin-right:1.25rem;">Hakkımızda</a>
                     <a href="<?php echo base_url('privacy'); ?>" style="color:#64748b; margin-right:1.25rem;">Gizlilik / KVKK</a>
-                    <a href="<?php echo base_url('terms'); ?>" style="color:#64748b;">Kullanım Koşulları</a>
+                    <a href="<?php echo base_url('terms'); ?>" style="color:#64748b; margin-right:1.25rem;">Kullanım Koşulları</a>
+                    <a href="<?php echo base_url('mesafeli-satis'); ?>" style="color:#64748b; margin-right:1.25rem;">Mesafeli Satış</a>
+                    <a href="<?php echo base_url('teslimat-iade'); ?>" style="color:#64748b;">Teslimat &amp; İade</a>
                 </div>
             </div>
         </div>
     </footer>
 
+    <!-- Tenant Login Modal -->
+    <div id="tenantLoginModal" class="tenant-login-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="tenantModalTitle">
+        <div class="tenant-login-backdrop" onclick="closeTenantLoginModal()"></div>
+        <div class="tenant-login-dialog">
+            <button type="button" class="tenant-login-close" onclick="closeTenantLoginModal()" aria-label="Kapat">&times;</button>
+            <div class="tenant-modal-badge"><i class="fas fa-store"></i> BooKi İşletme Girişi</div>
+            <h3 id="tenantModalTitle" class="tenant-modal-title">Yönetim Panelinize Giriş Yapın</h3>
+            <p class="tenant-modal-desc">Superadmin'de belirlenen işletme kullanıcı adınızı (subdomain) girerek yönetim panelinize doğrudan ulaşın.</p>
+            
+            <form id="tenantModalForm" onsubmit="handleTenantModalSubmit(event)">
+                <div class="tenant-input-group">
+                    <label for="tenantModalInput">İşletme Kullanıcı Adı (Subdomain)</label>
+                    <div class="tenant-input-wrap">
+                        <i class="fas fa-store"></i>
+                        <input type="text" id="tenantModalInput" placeholder="isletme-kullanici-adi" autocomplete="off" spellcheck="false" required>
+                    </div>
+                    <div class="tenant-modal-preview">
+                        Adres: <strong id="tenantModalPreviewUrl">https://...-bookiapp.kibusiness.co/login</strong>
+                    </div>
+                </div>
+                
+                <button type="submit" id="tenantModalBtn" class="tenant-modal-btn">
+                    <span>Giriş Ekranına Git</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+            
+            <div class="tenant-modal-footer">
+                <a href="<?php echo $portal_url; ?>" class="tenant-modal-portal-link">
+                    <i class="fas fa-search"></i> İşletme adınızı hatırlamıyor musunuz? E-posta ile bulun
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
     <script>
+    const tenantAppDomain = '<?php echo $app_domain; ?>';
+
+    function sanitizeSlug(raw) {
+        let val = (raw || '').trim().toLowerCase();
+        val = val.replace(/^https?:\/\//i, '');
+        val = val.replace(/\/.*$/, '');
+        val = val.replace(/:\d+$/, '');
+        const pattern = tenantAppDomain.replace('.', '\\.');
+        val = val.replace(new RegExp('[-.]' + pattern + '$', 'i'), '');
+        val = val.replace(/^@/, '');
+        return val;
+    }
+
+    function openTenantLoginModal(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById('tenantLoginModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            const input = document.getElementById('tenantModalInput');
+            if (input) {
+                input.focus();
+                updateTenantPreview();
+            }
+        }
+    }
+
+    function closeTenantLoginModal() {
+        const modal = document.getElementById('tenantLoginModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function updateTenantPreview() {
+        const input = document.getElementById('tenantModalInput');
+        const preview = document.getElementById('tenantModalPreviewUrl');
+        if (!input || !preview) return;
+        const slug = sanitizeSlug(input.value);
+        if (slug && !slug.includes('@') && !slug.includes('.')) {
+            preview.textContent = 'https://' + slug + '-' + tenantAppDomain + '/login';
+        } else if (input.value.trim()) {
+            preview.textContent = 'İşletme aranıyor...';
+        } else {
+            preview.textContent = 'https://...-' + tenantAppDomain + '/login';
+        }
+    }
+
+    document.getElementById('tenantModalInput')?.addEventListener('input', updateTenantPreview);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeTenantLoginModal();
+    });
+
+    function handleTenantModalSubmit(e) {
+        e.preventDefault();
+        const input = document.getElementById('tenantModalInput');
+        const btn = document.getElementById('tenantModalBtn');
+        const rawVal = (input ? input.value : '').trim();
+        if (!rawVal) return;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span>Yönlendiriliyor...</span> <i class="fas fa-spinner fa-spin"></i>';
+        }
+
+        const slug = sanitizeSlug(rawVal);
+        if (slug && /^[a-z0-9-]+$/.test(slug)) {
+            window.location.href = 'https://' + slug + '-' + tenantAppDomain + '/login';
+        } else {
+            window.location.href = '<?php echo $portal_url; ?>';
+        }
+    }
+
     function showToast(msg, type = 'info') {
         const t = document.getElementById('toast');
         t.textContent = msg;
