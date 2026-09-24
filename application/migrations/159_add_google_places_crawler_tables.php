@@ -177,10 +177,27 @@ class Migration_Add_google_places_crawler_tables extends CI_Migration
             }
 
             // Add index and unique on place_id if not exists
-            $db->query('ALTER TABLE ' . $db->dbprefix('leads') . 
-                ' ADD UNIQUE INDEX idx_leads_place_id (place_id),' .
-                ' ADD INDEX idx_leads_business_status (business_status),' .
-                ' ADD INDEX idx_leads_discovery_state (discovery_state)');
+            $leads_index_parts = [
+                'idx_leads_place_id' => 'ADD UNIQUE INDEX idx_leads_place_id (place_id)',
+                'idx_leads_business_status' => 'ADD INDEX idx_leads_business_status (business_status)',
+                'idx_leads_discovery_state' => 'ADD INDEX idx_leads_discovery_state (discovery_state)',
+            ];
+
+            $existing_leads_indexes = [];
+            foreach ($db->query('SHOW INDEX FROM ' . $db->dbprefix('leads'))->result_array() as $leads_index_row) {
+                $existing_leads_indexes[$leads_index_row['Key_name']] = true;
+            }
+
+            $leads_index_adds = [];
+            foreach ($leads_index_parts as $leads_index_name => $leads_index_sql) {
+                if (!isset($existing_leads_indexes[$leads_index_name])) {
+                    $leads_index_adds[] = $leads_index_sql;
+                }
+            }
+
+            if (!empty($leads_index_adds)) {
+                $db->query('ALTER TABLE ' . $db->dbprefix('leads') . ' ' . implode(', ', $leads_index_adds));
+            }
         }
 
         // 2. Create `crawl_jobs` table

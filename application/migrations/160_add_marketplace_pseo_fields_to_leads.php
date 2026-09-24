@@ -18,6 +18,8 @@ class Migration_Add_marketplace_pseo_fields_to_leads extends CI_Migration
             return;
         }
 
+        $leads_tbl = '`' . $db->dbprefix('leads') . '`';
+
         $fields_to_add = [];
 
         if (!$db->field_exists('enrichment_status', 'leads')) {
@@ -129,19 +131,19 @@ class Migration_Add_marketplace_pseo_fields_to_leads extends CI_Migration
 
         // Add indexes safely
         $indexes = [
-            'idx_leads_enrichment_status' => 'ALTER TABLE `leads` ADD INDEX `idx_leads_enrichment_status` (`enrichment_status`)',
-            'idx_leads_membership_status' => 'ALTER TABLE `leads` ADD INDEX `idx_leads_membership_status` (`membership_status`)',
-            'idx_leads_pseo_status' => 'ALTER TABLE `leads` ADD INDEX `idx_leads_pseo_status` (`enrichment_status`, `membership_status`)',
-            'idx_leads_slug' => 'ALTER TABLE `leads` ADD UNIQUE INDEX `idx_leads_slug` (`slug`)',
-            'idx_leads_claim_token' => 'ALTER TABLE `leads` ADD UNIQUE INDEX `idx_leads_claim_token` (`claim_token`)',
-            'idx_leads_google_place_id' => 'ALTER TABLE `leads` ADD INDEX `idx_leads_google_place_id` (`google_place_id`)',
-            'idx_leads_city' => 'ALTER TABLE `leads` ADD INDEX `idx_leads_city` (`city`)',
-            'idx_leads_neighborhood' => 'ALTER TABLE `leads` ADD INDEX `idx_leads_neighborhood` (`neighborhood`)',
+            'idx_leads_enrichment_status' => "ALTER TABLE {$leads_tbl} ADD INDEX `idx_leads_enrichment_status` (`enrichment_status`)",
+            'idx_leads_membership_status' => "ALTER TABLE {$leads_tbl} ADD INDEX `idx_leads_membership_status` (`membership_status`)",
+            'idx_leads_pseo_status' => "ALTER TABLE {$leads_tbl} ADD INDEX `idx_leads_pseo_status` (`enrichment_status`, `membership_status`)",
+            'idx_leads_slug' => "ALTER TABLE {$leads_tbl} ADD UNIQUE INDEX `idx_leads_slug` (`slug`)",
+            'idx_leads_claim_token' => "ALTER TABLE {$leads_tbl} ADD UNIQUE INDEX `idx_leads_claim_token` (`claim_token`)",
+            'idx_leads_google_place_id' => "ALTER TABLE {$leads_tbl} ADD INDEX `idx_leads_google_place_id` (`google_place_id`)",
+            'idx_leads_city' => "ALTER TABLE {$leads_tbl} ADD INDEX `idx_leads_city` (`city`)",
+            'idx_leads_neighborhood' => "ALTER TABLE {$leads_tbl} ADD INDEX `idx_leads_neighborhood` (`neighborhood`)",
         ];
 
         foreach ($indexes as $index_name => $sql) {
             try {
-                $check = $db->query("SHOW INDEX FROM `leads` WHERE Key_name = ?", [$index_name])->num_rows();
+                $check = $db->query("SHOW INDEX FROM {$leads_tbl} WHERE Key_name = ?", [$index_name])->num_rows();
                 if ($check === 0) {
                     $db->query($sql);
                 }
@@ -154,20 +156,20 @@ class Migration_Add_marketplace_pseo_fields_to_leads extends CI_Migration
         // 1. Sync place_id into google_place_id if place_id exists
         try {
             if ($db->field_exists('place_id', 'leads')) {
-                $db->query("UPDATE `leads` SET `google_place_id` = `place_id` WHERE `google_place_id` IS NULL AND `place_id` IS NOT NULL");
+                $db->query("UPDATE {$leads_tbl} SET `google_place_id` = `place_id` WHERE `google_place_id` IS NULL AND `place_id` IS NOT NULL");
             }
         } catch (Throwable $e) {}
 
         // 2. Mark previously enriched leads
         try {
             if ($db->field_exists('enriched_at', 'leads')) {
-                $db->query("UPDATE `leads` SET `enrichment_status` = 'enriched_lead' WHERE `enriched_at` IS NOT NULL");
+                $db->query("UPDATE {$leads_tbl} SET `enrichment_status` = 'enriched_lead' WHERE `enriched_at` IS NOT NULL");
             }
         } catch (Throwable $e) {}
 
         // 3. Generate claim_token for existing leads
         try {
-            $db->query("UPDATE `leads` SET `claim_token` = MD5(CONCAT(id, RAND(), NOW())) WHERE `claim_token` IS NULL OR `claim_token` = ''");
+            $db->query("UPDATE {$leads_tbl} SET `claim_token` = MD5(CONCAT(id, RAND(), NOW())) WHERE `claim_token` IS NULL OR `claim_token` = ''");
         } catch (Throwable $e) {}
 
         // 4. Backfill slug for leads

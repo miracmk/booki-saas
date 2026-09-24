@@ -226,10 +226,16 @@ class Blueprint_service
                     'sale_price' => (float) ($csm['sale_price'] ?? 0.00),
                     'stock_quantity' => (float) ($csm['stock_quantity'] ?? 100),
                     'low_stock_threshold' => (int) ($csm['low_stock_threshold'] ?? 10),
-                    'unit' => $csm['unit'] ?? 'adet',
-                    'is_consumable' => 1,
                     'is_active' => 1,
                 ];
+
+                if ($this->CI->db->field_exists('unit', 'products')) {
+                    $prod_data['unit'] = $csm['unit'] ?? 'adet';
+                }
+
+                if ($this->CI->db->field_exists('is_consumable', 'products')) {
+                    $prod_data['is_consumable'] = 1;
+                }
                 if ($existing_prod) {
                     $prod_data['updated_at'] = date('Y-m-d H:i:s');
                     $this->CI->db->update('products', $prod_data, ['id' => $existing_prod['id']]);

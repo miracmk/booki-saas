@@ -11,7 +11,9 @@ class Migration_Add_short_code_to_reviews extends EA_Migration
 {
     public function up(): void
     {
-        if ($this->db->table_exists('reviews') && !$this->db->field_exists('short_code', 'reviews')) {
+        if ($this->db->table_exists('reviews')
+            && $this->db->field_exists('token', 'reviews')
+            && !$this->db->field_exists('short_code', 'reviews')) {
             $this->dbforge->add_column('reviews', [
                 'short_code' => [
                     'type' => 'VARCHAR',
