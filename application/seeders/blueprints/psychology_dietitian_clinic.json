@@ -1,0 +1,87 @@
+{
+  "industry": {
+    "code": "psychology_dietitian_clinic",
+    "name": "Diyetisyen / Psikolog & Danışmanlık",
+    "icon": "🧠",
+    "service_type": "provider",
+    "description": "Psikologlar, diyetisyenler, fizyoterapistler ve beslenme uzmanları için EHR klinik charting, anamnez takibi, online telehealth görüşme ve seans paketleri paketi."
+  },
+  "terminology": {
+    "customer_label": "Danışan",
+    "provider_label": "Uzman / Danışman",
+    "appointment_label": "Seans / Terapi",
+    "station_label": "Görüşme Odası",
+    "service_label": "Seans & Danışmanlık Türü"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "packages",
+    "clinical_records",
+    "telehealth",
+    "adisyon",
+    "finance",
+    "reviews",
+    "messaging"
+  ],
+  "default_settings": {
+    "business_type": "consulting",
+    "slot_interval": 50,
+    "future_booking_limit": 30,
+    "require_phone_number": true,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Bireysel Psikoterapi",
+      "description": "Bilişsel Davranışçı Terapi, EMDR ve Bireysel Psikolojik Destek"
+    },
+    {
+      "name": "Beslenme & Diyet Danışmanlığı",
+      "description": "Kilo yönetimi, sporcu beslenmesi ve kronik hastalıklarda beslenme"
+    },
+    {
+      "name": "Online / Telehealth Seansları",
+      "description": "Görüntülü online terapi ve uzaktan beslenme takibi"
+    }
+  ],
+  "services": [
+    {
+      "name": "Bireysel Psikoterapi Seansı (50 Dk)",
+      "category": "Bireysel Psikoterapi",
+      "duration": 50,
+      "price": 1800.00,
+      "attendants_number": 1,
+      "description": "Yüz yüze 50 dakikalık klinik terapi görüşmesi"
+    },
+    {
+      "name": "İlk Beslenme Değerlendirmesi & Anamnez (60 Dk)",
+      "category": "Beslenme & Diyet Danışmanlığı",
+      "duration": 60,
+      "price": 1500.00,
+      "attendants_number": 1,
+      "description": "Vücut analizi, kan tahlili değerlendirmesi ve kişiye özel diyet planlaması"
+    },
+    {
+      "name": "Online Terapi Görüşmesi (50 Dk)",
+      "category": "Online / Telehealth Seansları",
+      "duration": 50,
+      "price": 1600.00,
+      "attendants_number": 1,
+      "description": "Uçtan uca şifreli görüntülü video görüşme seansı"
+    }
+  ],
+  "stations": [
+    {
+      "name": "Terapi Odası 1 (Sakin)",
+      "capacity": 2,
+      "description": "Ses yalıtımlı klinik terapi odası"
+    },
+    {
+      "name": "Diyet & Ölçüm Odası",
+      "capacity": 2,
+      "description": "Tanita analiz cihazı ve danışmanlık alanı"
+    }
+  ]
+}

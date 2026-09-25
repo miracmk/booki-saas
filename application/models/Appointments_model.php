@@ -66,6 +66,9 @@ class Appointments_model extends EA_Model
         $this->validate($appointment);
 
         if (empty($appointment['id'])) {
+            if (function_exists('require_tenant_quota')) {
+                require_tenant_quota('appointment');
+            }
             $appointment_id = $this->insert($appointment);
             $appointment['id'] = $appointment_id;
 

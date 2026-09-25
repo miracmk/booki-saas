@@ -1,0 +1,98 @@
+{
+  "industry": {
+    "code": "experience_escape_room",
+    "name": "Kaçış Oyunu / VR & Atölye Deneyimleri",
+    "icon": "🗝️",
+    "service_type": "station",
+    "description": "Kaçış evleri, VR simülasyon salonları, seramik/resim atölyeleri için grup seans rezervasyonu, dijital feragatname (waiver) imzalama, ek paket upsell ve QR biletleme paketi."
+  },
+  "terminology": {
+    "customer_label": "Misafir / Katılımcı",
+    "provider_label": "Oyun Yöneticisi / Eğitmen",
+    "appointment_label": "Oyun / Atölye Seansı",
+    "station_label": "Oyun Odası / Deneyim İstasyonu",
+    "service_label": "Deneyim / Tema"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "digital_waivers",
+    "event_tickets",
+    "booking_addons",
+    "adisyon",
+    "finance",
+    "reviews",
+    "marketing"
+  ],
+  "default_settings": {
+    "business_type": "entertainment",
+    "slot_interval": 60,
+    "future_booking_limit": 30,
+    "require_phone_number": true,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Kaçış Odası Temaları",
+      "description": "Korku, gizem ve macera kaçış oyunu odaları"
+    },
+    {
+      "name": "VR & Sanal Gerçeklik Simülasyonu",
+      "description": "Multiplayer VR arenası ve tam donanımlı simülatörler"
+    },
+    {
+      "name": "Yaratıcı Atölye Seansları",
+      "description": "Seramik yapımı, tuval boyama ve workshop etkinlikleri"
+    }
+  ],
+  "services": [
+    {
+      "name": "Kayıp Tapınak Kaçış Oyunu (60 Dk)",
+      "category": "Kaçış Odası Temaları",
+      "duration": 60,
+      "price": 1400.00,
+      "attendants_number": 6,
+      "description": "2-6 kişilik macera ve bulmaca temalı kaçış deneyimi"
+    },
+    {
+      "name": "Multiplayer VR Arena Seansı (45 Dk)",
+      "category": "VR & Sanal Gerçeklik Simülasyonu",
+      "duration": 45,
+      "price": 1000.00,
+      "attendants_number": 4,
+      "description": "Kablosuz VR başlıklarıyla 4 kişilik ortak görev oyunu"
+    },
+    {
+      "name": "Seramik Çömlek & Tornalama Atölyesi (90 Dk)",
+      "category": "Yaratıcı Atölye Seansları",
+      "duration": 90,
+      "price": 1250.00,
+      "attendants_number": 8,
+      "description": "Kil şekillendirme ve seramik torna eğitimi (tüm malzemeler dahil)"
+    }
+  ],
+  "stations": [
+    {
+      "name": "Oda 1: Kayıp Tapınak",
+      "capacity": 6,
+      "description": "Özel ışıklandırma ve gizli geçitli kaçış odası"
+    },
+    {
+      "name": "Oda 2: Akıl Hastanesi (Korku)",
+      "capacity": 6,
+      "description": "Canlı aktörlü gerilim kaçış odası"
+    },
+    {
+      "name": "VR Arena Alanı",
+      "capacity": 4,
+      "description": "4x4 serbest hareketli sanal gerçeklik alanı"
+    },
+    {
+      "name": "Ana Atölye Masası",
+      "capacity": 8,
+      "description": "Grup workshop ve çömlek tornaları istasyonu"
+    }
+  ]
+}

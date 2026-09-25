@@ -431,7 +431,10 @@ $config['csrf_exclude_uris'] = [
     // via the per-channel token (see Google::webhook()).
     'google/webhook',
     // Payment gateway webhooks - signature verification replaces CSRF token (see Payment_webhooks.php)
+    // Payment gateway webhooks & unified callback - signature verification replaces CSRF token (see Payment_webhooks.php)
     'payment_webhooks/.*',
+    'payment/callback.*',
+    'payment/unified_callback.*',
     // WhatsApp webhook - Meta POSTs updates here with no CSRF token; verify_token validation replaces it
     'whatsapp/webhook',
     // WhatsApp unofficial bridge - ki-wa-bridge POSTs inbound messages here with no CSRF token;
@@ -455,6 +458,9 @@ $config['csrf_exclude_uris'] = [
     // Public Marketplace lead contact request (visitor contact form)
     'isletme/contact',
     'marketplace/isletme/contact',
+    'sahiplen/.*',
+    'marketplace/claim_process/.*',
+    'marketplace/check_subdomain/.*',
 ];
 
 /*

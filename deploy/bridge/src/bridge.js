@@ -109,6 +109,11 @@ async function persistSessionConfig(entry) {
         return;
     }
 
+    // writeFile does not create parent directories - on a first-ever start the
+    // tenant dir does not exist yet (createSocket's mkdirSync runs later), so
+    // without this, startSession aborts with ENOENT before any QR can be shown.
+    mkdirSync(entry.dir, { recursive: true });
+
     await writeFile(sessionConfigPath(entry.tenant), JSON.stringify({
         webhookUrl: entry.webhookUrl,
         webhookSecret: entry.webhookSecret,

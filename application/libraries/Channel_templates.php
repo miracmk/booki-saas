@@ -122,7 +122,15 @@ TPL,
      */
     public function render(string $template_key, array $data, ?string $custom_template_override = null): string
     {
-        $template = $custom_template_override ?: (self::TEMPLATES[$template_key] ?? '');
+        $template = $custom_template_override;
+        if ($template === null) {
+            // BooKi: templates are tenant-configurable via ea_settings (channel_template_<key>),
+            // falling back to the built-in default below when unset/empty.
+            $template = (string) setting('channel_template_' . $template_key, '');
+        }
+        if ($template === '') {
+            $template = self::TEMPLATES[$template_key] ?? '';
+        }
         if ($template === '') {
             return '';
         }
@@ -153,6 +161,22 @@ TPL,
         ];
 
         return str_replace(array_keys($replacements), array_values($replacements), $template);
+    }
+
+    /**
+     * Return the built-in default template body for a given key.
+     */
+    public function default_template(string $template_key): string
+    {
+        return self::TEMPLATES[$template_key] ?? '';
+    }
+
+    /**
+     * Return all supported template keys.
+     */
+    public function keys(): array
+    {
+        return array_keys(self::TEMPLATES);
     }
 
     /**

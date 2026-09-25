@@ -77,18 +77,28 @@ class Inventory_consumables_model extends EA_Model
         }
 
         // Fetch product to inherit default unit if not provided
-        if (empty($data['unit'])) {
+        $unit = !empty($data['unit']) ? $data['unit'] : null;
+        if (empty($unit)) {
             $prod = $this->db->get_where('products', ['id' => $data['id_products']])->row_array();
-            $data['unit'] = $prod['unit'] ?? 'adet';
+            $unit = $prod['unit'] ?? 'adet';
         }
 
+        $clean = [
+            'id_services' => (int) $data['id_services'],
+            'id_products' => (int) $data['id_products'],
+            'quantity_used' => (float) $data['quantity_used'],
+            'unit' => (string) $unit,
+            'notes' => isset($data['notes']) ? trim((string) $data['notes']) : null,
+        ];
+
         if (empty($data['id'])) {
-            $data['created_at'] = date('Y-m-d H:i:s');
-            $this->db->insert('service_consumables', $data);
+            $clean['created_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('service_consumables', $clean);
             return $this->db->insert_id();
         } else {
-            $this->db->update('service_consumables', $data, ['id' => $data['id']]);
-            return (int) $data['id'];
+            $id = (int) $data['id'];
+            $this->db->update('service_consumables', $clean, ['id' => $id]);
+            return $id;
         }
     }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../data/models/station_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/booking_provider.dart';
 import '../../../providers/appointments_provider.dart';
@@ -19,7 +20,7 @@ class BookingWizardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Randevu Al'),
         actions: [
-          if (state.currentStep > 0 && state.currentStep < 4)
+          if (state.currentStep > 0 && state.currentStep < 5)
             TextButton(
               onPressed: () => notifier.reset(),
               child: const Text('Sıfırla'),
@@ -30,19 +31,21 @@ class BookingWizardScreen extends ConsumerWidget {
         child: Column(
           children: [
             // İlerleme Göstergesi (Step Indicator)
-            if (state.currentStep < 4)
+            if (state.currentStep < 5)
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     _stepIndicator(0, 'Hizmet', state.currentStep >= 0),
                     _stepDivider(state.currentStep >= 1),
-                    _stepIndicator(1, 'Uzman', state.currentStep >= 1),
+                    _stepIndicator(1, 'Mekan/Oda', state.currentStep >= 1),
                     _stepDivider(state.currentStep >= 2),
-                    _stepIndicator(2, 'Tarih', state.currentStep >= 2),
+                    _stepIndicator(2, 'Uzman', state.currentStep >= 2),
                     _stepDivider(state.currentStep >= 3),
-                    _stepIndicator(3, 'Onay', state.currentStep >= 3),
+                    _stepIndicator(3, 'Tarih', state.currentStep >= 3),
+                    _stepDivider(state.currentStep >= 4),
+                    _stepIndicator(4, 'Onay', state.currentStep >= 4),
                   ],
                 ),
               ),
@@ -138,12 +141,14 @@ class BookingWizardScreen extends ConsumerWidget {
       case 0:
         return _buildServiceSelection(context, ref, notifier);
       case 1:
-        return _buildProviderSelection(context, ref, state, notifier);
+        return _buildStationSelection(context, ref, state, notifier);
       case 2:
-        return _buildDateTimeSelection(context, state, notifier);
+        return _buildProviderSelection(context, ref, state, notifier);
       case 3:
-        return _buildConfirmationStep(context, ref, state, notifier, authState);
+        return _buildDateTimeSelection(context, state, notifier);
       case 4:
+        return _buildConfirmationStep(context, ref, state, notifier, authState);
+      case 5:
         return _buildSuccessStep(context, ref, state, notifier);
       default:
         return const SizedBox.shrink();
@@ -219,7 +224,152 @@ class BookingWizardScreen extends ConsumerWidget {
     );
   }
 
-  // STEP 1: Uzman Seçimi
+  // STEP 1: İstasyon / Mekan / Oda / Masa / Kort / Cihaz Seçimi
+  Widget _buildStationSelection(
+    BuildContext context,
+    WidgetRef ref,
+    BookingWizardState state,
+    BookingWizardNotifier notifier,
+  ) {
+    final stationsAsync = ref.watch(stationsListProvider);
+
+    return stationsAsync.when(
+      data: (stations) {
+        return ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Oda / Masa / Kort / İstasyon / Cihaz',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimaryLight,
+                ),
+              ),
+            ),
+            // Seçenek: Otomatik Atama / Fark Etmez
+            Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              elevation: state.selectedStation == null ? 2 : 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: state.selectedStation == null
+                      ? AppTheme.primaryColor
+                      : Colors.grey.shade300,
+                  width: state.selectedStation == null ? 2 : 1,
+                ),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded,
+                      color: AppTheme.primaryColor, size: 24),
+                ),
+                title: const Text(
+                  'Fark Etmez (Otomatik Atansın)',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                ),
+                subtitle: const Text(
+                  'Sistem en uygun müsait oda/istasyon/masayı otomatik belirlesin.',
+                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryLight),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                onTap: () => notifier.selectStation(null),
+              ),
+            ),
+            if (stations.isNotEmpty) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Belirli Bir Alan Seçin:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textSecondaryLight,
+                  ),
+                ),
+              ),
+              ...stations.map((st) {
+                final isSelected = state.selectedStation?.id == st.id;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  elevation: isSelected ? 2 : 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    leading: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: st.status.color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.meeting_room_outlined, color: st.status.color, size: 22),
+                    ),
+                    title: Text(
+                      st.name,
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
+                    subtitle: Row(
+                      children: [
+                        Text('Kapasite: ${st.capacity} Kişi',
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryLight)),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: st.status.color.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            st.status.labelTr,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: st.status.color),
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    onTap: () => notifier.selectStation(st),
+                  ),
+                );
+              }),
+            ],
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('İstasyonlar yüklenemedi: $e'),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => notifier.selectStation(null),
+              child: const Text('Otomatik Atama ile Devam Et'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // STEP 2: Uzman Seçimi
   Widget _buildProviderSelection(
     BuildContext context,
     WidgetRef ref,
@@ -432,7 +582,7 @@ class BookingWizardScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: state.selectedSlot == null
                 ? null
-                : () => notifier.goToStep(3),
+                : () => notifier.goToStep(4),
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
             ),
@@ -443,7 +593,7 @@ class BookingWizardScreen extends ConsumerWidget {
     );
   }
 
-  // STEP 3: Onay & Özet
+  // STEP 4: Onay & Özet
   Widget _buildConfirmationStep(
     BuildContext context,
     WidgetRef ref,
@@ -480,6 +630,12 @@ class BookingWizardScreen extends ConsumerWidget {
                     value: state.selectedService?.name ?? '',
                     subValue:
                         '${state.selectedService?.formattedDuration} • ${state.selectedService?.formattedPrice}',
+                  ),
+                  const Divider(height: 24),
+                  _summaryRow(
+                    icon: Icons.meeting_room_outlined,
+                    label: 'Oda / Masa / Kort / Cihaz',
+                    value: state.selectedStation?.name ?? 'Otomatik Atama (Fark Etmez)',
                   ),
                   const Divider(height: 24),
                   _summaryRow(

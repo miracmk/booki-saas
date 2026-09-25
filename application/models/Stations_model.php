@@ -34,6 +34,9 @@ class Stations_model extends EA_Model
         unset($station['services']);
 
         if (empty($station['id'])) {
+            if (function_exists('require_tenant_quota')) {
+                require_tenant_quota('resource');
+            }
             $station_id = $this->insert($station);
         } else {
             $station_id = $this->update($station);

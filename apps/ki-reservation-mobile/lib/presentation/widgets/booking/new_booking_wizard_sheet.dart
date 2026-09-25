@@ -158,6 +158,7 @@ class _NewBookingWizardSheetState extends ConsumerState<NewBookingWizardSheet> {
         providerId: _selectedProvider?.id ?? 1,
         startDatetime: startDt,
         endDatetime: endDt,
+        stationId: _selectedStation?.id,
         notes: '${_notesController.text} [Masa: ${_selectedStation?.name ?? "Belirtilmedi"}] [WA: $_sendWhatsAppConfirmation]',
         customer: {
           'first_name': _firstNameController.text.trim(),

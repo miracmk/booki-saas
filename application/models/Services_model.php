@@ -588,14 +588,22 @@ class Services_model extends EA_Model
             throw new InvalidArgumentException('Hizmet ve ek hizmet adı zorunludur.');
         }
 
+        $clean = [
+            'id_services' => (int) $data['id_services'],
+            'name' => trim((string) $data['name']),
+            'duration_minutes' => isset($data['duration_minutes']) ? (int) $data['duration_minutes'] : 15,
+            'price' => isset($data['price']) ? (float) $data['price'] : 0.00,
+            'description' => isset($data['description']) ? trim((string) $data['description']) : null,
+            'is_active' => isset($data['is_active']) ? (int) $data['is_active'] : 1,
+        ];
+
         if (empty($data['id'])) {
-            $data['created_at'] = date('Y-m-d H:i:s');
-            $this->db->insert('service_addons', $data);
+            $clean['created_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('service_addons', $clean);
             return $this->db->insert_id();
         } else {
             $id = (int) $data['id'];
-            unset($data['id']);
-            $this->db->update('service_addons', $data, ['id' => $id]);
+            $this->db->update('service_addons', $clean, ['id' => $id]);
             return $id;
         }
     }
@@ -635,14 +643,20 @@ class Services_model extends EA_Model
             throw new InvalidArgumentException('Hizmet seçilmelidir.');
         }
 
+        $clean = [
+            'id_services' => (int) $data['id_services'],
+            'resource_type' => isset($data['resource_type']) ? (string) $data['resource_type'] : 'station',
+            'id_stations' => !empty($data['id_stations']) ? (int) $data['id_stations'] : null,
+            'quantity' => isset($data['quantity']) ? (int) $data['quantity'] : 1,
+        ];
+
         if (empty($data['id'])) {
-            $data['created_at'] = date('Y-m-d H:i:s');
-            $this->db->insert('service_required_resources', $data);
+            $clean['created_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('service_required_resources', $clean);
             return $this->db->insert_id();
         } else {
             $id = (int) $data['id'];
-            unset($data['id']);
-            $this->db->update('service_required_resources', $data, ['id' => $id]);
+            $this->db->update('service_required_resources', $clean, ['id' => $id]);
             return $id;
         }
     }

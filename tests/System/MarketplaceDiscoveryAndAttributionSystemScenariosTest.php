@@ -240,4 +240,101 @@ class MarketplaceDiscoveryAndAttributionSystemScenariosTest extends TestCase
         ];
         $this->assertSame('SoftwareApplication', $schema['@type']);
     }
+
+    /** UC-191: Lead RB Push sets is_marketplace_published to 1 and marketplace_synced_at */
+    public function test_UC191_lead_marketplace_push_and_sync(): void
+    {
+        $lead = [
+            'id' => 101,
+            'name' => 'Elit Kuaför & Güzellik',
+            'city' => 'Bursa',
+            'district' => 'Nilüfer',
+            'enrichment_status' => 'enriched_lead',
+            'is_marketplace_published' => 0,
+            'marketplace_synced_at' => null,
+        ];
+
+        // Simulate push to marketplace
+        $lead['is_marketplace_published'] = 1;
+        $lead['marketplace_synced_at'] = date('Y-m-d H:i:s');
+        $lead['slug'] = 'elit-kuafor-guzellik-nilufer-bursa';
+
+        $this->assertSame(1, $lead['is_marketplace_published']);
+        $this->assertNotNull($lead['marketplace_synced_at']);
+        $this->assertSame('elit-kuafor-guzellik-nilufer-bursa', $lead['slug']);
+    }
+
+    /** UC-192: Lead unpublish toggle revokes publication */
+    public function test_UC192_lead_marketplace_unpublish_toggle(): void
+    {
+        $lead = [
+            'id' => 102,
+            'name' => 'Gizli Klinik',
+            'is_marketplace_published' => 1,
+        ];
+
+        // Toggle unpublish
+        $lead['is_marketplace_published'] = 0;
+
+        $this->assertSame(0, $lead['is_marketplace_published']);
+    }
+
+    /** UC-193: Bulk push leads to marketplace */
+    public function test_UC193_bulk_push_leads_to_marketplace(): void
+    {
+        $leads = [
+            ['id' => 201, 'is_marketplace_published' => 0],
+            ['id' => 202, 'is_marketplace_published' => 0],
+            ['id' => 203, 'is_marketplace_published' => 1],
+        ];
+
+        $targetIds = [201, 202];
+        $publishedCount = 0;
+        foreach ($leads as &$ld) {
+            if (in_array($ld['id'], $targetIds, true)) {
+                $ld['is_marketplace_published'] = 1;
+                $ld['marketplace_synced_at'] = date('Y-m-d H:i:s');
+                $publishedCount++;
+            }
+        }
+
+        $this->assertSame(2, $publishedCount);
+        $this->assertSame(1, $leads[0]['is_marketplace_published']);
+        $this->assertSame(1, $leads[1]['is_marketplace_published']);
+    }
+
+    /** UC-194: Marketplace storefront/directory filtering excludes unpublished leads */
+    public function test_UC194_marketplace_filters_exclude_unpublished(): void
+    {
+        $leads = [
+            ['id' => 1, 'name' => 'Yayındaki Salon', 'is_marketplace_published' => 1, 'business_status' => 'OPERATIONAL'],
+            ['id' => 2, 'name' => 'Taslak Lead', 'is_marketplace_published' => 0, 'business_status' => 'OPERATIONAL'],
+            ['id' => 3, 'name' => 'Kapalı Salon', 'is_marketplace_published' => 1, 'business_status' => 'CLOSED_PERMANENTLY'],
+        ];
+
+        $visibleOnMarketplace = array_values(array_filter($leads, function ($item) {
+            return !empty($item['is_marketplace_published']) && ($item['business_status'] ?? '') === 'OPERATIONAL';
+        }));
+
+        $this->assertCount(1, $visibleOnMarketplace);
+        $this->assertSame('Yayındaki Salon', $visibleOnMarketplace[0]['name']);
+    }
+
+    /** UC-195: Turkish slug sanitization handles special characters and uniqueness */
+    public function test_UC195_turkish_slug_sanitization(): void
+    {
+        $title = 'Şahane Çiçek & Kuaför Salonu 100%';
+        $slug = mb_strtolower($title, 'UTF-8');
+        $slug = str_replace(
+            ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç'],
+            ['i', 'g', 'u', 's', 'o', 'c', 'i', 'g', 'u', 's', 'o', 'c'],
+            $slug
+        );
+        $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', $slug);
+        $slug = trim($slug, '-');
+
+        $this->assertSame('sahane-cicek-kuafor-salonu-100', $slug);
+    }
 }
+

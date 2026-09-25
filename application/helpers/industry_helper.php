@@ -21,6 +21,81 @@ if (!function_exists('current_industry_code')) {
     }
 }
 
+if (!function_exists('current_vertical_group')) {
+    /**
+     * Get the high-level vertical category for the active tenant.
+     * Returns: 'beauty', 'restaurant', 'sports', 'health', 'automotive', 'experience', 'hospitality', 'education', or 'professional'.
+     */
+    function current_vertical_group(?string $code = null): string
+    {
+        $code = $code ?: current_industry_code();
+
+        // 1. Check sector pricing matrix if available
+        if (function_exists('find_business_barem')) {
+            $barem = find_business_barem($code);
+            if ($barem && !empty($barem['vertical_group'])) {
+                return $barem['vertical_group'];
+            }
+        }
+
+        $map = [
+            'beauty_salon' => 'beauty',
+            'barber' => 'beauty',
+            'nail_studio' => 'beauty',
+            'massage_spa' => 'beauty',
+
+            'restaurant' => 'restaurant',
+
+            'gym' => 'sports',
+            'pt_training' => 'sports',
+            'pilates_studio' => 'sports',
+            'sports_court' => 'sports',
+
+            'doctor_clinic' => 'health',
+            'dentist' => 'health',
+            'psychology_dietitian_clinic' => 'health',
+
+            'car_wash' => 'automotive',
+            'auto_service_detailing' => 'automotive',
+
+            'hotel' => 'hospitality',
+            'experience_escape_room' => 'experience',
+
+            'education' => 'education',
+            'professional' => 'professional',
+        ];
+
+        return $map[$code] ?? 'beauty';
+    }
+}
+
+if (!function_exists('all_main_sectors')) {
+    /**
+     * Get list of all 9 main industry categories.
+     */
+    function all_main_sectors(): array
+    {
+        return function_exists('get_main_sectors') ? get_main_sectors() : [];
+    }
+}
+
+if (!function_exists('all_sub_business_types')) {
+    /**
+     * Get list of all 168 sub-business types.
+     */
+    function all_sub_business_types(?string $main_sector = null): array
+    {
+        return function_exists('get_sub_business_types') ? get_sub_business_types($main_sector) : [];
+    }
+}
+
+if (!function_exists('is_vertical')) {
+    function is_vertical(string $vertical): bool
+    {
+        return current_vertical_group() === $vertical;
+    }
+}
+
 if (!function_exists('current_industry_blueprint')) {
     /**
      * Get the blueprint definition for the active or given industry.
@@ -325,5 +400,283 @@ if (!function_exists('industry_dashboard_config')) {
                     ],
                 ];
         }
+    }
+}
+
+if (!function_exists('resolve_schema_org_type')) {
+    /**
+     * Resolve the precise Schema.org JSON-LD type across all 6 core sectors:
+     * 1. Beauty/Spa: BeautySalon, DaySpa, HairSalon
+     * 2. Restaurant: FoodEstablishment, Restaurant
+     * 3. Sports: SportsActivityLocation, ExerciseGym
+     * 4. Health: MedicalClinic, Physician
+     * 5. Automotive: AutoRepair, AutoWash
+     * 6. Experience/Lodging: LodgingBusiness, EventVenue
+     *
+     * @param string|array|null $context Context string (industry/blueprint code, primary_type, category, sector)
+     *                                   or associative array of business metadata.
+     * @return string Precise Schema.org type (subtype of LocalBusiness)
+     */
+    function resolve_schema_org_type($context = null): string
+    {
+        $raw_candidates = [];
+
+        if (is_array($context)) {
+            if (!empty($context['schema_type'])) {
+                return (string) $context['schema_type'];
+            }
+            foreach (['industry_code', 'blueprint', 'business_type', 'primary_type', 'google_type', 'category', 'sector', 'name', 'company_name'] as $k) {
+                if (!empty($context[$k]) && is_string($context[$k])) {
+                    $raw_candidates[] = $context[$k];
+                }
+            }
+        } elseif (is_string($context) && trim($context) !== '') {
+            $raw_candidates[] = $context;
+        } else {
+            // Null or empty: resolve from current tenant settings / blueprint
+            $raw_candidates[] = current_industry_code();
+            $raw_candidates[] = setting('business_type') ?: '';
+            $raw_candidates[] = setting('company_name') ?: '';
+        }
+
+        $haystack = mb_strtolower(implode(' ', array_filter($raw_candidates)), 'UTF-8');
+
+        // Sector 1: Beauty & Spa (HairSalon / DaySpa / BeautySalon)
+        if (!preg_match('/\b(car_wash|auto_wash|auto_repair)\b|oto kuaf|oto y\x{0131}ka|oto yika|ara\x{00e7} y/iu', $haystack) &&
+            preg_match('/\b(barber|hair_salon|hair_care|hairdresser|barber_shop)\b|kuaför|kuafor|berber|saç|sac|erkek kuaf|bayan kuaf/iu', $haystack)) {
+            return 'HairSalon';
+        }
+        if (preg_match('/\b(massage_spa|spa_massage|day_spa|massage|spa)\b|masaj|spa|hamam|sauna|terapi|wellness/iu', $haystack)) {
+            return 'DaySpa';
+        }
+        if (preg_match('/\b(beauty_salon|nail_studio|nail_salon|beauty|estetik)\b|güzellik|guzellik|tırnak|tirnak|nail|cilt bak|lazer|epilasyon/iu', $haystack)) {
+            return 'BeautySalon';
+        }
+
+        // Sector 2: Restaurant & Food (Restaurant / FoodEstablishment)
+        if (preg_match('/\b(restaurant|restaurant_cafe|steakhouse|diner)\b|restoran|restaurant|lokanta|meyhane|steakhouse|kebap|ocakbaşı|balikci|balıkçı/iu', $haystack)) {
+            return 'Restaurant';
+        }
+        if (preg_match('/\b(cafe|bistro|coffee_shop|bakery|food_establishment|meal_takeaway)\b|kafe|cafe|bistro|kahve|pastane|fırın|firin|tatlıcı|tatlici/iu', $haystack)) {
+            return 'FoodEstablishment';
+        }
+
+        // Sector 3: Sports & Fitness (ExerciseGym / SportsActivityLocation)
+        if (preg_match('/\b(gym|pt_training|gym_fitness|fitness_center|crossfit)\b|fitness|spor salonu|vücut geliştirme|vucut gelistirme|antrenman|\bpt\b|personal train/iu', $haystack)) {
+            return 'ExerciseGym';
+        }
+        if (preg_match('/\b(sports_court|pilates_studio|pilates_yoga|sports_complex|stadium|sports_activity_location)\b|halı saha|hali saha|spor tesisi|kort|tenis|pilates|yoga|havuz|stüdyo|studyo|dövüş|boks/iu', $haystack)) {
+            return 'SportsActivityLocation';
+        }
+
+        // Sector 4: Health & Medical (MedicalClinic / Physician)
+        if (preg_match('/\b(doctor_clinic|dentist|dental_clinic|medical_clinic|hospital|clinic)\b|klinik|poliklinik|tıp merkezi|tip merkezi|diş klini|dis klini|ağız ve diş|agiz ve dis/iu', $haystack)) {
+            return 'MedicalClinic';
+        }
+        if (preg_match('/\b(physician|doctor|psychology_dietitian_clinic|dietitian|psychologist|physiotherapy|physiotherapist)\b|doktor|hekim|muayenehane|uzman doktor|psikolog|diyetisyen|fizyoterapist|danışmanlık|danismanlik/iu', $haystack)) {
+            return 'Physician';
+        }
+
+        // Sector 5: Automotive & Mobility (AutoWash / AutoRepair)
+        if (preg_match('/\b(car_wash|auto_wash)\b|oto yıkama|oto yikama|oto kuaför|oto kuafor|araç yıkama|arac yikama|car wash/iu', $haystack)) {
+            return 'AutoWash';
+        }
+        if (preg_match('/\b(auto_service_detailing|auto_repair|car_repair|auto_service)\b|oto servis|oto tamir|mekanik|periyodik bakım|bakim|ekspertiz|detailing|kaporta|rot balans|lastik/iu', $haystack)) {
+            return 'AutoRepair';
+        }
+
+        // Sector 6: Lodging (LodgingBusiness)
+        if (preg_match('/\b(hotel|lodging|lodging_hotel|resort|bed_and_breakfast|hostel|bungalov|villa|glamping)\b|otel|hotel|butik otel|pansiyon|tatil köyü|resort|bungalov|konaklama/iu', $haystack)) {
+            return 'LodgingBusiness';
+        }
+
+        // Sector 7: Experience & Entertainment (EventVenue / EntertainmentBusiness)
+        if (preg_match('/\b(experience_escape_room|event_venue|escape_room|amusement_center|arcade|bowling|bilardo)\b|kaçış oyunu|kacis oyunu|escape room|etkinlik alanı|etkinlik alani|düğün salonu|dugun salonu|davet alanı|kına konağı|balo salonu|eğlence/iu', $haystack)) {
+            return 'EventVenue';
+        }
+
+        // Sector 8: Education & Courses (EducationalOrganization)
+        if (preg_match('/\b(education|course|school|language_course|music_course|tutoring)\b|kurs|eğitim|egitim|dershane|dil kursu|sürücü kursu|etüt|akademi|özel ders/iu', $haystack)) {
+            return 'EducationalOrganization';
+        }
+
+        // Sector 9: Professional Services (LegalService / AccountingService / ProfessionalService)
+        if (preg_match('/\b(lawyer|attorney|legal|law_firm)\b|avukat|hukuk|baro|dava/iu', $haystack)) {
+            return 'LegalService';
+        }
+        if (preg_match('/\b(accounting|accountant|financial_advisor)\b|muhasebe|mali müşavir|mali musavir|vergi/iu', $haystack)) {
+            return 'AccountingService';
+        }
+        if (preg_match('/\b(consulting|agency|architecture|marketing)\b|danışmanlık|danismanlik|ajans|mimarlık|mimarlik|sigorta/iu', $haystack)) {
+            return 'ProfessionalService';
+        }
+
+        // Default fallback
+        return 'LocalBusiness';
+    }
+}
+
+if (!function_exists('generate_schema_org_json_ld')) {
+    /**
+     * Generate complete Schema.org JSON-LD structured data with full GEO, opening hours,
+     * ratings, reviews, catalog offers, and ReserveAction.
+     *
+     * @param array $params Metadata parameters
+     * @return array
+     */
+    function generate_schema_org_json_ld(array $params): array
+    {
+        $schema_type = resolve_schema_org_type($params['type_context'] ?? $params);
+        $default_base = function_exists('base_url') ? base_url() : '/';
+        $url = $params['url'] ?? $default_base;
+        $company_default = function_exists('setting') ? setting('company_name') : 'İşletme';
+        $name = $params['name'] ?? ($company_default ?: 'İşletme');
+        $default_logo = function_exists('base_url') ? base_url('assets/img/logo.png') : '/assets/img/logo.png';
+        $image = !empty($params['image']) ? $params['image'] : (!empty($params['cover_image_url']) ? $params['cover_image_url'] : $default_logo);
+        $description = $params['description'] ?? ($name . ' randevu ve rezervasyon noktası.');
+
+        $json = [
+            '@context' => 'https://schema.org',
+            '@type' => $schema_type,
+            'name' => $name,
+            'url' => $url,
+            'description' => $description,
+            'image' => $image,
+            'priceRange' => $params['price_range'] ?? '₺₺',
+        ];
+
+        if (!empty($params['telephone'])) {
+            $json['telephone'] = $params['telephone'];
+        } elseif (!empty($params['phone'])) {
+            $json['telephone'] = $params['phone'];
+        } elseif (!empty($params['phone_number'])) {
+            $json['telephone'] = $params['phone_number'];
+        }
+
+        // Address
+        if (!empty($params['address'])) {
+            $addr = $params['address'];
+            if (is_array($addr)) {
+                $json['address'] = [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => $addr['streetAddress'] ?? ($addr['address'] ?? null),
+                    'addressLocality' => $addr['addressLocality'] ?? ($addr['district'] ?? null),
+                    'addressRegion' => $addr['addressRegion'] ?? ($addr['city'] ?? null),
+                    'postalCode' => $addr['postalCode'] ?? ($addr['zip_code'] ?? null),
+                    'addressCountry' => $addr['addressCountry'] ?? 'TR',
+                ];
+            } else {
+                $json['address'] = [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => (string) $addr,
+                    'addressLocality' => $params['district'] ?? null,
+                    'addressRegion' => $params['city'] ?? null,
+                    'addressCountry' => 'TR',
+                ];
+            }
+        } elseif (!empty($params['city']) || !empty($params['district'])) {
+            $json['address'] = [
+                '@type' => 'PostalAddress',
+                'streetAddress' => null,
+                'addressLocality' => $params['district'] ?? null,
+                'addressRegion' => $params['city'] ?? null,
+                'addressCountry' => 'TR',
+            ];
+        }
+
+        // Coordinate precision (DECIMAL 10,8 / 11,8 -> formatted up to 7 decimal digits, sub-meter)
+        if (!empty($params['latitude']) && !empty($params['longitude'])) {
+            $json['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => round((float) $params['latitude'], 7),
+                'longitude' => round((float) $params['longitude'], 7),
+            ];
+        }
+
+        // AggregateRating
+        $rating = !empty($params['rating']) ? (float) $params['rating'] : (!empty($params['avg_rating']) ? (float) $params['avg_rating'] : 0);
+        $review_count = !empty($params['review_count']) ? (int) $params['review_count'] : (!empty($params['user_rating_count']) ? (int) $params['user_rating_count'] : 0);
+
+        if ($rating > 0) {
+            $json['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => round($rating, 1),
+                'reviewCount' => max(1, $review_count),
+                'bestRating' => '5',
+                'worstRating' => '1',
+            ];
+        }
+
+        // Reviews
+        if (!empty($params['reviews']) && is_array($params['reviews'])) {
+            $json['review'] = [];
+            foreach (array_slice($params['reviews'], 0, 10) as $rev) {
+                $json['review'][] = [
+                    '@type' => 'Review',
+                    'author' => ['@type' => 'Person', 'name' => $rev['customer_name'] ?? ($rev['author'] ?? 'Müşteri')],
+                    'datePublished' => !empty($rev['created_at']) ? date('Y-m-d', strtotime($rev['created_at'])) : date('Y-m-d'),
+                    'reviewRating' => [
+                        '@type' => 'Rating',
+                        'ratingValue' => (int) ($rev['rating'] ?? 5),
+                    ],
+                    'reviewBody' => $rev['comment'] ?? ($rev['text'] ?? ''),
+                ];
+            }
+        }
+
+        // Opening Hours Specifications (DST safe)
+        if (!empty($params['opening_hours_specification'])) {
+            $json['openingHoursSpecification'] = $params['opening_hours_specification'];
+        } elseif (!empty($params['opening_hours'])) {
+            $json['openingHours'] = $params['opening_hours'];
+        }
+
+        // OfferCatalog
+        if (!empty($params['services']) && is_array($params['services'])) {
+            $json['hasOfferCatalog'] = [
+                '@type' => 'OfferCatalog',
+                'name' => 'Hizmetler & Randevu Seçenekleri',
+                'itemListElement' => array_map(function ($s) {
+                    return [
+                        '@type' => 'Offer',
+                        'itemOffered' => [
+                            '@type' => 'Service',
+                            'name' => $s['name'],
+                            'description' => $s['description'] ?? null,
+                        ],
+                        'price' => (float) ($s['price'] ?? 0),
+                        'priceCurrency' => $s['currency'] ?? 'TRY',
+                    ];
+                }, array_slice($params['services'], 0, 25)),
+            ];
+        }
+
+        // ReserveAction
+        $booking_url = $params['booking_url'] ?? $url;
+        $json['potentialAction'] = [
+            '@type' => 'ReserveAction',
+            'target' => [
+                '@type' => 'EntryPoint',
+                'urlTemplate' => $booking_url,
+                'inLanguage' => 'tr',
+                'actionPlatform' => [
+                    'https://schema.org/DesktopWebPlatform',
+                    'https://schema.org/MobileWebPlatform',
+                ],
+            ],
+            'result' => [
+                '@type' => 'Reservation',
+                'name' => 'Online Randevu',
+            ],
+        ];
+
+        // Google Maps URL
+        if (!empty($params['google_maps_uri'])) {
+            $json['hasMap'] = $params['google_maps_uri'];
+        } elseif (!empty($params['latitude']) && !empty($params['longitude'])) {
+            $json['hasMap'] = 'https://maps.google.com/?q=' . urlencode($params['latitude'] . ',' . $params['longitude']);
+        }
+
+        return $json;
     }
 }

@@ -94,6 +94,9 @@ class Restaurant_model extends EA_Model
         }
 
         if (empty($data['id'])) {
+            if (function_exists('require_tenant_quota')) {
+                require_tenant_quota('resource');
+            }
             $data['created_at'] = date('Y-m-d H:i:s');
             $this->db->insert('restaurant_tables', $data);
             return $this->db->insert_id();
@@ -227,4 +230,176 @@ class Restaurant_model extends EA_Model
             return (int) $data['id'];
         }
     }
+
+    /* -------------------------------------------------------------------------
+     * GUEST INTELLIGENCE (SevenRooms / OpenTable Style Deep Guest CRM)
+     * ------------------------------------------------------------------------- */
+
+    /**
+     * Get or initialize guest intelligence profile for a customer.
+     */
+    public function get_guest_preferences(int $customer_id): array
+    {
+        $prefs = $this->db->get_where('restaurant_guest_preferences', ['id_users_customer' => $customer_id])->row_array();
+        if ($prefs) {
+            return $prefs;
+        }
+
+        // Return empty defaults if not yet created
+        return [
+            'id_users_customer' => $customer_id,
+            'vip_level' => 'regular',
+            'dietary_restrictions' => null,
+            'seating_preference' => null,
+            'favorite_drink' => null,
+            'special_notes' => null,
+            'visit_count' => 0,
+            'no_show_count' => 0,
+            'average_spend' => 0.00,
+        ];
+    }
+
+    /**
+     * Upsert guest preferences (dietary, VIP, seating, favorite drinks).
+     */
+    public function save_guest_preferences(int $customer_id, array $data): array
+    {
+        $existing = $this->db->get_where('restaurant_guest_preferences', ['id_users_customer' => $customer_id])->row_array();
+        $now = date('Y-m-d H:i:s');
+
+        $dietary = $data['dietary_restrictions'] ?? [];
+        if (!empty($data['allergies'])) {
+            $allergies = is_array($data['allergies']) ? $data['allergies'] : [$data['allergies']];
+            $dietary = array_merge(is_array($dietary) ? $dietary : [$dietary], $allergies);
+        }
+        if (is_array($dietary)) {
+            $dietary = json_encode(array_values(array_unique($dietary)), JSON_UNESCAPED_UNICODE);
+        }
+
+        $record = [
+            'vip_level' => $data['vip_level'] ?? 'regular',
+            'dietary_restrictions' => $dietary,
+            'seating_preference' => $data['seating_preference'] ?? null,
+            'favorite_drink' => $data['favorite_drink'] ?? null,
+            'special_notes' => $data['special_notes'] ?? null,
+            'updated_at' => $now,
+        ];
+
+        if ($existing) {
+            $this->db->update('restaurant_guest_preferences', $record, ['id_users_customer' => $customer_id]);
+        } else {
+            $record['id_users_customer'] = $customer_id;
+            $record['visit_count'] = 0;
+            $record['no_show_count'] = 0;
+            $record['average_spend'] = 0.00;
+            $record['created_at'] = $now;
+            $this->db->insert('restaurant_guest_preferences', $record);
+        }
+
+        return $this->get_guest_preferences($customer_id);
+    }
+
+    /**
+     * Increment visit or no-show count and update average spend.
+     */
+    public function record_guest_visit(int $customer_id, float $spend = 0.00, bool $is_no_show = false): void
+    {
+        $current = $this->get_guest_preferences($customer_id);
+        $now = date('Y-m-d H:i:s');
+
+        if ($is_no_show) {
+            $update = [
+                'no_show_count' => ((int) $current['no_show_count']) + 1,
+                'updated_at' => $now,
+            ];
+        } else {
+            $visits = ((int) $current['visit_count']) + 1;
+            $old_total = ((float) $current['average_spend']) * ((int) $current['visit_count']);
+            $new_avg = ($old_total + $spend) / max(1, $visits);
+
+            $update = [
+                'visit_count' => $visits,
+                'average_spend' => round($new_avg, 2),
+                'updated_at' => $now,
+            ];
+
+            // Auto-promote frequent/high-spend diners to VIP
+            if ($visits >= 5 || $new_avg >= 1500) {
+                if ($current['vip_level'] === 'regular') {
+                    $update['vip_level'] = 'vip';
+                }
+            }
+        }
+
+        $this->save_guest_preferences($customer_id, array_merge($current, $update));
+    }
+
+    /* -------------------------------------------------------------------------
+     * KITCHEN DISPLAY SYSTEM (KDS) & MUTFAK YÖNETİMİ (Simpra / Restopos Style)
+     * ------------------------------------------------------------------------- */
+
+    /**
+     * Dispatch an item order to kitchen or bar display.
+     */
+    public function create_kitchen_order(array $order_data): int
+    {
+        $now = date('Y-m-d H:i:s');
+        $record = [
+            'id_adisyons' => !empty($order_data['id_adisyons']) ? (int) $order_data['id_adisyons'] : null,
+            'id_restaurant_tables' => !empty($order_data['id_restaurant_tables']) ? (int) $order_data['id_restaurant_tables'] : null,
+            'station' => $order_data['station'] ?? 'kitchen',
+            'item_name' => trim($order_data['item_name'] ?? 'Sipariş Öğesi'),
+            'quantity' => max(1, (int) ($order_data['quantity'] ?? 1)),
+            'notes' => $order_data['notes'] ?? null,
+            'status' => 'new',
+            'ordered_at' => $now,
+        ];
+
+        $this->db->insert('kitchen_orders', $record);
+        return $this->db->insert_id();
+    }
+
+    /**
+     * Retrieve live kitchen tickets for kitchen display screens.
+     */
+    public function get_active_kitchen_orders(?string $station = null): array
+    {
+        $this->db
+            ->select('ko.*, rt.table_number, rt.section')
+            ->from('kitchen_orders ko')
+            ->join('restaurant_tables rt', 'rt.id = ko.id_restaurant_tables', 'left')
+            ->where_in('ko.status', ['new', 'preparing', 'ready'])
+            ->order_by('ko.ordered_at ASC');
+
+        if ($station !== null && $station !== 'all') {
+            $this->db->where('ko.station', $station);
+        }
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Update kitchen order status: new -> preparing -> ready -> served.
+     */
+    public function update_kitchen_order_status(int $order_id, string $status): bool
+    {
+        $valid = ['new', 'preparing', 'ready', 'served', 'cancelled'];
+        if (!in_array($status, $valid, true)) {
+            throw new InvalidArgumentException('Geçersiz mutfak sipariş durumu: ' . $status);
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $data = [
+            'status' => $status,
+        ];
+
+        if ($status === 'preparing' || $status === 'ready') {
+            $data['prepared_at'] = $now;
+        } elseif ($status === 'served') {
+            $data['served_at'] = $now;
+        }
+
+        return $this->db->update('kitchen_orders', $data, ['id' => $order_id]);
+    }
 }
+

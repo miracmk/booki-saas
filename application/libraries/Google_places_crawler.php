@@ -291,6 +291,66 @@ class Google_places_crawler
             'googleIncludedType' => 'restaurant',
             'queries' => ['restoran', 'bistro & cafe', 'özel yemek restoranı', 'et lokantası'],
         ],
+        'gym_fitness' => [
+            'slug' => 'gym_fitness',
+            'label' => 'Spor Salonu & Fitness Center',
+            'icon' => '🏋️',
+            'sector' => 'Spor/Fitness',
+            'package' => 'Professional',
+            'potential_mrr' => 2499.00,
+            'googleIncludedType' => 'gym',
+            'queries' => ['spor salonu', 'fitness salonu', 'gym center', 'vücut geliştirme'],
+        ],
+        'sports_court' => [
+            'slug' => 'sports_court',
+            'label' => 'Halı Saha & Spor Tesisi',
+            'icon' => '⚽',
+            'sector' => 'Spor Tesisi',
+            'package' => 'Enterprise',
+            'potential_mrr' => 3499.00,
+            'googleIncludedType' => 'sports_complex',
+            'queries' => ['halı saha', 'spor kompleksi', 'tenis kortu', 'basketbol sahası'],
+        ],
+        'auto_repair' => [
+            'slug' => 'auto_repair',
+            'label' => 'Oto Servis & Tamir & Detailing',
+            'icon' => '🔧',
+            'sector' => 'Oto Servis',
+            'package' => 'Enterprise',
+            'potential_mrr' => 3499.00,
+            'googleIncludedType' => 'car_repair',
+            'queries' => ['oto servis', 'oto tamir', 'oto mekanik ve periyodik bakım', 'oto ekspertiz', 'oto detailing'],
+        ],
+        'car_wash' => [
+            'slug' => 'car_wash',
+            'label' => 'Oto Yıkama & Kuaför',
+            'icon' => '🚗',
+            'sector' => 'Oto Yıkama',
+            'package' => 'Starter',
+            'potential_mrr' => 1999.00,
+            'googleIncludedType' => 'car_wash',
+            'queries' => ['oto yıkama', 'oto kuaför', 'buharlı oto yıkama', 'detailing yıkama'],
+        ],
+        'lodging_hotel' => [
+            'slug' => 'lodging_hotel',
+            'label' => 'Otel & Butik Konaklama',
+            'icon' => '🏨',
+            'sector' => 'Otel/Konaklama',
+            'package' => 'Enterprise',
+            'potential_mrr' => 4999.00,
+            'googleIncludedType' => 'lodging',
+            'queries' => ['butik otel', 'otel', 'pansiyon', 'tatil köyü konaklama'],
+        ],
+        'event_venue' => [
+            'slug' => 'event_venue',
+            'label' => 'Kaçış Oyunu & Etkinlik Alanı',
+            'icon' => '🎭',
+            'sector' => 'Etkinlik/Deneyim',
+            'package' => 'Professional',
+            'potential_mrr' => 2499.00,
+            'googleIncludedType' => 'event_venue',
+            'queries' => ['kaçış oyunu', 'escape room', 'etkinlik alanı', 'düğün ve davet salonu'],
+        ],
     ];
 
     /**
@@ -450,9 +510,13 @@ class Google_places_crawler
         $payload = [
             'textQuery' => $query,
             'languageCode' => 'tr',
-            'regionCode' => 'TR',
             'pageSize' => 20,
         ];
+
+        // Only restrict country to TR if location restriction was specified
+        if (!empty($location_restriction)) {
+            $payload['regionCode'] = 'TR';
+        }
 
         if ($use_bias) {
             if (!empty($location_restriction['rectangle'])) {
@@ -722,16 +786,40 @@ class Google_places_crawler
         }
 
         $district = $region_name;
-        if ($district === 'Özel Pin Bölgesi' || empty($district) || $district === 'Bursa') {
+        $city = '';
+        $found_bursa = false;
+
+        if ($district === 'Özel Pin Bölgesi' || empty($district) || $district === 'Bursa' || $district === 'Global') {
             foreach (self::BURSA_REGIONS as $reg) {
                 if (mb_stripos($formatted_address, $reg['name']) !== false) {
                     $district = $reg['name'];
+                    $city = 'Bursa';
+                    $found_bursa = true;
                     break;
                 }
             }
-            if ($district === 'Özel Pin Bölgesi' || empty($district)) {
-                $district = 'Bursa';
+            if (!$found_bursa && !empty($formatted_address)) {
+                $addr_parts = array_map('trim', explode(',', $formatted_address));
+                if (count($addr_parts) >= 2) {
+                    $cand = $addr_parts[count($addr_parts) - 2];
+                    $cleaned = preg_replace('/^\d{4,6}\s+/u', '', $cand);
+                    if (strpos($cleaned, '/') !== false) {
+                        $sub = explode('/', $cleaned);
+                        $district = trim($sub[0]);
+                        $city = trim($sub[1]);
+                    } else {
+                        $district = $cleaned;
+                        $city = $cleaned;
+                    }
+                }
             }
+            if (empty($district) || $district === 'Özel Pin Bölgesi') {
+                $district = (!empty($region_name) && $region_name !== 'Global') ? $region_name : 'Merkez';
+            }
+        }
+
+        if (empty($city) && mb_stripos($formatted_address, 'Bursa') !== false) {
+            $city = 'Bursa';
         }
 
         // Insert new lead
@@ -742,6 +830,7 @@ class Google_places_crawler
             'primary_type' => $primary_type,
             'types_json' => json_encode($types, JSON_UNESCAPED_UNICODE),
             'district' => $district,
+            'city' => $city ?: $district,
             'address' => $formatted_address,
             'latitude' => $lat,
             'longitude' => $lng,
@@ -830,15 +919,40 @@ class Google_places_crawler
             throw new RuntimeException($err_msg);
         }
 
+        $this->CI->load->model('leads_model');
+
+        $slug = trim((string) ($lead['slug'] ?? ''));
+        if ($slug === '') {
+            $slug = $this->CI->leads_model->generate_slug($lead['name'] ?? '', $lead['district'] ?? '', $lead['city'] ?? '', $lead_id);
+        }
+
+        $claim_token = trim((string) ($lead['claim_token'] ?? ''));
+        if ($claim_token === '') {
+            $claim_token = md5($lead_id . uniqid((string) mt_rand(), true));
+        }
+
         $update_data = [
             'discovery_state' => 'ENRICHED',
+            'enrichment_status' => 'enriched_lead',
+            'google_place_id' => $place_id,
+            'slug' => $slug,
+            'claim_token' => $claim_token,
             'enriched_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
+        if (!empty($lead['is_marketplace_published'])) {
+            $update_data['marketplace_synced_at'] = date('Y-m-d H:i:s');
+        }
+
         if (!empty($json['nationalPhoneNumber'])) {
             $update_data['phone'] = $json['nationalPhoneNumber'];
             $update_data['whatsapp'] = $json['nationalPhoneNumber'];
+            $clean_wa = preg_replace('/[^0-9]/', '', (string) $json['nationalPhoneNumber']);
+            if ($clean_wa !== '') {
+                if (!str_starts_with($clean_wa, '90')) $clean_wa = '90' . ltrim($clean_wa, '0');
+                $update_data['whatsapp_number'] = $clean_wa;
+            }
         }
         if (!empty($json['internationalPhoneNumber']) && empty($update_data['phone'])) {
             $update_data['phone'] = $json['internationalPhoneNumber'];
@@ -846,6 +960,7 @@ class Google_places_crawler
         }
         if (!empty($json['websiteUri'])) {
             $update_data['website'] = $json['websiteUri'];
+            $update_data['website_url'] = $json['websiteUri'];
         }
         if (isset($json['rating'])) {
             $update_data['rating'] = (float) $json['rating'];
@@ -857,10 +972,21 @@ class Google_places_crawler
             $update_data['price_level'] = $json['priceLevel'];
         }
         if (!empty($json['regularOpeningHours'])) {
-            $update_data['opening_hours_json'] = json_encode($json['regularOpeningHours'], JSON_UNESCAPED_UNICODE);
+            $hours_json = json_encode($json['regularOpeningHours'], JSON_UNESCAPED_UNICODE);
+            $update_data['opening_hours_json'] = $hours_json;
+            $update_data['opening_hours'] = $hours_json;
         }
-        if (!empty($json['photos'])) {
+        if (!empty($json['photos']) && is_array($json['photos'])) {
             $update_data['photos_json'] = json_encode(array_slice($json['photos'], 0, 5), JSON_UNESCAPED_UNICODE);
+            $photo_refs = [];
+            foreach (array_slice($json['photos'], 0, 3) as $photo) {
+                if (!empty($photo['name'])) {
+                    $photo_refs[] = $photo['name'];
+                }
+            }
+            if (!empty($photo_refs)) {
+                $update_data['photo_references'] = json_encode($photo_refs, JSON_UNESCAPED_UNICODE);
+            }
         }
         if (!empty($json['reviews'])) {
             $update_data['reviews_json'] = json_encode(array_slice($json['reviews'], 0, 5), JSON_UNESCAPED_UNICODE);
@@ -959,33 +1085,38 @@ class Google_places_crawler
         }
 
         // Determine location bias / region
+        $clean_district = trim($district);
         $location_restriction = [];
-        $region_name = 'Bursa';
+        $region_name = '';
 
-        if (!empty($district)) {
+        $is_global = empty($clean_district)
+            || mb_stripos($clean_district, 'global') !== false
+            || mb_stripos($clean_district, 'dünya') !== false
+            || mb_stripos($clean_district, 'tüm') !== false
+            || $clean_district === 'all';
+
+        if (!$is_global) {
             foreach (self::BURSA_REGIONS as $slug => $reg) {
-                if (strcasecmp($district, $slug) === 0 || strcasecmp($district, $reg['name']) === 0) {
+                if (strcasecmp($clean_district, $slug) === 0 || strcasecmp($clean_district, $reg['name']) === 0) {
                     $location_restriction = ['rectangle' => $reg['viewport']];
                     $region_name = $reg['name'];
                     break;
                 }
             }
+
+            if (empty($location_restriction)) {
+                // User provided custom region (e.g. İstanbul, Kadıköy, Berlin, Londra, İzmir)
+                $region_name = $clean_district;
+            }
         }
 
-        if (empty($location_restriction)) {
-            $location_restriction = [
-                'rectangle' => [
-                    'low' => ['latitude' => 40.05, 'longitude' => 28.75],
-                    'high' => ['latitude' => 40.35, 'longitude' => 29.25],
-                ]
-            ];
-        }
-
-        // Append region to textQuery if not already present
+        // Build query
         $full_query = $clean_query;
-        if (!preg_match('/(bursa|nilüfer|osmangazi|yıldırım|gemlik|mudanya|inegöl)/ui', $full_query)) {
+        if (!empty($region_name) && mb_stripos($full_query, $region_name) === false) {
             $full_query .= ' ' . $region_name;
         }
+
+        $use_bias = !empty($location_restriction);
 
         $included_type = null;
         if (!empty($category_slug) && isset(self::TAXONOMY[$category_slug]['googleIncludedType'])) {
@@ -993,16 +1124,16 @@ class Google_places_crawler
         }
 
         // 1. First attempt: Search with query, location bias, and optional included_type
-        $search_result = $this->search_text($full_query, $location_restriction, $included_type, null, true);
+        $search_result = $this->search_text($full_query, $location_restriction, $included_type, null, $use_bias);
 
         // 2. Fallback attempt: If no places found with included_type, search without included_type
         if ($search_result['success'] && empty($search_result['places']) && !empty($included_type)) {
-            $search_result = $this->search_text($full_query, $location_restriction, null, null, true);
+            $search_result = $this->search_text($full_query, $location_restriction, null, null, $use_bias);
         }
 
         // 3. Fallback attempt: If still no places and full_query differs from clean_query, search clean_query with bias
         if ($search_result['success'] && empty($search_result['places']) && $full_query !== $clean_query) {
-            $search_result = $this->search_text($clean_query, $location_restriction, null, null, true);
+            $search_result = $this->search_text($clean_query, $location_restriction, null, null, $use_bias);
         }
 
         if (!$search_result['success']) {

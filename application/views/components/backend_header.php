@@ -310,23 +310,28 @@ $header_company_logo = base_url('assets/img/logo.png');
                 </div>
             </li>
 
-            <!-- GROUP 4: RESTORAN MODÜLÜ -->
+            <!-- GROUP 4: SEKTÖREL OPERASYON & MODÜL SÜİTİ -->
             <?php
-            $has_restaurant = is_module_enabled('restaurant_floor_plan') || is_module_enabled('restaurant_reservations');
-            if ($has_restaurant):
-                $is_restaurant_active = in_array($active_menu, ['restaurant_floor_plan', 'restaurant_reservations']);
+            $current_vert = function_exists('current_vertical_group') ? current_vertical_group() : 'beauty';
+            $is_vert_active = in_array($active_menu, [
+                'verticals_gift_cards', 'verticals_kds', 'verticals_sports',
+                'verticals_clinic', 'verticals_automotive', 'verticals_experience',
+                'restaurant_floor_plan', 'restaurant_reservations'
+            ]);
             ?>
+
+            <?php if ($current_vert === 'restaurant' || is_module_enabled('restaurant_floor_plan') || is_module_enabled('restaurant_reservations')): ?>
             <li class="nav-item sidebar-group mb-1">
-                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_restaurant_active ? 'active-parent' : '' ?>"
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= ($active_menu === 'restaurant_floor_plan' || $active_menu === 'restaurant_reservations' || $active_menu === 'verticals_kds') ? 'active-parent' : '' ?>"
                    href="#sidebar-menu-restaurant" data-bs-toggle="collapse" role="button"
-                   aria-expanded="<?= $is_restaurant_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-restaurant">
+                   aria-expanded="<?= ($active_menu === 'restaurant_floor_plan' || $active_menu === 'restaurant_reservations' || $active_menu === 'verticals_kds') ? 'true' : 'false' ?>" aria-controls="sidebar-menu-restaurant">
                     <span class="d-flex align-items-center">
                         <i class="fas fa-utensils me-2 text-danger" style="width: 20px;"></i>
-                        <span class="fw-semibold">Restoran Modülü</span>
+                        <span class="fw-semibold">Restoran Operasyonu</span>
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $is_restaurant_active ? 'show' : '' ?>" id="sidebar-menu-restaurant">
+                <div class="collapse <?= ($active_menu === 'restaurant_floor_plan' || $active_menu === 'restaurant_reservations' || $active_menu === 'verticals_kds') ? 'show' : '' ?>" id="sidebar-menu-restaurant">
                     <ul class="nav flex-column sub-nav-list">
                         <?php if (is_module_enabled('restaurant_floor_plan')): ?>
                         <li class="nav-item <?= $active_menu == 'restaurant_floor_plan' ? 'active' : '' ?>">
@@ -344,6 +349,138 @@ $header_company_logo = base_url('assets/img/logo.png');
                             </a>
                         </li>
                         <?php endif; ?>
+                        <li class="nav-item <?= $active_menu == 'verticals_kds' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/kds') ?>" class="nav-link text-white">
+                                <i class="fas fa-tv me-2 text-warning"></i>
+                                Mutfak & Bar (KDS)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <?php endif; ?>
+
+            <?php if ($current_vert === 'sports'): ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_sports' ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-sports" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $active_menu === 'verticals_sports' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-sports">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-volleyball-ball me-2 text-warning" style="width: 20px;"></i>
+                        <span class="fw-semibold">Kort & Maç Operasyonu</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $active_menu === 'verticals_sports' ? 'show' : '' ?>" id="sidebar-menu-sports">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'verticals_sports' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/sports') ?>" class="nav-link text-white">
+                                <i class="fas fa-users-cog me-2 text-info"></i>
+                                Açık Maçlar & Eşleşme
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= site_url('checkin') ?>" class="nav-link text-white">
+                                <i class="fas fa-id-badge me-2 text-success"></i>
+                                Turnike & Giriş Kontrol
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <?php endif; ?>
+
+            <?php if ($current_vert === 'health'): ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_clinic' ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-clinic" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $active_menu === 'verticals_clinic' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-clinic">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-file-medical me-2 text-info" style="width: 20px;"></i>
+                        <span class="fw-semibold">Klinik & Danışan Dosyası</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $active_menu === 'verticals_clinic' ? 'show' : '' ?>" id="sidebar-menu-clinic">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'verticals_clinic' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/clinic') ?>" class="nav-link text-white">
+                                <i class="fas fa-notes-medical me-2 text-danger"></i>
+                                EHR / SOAP Dosyaları
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <?php endif; ?>
+
+            <?php if ($current_vert === 'automotive'): ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_automotive' ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-auto" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $active_menu === 'verticals_automotive' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-auto">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-car me-2 text-primary" style="width: 20px;"></i>
+                        <span class="fw-semibold">Oto Servis & DVI</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $active_menu === 'verticals_automotive' ? 'show' : '' ?>" id="sidebar-menu-auto">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'verticals_automotive' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/automotive') ?>" class="nav-link text-white">
+                                <i class="fas fa-tools me-2 text-warning"></i>
+                                Araç Sicili & DVI Ekspertiz
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <?php endif; ?>
+
+            <?php if ($current_vert === 'experience'): ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_experience' ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-exp" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $active_menu === 'verticals_experience' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-exp">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-ticket-alt me-2 text-warning" style="width: 20px;"></i>
+                        <span class="fw-semibold">Deneyim & Biletleme</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $active_menu === 'verticals_experience' ? 'show' : '' ?>" id="sidebar-menu-exp">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'verticals_experience' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/experience') ?>" class="nav-link text-white">
+                                <i class="fas fa-file-signature me-2 text-info"></i>
+                                Feragatname & Biletler
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <?php endif; ?>
+
+            <?php if ($current_vert === 'beauty'): ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_gift_cards' ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-beauty" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $active_menu === 'verticals_gift_cards' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-beauty">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-gift me-2 text-warning" style="width: 20px;"></i>
+                        <span class="fw-semibold">Kapora & Hediye Kartı</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $active_menu === 'verticals_gift_cards' ? 'show' : '' ?>" id="sidebar-menu-beauty">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'verticals_gift_cards' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/gift_cards') ?>" class="nav-link text-white">
+                                <i class="fas fa-credit-card me-2 text-success"></i>
+                                Hediye Kartı & Kapora
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>

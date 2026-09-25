@@ -380,6 +380,92 @@
                             </div>
                         </div>
 
+                        <!-- Mobil Uygulama İndirme & QR Kodları (Android APK & iOS) -->
+                        <div class="row mb-5" id="mobile-app-download-section">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff;">
+                                    <div class="card-body p-4 p-md-5">
+                                        <div class="row align-items-center g-4">
+                                            <div class="col-lg-8">
+                                                <div class="d-flex align-items-center gap-2 mb-3">
+                                                    <span class="badge bg-primary px-3 py-2 rounded-pill fw-semibold" style="font-size: 12px;">
+                                                        <i class="fas fa-mobile-alt me-1"></i> BooKi Mobile Hub
+                                                    </span>
+                                                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-3 py-2 rounded-pill fw-semibold" style="font-size: 12px;">
+                                                        <i class="fas fa-check-circle me-1"></i> Canlı & İndirilebilir
+                                                    </span>
+                                                </div>
+                                                <h3 class="fw-bold text-white mb-2">BooKi Mobil Uygulamalarını İndirin</h3>
+                                                <p class="text-white-50 mb-4" style="font-size: 15px; max-width: 600px;">
+                                                    Tüm sektör modüllerine (Güzellik, Restoran, Kort/Spor, Klinik, Otomotiv, Deneyim), masa ve oda planlarına, canlı adisyon ve QR turnike sistemlerine mobil cihazınızdan erişin.
+                                                </p>
+
+                                                <!-- Hızlı İndirme Butonları -->
+                                                <div class="d-flex flex-wrap gap-3 mb-4">
+                                                    <!-- Doğrudan APK İndir -->
+                                                    <a href="<?= base_url('assets/downloads/booki-release.apk') ?>" download="booki-release.apk" class="btn btn-primary btn-lg px-4 py-3 rounded-3 shadow-sm d-flex align-items-center gap-3 text-start">
+                                                        <i class="fab fa-android fa-2x"></i>
+                                                        <div>
+                                                            <div class="small text-white-50 text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Doğrudan Yükle</div>
+                                                            <div class="fw-bold" style="font-size: 15px;">Android APK İndir</div>
+                                                        </div>
+                                                    </a>
+
+                                                    <!-- Google Play -->
+                                                    <a href="https://play.google.com/store/apps/details?id=com.kisoftware.booki" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-lg px-4 py-3 rounded-3 d-flex align-items-center gap-3 text-start">
+                                                        <i class="fab fa-google-play fa-2x"></i>
+                                                        <div>
+                                                            <div class="small text-white-50 text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Google Play</div>
+                                                            <div class="fw-bold" style="font-size: 15px;">Android Mağazası</div>
+                                                        </div>
+                                                    </a>
+
+                                                    <!-- Apple App Store -->
+                                                    <a href="https://apps.apple.com/app/booki/id6470000000" target="_blank" rel="noopener noreferrer" class="btn btn-outline-light btn-lg px-4 py-3 rounded-3 d-flex align-items-center gap-3 text-start">
+                                                        <i class="fab fa-apple fa-2x"></i>
+                                                        <div>
+                                                            <div class="small text-white-50 text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">App Store / TestFlight</div>
+                                                            <div class="fw-bold" style="font-size: 15px;">iOS İndir</div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+
+                                                <!-- Yapılandırılabilir Mağaza URL Ayarları -->
+                                                <div class="p-3 rounded-3 bg-white bg-opacity-10 border border-white border-opacity-10">
+                                                    <div class="fw-semibold text-white mb-2" style="font-size: 13px;">
+                                                        <i class="fas fa-cog me-1"></i> Özel Uygulama Mağaza Bağlantıları (İsteğe Bağlı)
+                                                    </div>
+                                                    <div class="row g-2">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label text-white-50 small mb-1" for="mobile-app-android-url">Google Play URL</label>
+                                                            <input type="url" id="mobile-app-android-url" class="form-control form-control-sm bg-dark text-white border-secondary" data-field="mobile_app_android_url" placeholder="https://play.google.com/...">
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label text-white-50 small mb-1" for="mobile-app-ios-url">App Store URL</label>
+                                                            <input type="url" id="mobile-app-ios-url" class="form-control form-control-sm bg-dark text-white border-secondary" data-field="mobile_app_ios_url" placeholder="https://apps.apple.com/...">
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label text-white-50 small mb-1" for="mobile-app-apk-url">Doğrudan APK URL</label>
+                                                            <input type="url" id="mobile-app-apk-url" class="form-control form-control-sm bg-dark text-white border-secondary" data-field="mobile_app_apk_url" placeholder="<?= base_url('assets/downloads/booki-release.apk') ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- QR Kod Alanı -->
+                                            <div class="col-lg-4 text-center">
+                                                <div class="bg-white p-3 rounded-4 shadow-lg d-inline-block text-dark">
+                                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=<?= urlencode(base_url('assets/downloads/booki-release.apk')) ?>" alt="BooKi Mobil Uygulama QR Kodu" class="img-fluid rounded-3 mb-2" style="width: 160px; height: 160px;">
+                                                    <div class="fw-bold small text-dark"><i class="fas fa-qrcode me-1"></i> Telefonla Tara & İndir</div>
+                                                    <div class="text-muted" style="font-size: 11px;">Android & iOS Uyumlu</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </fieldset>
                 </form>
             </div>

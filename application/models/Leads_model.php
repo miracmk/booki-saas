@@ -830,6 +830,11 @@ class Leads_model extends CI_Model
         $stage_key = $lead['stage'] ?? 'New Lead';
         $lead['stage_label'] = self::STAGES[$stage_key] ?? $stage_key;
 
+        // Marketplace (RandevuBurada) Sync Status
+        $lead['is_marketplace_published'] = (int) ($lead['is_marketplace_published'] ?? 0);
+        $lead['marketplace_synced_at'] = $lead['marketplace_synced_at'] ?? null;
+        $lead['marketplace_url'] = !empty($lead['slug']) ? randevuburada_url('isletme/' . urlencode($lead['slug'])) : '';
+
         return $lead;
     }
 
@@ -968,6 +973,14 @@ class Leads_model extends CI_Model
         if (!empty($filters['business_status']) && $filters['business_status'] !== 'ALL') {
             $this->db->where('business_status', $filters['business_status']);
         }
+
+        if (!empty($filters['marketplace_filter'])) {
+            if ($filters['marketplace_filter'] === 'published') {
+                $this->db->where('is_marketplace_published', 1);
+            } elseif ($filters['marketplace_filter'] === 'not_published') {
+                $this->db->where('(is_marketplace_published = 0 OR is_marketplace_published IS NULL)', null, false);
+            }
+        }
     }
 
     /**
@@ -981,23 +994,17 @@ class Leads_model extends CI_Model
 
     /**
      * Get leads for marketplace storefront (homepage).
-     * Only enriched or claimed leads are shown on the homepage for quality.
+     * Only published leads on marketplace are shown on the homepage.
      */
     public function get_for_storefront(int $limit = 12, int $offset = 0, array $filters = []): array
     {
-        $this->db->group_start();
-        $this->db->where('enrichment_status', 'enriched_lead');
-        $this->db->or_where('membership_status', 'claimed_member');
-        $this->db->group_end();
+        $this->db->where('is_marketplace_published', 1);
         $this->db->where('business_status', 'OPERATIONAL');
 
         $this->apply_marketplace_filters($filters);
         $total = $this->db->count_all_results('leads');
 
-        $this->db->group_start();
-        $this->db->where('enrichment_status', 'enriched_lead');
-        $this->db->or_where('membership_status', 'claimed_member');
-        $this->db->group_end();
+        $this->db->where('is_marketplace_published', 1);
         $this->db->where('business_status', 'OPERATIONAL');
         $this->apply_marketplace_filters($filters);
 
@@ -1015,14 +1022,16 @@ class Leads_model extends CI_Model
 
     /**
      * Get leads for pSEO category/city/district pages.
-     * Shows all operational leads (prioritizing enriched) to ensure full pSEO coverage.
+     * Shows published operational leads (prioritizing enriched) to ensure quality and control.
      */
     public function get_for_directory(int $limit = 24, int $offset = 0, array $filters = []): array
     {
+        $this->db->where('is_marketplace_published', 1);
         $this->db->where('business_status', 'OPERATIONAL');
         $this->apply_marketplace_filters($filters);
         $total = $this->db->count_all_results('leads');
 
+        $this->db->where('is_marketplace_published', 1);
         $this->db->where('business_status', 'OPERATIONAL');
         $this->apply_marketplace_filters($filters);
 
@@ -1045,6 +1054,7 @@ class Leads_model extends CI_Model
     {
         return $this->db
             ->select('slug, name, city, district, sector, enrichment_status, updated_at')
+            ->where('is_marketplace_published', 1)
             ->where('slug IS NOT NULL', null, false)
             ->where('slug !=', '')
             ->where('business_status', 'OPERATIONAL')
@@ -1062,6 +1072,7 @@ class Leads_model extends CI_Model
     public function count_slugs(): int
     {
         return (int) $this->db
+            ->where('is_marketplace_published', 1)
             ->where('slug IS NOT NULL', null, false)
             ->where('slug !=', '')
             ->where('business_status', 'OPERATIONAL')
@@ -1077,6 +1088,7 @@ class Leads_model extends CI_Model
     {
         return $this->db
             ->select('city, COUNT(*) as count', false)
+            ->where('is_marketplace_published', 1)
             ->where('city IS NOT NULL', null, false)
             ->where('city !=', '')
             ->where('business_status', 'OPERATIONAL')
@@ -1094,6 +1106,7 @@ class Leads_model extends CI_Model
     public function get_neighborhoods(string $city = '', string $district = ''): array
     {
         $this->db->select('neighborhood, COUNT(*) as count', false)
+            ->where('is_marketplace_published', 1)
             ->where('neighborhood IS NOT NULL', null, false)
             ->where('neighborhood !=', '')
             ->where('business_status', 'OPERATIONAL')
@@ -1161,6 +1174,211 @@ class Leads_model extends CI_Model
                 ->or_like('matched_categories', $filters['category'])
                 ->group_end();
         }
+    }
+
+    /**
+     * Push or unpublish a single lead to/from RandevuBurada (RB) Marketplace.
+     */
+    public function push_to_marketplace(int $lead_id, bool $publish = true): array
+    {
+        $lead = $this->db->get_where('leads', ['id' => $lead_id])->row_array();
+        if (!$lead) {
+            throw new InvalidArgumentException('Lead bulunamadı (ID: ' . $lead_id . ').');
+        }
+
+        if (!$publish) {
+            $this->db->where('id', $lead_id)->update('leads', [
+                'is_marketplace_published' => 0,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $this->add_activity(
+                $lead_id,
+                'marketplace_unpublish',
+                'RandevuBurada (RB) Pazaryerinden Kaldırıldı',
+                'İşletme superadmin tarafından RandevuBurada pazaryerinden yayından kaldırıldı.',
+                session('superadmin_username') ?: 'Super Admin'
+            );
+
+            $updated = $this->db->get_where('leads', ['id' => $lead_id])->row_array();
+            return $this->format_lead_metadata($updated);
+        }
+
+        // Publishing to marketplace (RB Push)
+        $slug = trim((string) ($lead['slug'] ?? ''));
+        if ($slug === '') {
+            $slug = $this->generate_slug($lead['name'] ?? '', $lead['district'] ?? '', $lead['city'] ?? '', $lead_id);
+        }
+
+        $claim_token = trim((string) ($lead['claim_token'] ?? ''));
+        if ($claim_token === '') {
+            $claim_token = md5($lead_id . uniqid((string) mt_rand(), true));
+        }
+
+        $photo_refs = trim((string) ($lead['photo_references'] ?? ''));
+        if ($photo_refs === '' && !empty($lead['photos_json'])) {
+            $photos = json_decode($lead['photos_json'], true);
+            if (is_array($photos)) {
+                $refs = [];
+                foreach ($photos as $p) {
+                    if (!empty($p['name'])) {
+                        $refs[] = $p['name'];
+                    } elseif (is_string($p)) {
+                        $refs[] = $p;
+                    }
+                }
+                if (!empty($refs)) {
+                    $photo_refs = json_encode(array_slice($refs, 0, 5), JSON_UNESCAPED_UNICODE);
+                }
+            }
+        }
+
+        $google_place_id = $lead['google_place_id'] ?: ($lead['place_id'] ?? null);
+
+        $updates = [
+            'is_marketplace_published' => 1,
+            'marketplace_synced_at' => date('Y-m-d H:i:s'),
+            'slug' => $slug,
+            'claim_token' => $claim_token,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ];
+
+        if ($google_place_id) {
+            $updates['google_place_id'] = $google_place_id;
+        }
+
+        if ($photo_refs !== '') {
+            $updates['photo_references'] = $photo_refs;
+        }
+
+        if (!empty($lead['enriched_at']) || ($lead['discovery_state'] ?? '') === 'ENRICHED') {
+            $updates['enrichment_status'] = 'enriched_lead';
+        }
+
+        if (!empty($lead['website']) && empty($lead['website_url'])) {
+            $updates['website_url'] = $lead['website'];
+        }
+
+        if (!empty($lead['phone']) && empty($lead['whatsapp_number'])) {
+            $clean = preg_replace('/[^0-9]/', '', (string) $lead['phone']);
+            if ($clean !== '') {
+                if (!str_starts_with($clean, '90')) {
+                    $clean = '90' . ltrim($clean, '0');
+                }
+                $updates['whatsapp_number'] = $clean;
+            }
+        }
+
+        if (!empty($lead['opening_hours_json']) && empty($lead['opening_hours'])) {
+            $updates['opening_hours'] = $lead['opening_hours_json'];
+        }
+
+        $this->db->where('id', $lead_id)->update('leads', $updates);
+
+        $this->add_activity(
+            $lead_id,
+            'marketplace_publish',
+            'RandevuBurada (RB) Pazaryerinde Yayınlandı',
+            "İşletme pazaryeri vitrini ve pSEO dizinine push edildi (Slug: {$slug}).",
+            session('superadmin_username') ?: 'Super Admin'
+        );
+
+        $updated = $this->db->get_where('leads', ['id' => $lead_id])->row_array();
+        return $this->format_lead_metadata($updated);
+    }
+
+    /**
+     * Bulk push or unpublish leads to/from RandevuBurada marketplace.
+     */
+    public function bulk_push_to_marketplace(array $lead_ids, bool $publish = true): array
+    {
+        $success = 0;
+        $failed = 0;
+
+        foreach ($lead_ids as $id) {
+            try {
+                $this->push_to_marketplace((int) $id, $publish);
+                $success++;
+            } catch (Throwable $e) {
+                $failed++;
+            }
+        }
+
+        return [
+            'success' => true,
+            'success_count' => $success,
+            'failed_count' => $failed,
+            'publish' => $publish,
+        ];
+    }
+
+    /**
+     * Synchronize all enriched operational leads to RandevuBurada marketplace.
+     */
+    public function sync_all_enriched_to_marketplace(): array
+    {
+        $leads = $this->db
+            ->select('id')
+            ->where('business_status', 'OPERATIONAL')
+            ->group_start()
+                ->where('enrichment_status', 'enriched_lead')
+                ->or_where('enriched_at IS NOT NULL', null, false)
+                ->or_where('discovery_state', 'ENRICHED')
+            ->group_end()
+            ->get('leads')
+            ->result_array();
+
+        $lead_ids = array_column($leads, 'id');
+        $res = $this->bulk_push_to_marketplace($lead_ids, true);
+
+        return [
+            'success' => true,
+            'synced_count' => $res['success_count'],
+            'failed_count' => $res['failed_count'],
+            'total_enriched' => count($lead_ids),
+        ];
+    }
+
+    /**
+     * Generate unique URL-friendly SEO slug for a lead.
+     */
+    public function generate_slug(string $name, string $district = '', string $city = '', int $exclude_id = 0): string
+    {
+        $parts = array_filter([$name, $district, $city], fn($p) => trim($p) !== '');
+        $raw = implode(' ', $parts);
+
+        $tr_map = [
+            'ş' => 's', 'Ş' => 's', 'ç' => 'c', 'Ç' => 'c',
+            'ğ' => 'g', 'Ğ' => 'g', 'ü' => 'u', 'Ü' => 'u',
+            'ö' => 'o', 'Ö' => 'o', 'ı' => 'i', 'İ' => 'i',
+            'â' => 'a', 'Â' => 'a', 'î' => 'i', 'Î' => 'i',
+            'û' => 'u', 'Û' => 'u',
+        ];
+        $slug = strtr($raw, $tr_map);
+        $slug = mb_strtolower($slug, 'UTF-8');
+        $slug = preg_replace('/[^a-z0-9\-]/', '-', $slug);
+        $slug = preg_replace('/-+/', '-', $slug);
+        $slug = trim($slug, '-');
+
+        if ($slug === '') {
+            $slug = 'isletme-' . bin2hex(random_bytes(4));
+        }
+
+        $base = $slug;
+        $counter = 1;
+        while (true) {
+            $this->db->where('slug', $slug);
+            if ($exclude_id > 0) {
+                $this->db->where('id !=', $exclude_id);
+            }
+            if ($this->db->count_all_results('leads') === 0) {
+                break;
+            }
+            $counter++;
+            $slug = $base . '-' . $counter;
+        }
+
+        return $slug;
     }
 }
 

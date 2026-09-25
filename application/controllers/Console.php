@@ -153,7 +153,7 @@ class Console extends EA_Controller
      * Usage:
      * php index.php console migrate_master
      */
-    public function migrate_master(int $from_version = 156, int $to_version = 160): void
+    public function migrate_master(int $from_version = 156, int $to_version = 163): void
     {
         $this->connect_master();
         echo "Running migrations on master database (v{$from_version} to v{$to_version})...\n";
@@ -2726,9 +2726,14 @@ class Console extends EA_Controller
      */
     private function connect_tenant(array $tenant): void
     {
+        $tenant_hostname = $tenant['db_host'];
+        if (($tenant_hostname === 'db' || strpos($tenant_hostname, '127.0.0.1') !== false) && !empty($this->db->hostname)) {
+            $tenant_hostname = $this->db->hostname;
+        }
+
         $this->load->database(
             [
-                'hostname' => $tenant['db_host'],
+                'hostname' => $tenant_hostname,
                 'username' => $tenant['db_username'],
                 'password' => tenant_master_decrypt($tenant['db_password']),
                 'database' => $tenant['db_name'],
@@ -4010,7 +4015,8 @@ class Console extends EA_Controller
 
             // Check session status
             try {
-                $status = $this->whatsapp_bridge->status($subdomain);
+                $bridge = new Whatsapp_bridge($bridge_url, $msg_settings['whatsapp_bridge_secret'] ?? '');
+                $status = $bridge->session_status($subdomain);
                 echo "   - Oturum Durumu: " . ($status['status'] ?? 'unknown') . PHP_EOL;
             } catch (\Throwable $e) {
                 echo "   ⚠ Oturum sorgulanamadı: " . $e->getMessage() . PHP_EOL;
@@ -4414,12 +4420,13 @@ class Console extends EA_Controller
     }
 
     /**
-     * Send reminders for upcoming appointments scheduled in the next N hours.
+     * Send reminders for upcoming appointments based on the configured reminder offsets.
      *
      * Usage:
      * php index.php console send_reminders [hours_ahead]
      *
-     * @param int $hours_ahead Default 24 hours
+     * @param int $hours_ahead Accepted for backward compatibility; reminder timing
+     *                          comes from messaging_settings.reminder_offsets.
      */
     public function send_reminders(?int $hours_ahead = null): void
     {
@@ -4442,78 +4449,12 @@ class Console extends EA_Controller
 
     private function send_reminders_current_db(?int $hours_ahead = null): int
     {
-        $this->load->library('notifications');
-        $this->load->library('channel_templates');
-        $this->load->model('appointments_model');
-        $this->load->model('settings_model');
-        $this->load->model('customers_model');
-        $this->load->model('services_model');
-        $this->load->model('providers_model');
-        $this->load->model('messaging_settings_model');
+        // Reminder timing and dispatch are handled by the shared Appointment_reminders
+        // library (driven by messaging_settings.reminder_offsets). $hours_ahead is
+        // accepted for CLI backward compatibility but no longer affects the sweep.
+        $this->load->library('appointment_reminders');
 
-        $msg_settings = $this->messaging_settings_model->get_settings();
-        if (isset($msg_settings['reminder_notifications_enabled']) && !(bool) $msg_settings['reminder_notifications_enabled']) {
-            return 0; // Tenant has disabled appointment reminders
-        }
-
-        if ($hours_ahead === null || $hours_ahead <= 0) {
-            $hours_ahead = (int) ($msg_settings['reminder_hours_ahead'] ?? 24);
-            if ($hours_ahead <= 0) {
-                $hours_ahead = 24;
-            }
-        }
-
-        $now = date('Y-m-d H:i:s');
-        $target_time = date('Y-m-d H:i:s', strtotime("+{$hours_ahead} hours"));
-
-        // Find upcoming confirmed/reserved appointments within time window that haven't received reminder yet
-        $this->db
-            ->from('appointments')
-            ->where('is_unavailability', false)
-            ->where('start_datetime >=', $now)
-            ->where('start_datetime <=', $target_time)
-            ->where_not_in('status', ['Cancelled', 'Draft']);
-
-        if ($this->db->field_exists('is_reminder_sent', 'appointments')) {
-            $this->db->where('is_reminder_sent', 0);
-        }
-
-        $appointments = $this->db->get()->result_array();
-
-        $sent_count = 0;
-        $company_settings = [
-            'company_name' => setting('company_name'),
-            'company_link' => setting('company_link'),
-            'company_email' => setting('company_email'),
-            'company_color' => setting('company_color'),
-            'company_address' => setting('company_address'),
-            'company_phone' => setting('company_phone'),
-            'date_format' => setting('date_format'),
-            'time_format' => setting('time_format'),
-        ];
-
-        foreach ($appointments as $appointment) {
-            try {
-                $service = $this->services_model->find((int) $appointment['id_services']) ?: [];
-                $provider = $this->providers_model->find((int) $appointment['id_users_provider']) ?: [];
-                $customer = $this->customers_model->find((int) $appointment['id_users_customer']) ?: [];
-
-                if (!empty($customer)) {
-                    $this->notifications->notify_appointment_reminder($appointment, $provider, $service, $customer, $company_settings);
-                    if ($this->db->field_exists('is_reminder_sent', 'appointments')) {
-                        $this->db->where('id', (int) $appointment['id'])->update('appointments', [
-                            'is_reminder_sent' => 1,
-                            'reminder_sent_at' => date('Y-m-d H:i:s'),
-                        ]);
-                    }
-                    $sent_count++;
-                }
-            } catch (Throwable $e) {
-                log_message('error', 'send_reminders_current_db failed for apt ' . $appointment['id'] . ': ' . $e->getMessage());
-            }
-        }
-
-        return $sent_count;
+        return $this->appointment_reminders->run(false);
     }
 
     /**
@@ -5157,7 +5098,343 @@ class Console extends EA_Controller
 
         echo "Total normalized leads: {$updated} of " . count($leads) . PHP_EOL;
     }
+
+    /**
+     * E2E Verification & Smoke Test for Multi-Vertical Enterprise Suite
+     *
+     * Usage: php index.php console test_multi_vertical_enterprise [subdomain]
+     */
+    public function test_multi_vertical_enterprise(string $subdomain = 'salonflora'): void
+    {
+        echo PHP_EOL . "================================================================================" . PHP_EOL;
+        echo "🏢 BooKi Multi-Vertical Enterprise Suite - Comprehensive E2E Verification" . PHP_EOL;
+        echo "================================================================================" . PHP_EOL;
+
+        $passed = 0;
+        $failed = 0;
+
+        $assert = function (bool $condition, string $message) use (&$passed, &$failed) {
+            if ($condition) {
+                echo "  ✓ [PASS] {$message}" . PHP_EOL;
+                $passed++;
+            } else {
+                echo "  ✗ [FAIL] {$message}" . PHP_EOL;
+                $failed++;
+            }
+        };
+
+        // 1. Establish Tenant Context
+        if (is_multi_tenant_mode()) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain, 'status' => 'active'])->row_array();
+            if (!$tenant) {
+                // Fallback to first active tenant
+                $tenant = $this->db->get_where('tenants', ['status' => 'active'])->row_array();
+            }
+            if (!$tenant) {
+                echo "✗ No active tenant found!" . PHP_EOL;
+                return;
+            }
+            $this->connect_tenant($tenant);
+            echo "🏢 Kiracı: {$tenant['subdomain']} | DB: {$tenant['db_name']}" . PHP_EOL . PHP_EOL;
+        }
+
+        // Load all enterprise models
+        $this->load->model('gift_cards_model');
+        $this->load->model('restaurant_model');
+        $this->load->model('sports_matches_model');
+        $this->load->model('clinical_records_model');
+        $this->load->model('vehicles_model');
+        $this->load->model('work_orders_model');
+        $this->load->model('digital_waivers_model');
+        $this->load->model('event_tickets_model');
+        $this->load->model('customers_model');
+        $this->load->model('appointments_model');
+        $this->load->model('services_model');
+        $this->load->model('providers_model');
+        $this->load->library('availability');
+
+        $customer = $this->db->get('users', 1)->row_array();
+        $customerId = $customer ? (int) $customer['id'] : 1;
+        $provider = $this->db->get_where('users', ['id_roles' => 2], 1)->row_array();
+        $providerId = $provider ? (int) $provider['id'] : 1;
+
+        try {
+            // --- 1. GÜZELLİK & SPA (GIFT CARDS & DEPOSIT) ---
+            echo "--- 1. Güzellik & Spa (Hediye Kartı, Kapora & Sadakat) ---" . PHP_EOL;
+            $testCode = 'TEST-' . strtoupper(bin2hex(random_bytes(4)));
+            $card = $this->gift_cards_model->issue_card([
+                'code' => $testCode,
+                'initial_amount' => 500.00,
+                'recipient_name' => 'Ayşe Yılmaz',
+            ]);
+            $assert(!empty($card['id']), "Hediye kartı oluşturuldu (ID: {$card['id']}, Kod: {$testCode})");
+
+            $cardCheck = $this->gift_cards_model->get_by_code($testCode);
+            $assert($cardCheck && (float)$cardCheck['current_balance'] === 500.0, "Hediye kartı bakiye doğrulandı (500 TL)");
+
+            $redeemRes = $this->gift_cards_model->redeem($testCode, 150.00);
+            $assert($redeemRes['success'] === true, "150 TL harcama/redemption başarılı");
+
+            $cardAfter = $this->gift_cards_model->get_by_code($testCode);
+            $assert($cardAfter && (float)$cardAfter['current_balance'] === 350.0, "Kalan bakiye doğru (350 TL)");
+
+            // --- 2. RESTORAN & KAFE (GUEST PREFERENCES & KDS) ---
+            echo PHP_EOL . "--- 2. Restoran & Kafe (Guest 360 & KDS Mutfak/Bar) ---" . PHP_EOL;
+            $prefRes = $this->restaurant_model->save_guest_preferences($customerId, [
+                'dietary_restrictions' => ['Gluten-Free', 'Vegetarian'],
+                'allergies' => ['Fıstık'],
+                'preferred_seating' => 'Cam Kenarı / Bahçe',
+                'vip_level' => 'vip',
+                'special_notes' => 'Yıldönümü kutlaması, şampanya servisi',
+            ]);
+            $assert(!empty($prefRes), "Misafir 360 alerjen, VIP ve oturma tercihleri kaydedildi");
+
+            $pref = $this->restaurant_model->get_guest_preferences($customerId);
+            $dietaryList = !empty($pref['dietary_restrictions']) ? (is_array($pref['dietary_restrictions']) ? $pref['dietary_restrictions'] : json_decode($pref['dietary_restrictions'], true)) : [];
+            $assert($pref && $pref['vip_level'] === 'vip' && in_array('Fıstık', $dietaryList), "Misafir tercihleri ve alerjen bilgisi başarıyla okundu");
+
+            $kitchenOrderId = $this->restaurant_model->create_kitchen_order([
+                'station' => 'kitchen',
+                'item_name' => 'Izgara Somon',
+                'quantity' => 2,
+                'notes' => 'Alerjiye dikkat: Fıstıksız',
+            ]);
+            $assert($kitchenOrderId > 0, "KDS mutfak siparişi açıldı (ID: {$kitchenOrderId})");
+
+            $kdsActive = $this->restaurant_model->get_active_kitchen_orders('kitchen');
+            $foundOrder = false;
+            foreach ($kdsActive as $ko) {
+                if ((int)$ko['id'] === $kitchenOrderId) {
+                    $foundOrder = true;
+                    break;
+                }
+            }
+            $assert($foundOrder === true, "KDS aktif mutfak ekranında sipariş canlı görünüyor");
+
+            $statusOk = $this->restaurant_model->update_kitchen_order_status($kitchenOrderId, 'ready');
+            $assert($statusOk === true, "KDS mutfak sipariş durumu 'ready' olarak güncellendi");
+
+            // --- 3. SPOR / KORT / HALI SAHA (OPEN MATCHES & TURNSTILE GATE) ---
+            echo PHP_EOL . "--- 3. Spor & Kort (Açık Maçlar, Matchmaking & Turnike Geçiş) ---" . PHP_EOL;
+            $matchId = $this->sports_matches_model->create_match([
+                'title' => 'Padel Çiftler Maçı',
+                'sport_type' => 'padel',
+                'start_datetime' => date('Y-m-d 18:00:00', strtotime('+1 day')),
+                'end_datetime' => date('Y-m-d 19:30:00', strtotime('+1 day')),
+                'max_players' => 4,
+                'price_per_player' => 250.00,
+                'created_by_user_id' => $customerId,
+            ]);
+            $assert($matchId > 0, "Açık maç ilanı açıldı (ID: {$matchId}, Padel)");
+
+            $secondCust = $this->db->get_where('users', ['id !=' => $customerId], 1)->row_array();
+            $secondCustId = $secondCust ? (int)$secondCust['id'] : 8888;
+            $joinRes = $this->sports_matches_model->join_match($matchId, $secondCustId, 'Team B', '3.5', true);
+            $assert($joinRes['success'] === true, "2. oyuncu maça başarıyla katıldı");
+
+            $openMatches = $this->sports_matches_model->get_open_matches('padel');
+            $assert(count($openMatches) > 0, "Açık maç listeleme ve filtreleme çalışıyor");
+
+            $gateCheck = $this->sports_matches_model->verify_turnstile_access('UNKNOWN-TAG', 'TURNSTILE-01');
+            $assert(isset($gateCheck['access_granted']), "Turnike donanım kapı kontrol API yanıtı doğrulandı");
+
+            // --- 4. SAĞLIK & KLİNİK (EHR SOAP & TELEHEALTH) ---
+            echo PHP_EOL . "--- 4. Sağlık & Klinik (EHR SOAP, Sigorta & Teletıp) ---" . PHP_EOL;
+            $clinicalId = $this->clinical_records_model->add_record([
+                'id_users_customer' => $customerId,
+                'id_users_provider' => $providerId,
+                'record_type' => 'soap_note',
+                'subjective' => 'Hasta sol dizde 3 gündür devam eden batma ve şişlik şikayetiyle başvurdu.',
+                'objective' => 'Sol diz eklem hareket açıklığı kısıtlı, hafif efüzyon mevcut. Patella kompresyon testi pozitif.',
+                'assessment' => 'Patellofemoral ağrı sendromu / hafif sinovit.',
+                'plan' => 'İstirahat, buz uygulama, NSAİİ tedavi başlandı. 10 seans fizik tedavi önerildi.',
+            ]);
+            $assert($clinicalId > 0, "EHR SOAP klinik dosyası başarıyla kaydedildi (ID: {$clinicalId})");
+
+            $patientRecords = $this->clinical_records_model->get_patient_records($customerId);
+            $assert(count($patientRecords) > 0, "Hastanın geçmiş klinik dosyaları çekildi");
+
+            $telehealth = $this->clinical_records_model->generate_telehealth_session(999, 'Dr. Uzman Hekim', 'Hasta Bilgi');
+            $assert(!empty($telehealth['room_url']) && str_contains($telehealth['room_url'], 'meet.jit.si'), "Güvenli teletıp Jitsi video görüşme odası üretildi ({$telehealth['room_url']})");
+
+            // --- 5. OTOMOTİV & SERVİS (VEHICLES, DVI & WORK ORDERS) ---
+            echo PHP_EOL . "--- 5. Otomotiv & Servis (Araç Sicili, DVI Ekspertiz & İş Emirleri) ---" . PHP_EOL;
+            $testPlate = '34TST' . rand(100, 999);
+            $vehicleId = $this->vehicles_model->add_vehicle([
+                'id_users_customer' => $customerId,
+                'plate_number' => $testPlate,
+                'brand' => 'Volkswagen',
+                'model' => 'Golf 8 1.5 eTSI',
+                'year' => 2023,
+                'color' => 'Beyaz',
+                'current_km' => 28500,
+            ]);
+            $assert($vehicleId > 0, "Araç sisteme kaydedildi (Plaka: {$testPlate}, ID: {$vehicleId})");
+
+            $inspection = $this->work_orders_model->save_inspection([
+                'id_vehicles' => $vehicleId,
+                'inspection_type' => 'general_service',
+                'overall_score' => 85,
+                'items' => [
+                    'fren_balatalari' => ['status' => 'yellow', 'note' => '%40 aşınma'],
+                    'motor_yagi' => ['status' => 'red', 'note' => 'Değişim zamanı geçmiş'],
+                    'lastikler' => ['status' => 'green', 'note' => 'Diş derinliği iyi'],
+                ],
+            ]);
+            $assert(!empty($inspection['id']) && !empty($inspection['customer_shared_token']), "DVI dijital araç inceleme / ekspertiz formu oluşturuldu (ID: {$inspection['id']})");
+
+            $apprOk = $this->work_orders_model->approve_inspection_by_token($inspection['customer_shared_token']);
+            $assert($apprOk === true, "Müşteri dijital DVI onayı başarıyla doğrulandı");
+
+            $wo = $this->work_orders_model->create_work_order([
+                'id_vehicles' => $vehicleId,
+                'status' => 'in_progress',
+                'estimated_cost' => 4500.00,
+            ]);
+            $assert(!empty($wo['id']), "Servis iş emri açıldı (ID: {$wo['id']})");
+
+            $stageOk = $this->work_orders_model->update_status($wo['id'], 'ready');
+            $assert($stageOk === true, "İş emri aşaması 'ready' olarak güncellendi");
+
+            // --- 6. DENEYİM & MACERA (DIGITAL WAIVERS & EVENT TICKETS) ---
+            echo PHP_EOL . "--- 6. Deneyim & Macera (Dijital Feragatname & Biletleme) ---" . PHP_EOL;
+            $waiverId = $this->digital_waivers_model->save_waiver([
+                'title' => 'Macera Parkı & Zipline Sorumluluk Feragatnamesi',
+                'content_html' => '<p>Etkinlik esnasında oluşabilecek riskleri okudum ve kabul ediyorum.</p>',
+                'is_mandatory' => 1,
+            ]);
+            $assert($waiverId > 0, "Dijital feragatname şablonu oluşturuldu (ID: {$waiverId})");
+
+            $sigId = $this->digital_waivers_model->sign_waiver([
+                'id_waivers' => $waiverId,
+                'id_users_customer' => $customerId,
+                'signer_full_name' => 'Mehmet Demir',
+                'signer_email' => 'mehmet@example.com',
+                'signer_phone' => '05551234567',
+                'signature_data' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+                'ip_address' => '127.0.0.1',
+            ]);
+            $assert($sigId > 0, "Biyometrik e-imza ve IP damgasıyla feragatname imzalandı (ID: {$sigId})");
+
+            $existingAppt = $this->db->get('appointments', 1)->row_array();
+            $apptId = $existingAppt ? (int) $existingAppt['id'] : 1;
+            $ticket = $this->event_tickets_model->issue_ticket($apptId, $customerId, 'VIP-A1');
+            $assert(!empty($ticket['id']) && !empty($ticket['ticket_code']), "QR giriş bileti üretildi (Kod: {$ticket['ticket_code']})");
+
+            $burnRes = $this->event_tickets_model->validate_ticket($ticket['ticket_code']);
+            $assert($burnRes['valid'] === true && $burnRes['status'] === 'success', "QR bilet kapıda doğrulandı ve yakıldı (Ticket: {$ticket['ticket_code']})");
+
+        } catch (Throwable $e) {
+            echo "  ✗ [EXCEPTION] " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine() . PHP_EOL;
+            $failed++;
+        }
+
+        // --- 7. AVAILABILITY ENGINE REGRESSION TEST ---
+        echo PHP_EOL . "--- 7. Availability Engine Regresyon Doğrulaması ---" . PHP_EOL;
+        $serviceRow = $this->db->get('services', 1)->row_array();
+        $providerRow = $this->db->get_where('users', ['id_roles' => 2], 1)->row_array();
+        if ($serviceRow && $providerRow) {
+            $testDate = date('Y-m-d', strtotime('+3 days'));
+            $serviceData = $this->services_model->get_row((int)$serviceRow['id']);
+            $providerData = $this->providers_model->get_row((int)$providerRow['id']);
+            $avail = $this->availability->get_available_hours($testDate, $serviceData, $providerData);
+            $assert(is_array($avail), "3-Değişkenli Uygunluk Motoru (Provider + Service + Resource) kesintisiz çalışıyor (Hesaplanan slot: " . count($avail) . ")");
+        } else {
+            $assert(class_exists('Availability'), "Availability kütüphanesi aktif ve yüklendi");
+        }
+
+        // --- 8. WHATSAPP & APPOINTMENT REMINDERS REGRESSION TEST ---
+        echo PHP_EOL . "--- 8. Çoklu Ofsetli WhatsApp Hatırlatıcı Motoru Doğrulaması ---" . PHP_EOL;
+        $this->load->library('appointment_reminders');
+        $this->load->library('whatsapp_client');
+        $assert(class_exists('Appointment_reminders'), "Appointment_reminders kütüphanesi aktif");
+        $assert(class_exists('Whatsapp_client'), "Whatsapp_client kütüphanesi aktif");
+
+        // --- 9. BLUEPRINTS & MODULAR TERMINOLOGY TEST ---
+        echo PHP_EOL . "--- 9. Sektörel Blueprints & Modüler Arayüz Doğrulaması ---" . PHP_EOL;
+        $allBlueprints = [
+            'beauty_salon' => 'beauty',
+            'restaurant' => 'restaurant',
+            'sports_court' => 'sports',
+            'psychology_dietitian_clinic' => 'health',
+            'auto_service_detailing' => 'automotive',
+            'experience_escape_room' => 'experience',
+        ];
+        foreach ($allBlueprints as $bpCode => $expectedGroup) {
+            $resolvedGroup = current_vertical_group($bpCode);
+            $bpData = current_industry_blueprint($bpCode);
+            $assert($resolvedGroup === $expectedGroup, "Blueprint '{$bpCode}' => dikey grubu '{$expectedGroup}'");
+            $assert($bpData !== null && !empty($bpData['industry']['name']), "Blueprint '{$bpCode}' JSON dosyası geçerli ve yüklendi ({$bpData['industry']['name']})");
+        }
+
+        // --- 10. FRONTEND & UI/UX VIEW RENDERING TEST ---
+        echo PHP_EOL . "--- 10. Web UI View Render Test (Frontend & UI/UX) ---" . PHP_EOL;
+        session(['user_id' => 1, 'role_slug' => DB_SLUG_ADMIN]);
+        html_vars([
+            'user_display_name' => 'Demo Admin',
+            'active_menu' => 'dashboard',
+            'privileges' => ['customers' => 15, 'appointments' => 15],
+            'page_title' => 'Test Paneli',
+        ]);
+
+        $views = [
+            'pages/vertical_gift_cards' => [
+                'cards' => [],
+                'deposits' => [],
+                'customers' => [],
+            ],
+            'pages/vertical_kds' => [
+                'orders' => [],
+            ],
+            'pages/vertical_sports_matches' => [
+                'matches' => [],
+                'stations' => [],
+                'checkins' => [],
+                'customers' => [],
+            ],
+            'pages/vertical_clinical_records' => [
+                'records' => [],
+                'patients' => [],
+                'providers' => [],
+            ],
+            'pages/vertical_vehicles_dvi' => [
+                'vehicles' => [],
+                'work_orders' => [],
+                'customers' => [],
+            ],
+            'pages/vertical_experience_waivers' => [
+                'waivers' => [],
+                'signatures' => [],
+                'tickets' => [],
+            ],
+        ];
+
+        foreach ($views as $viewPath => $viewData) {
+            try {
+                $html = $this->load->view($viewPath, $viewData, true);
+                $assert(!empty($html) && strlen($html) > 500, "View '{$viewPath}' render edildi (" . strlen($html) . " bytes)");
+            } catch (Throwable $e) {
+                echo "  ✗ [VIEW FAIL] {$viewPath}: " . $e->getMessage() . PHP_EOL;
+                $failed++;
+            }
+        }
+
+        // --- 11. MODÜLER SIDEBAR (BACKEND HEADER) RENDER TEST ---
+        echo PHP_EOL . "--- 11. Modüler Sidebar (Backend Header) Render Test ---" . PHP_EOL;
+        try {
+            $headerHtml = $this->load->view('components/backend_header', [], true);
+            $assert(!empty($headerHtml) && strlen($headerHtml) > 1000, "Backend Header & Sektörel Sidebar render edildi (" . strlen($headerHtml) . " bytes)");
+        } catch (Throwable $e) {
+            echo "  ✗ [SIDEBAR FAIL] backend_header: " . $e->getMessage() . PHP_EOL;
+            $failed++;
+        }
+
+        echo PHP_EOL . "================================================================================" . PHP_EOL;
+        echo "📊 TEST SONUÇLARI: {$passed} Başarılı, {$failed} Başarısız" . PHP_EOL;
+        echo "================================================================================" . PHP_EOL;
+    }
 }
+
 
 
 

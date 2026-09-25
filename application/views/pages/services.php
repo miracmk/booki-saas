@@ -190,7 +190,7 @@
             <div class="card border mb-3" id="service-addons-card">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
                     <span class="fw-semibold text-dark"><i class="fas fa-puzzle-piece text-primary me-2"></i>Ek Hizmetler & Opsiyonlar (Add-ons)</span>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-addon-modal" disabled>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-addon-modal">
                         <i class="fas fa-plus me-1"></i>Ek Hizmet Ekle
                     </button>
                 </div>
@@ -220,7 +220,7 @@
                         <span class="fw-semibold text-dark"><i class="fas fa-boxes-stacked text-warning me-2"></i>Otomatik Stok Sarfiyat Reçetesi (Recipe)</span>
                         <small class="text-muted d-block" style="font-size:11px;">Randevu tamamlandığında stoktan otomatik düşecek sarf malzemeler</small>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-warning" id="btn-add-consumable-modal" disabled>
+                    <button type="button" class="btn btn-sm btn-outline-warning" id="btn-add-consumable-modal">
                         <i class="fas fa-plus me-1"></i>Sarf Malzeme Ekle
                     </button>
                 </div>

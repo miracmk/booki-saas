@@ -58,6 +58,7 @@ class AppointmentRepository {
     required int providerId,
     required DateTime startDatetime,
     required DateTime endDatetime,
+    int? stationId,
     String? notes,
     Map<String, dynamic>? customer,
   }) async {
@@ -67,6 +68,7 @@ class AppointmentRepository {
         'id_users_provider': providerId,
         'start_datetime': DateFormat('yyyy-MM-dd HH:mm:ss').format(startDatetime),
         'end_datetime': DateFormat('yyyy-MM-dd HH:mm:ss').format(endDatetime),
+        if (stationId != null && stationId > 0) 'id_stations': stationId,
         'notes': ?notes,
         'customer': ?customer,
       };

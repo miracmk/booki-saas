@@ -158,15 +158,45 @@ server.registerTool(
 );
 
 server.registerTool(
+  'stations',
+  {
+    title: 'List physical stations, rooms, tables, courts, devices, bays',
+    description:
+      'Lists all physical stations configured for this business (treatment rooms, dining tables, tennis/padel courts, medical devices, auto service bays) including capacity, status, and assignment.',
+  },
+  async () => {
+    const data = await callApi('/stations');
+    return { content: [{ type: 'text', text: JSON.stringify(data.stations) }] };
+  },
+);
+
+server.registerTool(
+  'vertical_records',
+  {
+    title: 'Query multi-vertical enterprise records',
+    description:
+      'Retrieves specialized multi-vertical records: KDS kitchen orders (restaurant), sports matches and courts (sports), clinical SOAP records and patient insurance (health), vehicle inspections and work orders (automotive), digital waivers and tickets (experience). Filter by type: all, stations, kds, sports, vehicles.',
+    inputSchema: {
+      type: z.enum(['all', 'stations', 'kds', 'sports', 'vehicles']).optional().describe('Type of vertical data to retrieve (default: all).'),
+    },
+  },
+  async ({ type }) => {
+    const data = await callApi('/verticals/data', { query: { type: type ?? 'all' } });
+    return { content: [{ type: 'text', text: JSON.stringify(data.data) }] };
+  },
+);
+
+server.registerTool(
   'create_appointment',
   {
     title: 'Book an appointment',
     description:
-      "Books an appointment for a customer using the full booking pipeline. Body: service_id, provider_id, start_datetime (Y-m-d H:i:s), optional notes/location, and customer {first_name, last_name, email, phone_number, timezone, notes}. The email address must be valid and unique per customer - customer_lookup first so returning customers are re-booked under their existing record. Returns appointment_id, appointment_hash and manage_link. May fail with 409 if the time is no longer available.",
+      "Books an appointment for a customer using the full booking pipeline. Body: service_id, provider_id, start_datetime (Y-m-d H:i:s), optional station_id, optional notes/location, and customer {first_name, last_name, email, phone_number, timezone, notes}. The email address must be valid and unique per customer - customer_lookup first so returning customers are re-booked under their existing record. Returns appointment_id, appointment_hash and manage_link. May fail with 409 if the time is no longer available.",
     inputSchema: {
       service_id: z.number().int().describe('Id of the service to book.'),
       provider_id: z.number().int().describe('Id of the provider who performs it.'),
       start_datetime: z.string().regex(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/).describe('Start time in Y-m-d H:i:s format (pick from availability).'),
+      station_id: z.number().int().optional().describe('Optional id of the specific room, court, table, bay or device to book.'),
       notes: z.string().optional().describe('Booking notes.'),
       location: z.string().optional().describe('Location (defaults to business address).'),
       customer: z.object({
@@ -179,10 +209,21 @@ server.registerTool(
       }).describe('Customer details.'),
     },
   },
-  async ({ service_id, provider_id, start_datetime, notes, location, customer }) => {
+  async ({ service_id, provider_id, start_datetime, station_id, notes, location, customer }) => {
+    const body = {
+      service_id,
+      provider_id,
+      start_datetime,
+      notes: notes ?? '',
+      location: location ?? '',
+      customer,
+    };
+    if (station_id !== undefined && station_id !== null) {
+      body.station_id = station_id;
+    }
     const data = await callApi('/create_appointment', {
       method: 'POST',
-      body: { service_id, provider_id, start_datetime, notes: notes ?? '', location: location ?? '', customer },
+      body,
     });
     return { content: [{ type: 'text', text: JSON.stringify(data) }] };
   },

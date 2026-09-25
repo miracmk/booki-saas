@@ -27,7 +27,9 @@ class Marketplace extends EA_Controller
             abort(404, 'Not Found');
         }
 
+        $this->load->helper('industry');
         $this->load->library('review_service');
+        $this->load->library('whatsapp_bridge');
         $this->load->model('leads_model');
     }
 
@@ -203,11 +205,16 @@ class Marketplace extends EA_Controller
         foreach ($tenants as $idx => $t) {
             $displayName = !empty($t['company_name']) ? $t['company_name'] : $t['subdomain'];
             $bizUrl = randevuburada_url('business/' . urlencode($t['subdomain']));
+            $itemSchemaType = resolve_schema_org_type([
+                'business_type' => $t['business_type'] ?? null,
+                'category' => $t['category'] ?? null,
+                'company_name' => $displayName,
+            ]);
             $item = [
                 '@type' => 'ListItem',
                 'position' => $idx + 1,
                 'item' => [
-                    '@type' => 'LocalBusiness',
+                    '@type' => $itemSchemaType,
                     'name' => $displayName,
                     'url' => $bizUrl,
                     'image' => !empty($t['cover_image_url']) ? $t['cover_image_url'] : base_url('assets/img/logo.png'),
@@ -448,10 +455,16 @@ class Marketplace extends EA_Controller
         $display_name = !empty($tenant['company_name']) ? $tenant['company_name'] : $tenant['subdomain'];
         $business_url = randevuburada_url('business/' . urlencode($tenant['subdomain']));
 
-        // Build Schema.org LocalBusiness / HealthAndBeautyBusiness JSON-LD
+        // Build Schema.org sector-specific JSON-LD across all 6 core sectors
+        $schema_type = resolve_schema_org_type([
+            'business_type' => $tenant['business_type'] ?? null,
+            'category' => $tenant['category'] ?? null,
+            'company_name' => $display_name,
+        ]);
+
         $json_ld = [
             '@context' => 'https://schema.org',
-            '@type' => 'HealthAndBeautyBusiness',
+            '@type' => $schema_type,
             'name' => $display_name,
             'image' => !empty($tenant['cover_image_url']) ? $tenant['cover_image_url'] : base_url('assets/img/logo.png'),
             'description' => $tenant['short_description'] ?? ($display_name . ' online randevu ve rezervasyon noktası.'),
@@ -1064,25 +1077,11 @@ class Marketplace extends EA_Controller
         echo '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
 
-        // SaaS Landing Page
-        echo '  <url>' . PHP_EOL;
-        echo '    <loc>' . htmlspecialchars(booki_site_url()) . '</loc>' . PHP_EOL;
-        echo '    <changefreq>daily</changefreq>' . PHP_EOL;
-        echo '    <priority>1.0</priority>' . PHP_EOL;
-        echo '  </url>' . PHP_EOL;
-
         // Marketplace Home
         echo '  <url>' . PHP_EOL;
         echo '    <loc>' . htmlspecialchars(randevuburada_url()) . '</loc>' . PHP_EOL;
         echo '    <changefreq>daily</changefreq>' . PHP_EOL;
         echo '    <priority>1.0</priority>' . PHP_EOL;
-        echo '  </url>' . PHP_EOL;
-
-        // BooKi Marketplace Path Alias
-        echo '  <url>' . PHP_EOL;
-        echo '    <loc>' . htmlspecialchars(booki_site_url('marketplace')) . '</loc>' . PHP_EOL;
-        echo '    <changefreq>daily</changefreq>' . PHP_EOL;
-        echo '    <priority>0.9</priority>' . PHP_EOL;
         echo '  </url>' . PHP_EOL;
 
         // Legal Pages
@@ -1117,6 +1116,31 @@ class Marketplace extends EA_Controller
             echo '  </url>' . PHP_EOL;
         }
 
+        // Enriched Leads on Storefront
+        $leads = $this->db
+            ->select('slug, updated_at')
+            ->group_start()
+                ->where('enrichment_status', 'enriched_lead')
+                ->or_where('membership_status', 'claimed_member')
+            ->group_end()
+            ->where('slug IS NOT NULL', null, false)
+            ->order_by('updated_at', 'desc')
+            ->get('leads')
+            ->result_array();
+
+        foreach ($leads as $l) {
+            if (empty($l['slug'])) {
+                continue;
+            }
+            $lastmod = !empty($l['updated_at']) ? date('Y-m-d', strtotime($l['updated_at'])) : date('Y-m-d');
+            echo '  <url>' . PHP_EOL;
+            echo '    <loc>' . htmlspecialchars(randevuburada_url('isletme/' . urlencode($l['slug']))) . '</loc>' . PHP_EOL;
+            echo '    <lastmod>' . $lastmod . '</lastmod>' . PHP_EOL;
+            echo '    <changefreq>weekly</changefreq>' . PHP_EOL;
+            echo '    <priority>0.8</priority>' . PHP_EOL;
+            echo '  </url>' . PHP_EOL;
+        }
+
         echo '</urlset>';
         exit;
     }
@@ -1138,7 +1162,19 @@ class Marketplace extends EA_Controller
         echo "Allow: /marketplace\n";
         echo "Allow: /marketplace/*\n";
         echo "Disallow: /admin\n";
-        echo "Disallow: /superadmin\n\n";
+        echo "Disallow: /admin/*\n";
+        echo "Disallow: /superadmin\n";
+        echo "Disallow: /superadmin/*\n";
+        echo "Disallow: /backend\n";
+        echo "Disallow: /backend/*\n";
+        echo "Disallow: /account\n";
+        echo "Disallow: /account/*\n";
+        echo "Disallow: /customer_portal\n";
+        echo "Disallow: /customer_portal/*\n";
+        echo "Disallow: /portal\n";
+        echo "Disallow: /portal/*\n";
+        echo "Disallow: /api\n";
+        echo "Disallow: /api/*\n\n";
 
         echo "# AI Crawlers & Generative Engine Optimization (GEO)\n";
         $ai_bots = ['Googlebot', 'Bingbot', 'GPTBot', 'PerplexityBot', 'ClaudeBot', 'Google-Extended', 'Applebot-Extended', 'CCBot'];
@@ -1231,6 +1267,12 @@ class Marketplace extends EA_Controller
             abort(404, 'Not Found');
         }
 
+        // If unpublished on marketplace and not admin preview / claimed, 404
+        $is_admin = (bool) (session('superadmin_logged_in') || $this->input->get('preview') === '1');
+        if (empty($lead['is_marketplace_published']) && !$is_admin && ($lead['membership_status'] ?? '') !== 'claimed_member') {
+            abort(404, 'Not Found');
+        }
+
         // Lazy Enrichment: if raw_lead, enrich on-demand via Google Places API
         if (($lead['enrichment_status'] ?? 'raw_lead') === 'raw_lead' && !empty($lead['place_id'])) {
             $this->load->library('lazy_enrichment');
@@ -1300,14 +1342,12 @@ class Marketplace extends EA_Controller
         }
         $meta_desc .= ' Çalışma saatleri, adres, fotoğraflar ve randevu talebi için tıklayın.';
 
-        // Build Schema.org LocalBusiness / HealthAndBeautyBusiness JSON-LD
-        $schema_type = 'HealthAndBeautyBusiness';
-        $primary_type = $lead['primary_type'] ?? '';
-        if (stripos($primary_type, 'doctor') !== false || stripos($primary_type, 'hospital') !== false || stripos($primary_type, 'clinic') !== false) {
-            $schema_type = 'MedicalBusiness';
-        } elseif (stripos($primary_type, 'gym') !== false || stripos($primary_type, 'fitness') !== false) {
-            $schema_type = 'SportsActivityLocation';
-        }
+        // Build Schema.org sector-specific JSON-LD across all 6 core sectors
+        $schema_type = resolve_schema_org_type([
+            'primary_type' => $lead['primary_type'] ?? null,
+            'sector' => $lead['sector'] ?? null,
+            'company_name' => $display_name,
+        ]);
 
         $json_ld = [
             '@context' => 'https://schema.org',
@@ -1485,7 +1525,8 @@ class Marketplace extends EA_Controller
             $filters['district_slug'] = $district_slug;
         }
 
-        // Query leads — directory shows ALL (raw + enriched) for pSEO fullness
+        // Query leads — directory shows published leads
+        $this->db->where('is_marketplace_published', 1);
         $this->db->where('business_status', 'OPERATIONAL');
 
         if (!empty($filters['category'])) {
@@ -1514,6 +1555,7 @@ class Marketplace extends EA_Controller
         $total = $this->db->count_all_results('leads');
 
         // Re-apply filters for data
+        $this->db->where('is_marketplace_published', 1);
         $this->db->where('business_status', 'OPERATIONAL');
         if (!empty($filters['category'])) {
             $this->db->group_start()
@@ -1594,11 +1636,17 @@ class Marketplace extends EA_Controller
         ];
 
         foreach ($leads as $idx => $l) {
+            $item_type = resolve_schema_org_type([
+                'primary_type' => $l['primary_type'] ?? null,
+                'sector' => $l['sector'] ?? null,
+                'category' => $category_display,
+                'company_name' => $l['name'] ?? '',
+            ]);
             $item = [
                 '@type' => 'ListItem',
                 'position' => (($page - 1) * $per_page) + $idx + 1,
                 'item' => [
-                    '@type' => 'LocalBusiness',
+                    '@type' => $item_type,
                     'name' => $l['name'] ?? 'İşletme',
                     'url' => !empty($l['slug']) ? randevuburada_url('isletme/' . urlencode($l['slug'])) : '#',
                 ],
@@ -1716,23 +1764,10 @@ class Marketplace extends EA_Controller
             // Try to send via Baileys Bridge (Platform Admin's bridge)
             if ($clean_wa !== '') {
                 try {
-                    $this->load->model('messaging_settings_model');
-
-                    // Get platform-level (superadmin) messaging settings
-                    // The bridge URL is stored in the master DB's messaging_settings or via env
-                    $bridge_url = getenv('WHATSAPP_BRIDGE_URL') ?: '';
-                    $bridge_secret = getenv('WHATSAPP_BRIDGE_SECRET') ?: '';
-
-                    if ($bridge_url === '' && $this->db->table_exists('messaging_settings')) {
-                        $ms = $this->db->get_where('messaging_settings', ['name' => 'whatsapp_bridge_url'])->row_array();
-                        if ($ms) {
-                            $bridge_url = $ms['value'] ?? '';
-                        }
-                        $ms2 = $this->db->get_where('messaging_settings', ['name' => 'whatsapp_bridge_secret'])->row_array();
-                        if ($ms2) {
-                            $bridge_secret = $ms2['value'] ?? '';
-                        }
-                    }
+                    // Platform-level bridge config: master_settings → env → default.
+                    // The 'platform' session is started from the superadmin CRM panel.
+                    $bridge_url = master_setting('wa_bridge_url') ?: (getenv('WA_BRIDGE_URL') ?: 'http://wa-bridge:3000');
+                    $bridge_secret = master_setting('wa_bridge_secret') ?: (getenv('WA_BRIDGE_SECRET') ?: '');
 
                     if ($bridge_url !== '') {
                         $bridge = new Whatsapp_bridge($bridge_url, $bridge_secret);

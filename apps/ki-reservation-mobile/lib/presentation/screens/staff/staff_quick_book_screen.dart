@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/service_model.dart';
 import '../../../data/models/provider_model.dart';
+import '../../../data/models/station_model.dart';
 import '../../../providers/booking_provider.dart';
 import '../../../providers/appointments_provider.dart';
 
@@ -22,6 +23,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
   final _notesController = TextEditingController();
 
   ServiceModel? _selectedService;
+  StationModel? _selectedStation;
   ProviderModel? _selectedProvider;
   DateTime _selectedDate = DateTime.now();
   String? _selectedSlot;
@@ -51,6 +53,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
         providerId: _selectedProvider!.id,
         serviceId: _selectedService!.id,
         date: dateStr,
+        stationId: _selectedStation?.id,
       );
 
       setState(() {
@@ -94,6 +97,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
         providerId: _selectedProvider!.id,
         customerId: 1, // Default walk-in customer
         startDateTime: startDateTime,
+        stationId: _selectedStation?.id,
         notes: notes,
       );
 
@@ -130,6 +134,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
   Widget build(BuildContext context) {
     final servicesAsync = ref.watch(servicesListProvider);
     final providersAsync = ref.watch(providersListProvider);
+    final stationsAsync = ref.watch(stationsListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -205,6 +210,46 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                   error: (e, s) => const Text('Hizmetler yüklenemedi'),
                 ),
                 const SizedBox(height: 14),
+
+                // İstasyon / Oda / Masa / Kort / Cihaz Seçimi
+                stationsAsync.when(
+                  data: (stations) {
+                    if (stations.isEmpty) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DropdownButtonFormField<StationModel?>(
+                          initialValue: _selectedStation,
+                          decoration: const InputDecoration(
+                            labelText: 'Oda / Masa / Kort / Cihaz (İsteğe Bağlı)',
+                            prefixIcon: Icon(Icons.meeting_room_outlined),
+                          ),
+                          items: [
+                            const DropdownMenuItem<StationModel?>(
+                              value: null,
+                              child: Text('Otomatik Atama (Fark Etmez)'),
+                            ),
+                            ...stations.map((st) {
+                              return DropdownMenuItem<StationModel?>(
+                                value: st,
+                                child: Text('${st.name} (${st.status.labelTr} - ${st.capacity} Kişi)'),
+                              );
+                            }),
+                          ],
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedStation = val;
+                            });
+                            _fetchSlots();
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
 
                 // Uzman Seçimi
                 providersAsync.when(

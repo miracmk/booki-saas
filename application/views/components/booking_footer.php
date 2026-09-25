@@ -16,6 +16,7 @@ $company_name = setting('company_name', $default_name) ?: $default_name;
         <img src="<?= asset_url('assets/img/iyzico/footer_iyzico_ile_ode_color.svg') ?>" alt="iyzico ile Öde" style="height:28px;width:auto;" loading="lazy">
         <img src="<?= asset_url('assets/img/iyzico/visa.svg') ?>" alt="Visa" style="height:22px;width:auto;" loading="lazy">
         <img src="<?= asset_url('assets/img/iyzico/mastercard.svg') ?>" alt="Mastercard" style="height:24px;width:auto;" loading="lazy">
+        <img src="<?= asset_url('assets/img/iyzico/troy.svg') ?>" alt="Troy" style="height:22px;width:auto;border-radius:3px;" loading="lazy">
     </div>
     <small class="d-block d-md-flex align-items-center">
         <span class="footer-powered-by small d-block w-100 w-md-50 text-center text-md-start p-1 pe-md-0">

@@ -18,6 +18,7 @@ $login_url = $portal_url;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
     <title><?php echo htmlspecialchars($page_title ?? ($display_name . ' — Online Randevu & Hizmetler | RandevuBurada by BooKi')); ?></title>
     <meta name="description" content="<?php echo htmlspecialchars($meta_description); ?>">
     <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">

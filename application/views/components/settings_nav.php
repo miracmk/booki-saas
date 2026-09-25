@@ -40,10 +40,18 @@
     </li>
 
     <?php // Salon Flora customization - "Şablonlar" (email templates) is an admin-only owner tool. ?>
+    <?php // Salon Flora customization - "Şablonlar" (email templates) is an admin-only owner tool. ?>
     <?php if (session('role_slug') === DB_SLUG_ADMIN): ?>
         <li class="nav-item mb-3">
             <a class="nav-link px-0 py-2" href="<?= site_url('email_template_settings') ?>">
                 <?= lang('email_templates') ?>
+            </a>
+        </li>
+
+        <?php // BooKi - channel (Telegram/WhatsApp/Instagram) message templates are admin-only too. ?>
+        <li class="nav-item mb-3">
+            <a class="nav-link px-0 py-2" href="<?= site_url('channel_template_settings') ?>">
+                Kanal Şablonları
             </a>
         </li>
     <?php endif; ?>

@@ -64,28 +64,43 @@ $settings = vars('settings') ?? [];
                         </label>
                     </div>
 
-                    <div class="row align-items-center mb-3">
-                        <div class="col-md-5">
-                            <label class="form-label mb-0" for="reminder-hours-ahead">
-                                <i class="fas fa-clock me-1 text-muted"></i> Randevudan Ne Kadar Önce Gönderilsin?
-                            </label>
-                        </div>
-                        <div class="col-md-4">
-                            <select id="reminder-hours-ahead" class="form-select">
-                                <?php
-                                $hours = (int) ($settings['reminder_hours_ahead'] ?? 24);
-                                $options = [
-                                    2 => '2 Saat Önce',
-                                    4 => '4 Saat Önce',
-                                    6 => '6 Saat Önce',
-                                    12 => '12 Saat Önce',
-                                    24 => '24 Saat Önce (1 Gün)',
-                                    48 => '48 Saat Önce (2 Gün)',
-                                ];
-                                foreach ($options as $h => $label): ?>
-                                    <option value="<?= $h ?>" <?= $hours === $h ? 'selected' : '' ?>><?= $label ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                    <div class="mb-3">
+                        <label class="form-label mb-1"><i class="fas fa-clock me-1 text-muted"></i> Hatırlatma Zamanları (En Fazla 4)</label>
+                        <p class="form-text text-muted mt-0 mb-2">
+                            Randevudan kaç saat önce hatırlatma gönderilsin? Aynı slot içindeki önceki zamana ulaşılamadıysa sistem en yakın gelecek zamanı kullanır. Tüm alanlar "Kullanma" bırakılırsa hatırlatma gönderilmez.
+                        </p>
+                        <div id="reminder-offset-slots" class="row g-2">
+                            <?php
+                            $offsets = array_values(array_map('intval', $settings['reminder_offsets'] ?? [24]));
+                            $offset_options = [
+                                0 => 'Kullanma',
+                                2 => '2 Saat Önce',
+                                4 => '4 Saat Önce',
+                                6 => '6 Saat Önce',
+                                12 => '12 Saat Önce',
+                                24 => '24 Saat Önce (1 Gün)',
+                                48 => '48 Saat Önce (2 Gün)',
+                                72 => '72 Saat Önce (3 Gün)',
+                                96 => '96 Saat Önce (4 Gün)',
+                                168 => '168 Saat Önce (1 Hafta)',
+                                336 => '336 Saat Önce (2 Hafta)',
+                            ];
+                            for ($slot = 0; $slot < 4; $slot++):
+                                $current = $offsets[$slot] ?? 0;
+                                $slot_opts = $offset_options;
+                                if ($current > 0 && !array_key_exists($current, $slot_opts)) {
+                                    $slot_opts = [$current => "{$current} Saat Önce (Özel)"] + $slot_opts;
+                                }
+                            ?>
+                                <div class="col-6 col-md-3">
+                                    <select class="form-select form-select-sm reminder-offset"
+                                            aria-label="Hatırlatma zamanı <?= $slot + 1 ?>">
+                                        <?php foreach ($slot_opts as $oh => $label): ?>
+                                            <option value="<?= $oh ?>" <?= $current === $oh ? 'selected' : '' ?>><?= $label ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php endfor; ?>
                         </div>
                     </div>
 
@@ -484,6 +499,10 @@ function copyToClipboard(button) {
 
 // Save settings
 document.getElementById('save-messaging-settings').addEventListener('click', function() {
+    const reminderOffsets = Array.from(document.querySelectorAll('#reminder-offset-slots .reminder-offset'))
+        .map((sel) => parseInt(sel.value, 10) || 0)
+        .filter((v) => v > 0);
+
     const data = {
         sms_gateway: document.getElementById('sms-gateway').value,
         netgsm_username: document.getElementById('netgsm-username').value || null,
@@ -517,7 +536,10 @@ document.getElementById('save-messaging-settings').addEventListener('click', fun
         smtp_from_name: document.getElementById('smtp-from-name').value || null,
         smtp_from_address: document.getElementById('smtp-from-address').value || null,
         reminder_notifications_enabled: document.getElementById('reminder-notifications-enabled') ? document.getElementById('reminder-notifications-enabled').checked : false,
-        reminder_hours_ahead: document.getElementById('reminder-hours-ahead') ? parseInt(document.getElementById('reminder-hours-ahead').value) : 24,
+        reminder_offsets: reminderOffsets,
+        // BooKi (2026-09-11 fix) - legacy field kept for backward compat; server derives
+        // reminder_hours_ahead from reminder_offsets (empty => 24).
+        reminder_hours_ahead: reminderOffsets.length ? Math.max.apply(null, reminderOffsets) : 24,
         default_notification_channels: Array.from(document.querySelectorAll('.default-notification-channel:checked')).map((input) => input.value),
         // BooKi (2026-09-11 fix) - config.php has csrf_protection=true, so a POST without
         // this field was always rejected before reaching the controller (matches the http_client.js

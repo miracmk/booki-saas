@@ -3,6 +3,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/network/api_client.dart';
 import '../models/service_model.dart';
 import '../models/provider_model.dart';
+import '../models/station_model.dart';
 import '../models/appointment_model.dart';
 
 class BookingRepository {
@@ -38,19 +39,39 @@ class BookingRepository {
     }
   }
 
+  Future<List<StationModel>> getStations() async {
+    try {
+      final response = await _apiClient.dio.get(ApiConstants.stationsEndpoint);
+      if (response.data is List) {
+        return (response.data as List)
+            .map((s) => StationModel.fromJson(s as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('İstasyonlar / Mekanlar yüklenirken hata oluştu: $e');
+    }
+  }
+
   Future<List<String>> getAvailableHours({
     required int providerId,
     required int serviceId,
     required String date, // YYYY-MM-DD
+    int? stationId,
   }) async {
     try {
+      final query = <String, dynamic>{
+        'providerId': providerId,
+        'serviceId': serviceId,
+        'date': date,
+      };
+      if (stationId != null && stationId > 0) {
+        query['stationId'] = stationId;
+      }
+
       final response = await _apiClient.dio.get(
         ApiConstants.availabilitiesEndpoint,
-        queryParameters: {
-          'providerId': providerId,
-          'serviceId': serviceId,
-          'date': date,
-        },
+        queryParameters: query,
       );
 
       if (response.data is List) {
@@ -67,18 +88,26 @@ class BookingRepository {
     required int providerId,
     required int customerId,
     required String startDateTime, // YYYY-MM-DD HH:mm:ss
+    int? stationId,
     String? notes,
   }) async {
     try {
+      final data = <String, dynamic>{
+        'serviceId': serviceId,
+        'providerId': providerId,
+        'customerId': customerId,
+        'start': startDateTime,
+      };
+      if (stationId != null && stationId > 0) {
+        data['stationId'] = stationId;
+      }
+      if (notes != null && notes.isNotEmpty) {
+        data['notes'] = notes;
+      }
+
       final response = await _apiClient.dio.post(
         ApiConstants.appointmentsEndpoint,
-        data: {
-          'serviceId': serviceId,
-          'providerId': providerId,
-          'customerId': customerId,
-          'start': startDateTime,
-          if (notes != null && notes.isNotEmpty) 'notes': notes,
-        },
+        data: data,
       );
 
       if (response.data is Map<String, dynamic>) {

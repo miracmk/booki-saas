@@ -308,6 +308,7 @@
             <h2>Contact</h2>
             <p>
                 <strong>Ki Software / Ki Business Solutions</strong><br>
+                Address: Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa, Türkiye<br>
                 Website: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
                 Email: <a href="mailto:support@kibusiness.co">support@kibusiness.co</a><br>
                 Legal Affairs: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a>
@@ -339,6 +340,7 @@
             <h2>İletişim</h2>
             <p>
                 <strong>Ki Software / Ki Business Solutions</strong><br>
+                Adres: Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa<br>
                 Web Sitesi: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
                 E-posta: <a href="mailto:support@kibusiness.co">support@kibusiness.co</a><br>
                 Hukuki İşler: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a>
@@ -390,6 +392,7 @@
             <img src="<?= asset_url('assets/img/iyzico/footer_iyzico_ile_ode.svg') ?>" alt="iyzico ile Öde" style="height:28px;width:auto;" loading="lazy">
             <img src="<?= asset_url('assets/img/iyzico/visa.svg') ?>" alt="Visa" style="height:24px;width:auto;" loading="lazy">
             <img src="<?= asset_url('assets/img/iyzico/mastercard.svg') ?>" alt="Mastercard" style="height:26px;width:auto;" loading="lazy">
+            <img src="<?= asset_url('assets/img/iyzico/troy.svg') ?>" alt="Troy" style="height:24px;width:auto;border-radius:4px;" loading="lazy">
         </div>
         <div class="site-footer__bottom">
             <div>© <?= date('Y') ?> BooKi · Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</div>

@@ -7,6 +7,8 @@
     <meta name="theme-color" content="#35A768">
     <meta name="google" content="notranslate">
 
+    <meta name="robots" content="index, follow">
+
     <meta property="og:title" content="<?= lang('page_title') . ' ' . e(vars('company_name')) ?>"/>
     <meta property="og:description" content="Book Your Appointment With A Few Clicks"/>
     <meta property="og:url" content="<?= base_url() ?>">
@@ -16,6 +18,12 @@
     <?php slot('meta'); ?>
 
     <title><?= lang('page_title') . ' ' . e(vars('company_name')) ?></title>
+
+    <?php if (!empty(vars('booking_json_ld'))): ?>
+    <script type="application/ld+json">
+        <?= json_encode(vars('booking_json_ld'), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) ?>
+    </script>
+    <?php endif; ?>
 
     <link rel="icon" type="image/x-icon" href="<?= asset_url('assets/img/favicon.ico') ?>">
     <link rel="icon" sizes="192x192" href="<?= asset_url('assets/img/logo.png') ?>">

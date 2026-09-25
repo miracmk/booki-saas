@@ -145,8 +145,10 @@ abstract class TenantTestCase extends BaseTestCase
 
         $ci = self::ci();
 
+        $hostname = ($tenant['db_host'] === 'db' && class_exists('\Config')) ? \Config::DB_HOST : $tenant['db_host'];
+
         $tenant_db_config = [
-            'hostname' => $tenant['db_host'],
+            'hostname' => $hostname,
             'username' => $tenant['db_username'],
             'password' => tenant_master_decrypt($tenant['db_password']),
             'database' => $tenant['db_name'],

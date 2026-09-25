@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'auth_provider.dart';
 import '../data/models/service_model.dart';
 import '../data/models/provider_model.dart';
+import '../data/models/station_model.dart';
 import '../data/models/appointment_model.dart';
 import '../data/repositories/booking_repository.dart';
 
@@ -21,9 +22,15 @@ final providersListProvider = FutureProvider<List<ProviderModel>>((ref) async {
   return await repo.getProviders();
 });
 
+final stationsListProvider = FutureProvider<List<StationModel>>((ref) async {
+  final repo = ref.watch(bookingRepositoryProvider);
+  return await repo.getStations();
+});
+
 class BookingWizardState {
-  final int currentStep; // 0: Service, 1: Provider, 2: DateTime, 3: Confirm, 4: Success
+  final int currentStep; // 0: Service, 1: Station, 2: Provider, 3: DateTime, 4: Confirm, 5: Success
   final ServiceModel? selectedService;
+  final StationModel? selectedStation;
   final ProviderModel? selectedProvider;
   final DateTime selectedDate;
   final String? selectedSlot;
@@ -37,6 +44,7 @@ class BookingWizardState {
   BookingWizardState({
     this.currentStep = 0,
     this.selectedService,
+    this.selectedStation,
     this.selectedProvider,
     DateTime? selectedDate,
     this.selectedSlot,
@@ -51,6 +59,8 @@ class BookingWizardState {
   BookingWizardState copyWith({
     int? currentStep,
     ServiceModel? selectedService,
+    StationModel? selectedStation,
+    bool clearStation = false,
     ProviderModel? selectedProvider,
     DateTime? selectedDate,
     String? selectedSlot,
@@ -64,6 +74,7 @@ class BookingWizardState {
     return BookingWizardState(
       currentStep: currentStep ?? this.currentStep,
       selectedService: selectedService ?? this.selectedService,
+      selectedStation: clearStation ? null : (selectedStation ?? this.selectedStation),
       selectedProvider: selectedProvider ?? this.selectedProvider,
       selectedDate: selectedDate ?? this.selectedDate,
       selectedSlot: selectedSlot ?? this.selectedSlot,
@@ -86,15 +97,28 @@ class BookingWizardNotifier extends Notifier<BookingWizardState> {
   void selectService(ServiceModel service) {
     state = state.copyWith(
       selectedService: service,
-      currentStep: 1,
+      currentStep: 1, // Proceed to Station step
       errorMessage: null,
     );
+  }
+
+  void selectStation(StationModel? station) {
+    state = state.copyWith(
+      selectedStation: station,
+      clearStation: station == null,
+      currentStep: 2, // Proceed to Provider step
+      selectedSlot: null,
+      errorMessage: null,
+    );
+    if (state.selectedProvider != null) {
+      loadAvailableSlots();
+    }
   }
 
   void selectProvider(ProviderModel provider) {
     state = state.copyWith(
       selectedProvider: provider,
-      currentStep: 2,
+      currentStep: 3, // Proceed to DateTime step
       errorMessage: null,
     );
     loadAvailableSlots();
@@ -138,6 +162,7 @@ class BookingWizardNotifier extends Notifier<BookingWizardState> {
         providerId: provider.id,
         serviceId: service.id,
         date: dateStr,
+        stationId: state.selectedStation?.id,
       );
 
       state = state.copyWith(
@@ -176,13 +201,14 @@ class BookingWizardNotifier extends Notifier<BookingWizardState> {
         providerId: provider.id,
         customerId: customerId,
         startDateTime: startDateTime,
+        stationId: state.selectedStation?.id,
         notes: state.notes,
       );
 
       state = state.copyWith(
         isSubmitting: false,
         bookedAppointment: appt,
-        currentStep: 4, // Success step
+        currentStep: 5, // Success step
       );
       return true;
     } catch (e) {

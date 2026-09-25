@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" width="160" height="100">
+  <rect width="160" height="100" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <g transform="translate(18, 22)">
+    <!-- Troy Cyan/Teal Chevron/Swoosh -->
+    <path d="M 0 10 L 22 10 C 26 10 30 13 32 17 L 38 28 L 26 28 L 22 20 L 0 20 Z" fill="#00A0DF"/>
+    <!-- Troy Dark Blue Wave/Under -->
+    <path d="M 12 36 L 34 36 C 38 36 42 33 44 29 L 50 18 L 38 18 L 34 26 L 12 26 Z" fill="#0A2F64"/>
+    <!-- TROY Text -->
+    <text x="56" y="38" font-family="'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="34" letter-spacing="1.5" fill="#0A2F64">TROY</text>
+  </g>
+</svg>

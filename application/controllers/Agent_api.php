@@ -165,6 +165,56 @@ class Agent_api extends EA_Controller
     }
 
     /**
+     * List all stations (rooms, tables, courts, devices, bays) with availability status.
+     */
+    public function stations(): void
+    {
+        try {
+            $this->auth();
+            method('get');
+
+            $stations = $this->stations_model->get();
+            json_response(['success' => true, 'stations' => $stations]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Unified multi-vertical enterprise data for conversational AI agents.
+     */
+    public function vertical_data(): void
+    {
+        try {
+            $this->auth();
+            method('get');
+
+            $type = request('type') ?: 'all';
+            $result = [];
+
+            if ($type === 'all' || $type === 'stations') {
+                $result['stations'] = $this->stations_model->get();
+            }
+            if ($type === 'all' || $type === 'kds') {
+                $this->load->model('restaurant_model');
+                $result['kitchen_orders'] = $this->restaurant_model->get_active_kitchen_orders();
+            }
+            if ($type === 'all' || $type === 'sports') {
+                $this->load->model('sports_matches_model');
+                $result['matches'] = $this->sports_matches_model->get_open_matches();
+            }
+            if ($type === 'all' || $type === 'vehicles') {
+                $this->load->model('vehicles_model');
+                $result['vehicles'] = $this->vehicles_model->get_all();
+            }
+
+            json_response(['success' => true, 'data' => $result]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
      * Available hours for a service. Requires service_id and date; provider_id
      * optional (without it, returns a per-provider breakdown).
      */
@@ -342,6 +392,12 @@ class Agent_api extends EA_Controller
                 'notes' => request('notes', ''),
                 'location' => request('location', ''),
             ];
+
+            $station_id = request('station_id');
+            if (!empty($station_id)) {
+                $appointment['id_stations'] = (int) $station_id;
+                $appointment['station_assigned_manually'] = 1;
+            }
 
             $customer = request('customer');
 

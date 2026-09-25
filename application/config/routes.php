@@ -158,6 +158,8 @@ if ($portal_host !== '' && $portal_host === $randevuburada_domain) {
 
 // Global legal, sitemap, robots, photo proxy and marketplace routes
 $route['privacy'] = 'landing/privacy';
+$route['gizlilik'] = 'landing/privacy';
+$route['gizlilik-politikasi'] = 'landing/privacy';
 $route['terms'] = 'landing/terms';
 $route['about'] = 'landing/about';
 $route['hakkimizda'] = 'landing/about';
@@ -379,6 +381,10 @@ $route['agent/v1/appointments/(:num)/cancel']['post'] = 'agent_api/cancel_appoin
 
 $route['agent/v1/appointments/(:num)/reschedule']['post'] = 'agent_api/reschedule_appointment/$1';
 
+$route['agent/v1/stations']['get'] = 'agent_api/stations';
+
+$route['agent/v1/verticals/data']['get'] = 'agent_api/vertical_data';
+
 /*
 | -------------------------------------------------------------------------
 | CUSTOM ROUTING
@@ -428,11 +434,72 @@ if ($portal_host !== (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) 
 $route['onboarding'] = 'onboarding/index';
 $route['onboarding/(:any)'] = 'onboarding/$1';
 
+// Multi-Vertical Enterprise Suite Web Routes
+$route['verticals/gift_cards'] = 'verticals/gift_cards';
+$route['verticals/kds'] = 'verticals/kds';
+$route['verticals/sports'] = 'verticals/sports';
+$route['verticals/clinic'] = 'verticals/clinic';
+$route['verticals/automotive'] = 'verticals/automotive';
+$route['verticals/experience'] = 'verticals/experience';
+
+$route['kds'] = 'verticals/kds';
+$route['gift_cards'] = 'verticals/gift_cards';
+$route['sports'] = 'verticals/sports';
+$route['clinic'] = 'verticals/clinic';
+$route['automotive'] = 'verticals/automotive';
+$route['experience'] = 'verticals/experience';
+
+// Multi-Vertical Enterprise Suite API Routes
+$route['api/v1/verticals/gift_cards/issue']['post'] = 'api/v1/verticals_api_v1/issue_gift_card';
+$route['api/v1/verticals/gift_cards/(:any)']['get'] = 'api/v1/verticals_api_v1/get_gift_card/$1';
+$route['api/v1/verticals/gift_cards/redeem']['post'] = 'api/v1/verticals_api_v1/redeem_gift_card';
+$route['api/v1/verticals/deposits/record']['post'] = 'api/v1/verticals_api_v1/record_deposit';
+$route['api/v1/verticals/deposits/update']['post'] = 'api/v1/verticals_api_v1/update_deposit_status';
+
+$route['api/v1/verticals/restaurant/guest_preferences/(:num)']['get'] = 'api/v1/verticals_api_v1/get_guest_preferences/$1';
+$route['api/v1/verticals/restaurant/guest_preferences/(:num)']['post'] = 'api/v1/verticals_api_v1/save_guest_preferences/$1';
+$route['api/v1/verticals/restaurant/kds/orders']['get'] = 'api/v1/verticals_api_v1/get_kitchen_orders';
+$route['api/v1/verticals/restaurant/kds/order']['post'] = 'api/v1/verticals_api_v1/create_kitchen_order';
+$route['api/v1/verticals/restaurant/kds/update_status']['post'] = 'api/v1/verticals_api_v1/update_kitchen_order_status';
+
+$route['api/v1/verticals/sports/matches']['get'] = 'api/v1/verticals_api_v1/get_sports_matches';
+$route['api/v1/verticals/sports/matches']['post'] = 'api/v1/verticals_api_v1/create_sports_match';
+$route['api/v1/verticals/sports/matches/(:num)/join']['post'] = 'api/v1/verticals_api_v1/join_sports_match/$1';
+$route['api/v1/verticals/sports/turnstile/verify']['post'] = 'api/v1/verticals_api_v1/verify_turnstile';
+
+$route['api/v1/verticals/clinic/records']['post'] = 'api/v1/verticals_api_v1/add_clinical_record';
+$route['api/v1/verticals/clinic/patient_history/(:num)']['get'] = 'api/v1/verticals_api_v1/get_patient_clinical_history/$1';
+$route['api/v1/verticals/clinic/insurance/(:num)']['post'] = 'api/v1/verticals_api_v1/save_patient_insurance/$1';
+$route['api/v1/verticals/clinic/telehealth/(:num)']['get'] = 'api/v1/verticals_api_v1/get_telehealth_link/$1';
+
+$route['api/v1/verticals/automotive/vehicles']['post'] = 'api/v1/verticals_api_v1/add_vehicle';
+$route['api/v1/verticals/automotive/vehicles/by_plate/(:any)']['get'] = 'api/v1/verticals_api_v1/get_vehicle_by_plate/$1';
+$route['api/v1/verticals/automotive/vehicles/customer/(:num)']['get'] = 'api/v1/verticals_api_v1/get_customer_vehicles/$1';
+$route['api/v1/verticals/automotive/inspections']['post'] = 'api/v1/verticals_api_v1/save_vehicle_inspection';
+$route['api/v1/verticals/automotive/inspections/(:any)']['get'] = 'api/v1/verticals_api_v1/public_inspection_report/$1';
+$route['api/v1/verticals/automotive/inspections/(:any)/approve']['post'] = 'api/v1/verticals_api_v1/approve_inspection/$1';
+$route['api/v1/verticals/automotive/work_orders']['post'] = 'api/v1/verticals_api_v1/create_work_order';
+$route['api/v1/verticals/automotive/work_orders/(:num)/status']['post'] = 'api/v1/verticals_api_v1/update_work_order_status/$1';
+
+$route['api/v1/verticals/experience/waivers']['post'] = 'api/v1/verticals_api_v1/save_digital_waiver';
+$route['api/v1/verticals/experience/waivers/sign']['post'] = 'api/v1/verticals_api_v1/sign_digital_waiver';
+$route['api/v1/verticals/experience/addons/(:num)']['post'] = 'api/v1/verticals_api_v1/add_booking_addon/$1';
+$route['api/v1/verticals/experience/tickets/issue']['post'] = 'api/v1/verticals_api_v1/issue_event_ticket';
+$route['api/v1/verticals/experience/tickets/validate']['post'] = 'api/v1/verticals_api_v1/validate_event_ticket';
+
 // CLI console
 $route['console'] = 'console/index';
 $route['console/(:any)'] = 'console/$1';
 $route['console/(:any)/(:any)'] = 'console/$1/$2';
 $route['console/(:any)/(:any)/(:any)'] = 'console/$1/$2/$3';
+
+// Unified Virtual POS Webhook & Callback endpoints (iyzico, PayTR, Stripe, Garanti, Enpara)
+$route['payment/callback'] = 'payment_webhooks/callback';
+$route['payment/callback/(:any)'] = 'payment_webhooks/callback/$1';
+$route['payment/unified_callback'] = 'payment_webhooks/callback';
+$route['payment/unified_callback/(:any)'] = 'payment_webhooks/callback/$1';
+$route['payment_webhooks/callback'] = 'payment_webhooks/callback';
+$route['payment_webhooks/callback/(:any)'] = 'payment_webhooks/callback/$1';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

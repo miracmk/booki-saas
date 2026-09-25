@@ -143,6 +143,9 @@ class Providers_model extends EA_Model
         $this->validate($provider);
 
         if (empty($provider['id'])) {
+            if (function_exists('require_tenant_quota')) {
+                require_tenant_quota('staff');
+            }
             return $this->insert($provider);
         } else {
             return $this->update($provider);

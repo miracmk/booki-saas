@@ -2,13 +2,13 @@
     "name": "kisoftware/ki-reservation",
     "description": "BooKi - Online Appointment Scheduler",
     "version": "1.0.0",
-    "homepage": "https://kisoftware.com",
+    "homepage": "https://software.kibusiness.co",
     "type": "project",
     "license": "proprietary",
     "authors": [
         {
             "name": "Ki Software",
-            "email": "info@kisoftware.com"
+            "email": "software@kibusiness.co"
         }
     ],
     "support": {

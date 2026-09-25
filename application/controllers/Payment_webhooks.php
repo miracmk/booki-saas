@@ -20,11 +20,53 @@ class Payment_webhooks extends EA_Controller
     }
 
     /**
+     * Unified Virtual POS callback endpoint.
+     *
+     * Handles both asynchronous server-to-server notifications (webhooks/IPN) and
+     * synchronous 3D Secure browser redirects (return URL) for all payment gateways
+     * (iyzico, PayTR, Stripe, Garanti BBVA, Enpara, Odeal).
+     *
+     * Endpoint formats:
+     *   - POST/GET /payment/callback
+     *   - POST/GET /payment/callback/{gateway}
+     *   - POST/GET /payment_webhooks/callback
+     *   - POST/GET /payment_webhooks/callback/{gateway}
+     *   - Query: ?gateway=iyzico&tenant=mytenant
+     *
+     * @param string|null $gateway Optional gateway slug (iyzico, paytr, stripe, garanti, etc.)
+     */
+    public function callback(?string $gateway = null): void
+    {
+        // 1. Resolve gateway identifier
+        if (empty($gateway)) {
+            $gateway = $this->input->get_post('gateway') ?: $this->input->get_post('provider');
+        }
+
+        // Auto-detect gateway if still unspecified
+        if (empty($gateway)) {
+            $gateway = $this->detect_gateway();
+        }
+
+        $gateway = strtolower(trim((string) $gateway));
+
+        // 2. Distinguish browser return (customer 3D Secure redirect) vs server-to-server webhook
+        if ($this->is_browser_return_request()) {
+            $this->handle_browser_return($gateway);
+
+            return;
+        }
+
+        // 3. Process server-to-server webhook
+        $this->handle_webhook($gateway);
+    }
+
+    /**
      * iyzico webhook endpoint.
      */
     public function iyzico(): void
     {
         $this->handle_webhook('iyzico');
+        $this->callback('iyzico');
     }
 
     /**
@@ -33,6 +75,7 @@ class Payment_webhooks extends EA_Controller
     public function paytr(): void
     {
         $this->handle_webhook('paytr');
+        $this->callback('paytr');
     }
 
     /**
@@ -41,6 +84,130 @@ class Payment_webhooks extends EA_Controller
     public function stripe(): void
     {
         $this->handle_webhook('stripe');
+        $this->callback('stripe');
+    }
+
+    /**
+     * Auto-detect the payment gateway from request headers and parameters.
+     */
+    private function detect_gateway(): string
+    {
+        $headers = $this->input->request_headers();
+        $raw_body = (string) file_get_contents('php://input');
+
+        if (!empty($headers['Stripe-Signature']) || !empty($headers['stripe-signature'])) {
+            return 'stripe';
+        }
+
+        if (
+            !empty($headers['X-IYZ-SIGNATURE']) ||
+            !empty($headers['x-iyz-signature']) ||
+            $this->input->post('token') !== null ||
+            str_contains($raw_body, 'conversationId') ||
+            str_contains($raw_body, 'paymentId')
+        ) {
+            return 'iyzico';
+        }
+
+        if (
+            $this->input->post('merchant_oid') !== null ||
+            $this->input->post('total_amount') !== null ||
+            $this->input->post('hash') !== null
+        ) {
+            return 'paytr';
+        }
+
+        if (
+            $this->input->post('mdstatus') !== null ||
+            $this->input->post('oid') !== null
+        ) {
+            return 'garanti';
+        }
+
+        try {
+            $settings = $this->payment_settings_model->get_settings();
+
+            return !empty($settings['active_gateway']) && $settings['active_gateway'] !== 'none'
+                ? $settings['active_gateway']
+                : 'iyzico';
+        } catch (Throwable) {
+            return 'iyzico';
+        }
+    }
+
+    /**
+     * Determine if this request is a user's browser redirecting back from 3D Secure.
+     */
+    private function is_browser_return_request(): bool
+    {
+        $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+
+        if ($method === 'GET') {
+            return true;
+        }
+
+        $accept = (string) ($_SERVER['HTTP_ACCEPT'] ?? '');
+        $has_html_accept = str_contains($accept, 'text/html');
+
+        // iyzico 3D Secure sends a POST with 'token' to callbackUrl
+        if ($this->input->post('token') !== null && $has_html_accept) {
+            return true;
+        }
+
+        // Generic browser return query flags
+        if ($this->input->get('return') === '1' || $this->input->get('status') !== null) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle user browser redirect after 3D Secure authentication.
+     */
+    private function handle_browser_return(string $gateway): void
+    {
+        $token = $this->input->get_post('token');
+        $status = strtolower((string) ($this->input->get_post('status') ?? ''));
+        $transaction = null;
+        $appointment = null;
+
+        if (!empty($token)) {
+            $transaction = $this->payment_transactions_model->find_by_intent_id($token);
+        }
+
+        $appointment_hash = null;
+
+        if ($transaction !== null && !empty($transaction['id_appointments'])) {
+            try {
+                $appt = $this->appointments_model->find((int) $transaction['id_appointments']);
+                $appointment_hash = $appt['hash'] ?? null;
+            } catch (Throwable) {
+                // Ignore missing appointment lookup error
+            }
+        }
+
+        // If appointment hash is available and status is succeeded, redirect directly to appointment confirmation
+        if (!empty($appointment_hash) && ($status === 'success' || $status === 'succeeded' || empty($status))) {
+            redirect('booking_confirmation/of/' . $appointment_hash);
+
+            return;
+        }
+
+        $is_success = ($status === 'success' || $status === 'succeeded' || ($transaction && $transaction['status'] === 'succeeded'));
+
+        html_vars([
+            'page_title' => 'BooKi — Ödeme Sonucu',
+            'payment_status' => $is_success ? 'succeeded' : 'failed',
+            'payment_error_message' => $is_success ? null : ($this->input->get_post('failed_reason_msg') ?: 'Ödeme tamamlanamadı.'),
+            'transaction_ref' => $transaction['provider_transaction_id'] ?? $transaction['intent_id'] ?? $token ?: null,
+            'amount' => $transaction['amount'] ?? null,
+            'currency' => $transaction['currency'] ?? 'TRY',
+            'gateway' => $gateway,
+            'redirect_url' => !empty($appointment_hash) ? site_url('booking_confirmation/of/' . $appointment_hash) : null,
+        ]);
+
+        $this->load->view('pages/payment_callback_status');
     }
 
     /**
@@ -219,6 +386,12 @@ class Payment_webhooks extends EA_Controller
                             $transaction['id_orders'] . ': ' . $order_error->getMessage(),
                     );
                 }
+            }
+
+            if ($gateway === 'paytr') {
+                echo 'OK';
+
+                return;
             }
 
             response('', 200);

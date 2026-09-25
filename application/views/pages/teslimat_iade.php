@@ -328,7 +328,7 @@
 
             <h2>5. Destek ve Uyuşmazlık</h2>
             <p>
-                İade süreciyle ilgili her türlü soru için <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a> ile iletişime geçilebilir. Uyuşmazlık halinde <a href="<?= base_url('mesafeli-satis') ?>">Mesafeli Satış Sözleşmesi</a> md. 7'deki hakem heyeti/tüketici mahkemesi hükümleri geçerlidir.
+                İade süreciyle ilgili her türlü soru için <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a> veya Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa adresimiz üzerinden iletişime geçilebilir. Uyuşmazlık halinde <a href="<?= base_url('mesafeli-satis') ?>">Mesafeli Satış Sözleşmesi</a> md. 7'deki hakem heyeti/tüketici mahkemesi hükümleri geçerlidir.
             </p>
         </article>
 
@@ -377,7 +377,7 @@
 
             <h2>5. Support and Disputes</h2>
             <p>
-                For any questions about the refund process, contact <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a>. In case of a dispute, the arbitration committee / consumer court provisions in <a href="<?= base_url('mesafeli-satis') ?>">Distance Sales Contract</a> Art. 7 apply.
+                For any questions about the refund process, contact <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a> or write to our office at Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa. In case of a dispute, the arbitration committee / consumer court provisions in <a href="<?= base_url('mesafeli-satis') ?>">Distance Sales Contract</a> Art. 7 apply.
             </p>
         </article>
 
@@ -426,6 +426,7 @@
             <img src="<?= asset_url('assets/img/iyzico/footer_iyzico_ile_ode.svg') ?>" alt="iyzico ile Öde" style="height:28px;width:auto;" loading="lazy">
             <img src="<?= asset_url('assets/img/iyzico/visa.svg') ?>" alt="Visa" style="height:24px;width:auto;" loading="lazy">
             <img src="<?= asset_url('assets/img/iyzico/mastercard.svg') ?>" alt="Mastercard" style="height:26px;width:auto;" loading="lazy">
+            <img src="<?= asset_url('assets/img/iyzico/troy.svg') ?>" alt="Troy" style="height:24px;width:auto;border-radius:4px;" loading="lazy">
         </div>
         <div class="site-footer__bottom">
             <div>© <?= date('Y') ?> BooKi · Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</div>

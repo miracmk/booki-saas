@@ -315,7 +315,24 @@ class Booking extends EA_Controller
             'default_timezone' => setting('default_timezone'),
         ]);
 
+        $booking_json_ld = generate_schema_org_json_ld([
+            'name' => $company_name ?: 'BooKi Online Randevu',
+            'url' => base_url(),
+            'booking_url' => base_url(),
+            'image' => $company_logo ?: base_url('assets/img/logo.png'),
+            'description' => setting('company_description') ?: ($company_name . ' online randevu ve rezervasyon sayfası.'),
+            'telephone' => setting('company_phone') ?: null,
+            'address' => [
+                'streetAddress' => setting('company_address') ?: null,
+                'addressLocality' => setting('company_district') ?: null,
+                'addressRegion' => setting('company_city') ?: null,
+                'addressCountry' => 'TR',
+            ],
+            'services' => $available_services,
+        ]);
+
         html_vars([
+            'booking_json_ld' => $booking_json_ld,
             'available_services' => $available_services,
             'available_providers' => filter_sensitive_users_data($available_providers),
             'theme' => $theme,

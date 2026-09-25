@@ -20,6 +20,7 @@ $is_claim_page = !empty($claim_token) && !$is_claimed;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
     <title><?php echo htmlspecialchars($page_title ?? ($display_name . ' — Randevu & İletişim | RandevuBurada')); ?></title>
     <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url('assets/img/randevuburada-favicon-32.png'); ?>">

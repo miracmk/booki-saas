@@ -235,13 +235,39 @@ App.Pages.Services = (function () {
             $('#service-providers input:checkbox').prop('checked', false);
         });
 
+        function showModal(modalId) {
+            const el = document.getElementById(modalId);
+            if (!el) return;
+            if (window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(el).show();
+            } else if ($.fn.modal) {
+                $('#' + modalId).modal('show');
+            }
+        }
+
+        function hideModal(modalId) {
+            const el = document.getElementById(modalId);
+            if (!el) return;
+            if (window.bootstrap && bootstrap.Modal) {
+                const inst = bootstrap.Modal.getInstance(el) || bootstrap.Modal.getOrCreateInstance(el);
+                if (inst) inst.hide();
+            } else if ($.fn.modal) {
+                $('#' + modalId).modal('hide');
+            }
+        }
+
         // Add-on modal opener
         $services.on('click', '#btn-add-addon-modal', () => {
+            const serviceId = $id.val();
+            if (!serviceId) {
+                App.Layouts.Backend.displayNotification('Ek hizmet eklemek için önce hizmeti kaydediniz.', 'warning');
+                return;
+            }
             $('#addon-name-input').val('');
             $('#addon-duration-input').val('15');
             $('#addon-price-input').val('0.00');
             $('#addon-desc-input').val('');
-            $('#modal-addon-form').modal('show');
+            showModal('modal-addon-form');
         });
 
         // Add-on submit
@@ -265,11 +291,14 @@ App.Pages.Services = (function () {
                 type: 'POST',
                 data: data,
                 success: () => {
-                    $('#modal-addon-form').modal('hide');
+                    hideModal('modal-addon-form');
                     loadAddons(serviceId);
                     App.Layouts.Backend.displayNotification('Ek hizmet kaydedildi.');
                 },
-                error: () => alert('Ek hizmet kaydedilemedi.'),
+                error: (xhr) => {
+                    const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Ek hizmet kaydedilemedi.';
+                    alert(msg);
+                },
             });
         });
 
@@ -283,15 +312,23 @@ App.Pages.Services = (function () {
             }, () => {
                 loadAddons(serviceId);
                 App.Layouts.Backend.displayNotification('Ek hizmet silindi.');
+            }).fail((xhr) => {
+                const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Ek hizmet silinemedi.';
+                alert(msg);
             });
         });
 
         // Consumable modal opener
         $services.on('click', '#btn-add-consumable-modal', () => {
+            const serviceId = $id.val();
+            if (!serviceId) {
+                App.Layouts.Backend.displayNotification('Sarf reçetesi eklemek için önce hizmeti kaydediniz.', 'warning');
+                return;
+            }
             $('#consumable-product-select').val('');
             $('#consumable-qty-input').val('1.00');
             $('#consumable-unit-display').val('adet');
-            $('#modal-consumable-form').modal('show');
+            showModal('modal-consumable-form');
         });
 
         $('#consumable-product-select').on('change', function () {
@@ -319,11 +356,14 @@ App.Pages.Services = (function () {
                 type: 'POST',
                 data: data,
                 success: () => {
-                    $('#modal-consumable-form').modal('hide');
+                    hideModal('modal-consumable-form');
                     loadConsumables(serviceId);
                     App.Layouts.Backend.displayNotification('Sarf malzeme reçeteye eklendi.');
                 },
-                error: () => alert('Sarf malzeme kaydedilemedi.'),
+                error: (xhr) => {
+                    const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Sarf malzeme kaydedilemedi.';
+                    alert(msg);
+                },
             });
         });
 
@@ -337,6 +377,9 @@ App.Pages.Services = (function () {
             }, () => {
                 loadConsumables(serviceId);
                 App.Layouts.Backend.displayNotification('Sarf malzeme reçeteden çıkarıldı.');
+            }).fail((xhr) => {
+                const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Sarf malzeme reçeteden çıkarılamadı.';
+                alert(msg);
             });
         });
     }
@@ -437,7 +480,6 @@ App.Pages.Services = (function () {
         $('#service-addons-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="4">Ek hizmet bulunamadı.</td></tr>');
         $('#service-consumables-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
         $('#service-consumables-summary').hide();
-        $('#btn-add-addon-modal, #btn-add-consumable-modal').prop('disabled', true);
 
         App.Components.ColorSelection.disable($color);
     }
@@ -448,6 +490,7 @@ App.Pages.Services = (function () {
      * @param {Object} service Contains the service record data.
      */
     function display(service) {
+        if (!service) return;
         $id.val(service.id);
         $name.val(service.name);
         $duration.val(service.duration);
@@ -464,7 +507,6 @@ App.Pages.Services = (function () {
         $serviceCategoryId.val(serviceCategoryId);
 
         // Load Addons & Consumables for this service
-        $('#btn-add-addon-modal, #btn-add-consumable-modal').prop('disabled', false);
         loadAddons(service.id);
         loadConsumables(service.id);
 

@@ -65,6 +65,7 @@ class Messaging_settings_model extends EA_Model
                 'instagram_webhook_verify_token' => null,
                 'reminder_notifications_enabled' => 1,
                 'reminder_hours_ahead' => 24,
+                'reminder_offsets' => [24],
             ];
         } else {
             // Decrypt sensitive fields
@@ -86,6 +87,7 @@ class Messaging_settings_model extends EA_Model
 
             $row['reminder_notifications_enabled'] = isset($row['reminder_notifications_enabled']) ? (int) $row['reminder_notifications_enabled'] : 1;
             $row['reminder_hours_ahead'] = isset($row['reminder_hours_ahead']) ? (int) $row['reminder_hours_ahead'] : 24;
+            $row['reminder_offsets'] = $this->normalize_reminder_offsets($row['reminder_offsets'] ?? null);
         }
 
         // The admin can always override these per tenant, but ship our own
@@ -100,6 +102,44 @@ class Messaging_settings_model extends EA_Model
         }
 
         return $row;
+    }
+
+    /**
+     * Normalize a reminder-offset value into a safe, sorted integer array.
+     *
+     * Accepts a JSON string (as stored in messaging_settings.reminder_offsets),
+     * an integer, or an array. Enforces the domain rules:
+     * - only integers between 1 and 336 (hours)
+     * - deduplicated, sorted ascending
+     * - at most 4 offsets
+     * - an explicit empty value means "no reminders at all" ([] preserved)
+     * - null / '' mean "not configured" and fall back to the legacy [24]
+     *
+     * @param mixed $raw
+     * @return array
+     */
+    public function normalize_reminder_offsets($raw): array
+    {
+        // Not configured -> legacy single offset behaviour.
+        if ($raw === null || $raw === '') {
+            return [24];
+        }
+
+        $offsets = $raw;
+        if (is_string($offsets)) {
+            $decoded = json_decode($offsets, true);
+            $offsets = is_array($decoded) ? $decoded : [];
+        }
+        if (!is_array($offsets)) {
+            $offsets = [$offsets];
+        }
+
+        $offsets = array_map('intval', $offsets);
+        $offsets = array_filter($offsets, static fn ($value) => $value >= 1 && $value <= 336);
+        $offsets = array_values(array_unique($offsets));
+        sort($offsets);
+
+        return array_slice($offsets, 0, 4);
     }
 
     /**
@@ -156,6 +196,14 @@ class Messaging_settings_model extends EA_Model
         }
 
         $to_update['updated_at'] = date('Y-m-d H:i:s');
+
+        // Multi-offset reminders: store the JSON array and keep reminder_hours_ahead
+        // in sync (derived from the latest offset) for legacy consumers.
+        if (isset($data['reminder_offsets']) && $this->db->field_exists('reminder_offsets', 'messaging_settings')) {
+            $offsets = $this->normalize_reminder_offsets($data['reminder_offsets']);
+            $to_update['reminder_offsets'] = json_encode($offsets);
+            $to_update['reminder_hours_ahead'] = empty($offsets) ? 24 : max($offsets);
+        }
 
         // Update or insert (using id=1 as the singleton row)
         $existing_id = $existing['id'];

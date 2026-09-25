@@ -290,7 +290,7 @@
                 Bu Mesafeli Satış Sözleşmesi, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği uyarınca, işbu sözleşme metninin BooKi platformu (booki.kibusiness.co ve alt alan adları) üzerinden onaylanması ile kurulur.
             </p>
             <ul>
-                <li><strong>SATICI:</strong> Ki Software / Ki Business Solutions — web: <a href="https://software.kibusiness.co" target="_blank" rel="noopener">software.kibusiness.co</a>, e-posta: <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a></li>
+                <li><strong>SATICI:</strong> Ki Software / Ki Business Solutions — Adres: Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa — web: <a href="https://software.kibusiness.co" target="_blank" rel="noopener">software.kibusiness.co</a>, e-posta: <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a></li>
                 <li><strong>ALICI / TÜKETİCİ:</strong> BooKi platformuna kayıt olan ve işbu sözleşmeyi onaylayarak mesafeli satış işlemine taraf olan gerçek veya tüzel kişi.</li>
             </ul>
 
@@ -350,7 +350,7 @@
                 This Distance Sales Contract is concluded in accordance with Turkish Law No. 6502 on the Protection of Consumers and the Regulation on Distance Contracts, upon acceptance of this contract text on the BooKi platform (booki.kibusiness.co and its subdomains).
             </p>
             <ul>
-                <li><strong>SELLER:</strong> Ki Software / Ki Business Solutions — web: <a href="https://software.kibusiness.co" target="_blank" rel="noopener">software.kibusiness.co</a>, email: <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a></li>
+                <li><strong>SELLER:</strong> Ki Software / Ki Business Solutions — Address: Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa, Türkiye — web: <a href="https://software.kibusiness.co" target="_blank" rel="noopener">software.kibusiness.co</a>, email: <a href="mailto:finance@kibusiness.co">finance@kibusiness.co</a></li>
                 <li><strong>BUYER / CONSUMER:</strong> The natural or legal person who registers on the BooKi platform and accepts this contract to become a party to the distance sale transaction.</li>
             </ul>
 
@@ -448,6 +448,7 @@
             <img src="<?= asset_url('assets/img/iyzico/footer_iyzico_ile_ode.svg') ?>" alt="iyzico ile Öde" style="height:28px;width:auto;" loading="lazy">
             <img src="<?= asset_url('assets/img/iyzico/visa.svg') ?>" alt="Visa" style="height:24px;width:auto;" loading="lazy">
             <img src="<?= asset_url('assets/img/iyzico/mastercard.svg') ?>" alt="Mastercard" style="height:26px;width:auto;" loading="lazy">
+            <img src="<?= asset_url('assets/img/iyzico/troy.svg') ?>" alt="Troy" style="height:24px;width:auto;border-radius:4px;" loading="lazy">
         </div>
         <div class="site-footer__bottom">
             <div>© <?= date('Y') ?> BooKi · Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</div>

@@ -151,6 +151,7 @@ class Iyzico_gateway extends Payment_gateway_abstract
                 'basketId' => 'basket_' . ($metadata['appointment_id'] ?? uniqid()),
                 'paymentGroup' => 'PRODUCT',
                 'callbackUrl' => site_url('payment_webhooks/iyzico'),
+                'callbackUrl' => site_url('payment/callback/iyzico'),
                 'enabledInstallments' => [2, 3, 6, 9],
                 'buyer' => [
                     'id' => (string) ($metadata['customer_id'] ?? 'guest'),

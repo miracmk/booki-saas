@@ -1,0 +1,99 @@
+{
+  "industry": {
+    "code": "auto_service_detailing",
+    "name": "Oto Servis / Detailing & Ekspertiz",
+    "icon": "🚗",
+    "service_type": "station",
+    "description": "Oto servisler, seramik kaplama/detailing merkezleri ve ekspertiz noktaları için araç plakası/VIN kaydı, DVI dijital ekspertiz raporu ve iş emri (work order) akış paketi."
+  },
+  "terminology": {
+    "customer_label": "Araç Sahibi / Müşteri",
+    "provider_label": "Usta / Teknisyen",
+    "appointment_label": "Servis Randevusu",
+    "station_label": "Lift / Peron / Çalışma Alanı",
+    "service_label": "Servis / İşlem"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "vehicles",
+    "work_orders",
+    "inspections",
+    "adisyon",
+    "inventory",
+    "finance",
+    "reviews",
+    "messaging"
+  ],
+  "default_settings": {
+    "business_type": "automotive",
+    "slot_interval": 60,
+    "future_booking_limit": 30,
+    "require_phone_number": true,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Periyodik Bakım & Mekanik",
+      "description": "Yağ değişimi, filtreler, fren balata kontrolü ve genel mekanik bakım"
+    },
+    {
+      "name": "Detailing & Seramik Kaplama",
+      "description": "Pasta cila, seramik kaplama, iç detaylı sterilizasyon"
+    },
+    {
+      "name": "Oto Ekspertiz & Muayene Öncesi",
+      "description": "Kaporta boya, motor mekanik testleri ve DVI ekspertiz raporu"
+    }
+  ],
+  "services": [
+    {
+      "name": "Periyodik Bakım (Yağ + Filtre Seti)",
+      "category": "Periyodik Bakım & Mekanik",
+      "duration": 90,
+      "price": 3500.00,
+      "attendants_number": 1,
+      "description": "Motor yağı, yağ filtresi, hava ve polen filtre değişimi + 20 nokta kontrol"
+    },
+    {
+      "name": "Full Seramik Kaplama & Boya Düzeltme",
+      "category": "Detailing & Seramik Kaplama",
+      "duration": 240,
+      "price": 12000.00,
+      "attendants_number": 1,
+      "description": "3 aşamalı polisaj + 3 yıllık nano seramik kaplama"
+    },
+    {
+      "name": "Kapsamlı DVI Ekspertiz Paketi",
+      "category": "Oto Ekspertiz & Muayene Öncesi",
+      "duration": 60,
+      "price": 2500.00,
+      "attendants_number": 1,
+      "description": "101 nokta dijital araç ekspertiz raporu + fotoğraflı analiz linki"
+    }
+  ],
+  "stations": [
+    {
+      "name": "Lift 1 (Mekanik)",
+      "capacity": 1,
+      "description": "4 tonluk hidrolik araç kaldırma lifti"
+    },
+    {
+      "name": "Lift 2 (Hızlı Bakım)",
+      "capacity": 1,
+      "description": "Periyodik bakım ve fren peronu"
+    },
+    {
+      "name": "Detailing Kabini (Tozsuz)",
+      "capacity": 1,
+      "description": "Özel aydınlatmalı ve iklimlendirmeli seramik uygulama alanı"
+    },
+    {
+      "name": "Ekspertiz Test Hattı",
+      "capacity": 1,
+      "description": "Fren test, süspansiyon ve yanal kayma cihazı"
+    }
+  ]
+}

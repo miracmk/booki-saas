@@ -1,0 +1,102 @@
+{
+  "industry": {
+    "code": "sports_court",
+    "name": "Kort & Halı Saha / Padel / Tenis",
+    "icon": "🎾",
+    "service_type": "station",
+    "description": "Padel, tenis kortları, halı saha, basketbol sahaları için slot rezervasyonu, açık maç oyuncu eşleştirme (matchmaking) ve turnike geçiş paketi."
+  },
+  "terminology": {
+    "customer_label": "Oyuncu",
+    "provider_label": "Kort / Tesis Sorumlusu",
+    "appointment_label": "Kort Rezervasyonu / Maç",
+    "station_label": "Kort / Saha",
+    "service_label": "Saha & Kort Kiralama"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "packages",
+    "memberships",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "sports_matches",
+    "reviews",
+    "marketing",
+    "loyalty"
+  ],
+  "default_settings": {
+    "business_type": "sports_court",
+    "slot_interval": 60,
+    "future_booking_limit": 14,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 10,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Padel Kort Kiralama",
+      "description": "Panoramik cam ve profesyonel çim padel kortları"
+    },
+    {
+      "name": "Tenis Kortu",
+      "description": "Toprak ve sert zemin tenis kortları"
+    },
+    {
+      "name": "Halı Saha",
+      "description": "7x7 ve 8x8 sentetik çim halı saha maç slotları"
+    }
+  ],
+  "services": [
+    {
+      "name": "Padel Kort Kiralama (60 Dk)",
+      "category": "Padel Kort Kiralama",
+      "duration": 60,
+      "price": 1200.00,
+      "attendants_number": 4,
+      "description": "4 kişilik standart padel maçı süresi"
+    },
+    {
+      "name": "Tenis Kortu Gündüz Slotu (60 Dk)",
+      "category": "Tenis Kortu",
+      "duration": 60,
+      "price": 800.00,
+      "attendants_number": 2,
+      "description": "Gündüz saatleri tenis kortu rezervasyonu"
+    },
+    {
+      "name": "Halı Saha 1 Saatlik Maç Slotu",
+      "category": "Halı Saha",
+      "duration": 60,
+      "price": 2000.00,
+      "attendants_number": 14,
+      "description": "14 kişilik 1 saatlik halı saha maçı"
+    }
+  ],
+  "stations": [
+    {
+      "name": "Padel Kort 1 (Panoramik)",
+      "capacity": 4,
+      "description": "Ana merkez padel kortu, ışıklandırmalı"
+    },
+    {
+      "name": "Padel Kort 2 (Club)",
+      "capacity": 4,
+      "description": "Kulüp içi padel kortu"
+    },
+    {
+      "name": "Tenis Kortu (Toprak)",
+      "capacity": 4,
+      "description": "Uluslararası standartlarda toprak tenis kortu"
+    },
+    {
+      "name": "Halı Saha (1 Nolu Açık Saha)",
+      "capacity": 14,
+      "description": "Yapay çim, profesyonel led aydınlatmalı saha"
+    }
+  ]
+}

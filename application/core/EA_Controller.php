@@ -89,6 +89,7 @@ class EA_Controller extends CI_Controller
         $this->load_common_html_vars();
         $this->load_common_script_vars();
         $this->enforce_onboarding();
+        $this->enforce_robots_policy();
 
         rate_limit($this->input->ip_address());
     }
@@ -209,9 +210,18 @@ class EA_Controller extends CI_Controller
         }
 
         // BooKi Mobile - Check X-Tenant-Subdomain or X-Tenant header for direct tenant resolution
+        // BooKi Mobile & Webhooks - Check X-Tenant headers or query/post tenant parameter for direct tenant resolution
         $tenant_header = $_SERVER['HTTP_X_TENANT_SUBDOMAIN'] ?? $_SERVER['HTTP_X_TENANT'] ?? null;
         if (!empty($tenant_header)) {
             $tenant = $this->db->get_where('tenants', ['subdomain' => strtolower(trim((string) $tenant_header))])->row_array();
+        }
+
+        if (empty($tenant) && !empty($_GET['tenant'])) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => strtolower(trim((string) $_GET['tenant']))])->row_array();
+        }
+
+        if (empty($tenant) && !empty($_POST['tenant'])) {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => strtolower(trim((string) $_POST['tenant']))])->row_array();
         }
 
         if (empty($tenant)) {
@@ -238,8 +248,8 @@ class EA_Controller extends CI_Controller
                 return;
             }
 
-            // BooKi - Central Webhooks & OAuth Relay: Meta (Facebook, Ads, LeadGen), WhatsApp, Instagram
-            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram'], true)) {
+            // BooKi - Central Webhooks & OAuth Relay: Meta, WhatsApp, Instagram, Payment Webhooks
+            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram', 'payment_webhooks'], true)) {
                 return;
             }
 
@@ -268,8 +278,13 @@ class EA_Controller extends CI_Controller
             abort(402, 'Bu hesabın aboneliği/deneme süresi sona erdi. Devam etmek için lütfen bizimle iletişime geçin.');
         }
 
+        $tenant_hostname = $tenant['db_host'];
+        if (($tenant_hostname === 'db' || strpos($tenant_hostname, '127.0.0.1') !== false) && !empty(Config::DB_HOST)) {
+            $tenant_hostname = Config::DB_HOST;
+        }
+
         $tenant_db_config = [
-            'hostname' => $tenant['db_host'],
+            'hostname' => $tenant_hostname,
             'username' => $tenant['db_username'],
             'password' => tenant_master_decrypt($tenant['db_password']),
             'database' => $tenant['db_name'],
@@ -453,16 +468,42 @@ class EA_Controller extends CI_Controller
 
     /**
      * Set the default timezone of the app, based on the selected setting.
+     * Guarantees DST safety and persistent UTC+3 resolution (Europe/Istanbul).
      */
     private function configure_timezone(): void
     {
-        if (!$this->db->table_exists('settings')) {
-            return;
+        $default_timezone = null;
+        if ($this->db->table_exists('settings')) {
+            $default_timezone = setting('default_timezone');
         }
 
-        $default_timezone = setting('default_timezone');
+        if (empty($default_timezone) || $default_timezone === 'UTC') {
+            $default_timezone = 'Europe/Istanbul';
+        }
 
-        date_default_timezone_set($default_timezone);
+        try {
+            new DateTimeZone($default_timezone);
+            date_default_timezone_set($default_timezone);
+        } catch (Throwable $e) {
+            date_default_timezone_set('Europe/Istanbul');
+        }
+    }
+
+    /**
+     * Enforce strict SEO & crawler indexing policy via HTTP headers:
+     * Public booking and marketing landing pages remain indexable;
+     * All private authenticated, administrative, customer portal, and API pages emit X-Robots-Tag: noindex, nofollow.
+     */
+    private function enforce_robots_policy(): void
+    {
+        $public_controllers = ['booking', 'landing', 'booking_confirmation', 'booking_cancellation', 'review', 'about', 'privacy', 'legal'];
+        $current_controller = strtolower($this->router->class ?? '');
+
+        if (!in_array($current_controller, $public_controllers, true) || session('user_id')) {
+            if (!headers_sent()) {
+                header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet');
+            }
+        }
     }
 
     /**

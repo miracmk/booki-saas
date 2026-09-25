@@ -302,6 +302,7 @@ class Services extends EA_Controller
                 abort(403, 'Forbidden');
             }
             $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            unset($data['csrf_token']);
             $id = $this->services_model->save_addon($data);
             json_response(['success' => true, 'id' => $id]);
         } catch (Throwable $e) {
@@ -355,6 +356,7 @@ class Services extends EA_Controller
                 abort(403, 'Forbidden');
             }
             $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            unset($data['csrf_token']);
             $id = $this->inventory_consumables_model->save_recipe($data);
             json_response(['success' => true, 'id' => $id]);
         } catch (Throwable $e) {
@@ -404,6 +406,7 @@ class Services extends EA_Controller
                 abort(403, 'Forbidden');
             }
             $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            unset($data['csrf_token']);
             $id = $this->services_model->save_required_resource($data);
             json_response(['success' => true, 'id' => $id]);
         } catch (Throwable $e) {

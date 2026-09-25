@@ -484,6 +484,7 @@
             </p>
             <p>
                 <strong>Ki Software / Ki Business Solutions</strong><br>
+                Address: Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa, Türkiye<br>
                 Website: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
                 App Website: <a href="https://booki.kibusiness.co">https://booki.kibusiness.co</a><br>
                 Privacy Inquiries: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a><br>
@@ -653,6 +654,7 @@
             </p>
             <p>
                 <strong>Ki Software / Ki Business Solutions</strong><br>
+                Adres: Çekirge Mh. Süleyman Sk. No 29 Osmangazi / Bursa<br>
                 Kurumsal Web Sitesi: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
                 Uygulama Web Sitesi: <a href="https://booki.kibusiness.co">https://booki.kibusiness.co</a><br>
                 Gizlilik ve Veri Koruma İletişim: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a><br>

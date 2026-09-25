@@ -69,7 +69,7 @@ services:
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       # JS/CSS cache-busting token (see application/config/app.php) - bump on every deploy that
       # changes a JS/CSS file.
-      ASSET_VERSION: "prod-20260920-001"
+      ASSET_VERSION: "prod-20260925-1630"
     volumes:
       - /opt/ki-ecosystem/ki-reservation/files:/var/www/html/storage
     networks:

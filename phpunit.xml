@@ -22,5 +22,6 @@
   </testsuites>
   <php>
     <env name="APP_ENV" value="testing"/>
+    <env name="TENANT_MASTER_KEY" value="l5KoEF+jN5kfpJYkVO7bnj/RhpS56iswh7pleHGOpcw="/>
   </php>
 </phpunit>

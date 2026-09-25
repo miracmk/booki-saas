@@ -30,6 +30,7 @@ class Superadmin_tenants extends EA_Controller
         }
 
         $this->load->library('instance');
+        $this->load->library('whatsapp_bridge');
         $this->load->model('leads_model');
         $this->load->model('onboarding_sessions_model');
         $this->load->model('master_audit_model');
@@ -169,7 +170,42 @@ class Superadmin_tenants extends EA_Controller
         $tasks_summary = $this->leads_model->get_tasks_summary();
         $onboarding_data = $this->onboarding_sessions_model->get_all_sessions([], 15);
         $recent_activities = $this->leads_model->get_recent_activities(15);
-        $active_tab = (string) request('tab', 'dashboard');
+        // Places stats pre-computation
+        $today = date('Y-m-d 00:00:00');
+        $places_discovered_count = (int) $this->db->where('place_id IS NOT NULL', null, false)->count_all_results('leads');
+        if ($places_discovered_count === 0) {
+            $places_discovered_count = (int) $this->db->count_all_results('leads');
+        }
+        $places_enriched_count = (int) $this->db
+            ->group_start()
+                ->where('discovery_state', 'ENRICHED')
+                ->or_where('enriched_at IS NOT NULL', null, false)
+                ->or_where("phone IS NOT NULL AND phone != ''", null, false)
+            ->group_end()
+            ->count_all_results('leads');
+        $places_today_text = (int) $this->db
+            ->where('timestamp >=', $today)
+            ->group_start()
+                ->like('operation', 'text')
+                ->or_like('endpoint', 'searchText')
+            ->group_end()
+            ->count_all_results('places_api_usage');
+        $places_today_detail = (int) $this->db
+            ->where('timestamp >=', $today)
+            ->group_start()
+                ->where_in('operation', ['details', 'place_details', 'lazy_enrichment'])
+                ->or_like('endpoint', 'places/')
+            ->group_end()
+            ->count_all_results('places_api_usage');
+
+        $places_stats = [
+            'total_discovered' => $places_discovered_count,
+            'total_enriched' => $places_enriched_count,
+            'today_text_calls' => $places_today_text,
+            'today_detail_calls' => $places_today_detail,
+            'districts_count' => count($districts),
+            'sectors_count' => count($sectors),
+        ];
 
         html_vars([
             'page_title' => 'BooKi — Super Admin & Saha Satış / CRM Platformu',
@@ -194,6 +230,7 @@ class Superadmin_tenants extends EA_Controller
             'onboarding_sessions' => $onboarding_data['sessions'] ?? [],
             'recent_activities' => $recent_activities,
             'stage_definitions' => Leads_model::STAGES,
+            'places_stats' => $places_stats,
             'active_tab' => $active_tab,
             'platform_settings' => [
                 'zadarma_api_key' => master_setting('zadarma_api_key') ?? 'ceba11321113fd2628a1',
@@ -232,6 +269,13 @@ class Superadmin_tenants extends EA_Controller
                 'openrouter_api_key_set' => !empty(master_setting('openrouter_api_key')),
                 'openai_api_key_set' => !empty(master_setting('openai_api_key')),
                 'anthropic_api_key_set' => !empty(master_setting('anthropic_api_key')),
+
+                'wa_bridge_url' => master_setting('wa_bridge_url') ?? (getenv('WA_BRIDGE_URL') ?: 'http://ki-wa-bridge:3000'),
+                'wa_bridge_secret_set' => !empty(master_setting('wa_bridge_secret')) || !empty(getenv('WA_BRIDGE_SECRET')),
+
+                'wa_template_1' => master_setting('wa_template_1') ?? 'Merhaba {yetkili}, {isletme_adi} için randevu kayıplarını ve no-show oranlarını %80 azaltan BooKi Akıllı Randevu & Müşteri Yönetim Sistemimizi incelediniz mi? İşletmenize özel 10 günlük ücretsiz demo kurulumunu hemen başlatabiliriz: https://bookiapp.kibusiness.co',
+                'wa_template_2' => master_setting('wa_template_2') ?? 'Merhaba {yetkili}, {isletme_adi} ({sektor}) adresinize planladığımız BooKi saha ziyaretimiz öncesinde teyit almak istedik. Uygun olduğunuzda 15 dakikalık canlı demomuzu sunmaktan memnuniyet duyarız. İyi çalışmalar dileriz.',
+                'wa_template_3' => master_setting('wa_template_3') ?? 'Merhaba {yetkili}, {isletme_adi} için 10 günlük ücretsiz deneme profiliniz hazırlandı. Personel primleri, online randevu linkiniz ve otomatik WhatsApp hatırlatmalarını hemen test edebilirsiniz: https://bookiapp.kibusiness.co',
 
                 'marketplace_commission_rate' => master_setting('marketplace_commission_rate') ?? '5.00',
             ],
@@ -849,6 +893,7 @@ class Superadmin_tenants extends EA_Controller
                 'package' => request('package'),
                 'is_places' => request('is_places'),
                 'enrich_filter' => request('enrich_filter'),
+                'marketplace_filter' => request('marketplace_filter') ?: request('rb_filter'),
                 'business_status' => request('business_status'),
             ];
             $limit = max(1, min(100, (int) request('limit', 25)));
@@ -1008,6 +1053,329 @@ class Superadmin_tenants extends EA_Controller
         } catch (Throwable $e) {
             json_response(['success' => false, 'message' => $e->getMessage()], 400);
         }
+    }
+
+    /**
+     * Platform-level WhatsApp Baileys bridge session status (used by the CRM
+     * "WhatsApp Baileys Bridge" panel).
+     *
+     * GET /superadmin_tenants/api_platform_bridge_status
+     */
+    public function api_platform_bridge_status(): void
+    {
+        try {
+            method('get');
+
+            $bridge = $this->resolve_platform_bridge();
+            $health = $bridge->health();
+            $session = $bridge->session_status('platform');
+
+            json_response([
+                'success' => true,
+                'configured' => $bridge->is_configured(),
+                'health' => $health,
+                'session' => $session,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Start (or restart) the platform WhatsApp device pairing session so the
+     * bridge exposes a QR code for the superadmin to scan.
+     *
+     * POST /superadmin_tenants/api_platform_bridge_qr_start
+     */
+    public function api_platform_bridge_qr_start(): void
+    {
+        try {
+            method('post');
+
+            $bridge = $this->resolve_platform_bridge();
+            if (!$bridge->is_configured()) {
+                json_response(['success' => false, 'message' => 'Baileys Bridge URL yapılandırılmadı. Bridge panelinden URL ve secret kaydedin.'], 400);
+                return;
+            }
+
+            $result = $bridge->session_start('platform', [
+                'webhookUrl' => site_url('whatsapp/bridge_inbound'),
+            ]);
+
+            if ($result === null) {
+                json_response(['success' => false, 'message' => 'Bridge yanıt vermedi. Köprü ayakta mı ve URL doğru mu?'], 502);
+                return;
+            }
+
+            json_response(['success' => true, 'result' => $result]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Log out / destroy the platform WhatsApp device session.
+     *
+     * POST /superadmin_tenants/api_platform_bridge_logout
+     */
+    public function api_platform_bridge_logout(): void
+    {
+        try {
+            method('post');
+
+            $bridge = $this->resolve_platform_bridge();
+            $result = $bridge->session_logout('platform');
+
+            json_response([
+                'success' => true,
+                'result' => $result,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Send a test WhatsApp message through the platform bridge session.
+     *
+     * POST /superadmin_tenants/api_platform_bridge_test  {to_phone, message}
+     */
+    public function api_platform_bridge_test(): void
+    {
+        try {
+            method('post');
+            check('to_phone', 'string');
+            $to_phone = trim((string) request('to_phone'));
+            $message = trim((string) request('message', 'BooKi test mesajı 🚀'));
+            if ($to_phone === '') {
+                json_response(['success' => false, 'message' => 'Hedef telefon numarası girilmedi.'], 400);
+                return;
+            }
+
+            $bridge = $this->resolve_platform_bridge();
+            $result = $bridge->send('platform', $to_phone, $message);
+
+            if (!empty($result['success'])) {
+                json_response(['success' => true, 'message' => 'Test mesajı gönderildi ✓', 'result' => $result]);
+            } else {
+                json_response(['success' => false, 'message' => 'Gönderilemedi: ' . ($result['error'] ?? 'bilinmeyen hata'), 'result' => $result], 502);
+            }
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Send a WhatsApp message to a single lead through the platform bridge
+     * session and log the send on the lead timeline.
+     *
+     * POST /superadmin_tenants/api_send_whatsapp  {lead_id, message}
+     */
+    public function api_send_whatsapp(): void
+    {
+        try {
+            method('post');
+            check('lead_id', 'numeric');
+            $lead_id = (int) request('lead_id');
+            $message = trim((string) request('message', ''));
+
+            if ($message === '') {
+                json_response(['success' => false, 'message' => 'Mesaj metni boş olamaz.'], 400);
+                return;
+            }
+
+            $lead = $this->leads_model->get_lead_by_id($lead_id);
+            if (!$lead) {
+                json_response(['success' => false, 'message' => 'Lead bulunamadı.'], 404);
+                return;
+            }
+
+            $wa_number = $this->resolve_lead_whatsapp_number($lead);
+            if ($wa_number === '') {
+                json_response(['success' => false, 'message' => 'Lead için telefon numarası bulunamadı.'], 400);
+                return;
+            }
+
+            $bridge = $this->resolve_platform_bridge();
+            if (!$bridge->is_configured()) {
+                json_response(['success' => false, 'message' => 'Baileys Bridge yapılandırılmadı. Bridge panelinden URL ve secret kaydedin.'], 400);
+                return;
+            }
+
+            $result = $bridge->send('platform', $wa_number, $message);
+
+            if (empty($result['success'])) {
+                $this->add_platform_wa_activity($lead_id, $lead, $message, false, $result['error'] ?? '');
+                json_response([
+                    'success' => false,
+                    'message' => 'WhatsApp gönderilemedi: ' . ($result['error'] ?? 'bilinmeyen hata'),
+                    'result' => $result,
+                ], 502);
+                return;
+            }
+
+            $this->add_platform_wa_activity($lead_id, $lead, $message, true, '', $result['message_id'] ?? '');
+
+            json_response([
+                'success' => true,
+                'message' => 'WhatsApp mesajı gönderildi ✓',
+                'message_id' => $result['message_id'] ?? '',
+                'to' => $wa_number,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Send a WhatsApp message to multiple leads through the platform bridge.
+     * Occurs on the crawler/places leads table using the current selection.
+     * `{isletme_adi}`, `{yetkili}`, `{sektor}` placeholders are replaced per lead.
+     *
+     * POST /superadmin_tenants/api_bulk_whatsapp  {lead_ids[], message}
+     */
+    public function api_bulk_whatsapp(): void
+    {
+        try {
+            method('post');
+            $raw_ids = request('lead_ids');
+            $message = trim((string) request('message', ''));
+
+            $ids = is_array($raw_ids)
+                ? array_values(array_filter(array_map('intval', $raw_ids)))
+                : array_values(array_filter(array_map('intval', (array) json_decode((string) $raw_ids, true))));
+
+            $ids = array_values(array_unique($ids));
+
+            if ($ids === []) {
+                json_response(['success' => false, 'message' => 'En az bir lead seçilmelidir.'], 400);
+                return;
+            }
+            if ($message === '') {
+                json_response(['success' => false, 'message' => 'Mesaj metni boş olamaz.'], 400);
+                return;
+            }
+
+            $bridge = $this->resolve_platform_bridge();
+            if (!$bridge->is_configured()) {
+                json_response(['success' => false, 'message' => 'Baileys Bridge yapılandırılmadı. Bridge panelinden URL ve secret kaydedin.'], 400);
+                return;
+            }
+
+            $sent = 0;
+            $failed = 0;
+            $errors = [];
+
+            foreach ($ids as $lead_id) {
+                $lead = $this->leads_model->get_lead_by_id((int) $lead_id);
+                if (!$lead) {
+                    $failed++;
+                    $errors[] = "#{$lead_id}: lead bulunamadı";
+                    continue;
+                }
+
+                $wa_number = $this->resolve_lead_whatsapp_number($lead);
+                if ($wa_number === '') {
+                    $failed++;
+                    $errors[] = "#{$lead_id}: telefon numarası yok";
+                    continue;
+                }
+
+                $lead_message = $this->render_lead_whatsapp_message($message, $lead);
+
+                $result = $bridge->send('platform', $wa_number, $lead_message);
+
+                if (!empty($result['success'])) {
+                    $sent++;
+                    $this->add_platform_wa_activity((int) $lead_id, $lead, $lead_message, true, '', $result['message_id'] ?? '');
+                } else {
+                    $failed++;
+                    $errors[] = "#{$lead_id}: " . ($result['error'] ?? 'bilinmeyen hata');
+                }
+            }
+
+            json_response([
+                'success' => $sent > 0,
+                'message' => "Toplu gönderim tamamlandı — gönderildi: {$sent}, başarısız: {$failed}",
+                'sent' => $sent,
+                'failed' => $failed,
+                'errors' => $errors,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Resolve the platform bridge client using master settings → env → defaults,
+     * mirroring the tenant-side Whatsapp.php bridge wiring.
+     */
+    private function resolve_platform_bridge(): Whatsapp_bridge
+    {
+        $url = master_setting('wa_bridge_url') ?: (getenv('WA_BRIDGE_URL') ?: 'http://wa-bridge:3000');
+        $secret = master_setting('wa_bridge_secret') ?: (getenv('WA_BRIDGE_SECRET') ?: '');
+
+        return new Whatsapp_bridge($url, $secret);
+    }
+
+    /**
+     * Extract the best WhatsApp target number from a lead row.
+     */
+    private function resolve_lead_whatsapp_number(array $lead): string
+    {
+        $number = $lead['whatsapp_number'] ?? $lead['whatsapp'] ?? $lead['phone'] ?? '';
+        $clean = preg_replace('/[^0-9]/', '', (string) $number);
+        if ($clean === '') {
+            return '';
+        }
+        if (strlen($clean) === 10 && str_starts_with($clean, '5')) {
+            return '90' . $clean;
+        }
+        if (!str_starts_with($clean, '90') && !str_starts_with($clean, '+')) {
+            return '90' . ltrim($clean, '0');
+        }
+        return ltrim($clean, '+');
+    }
+
+    /**
+     * Replace quick-template placeholders with the lead's actual values.
+     */
+    private function render_lead_whatsapp_message(string $message, array $lead): string
+    {
+        $replacements = [
+            '{isletme_adi}' => (string) ($lead['business_name'] ?? $lead['name'] ?? ''),
+            '{yetkili}' => (string) ($lead['contact_name'] ?? $lead['contact_person'] ?? 'Yetkili'),
+            '{sektor}' => (string) ($lead['sector'] ?? 'İşletme'),
+        ];
+
+        return strtr($message, $replacements);
+    }
+
+    /**
+     * Write a WhatsApp activity row to the lead timeline.
+     */
+    private function add_platform_wa_activity(int $lead_id, array $lead, string $message, bool $sent, string $error = '', string $message_id = ''): void
+    {
+        $short = mb_strimwidth((string) preg_replace('/\s+/', ' ', $message) ?? $message, 0, 140, '…');
+        $phone = (string) ($lead['whatsapp_number'] ?? $lead['whatsapp'] ?? $lead['phone'] ?? '');
+
+        $this->leads_model->add_activity(
+            $lead_id,
+            'whatsapp',
+            $sent ? '🟢 WhatsApp Mesajı Gönderildi' : '🔴 WhatsApp Gönderilemedi',
+            $sent
+                ? "Telefon: {$phone}\nMesaj: {$short}"
+                : ($error !== '' ? "Hata: {$error} — {$short}" : $short),
+            session('superadmin_username') ?: 'Super Admin',
+            [
+                'channel' => 'whatsapp',
+                'direction' => 'out',
+                'message_id' => $message_id,
+                'sent' => $sent,
+                'method' => 'platform_bridge',
+                'timestamp' => date('Y-m-d H:i:s'),
+            ]
+        );
     }
 
     /**
@@ -1610,7 +1978,13 @@ class Superadmin_tenants extends EA_Controller
     {
         try {
             method('post');
-            $lead_ids = (array) (request('lead_ids') ?: []);
+            $raw_ids = request('lead_ids');
+            if (is_string($raw_ids)) {
+                $decoded = json_decode($raw_ids, true);
+                $lead_ids = is_array($decoded) ? $decoded : array_filter(explode(',', $raw_ids));
+            } else {
+                $lead_ids = (array) ($raw_ids ?: []);
+            }
             if (empty($lead_ids)) {
                 // Default: enrich up to 20 non-enriched operational leads
                 $leads = $this->db
@@ -1643,6 +2017,97 @@ class Superadmin_tenants extends EA_Controller
                 'message' => "{$success} lead başarıyla zenginleştirildi ({$failed} başarısız).",
                 'enriched_count' => $success,
                 'failed_count' => $failed,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Toggle or set marketplace (RandevuBurada RB) publication for a lead.
+     */
+    public function api_toggle_lead_marketplace(): void
+    {
+        try {
+            method('post');
+            check('lead_id', 'numeric');
+            $lead_id = (int) request('lead_id');
+
+            $publish = request('publish');
+            if ($publish === null) {
+                // Toggle current state
+                $cur = $this->db->select('is_marketplace_published')->get_where('leads', ['id' => $lead_id])->row_array();
+                $target_publish = empty($cur['is_marketplace_published']);
+            } else {
+                $target_publish = (bool) ($publish === '1' || $publish === 1 || $publish === true || $publish === 'true');
+            }
+
+            $lead = $this->leads_model->push_to_marketplace($lead_id, $target_publish);
+
+            json_response([
+                'success' => true,
+                'is_marketplace_published' => (int) ($lead['is_marketplace_published'] ?? 0),
+                'marketplace_url' => $lead['marketplace_url'] ?? '',
+                'slug' => $lead['slug'] ?? '',
+                'lead' => $lead,
+                'message' => $target_publish
+                    ? 'İşletme RandevuBurada pazaryerinde başarıyla yayınlandı (RB Push aktif)!'
+                    : 'İşletme RandevuBurada pazaryerinden yayından kaldırıldı.',
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Bulk push or unpublish leads to/from RandevuBurada (RB) marketplace.
+     */
+    public function api_bulk_marketplace_push(): void
+    {
+        try {
+            method('post');
+            $raw_ids = request('lead_ids');
+            if (is_string($raw_ids)) {
+                $decoded = json_decode($raw_ids, true);
+                $lead_ids = is_array($decoded) ? $decoded : array_filter(explode(',', $raw_ids));
+            } else {
+                $lead_ids = (array) ($raw_ids ?: []);
+            }
+            $publish = request('publish') === null ? true : (bool) (request('publish') === '1' || request('publish') === 1 || request('publish') === true || request('publish') === 'true');
+
+            if (empty($lead_ids)) {
+                throw new InvalidArgumentException('Lütfen en az bir işletme seçin.');
+            }
+
+            $res = $this->leads_model->bulk_push_to_marketplace($lead_ids, $publish);
+
+            json_response([
+                'success' => true,
+                'count' => $res['success_count'],
+                'failed' => $res['failed_count'],
+                'message' => $publish
+                    ? "{$res['success_count']} işletme RandevuBurada pazaryerine push edildi!"
+                    : "{$res['success_count']} işletme RandevuBurada pazaryerinden kaldırıldı.",
+            ]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Synchronize and push all enriched leads to RandevuBurada (RB) marketplace.
+     */
+    public function api_sync_all_enriched_marketplace(): void
+    {
+        try {
+            method('post');
+            $res = $this->leads_model->sync_all_enriched_to_marketplace();
+
+            json_response([
+                'success' => true,
+                'synced_count' => $res['synced_count'],
+                'total_enriched' => $res['total_enriched'],
+                'message' => "{$res['synced_count']} zenginleştirilmiş işletme RandevuBurada (RB) ile tamamen senkronize edildi ve yayınlandı!",
             ]);
         } catch (Throwable $e) {
             json_response(['success' => false, 'message' => $e->getMessage()], 400);
@@ -1746,13 +2211,52 @@ class Superadmin_tenants extends EA_Controller
             $today = date('Y-m-d 00:00:00');
             $this_month = date('Y-m-01 00:00:00');
 
-            $today_calls = $this->db->where('timestamp >=', $today)->count_all_results('places_api_usage');
-            $month_calls = $this->db->where('timestamp >=', $this_month)->count_all_results('places_api_usage');
-            $total_calls = $this->db->count_all_results('places_api_usage');
+            $today_calls_text_search = (int) $this->db
+                ->where('timestamp >=', $today)
+                ->group_start()
+                    ->like('operation', 'text')
+                    ->or_like('endpoint', 'searchText')
+                ->group_end()
+                ->count_all_results('places_api_usage');
 
-            $total_discovered = $this->db->where('place_id IS NOT NULL', null, false)->count_all_results('leads');
-            $total_enriched = $this->db->where('discovery_state', 'ENRICHED')->count_all_results('leads');
-            $total_operational = $this->db->where('business_status', 'OPERATIONAL')->count_all_results('leads');
+            $today_calls_details = (int) $this->db
+                ->where('timestamp >=', $today)
+                ->group_start()
+                    ->where_in('operation', ['details', 'place_details', 'lazy_enrichment'])
+                    ->or_like('endpoint', 'places/')
+                ->group_end()
+                ->count_all_results('places_api_usage');
+
+            $today_calls = (int) $this->db->where('timestamp >=', $today)->count_all_results('places_api_usage');
+            $month_calls = (int) $this->db->where('timestamp >=', $this_month)->count_all_results('places_api_usage');
+            $total_calls = (int) $this->db->count_all_results('places_api_usage');
+
+            $total_discovered = (int) $this->db->where('place_id IS NOT NULL', null, false)->count_all_results('leads');
+            if ($total_discovered === 0) {
+                $total_discovered = (int) $this->db->count_all_results('leads');
+            }
+
+            $total_enriched = (int) $this->db
+                ->group_start()
+                    ->where('discovery_state', 'ENRICHED')
+                    ->or_where('enriched_at IS NOT NULL', null, false)
+                    ->or_where("phone IS NOT NULL AND phone != ''", null, false)
+                ->group_end()
+                ->count_all_results('leads');
+
+            $total_operational = (int) $this->db->where('business_status', 'OPERATIONAL')->count_all_results('leads');
+
+            $districts_row = $this->db->query("SELECT COUNT(DISTINCT district) as cnt FROM ea_leads WHERE district IS NOT NULL AND district != ''")->row();
+            $districts_count = $districts_row ? (int) $districts_row->cnt : 0;
+
+            $sectors_row = $this->db->query("SELECT COUNT(DISTINCT sector) as cnt FROM ea_leads WHERE sector IS NOT NULL AND sector != ''")->row();
+            $sectors_count = $sectors_row ? (int) $sectors_row->cnt : 0;
+
+            $cities_row = $this->db->query("SELECT COUNT(DISTINCT city) as cnt FROM ea_leads WHERE city IS NOT NULL AND city != ''")->row();
+            $cities_count = $cities_row ? (int) $cities_row->cnt : 0;
+
+            $coverage_label = "{$districts_count} Bölge/İlçe • {$sectors_count} Sektör";
+            $coverage_subtext = ($cities_count > 1) ? "{$cities_count} Farklı Şehir / Global" : "Bursa & Türkiye / Global";
 
             json_response([
                 'success' => true,
@@ -1760,9 +2264,18 @@ class Superadmin_tenants extends EA_Controller
                     'today_calls' => $today_calls,
                     'month_calls' => $month_calls,
                     'total_calls' => $total_calls,
+                    'today_calls_text_search' => $today_calls_text_search,
+                    'today_calls_details' => $today_calls_details,
                     'total_discovered' => $total_discovered,
+                    'total_discovered_leads' => $total_discovered,
                     'total_enriched' => $total_enriched,
+                    'total_enriched_leads' => $total_enriched,
                     'total_operational' => $total_operational,
+                    'districts_count' => $districts_count,
+                    'sectors_count' => $sectors_count,
+                    'cities_count' => $cities_count,
+                    'coverage_label' => $coverage_label,
+                    'coverage_subtext' => $coverage_subtext,
                 ],
             ]);
         } catch (Throwable $e) {
@@ -2063,6 +2576,7 @@ class Superadmin_tenants extends EA_Controller
                 'platform_imap_host', 'platform_imap_port', 'platform_imap_crypto', 'platform_imap_user', 'platform_imap_pass',
                 // WhatsApp & Messaging
                 'whatsapp_quick_templates', 'wa_bridge_url', 'wa_bridge_secret',
+                'wa_template_1', 'wa_template_2', 'wa_template_3',
                 // Marketplace
                 'marketplace_commission_rate',
             ];
@@ -2135,11 +2649,20 @@ class Superadmin_tenants extends EA_Controller
     {
         try {
             method('post');
-            check('id', 'numeric');
+            $id = (int) (request('id') ?: request('lead_id'));
+            if ($id <= 0) {
+                throw new InvalidArgumentException('Geçersiz Lead ID.');
+            }
 
-            $id = (int) request('id');
             $actor = session('superadmin_username') ?: 'Admin';
-            $fields = ['name', 'sector', 'district', 'address', 'contact_person', 'phone', 'whatsapp', 'email', 'website', 'instagram', 'reservation_type', 'stage', 'priority', 'package', 'billing_period', 'notes', 'tags', 'potential_mrr', 'next_action', 'next_action_date', 'demo_start_date', 'demo_end_date', 'latitude', 'longitude'];
+            $fields = [
+                'name', 'sector', 'district', 'city', 'address', 'contact_person',
+                'phone', 'whatsapp', 'email', 'website', 'instagram', 'reservation_type',
+                'stage', 'priority', 'package', 'billing_period', 'notes', 'tags',
+                'potential_mrr', 'next_action', 'next_action_date', 'demo_start_date',
+                'demo_end_date', 'latitude', 'longitude', 'rating', 'user_rating_count',
+                'discovery_state'
+            ];
 
             $data = [];
             foreach ($fields as $f) {
@@ -2148,13 +2671,37 @@ class Superadmin_tenants extends EA_Controller
                 }
             }
 
+            // Sync phone with whatsapp_number if available
+            if (!empty($data['phone'])) {
+                if (empty($data['whatsapp'])) {
+                    $data['whatsapp'] = $data['phone'];
+                }
+                $data['whatsapp_number'] = $data['whatsapp'];
+            }
+
+            // Auto-detect or mark manual enrichment
+            $is_enriched = !empty($data['phone']) || !empty($data['website']) || !empty($data['rating']) || (isset($data['discovery_state']) && $data['discovery_state'] === 'ENRICHED');
+            if ($is_enriched) {
+                $data['discovery_state'] = 'ENRICHED';
+                $data['enrichment_status'] = 'enriched_lead';
+                if (empty($data['enriched_at'])) {
+                    $data['enriched_at'] = date('Y-m-d H:i:s');
+                }
+            }
+
             $success = $this->leads_model->update_lead($id, $data, $actor);
             if (!$success) {
                 throw new InvalidArgumentException("Lead #{$id} güncellenemedi.");
             }
 
-            $this->master_audit_model->log('update_lead', 'lead', (string) $id, "Lead bilgileri güncellendi");
-            json_response(['success' => true]);
+            $this->master_audit_model->log('update_lead', 'lead', (string) $id, "Lead bilgileri güncellendi / manuel zenginleştirildi");
+            $updated_lead = $this->leads_model->get_lead_by_id($id);
+
+            json_response([
+                'success' => true,
+                'message' => 'Lead bilgileri ve zenginleştirme detayları başarıyla kaydedildi ✓',
+                'lead' => $updated_lead
+            ]);
         } catch (Throwable $e) {
             json_response(['error' => $e->getMessage()], 400);
         }

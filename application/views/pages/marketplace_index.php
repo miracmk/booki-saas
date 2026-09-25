@@ -42,6 +42,7 @@ $district_display = $district_display ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
     <title><?php echo htmlspecialchars($page_title ?? 'RandevuBurada — Türkiye\'nin Online Randevu ve Hizmet Pazaryeri | by BooKi'); ?></title>
     <link rel="canonical" href="<?php echo htmlspecialchars($canonical_url); ?>">
     <link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url('assets/img/randevuburada-favicon-32.png'); ?>">
