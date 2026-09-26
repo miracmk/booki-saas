@@ -32,5 +32,9 @@ apps/**/.dart_tool/
 apps/**/.flutter-plugins-dependencies
 apps/**/.pub-cache/
 apps/**/.pub/
+mobile/builds/*.apk
+mobile/builds/*.ipa
+mobile/builds/*.zip
+
 
 
