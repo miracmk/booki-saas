@@ -153,6 +153,20 @@ class Ai_channel_responder
                 ],
             ],
         ],
+        [
+            'type' => 'function',
+            'function' => [
+                'name' => 'request_human_handoff',
+                'description' => 'Müşteri canlı destek, yetkili personel, müşteri temsilcisi istediğinde veya yapay zekanın çözemeyeceği özel/karmaşık bir durum oluştuğunda çağrılır. Görüşmeyi insan personele aktarır ve yapay zeka otomatik yanıtlarını durdurur.',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'reason' => ['type' => 'string', 'description' => 'Müşterinin aktarma talebi veya gerekçesi.'],
+                    ],
+                    'required' => ['reason'],
+                ],
+            ],
+        ],
     ];
 
     /**
@@ -185,6 +199,29 @@ class Ai_channel_responder
         }
 
         $booking_url = site_url('booking');
+
+        // 1. Direct commands to toggle AI
+        $lower_text = mb_strtolower($clean_text);
+        if ($clean_text === '#ai-on' || $lower_text === 'asistanı aç' || $lower_text === 'asistanı başlat' || $lower_text === 'botu aç') {
+            $this->resolve_handoff($channel, $sender_id);
+            return "✅ Yapay zeka asistanı yeniden aktif edildi. Size nasıl yardımcı olabilirim? 🤖";
+        }
+
+        if ($clean_text === '#ai-off' || $lower_text === 'asistanı kapat' || $lower_text === 'botu kapat') {
+            $this->trigger_handoff($channel, $sender_id, $matched_user['id'] ?? null, 'Kullanıcı/Yetkili komutu (#ai-off)');
+            return "⏸️ Yapay zeka asistanı durduruldu. Mesajlarınız doğrudan yetkili ekibimize iletilmektedir.";
+        }
+
+        // 2. Active human handoff check: If paused, AI remains silent so human staff can chat
+        if ($this->is_handoff_active($channel, $sender_id)) {
+            log_message('debug', "Ai_channel_responder: conversation {$channel}:{$sender_id} is currently paused for human handoff.");
+            return null;
+        }
+
+        // 3. Fast regex match for human handoff request
+        if (preg_match('/(canlı\s*destek|müşteri\s*temsilci|temsilci(ye|yle)?|yetkili(ye|yle| biri)?|insanla\s*görüş|operatör|insan\s*istiyorum|biriyle\s*görüş)/iu', $clean_text)) {
+            return $this->trigger_handoff($channel, $sender_id, $matched_user['id'] ?? null, "Müşteri doğrudan insan temsilci talep etti: {$clean_text}");
+        }
 
         // Auto-match unlinked user by phone if message contains a phone number pattern
         if (empty($matched_user['id'])) {
@@ -233,6 +270,11 @@ class Ai_channel_responder
                 $args = json_decode($call['function']['arguments'] ?? '{}', true) ?: [];
 
                 $result = $this->execute_tool($name, $args, $channel, $sender_id, $matched_user);
+
+                // If customer requested handoff via tool, immediately return confirmation message
+                if ($name === 'request_human_handoff' || !empty($result['handoff_triggered'])) {
+                    return $result['message'] ?? "Talebinizi yetkili ekibimize aktardım. En kısa sürede bir müşteri temsilcimiz sizinle bu hat üzerinden iletişime geçecektir. 👤";
+                }
 
                 // If customer was newly linked during tool execution, refresh matched_user in memory
                 if ($name === 'link_customer_channel' && !empty($result['success']) && !empty($result['customer_id'])) {
@@ -368,9 +410,15 @@ class Ai_channel_responder
         $company_name = setting('company_name') ?: 'İşletmemiz';
         $company_phone = setting('company_phone') ?: '';
         $company_address = setting('company_address') ?: 'İşletme Adresi';
-        $booking_url = site_url('booking');
-        $current_datetime = date('Y-m-d H:i:s');
-        $current_day_name = match (date('N')) {
+        $tz_string = setting('default_timezone') ?: 'Europe/Istanbul';
+        try {
+            $tz = new DateTimeZone($tz_string);
+        } catch (\Throwable $e) {
+            $tz = new DateTimeZone('Europe/Istanbul');
+        }
+        $now = new DateTime('now', $tz);
+        $current_datetime = $now->format('Y-m-d H:i:s');
+        $current_day_name = match ($now->format('N')) {
             '1' => 'Pazartesi',
             '2' => 'Salı',
             '3' => 'Çarşamba',
@@ -381,13 +429,32 @@ class Ai_channel_responder
             default => '',
         };
 
-        // Fetch available services
+        // Fetch available services and group them cleanly by base name
         $services = $CI->services_model->get_available_services();
+        $grouped_services = [];
+        foreach ($services as $s) {
+            $base_name = trim(preg_replace('/\s*-\s*\d+\s*(dakika|dk)/i', '', $s['name']));
+            if (!isset($grouped_services[$base_name])) {
+                $grouped_services[$base_name] = [
+                    'id' => $s['id'],
+                    'name' => $base_name,
+                    'durations' => [],
+                    'prices' => [],
+                ];
+            }
+            if (!empty($s['duration'])) {
+                $grouped_services[$base_name]['durations'][] = $s['duration'] . ' dk';
+            }
+            if (!empty($s['price']) && (float)$s['price'] > 0) {
+                $grouped_services[$base_name]['prices'][] = (int)$s['price'] . ' TL';
+            }
+        }
+
         $services_summary = [];
-        foreach (array_slice($services, 0, 8) as $s) {
-            $price = !empty($s['price']) ? $s['price'] . ' TL' : 'Ücretsiz / Bilgi alınız';
-            $duration = !empty($s['duration']) ? $s['duration'] . ' dk' : '30 dk';
-            $services_summary[] = "- [ID: {$s['id']}] {$s['name']} (Süre: {$duration}, Fiyat: {$price})";
+        foreach (array_slice($grouped_services, 0, 25) as $g) {
+            $dur_str = !empty($g['durations']) ? implode('/', array_unique($g['durations'])) : '30 dk';
+            $price_str = !empty($g['prices']) ? implode(' - ', array_unique($g['prices'])) : 'Bilgi alınız';
+            $services_summary[] = "- [ID: {$g['id']}] {$g['name']} (Süre: {$dur_str}, Fiyat: {$price_str})";
         }
         $services_text = !empty($services_summary) ? implode("\n", $services_summary) : "Hizmet listesi için web sitemizi ziyaret ediniz.";
 
@@ -520,6 +587,10 @@ GÖREVLER VE İŞLEM AKIŞI (YÖNETİCİ ONAY PRENSİBİ):
    - Bu araç işletmenin ve terapistlerin gerçek çalışma takvimini, kapalı günlerini ve boş randevu saatlerini hesaplar.
    - Araç "kapalıdır" veya "müsait randevu saati bulunmamaktadır" döndürürse: Müşteriye bugün kapalı olduğumuzu veya o tarihte randevu bulunmadığını nazikçe açıkla ve aracın önerdiği en yakın açık iş gününü (örn: Pazartesi) ve saatleri teklif et.
    - Müşteri doğrudan randevu almak istediğinde de önce veya randevu teklifi sırasında saatin uygunluğunu `check_availability` ile doğrula.
+
+7. **CANLI DESTEK VE İNSAN TEMSİLCİYE AKTARMA (HANDOFF PROTOKOLÜ):**
+   - Müşteri insan müşteri temsilcisi, canlı destek, yetkili personel istediğinde veya sistemin çözemeyeceği özel bir istek/şikayet belirttiğinde MUTLAKA `request_human_handoff` aracını çağır!
+   - Bu araç çağrıldığında sistem otomatik olarak yapay zekayı durduracak ve görüşmeyi mağaza/işletme yetkililerine devredecektir.
 
 GENEL KURALLAR:
 - Her zaman Türkçe, saygılı, samimi ve mobil mesaja uygun formatta (kısa, paragraflı) yanıt ver.
@@ -1048,12 +1119,166 @@ PROMPT;
                         'note' => 'Müşteri bilgisi güncelleme talebi yönetici onay kuyruğuna alındı.',
                     ];
 
+                case 'request_human_handoff':
+                    $reason = trim((string) ($args['reason'] ?? 'Müşteri canlı destek / temsilci talep etti'));
+                    $msg = $this->trigger_handoff($channel, $sender_id, $matched_user['id'] ?? null, $reason);
+                    return [
+                        'success' => true,
+                        'handoff_triggered' => true,
+                        'message' => $msg,
+                    ];
+
                 default:
                     return ['error' => 'Geçersiz araç: ' . $name];
             }
         } catch (Throwable $e) {
             log_message('error', 'Ai_channel_responder execute_tool failed: ' . $e->getMessage());
             return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Ensure the handoff tracking table exists in the current tenant database.
+     */
+    private function ensure_handoff_table_exists(): void
+    {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+
+        try {
+            if (!$this->CI->db->table_exists('ai_channel_handoffs')) {
+                $this->CI->db->query("
+                    CREATE TABLE IF NOT EXISTS `ea_ai_channel_handoffs` (
+                      `id` int unsigned NOT NULL AUTO_INCREMENT,
+                      `channel` varchar(32) NOT NULL,
+                      `sender_id` varchar(64) NOT NULL,
+                      `id_users` int unsigned DEFAULT NULL,
+                      `status` enum('active','resolved') NOT NULL DEFAULT 'active',
+                      `reason` text DEFAULT NULL,
+                      `paused_until` datetime NOT NULL,
+                      `created_at` datetime NOT NULL,
+                      `resolved_at` datetime DEFAULT NULL,
+                      `resolved_by` int unsigned DEFAULT NULL,
+                      PRIMARY KEY (`id`),
+                      UNIQUE KEY `uniq_channel_sender` (`channel`, `sender_id`),
+                      KEY `idx_status_paused` (`status`, `paused_until`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                ");
+            }
+        } catch (Throwable $e) {
+            log_message('error', 'ensure_handoff_table_exists failed: ' . $e->getMessage());
+        }
+
+        $checked = true;
+    }
+
+    /**
+     * Check if a human handoff session is currently active for this channel + sender.
+     */
+    public function is_handoff_active(string $channel, string $sender_id): bool
+    {
+        $this->ensure_handoff_table_exists();
+        try {
+            $now = date('Y-m-d H:i:s');
+            $row = $this->CI->db
+                ->where('channel', $channel)
+                ->where('sender_id', $sender_id)
+                ->where('status', 'active')
+                ->where('paused_until >', $now)
+                ->get('ai_channel_handoffs')
+                ->row_array();
+
+            return !empty($row);
+        } catch (Throwable $e) {
+            log_message('error', 'is_handoff_active failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Trigger a human handoff: pauses AI auto-replies for this customer and notifies staff.
+     */
+    public function trigger_handoff(string $channel, string $sender_id, ?int $user_id, string $reason, int $hours = 24): string
+    {
+        $this->ensure_handoff_table_exists();
+        $now = date('Y-m-d H:i:s');
+        $paused_until = date('Y-m-d H:i:s', strtotime("+{$hours} hours"));
+
+        try {
+            $existing = $this->CI->db
+                ->where('channel', $channel)
+                ->where('sender_id', $sender_id)
+                ->get('ai_channel_handoffs')
+                ->row_array();
+
+            if ($existing) {
+                $this->CI->db->update('ai_channel_handoffs', [
+                    'id_users' => $user_id ?: ($existing['id_users'] ?? null),
+                    'status' => 'active',
+                    'reason' => $reason,
+                    'paused_until' => $paused_until,
+                    'resolved_at' => null,
+                    'resolved_by' => null,
+                ], ['id' => $existing['id']]);
+            } else {
+                $this->CI->db->insert('ai_channel_handoffs', [
+                    'channel' => $channel,
+                    'sender_id' => $sender_id,
+                    'id_users' => $user_id,
+                    'status' => 'active',
+                    'reason' => $reason,
+                    'paused_until' => $paused_until,
+                    'created_at' => $now,
+                ]);
+            }
+
+            // Record a pending item in ai_agent_pending_changes so staff dashboard shows it
+            if ($this->CI->db->table_exists('ai_agent_pending_changes')) {
+                $channel_label = ucfirst($channel);
+                $this->CI->db->insert('ai_agent_pending_changes', [
+                    'target_table' => 'ai_channel_handoffs',
+                    'target_id' => $user_id ?: 0,
+                    'changes' => json_encode([
+                        'channel' => $channel,
+                        'sender_id' => $sender_id,
+                        'reason' => $reason,
+                        'action' => 'human_handoff',
+                        'paused_until' => $paused_until,
+                    ], JSON_UNESCAPED_UNICODE),
+                    'reason' => "[{$channel_label} Canlı Destek Talebi] {$reason} (Gönderici: {$sender_id})",
+                    'model_name' => 'handoff_protocol',
+                    'status' => 'pending',
+                    'created_at' => $now,
+                ]);
+            }
+        } catch (Throwable $e) {
+            log_message('error', 'trigger_handoff failed: ' . $e->getMessage());
+        }
+
+        return "Talebinizi yetkili ekibimize aktardım. En kısa sürede bir müşteri temsilcimiz sizinle bu hat üzerinden iletişime geçecektir. 👤";
+    }
+
+    /**
+     * Resolve handoff and re-enable AI for this customer.
+     */
+    public function resolve_handoff(string $channel, string $sender_id, ?int $resolved_by = null): bool
+    {
+        $this->ensure_handoff_table_exists();
+        try {
+            $this->CI->db->update('ai_channel_handoffs', [
+                'status' => 'resolved',
+                'resolved_at' => date('Y-m-d H:i:s'),
+                'resolved_by' => $resolved_by,
+            ], [
+                'channel' => $channel,
+                'sender_id' => $sender_id,
+            ]);
+            return true;
+        } catch (Throwable $e) {
+            log_message('error', 'resolve_handoff failed: ' . $e->getMessage());
+            return false;
         }
     }
 }

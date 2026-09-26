@@ -385,6 +385,10 @@ $route['agent/v1/stations']['get'] = 'agent_api/stations';
 
 $route['agent/v1/verticals/data']['get'] = 'agent_api/vertical_data';
 
+$route['agent/v1/handoff']['post'] = 'agent_api/handoff';
+
+$route['agent/v1/marketing_attributions']['get'] = 'agent_api/marketing_attributions';
+
 /*
 | -------------------------------------------------------------------------
 | CUSTOM ROUTING

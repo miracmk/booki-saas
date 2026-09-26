@@ -364,6 +364,28 @@ server.registerTool(
   },
 );
 
+server.registerTool(
+  'request_human_handoff',
+  {
+    title: 'Request Human Handoff',
+    description:
+      'Hands off the customer conversation to human staff/support and pauses automated AI responses. Call this when the customer requests a human agent/live support or has a complex request the AI cannot resolve.',
+    inputSchema: {
+      reason: z.string().describe('Reason for handoff or customer request summary.'),
+      channel: z.string().optional().describe('Channel: whatsapp, telegram, instagram, or web (default mcp).'),
+      sender_id: z.string().optional().describe('Customer identifier or phone number.'),
+      customer_id: z.number().int().optional().describe('Customer ID if known.'),
+    },
+  },
+  async ({ reason, channel, sender_id, customer_id }) => {
+    const data = await callApi('/handoff', {
+      method: 'POST',
+      body: { reason, channel: channel || 'mcp', sender_id: sender_id || 'mcp_session', customer_id },
+    });
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
 // Transport selection: stdio (default for local/agent use) or HTTP streamable (/mcp via NPM proxy).
 if (process.env.TRANSPORT === 'http') {
   await startHttp();

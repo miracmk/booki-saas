@@ -208,16 +208,20 @@ class Ai_llm_gateway
         $setting_key = "ai_model_{$provider}";
         $custom_model = $this->get_setting_safely($setting_key);
         if (!empty($custom_model)) {
+            // Automatically upgrade deprecated/sunset Google models to gemini-2.5-flash
+            if (($provider === 'google' || $provider === 'gemini') && (str_starts_with($custom_model, 'gemini-1.5') || str_starts_with($custom_model, 'gemini-1.0'))) {
+                return 'gemini-2.5-flash';
+            }
             return $custom_model;
         }
 
         return match ($provider) {
-            'google', 'gemini' => getenv('GEMINI_MODEL') ?: 'gemini-2.0-flash',
+            'google', 'gemini' => getenv('GEMINI_MODEL') ?: 'gemini-2.5-flash',
             'groq' => getenv('GROQ_MODEL') ?: 'qwen/qwen3.8-27b',
-            'openrouter' => getenv('AI_AGENT_MODEL') ?: 'google/gemini-2.0-flash-exp:free',
+            'openrouter' => getenv('AI_AGENT_MODEL') ?: 'google/gemini-2.5-flash',
             'openai' => getenv('OPENAI_MODEL') ?: 'gpt-4o-mini',
             'anthropic', 'claude' => getenv('ANTHROPIC_MODEL') ?: 'claude-3-5-haiku-20241022',
-            default => 'gemini-2.0-flash',
+            default => 'gemini-2.5-flash',
         };
     }
 
@@ -226,6 +230,10 @@ class Ai_llm_gateway
      */
     protected function call_google_gemini(array $messages, string $model, string $api_key, ?array $tools, float $temperature, int $max_tokens): ?array
     {
+        if (str_starts_with($model, 'gemini-1.5') || str_starts_with($model, 'gemini-1.0')) {
+            $model = 'gemini-2.5-flash';
+        }
+
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
 
         $system_text = '';

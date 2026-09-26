@@ -853,6 +853,36 @@ class Agent_api extends App_Controller
     }
 
     /**
+     * POST → Request human handoff for customer conversation.
+     * Consumed by MCP server tool 'request_human_handoff'.
+     */
+    public function handoff(): void
+    {
+        try {
+            method('post');
+            $this->auth();
+
+            $this->load->library('ai_channel_responder');
+            $reason = (string) request('reason', 'Agent handoff request');
+            $channel = (string) request('channel', 'mcp');
+            $sender_id = (string) request('sender_id', 'agent_session');
+            $user_id = request('customer_id') !== null ? (int) request('customer_id') : null;
+
+            $message = $this->ai_channel_responder->trigger_handoff($channel, $sender_id, $user_id, $reason);
+
+            json_response([
+                'success' => true,
+                'handoff_active' => true,
+                'channel' => $channel,
+                'sender_id' => $sender_id,
+                'message' => $message,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
      * Authorize the request against the per-tenant agent key setting.
      *
      * Terminates with a JSON response on failure - `abort()` would emit the HTML

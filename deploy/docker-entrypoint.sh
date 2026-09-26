@@ -73,6 +73,16 @@ EOF
 # match BASE_URL - Config::BASE_URL stays available for the CLI-only fallback config.php already
 # falls back to (cron-triggered emails etc.), so nothing else needs this file-append.
 
+# BooKi MCP Reverse Proxy for /mcp endpoint
+a2enmod rewrite proxy proxy_http headers >/dev/null 2>&1 || true
+cat <<'MCPEOF' >/etc/apache2/conf-available/booki-mcp.conf
+<IfModule mod_proxy.c>
+    ProxyPass /mcp http://booki-mcp:8765/mcp
+    ProxyPassReverse /mcp http://booki-mcp:8765/mcp
+</IfModule>
+MCPEOF
+a2enconf booki-mcp >/dev/null 2>&1 || true
+
 # Start Apache
 
 apache2-foreground
