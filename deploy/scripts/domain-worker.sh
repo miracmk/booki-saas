@@ -26,7 +26,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_CONTAINER="ki-reservation-app"
+APP_CONTAINER="booki-app"
 
 if ! command -v jq >/dev/null 2>&1; then
     echo "HATA: jq kurulu değil (apt install jq)." >&2

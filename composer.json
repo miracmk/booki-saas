@@ -1,5 +1,5 @@
 {
-    "name": "kisoftware/ki-reservation",
+    "name": "kisoftware/booki",
     "description": "BooKi - Online Appointment Scheduler",
     "version": "1.0.0",
     "homepage": "https://software.kibusiness.co",
@@ -12,8 +12,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/miracmk/ki-reservation/issues",
-        "source": "https://github.com/miracmk/ki-reservation"
+        "issues": "https://kisoftware.com/support",
+        "source": "https://kisoftware.com"
     },
     "keywords": [
         "calendar",

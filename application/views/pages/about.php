@@ -51,7 +51,7 @@
 
             <div class="col-lg-6 mb-3">
                 <a class="btn btn-outline-secondary d-block"
-                   href="https://github.com/miracmk/ki-reservation/issues" target="_blank">
+                   href="https://kisoftware.com/support" target="_blank">
                     <i class="fas fa-external-link-alt me-2"></i>
                     <?= lang('project_issues') ?>
                 </a>
@@ -68,7 +68,7 @@
 
         <div class="mb-5">
             <a class="btn btn-outline-secondary d-block w-50 m-auto"
-               href="https://github.com/miracmk/ki-reservation/blob/main/LICENSE" target="_blank">
+               href="https://kisoftware.com/license" target="_blank">
                 <i class="fas fa-external-link-alt me-2"></i>
                 Ki Software License
             </a>

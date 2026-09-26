@@ -54,19 +54,57 @@ class Api_settings extends App_Controller
 
         $role_slug = session('role_slug');
 
+        $tenant = tenant_context();
+        $subdomain = $tenant['subdomain'] ?? '';
+        $agent_api_key = setting('agent_api_key');
+        if (empty($agent_api_key) && can('edit', PRIV_SYSTEM_SETTINGS)) {
+            $agent_api_key = bin2hex(random_bytes(32));
+            $this->settings_model->set_setting('agent_api_key', $agent_api_key);
+        }
+
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+        $mcp_url = 'https://' . $app_domain . '/mcp?tenant=' . urlencode($subdomain);
+
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
             'api_settings' => $this->settings_model->get('name like "api_%"'),
+            'mcp_url' => $mcp_url,
+            'agent_api_key' => $agent_api_key,
+            'tenant_subdomain' => $subdomain,
         ]);
 
         html_vars([
             'page_title' => lang('api'),
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'mcp_url' => $mcp_url,
+            'agent_api_key' => $agent_api_key,
+            'tenant_subdomain' => $subdomain,
         ]);
 
         $this->load->view('pages/api_settings');
+    }
+
+    /**
+     * Generate / rotate agent API key for MCP and external agents.
+     */
+    public function generate_agent_key(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
+                throw new RuntimeException('Forbidden');
+            }
+
+            $new_key = bin2hex(random_bytes(32));
+            $this->settings_model->set_setting('agent_api_key', $new_key);
+
+            json_response(['success' => true, 'agent_api_key' => $new_key]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
     }
 
     /**

@@ -47,7 +47,7 @@ cat > "$TMP_CONF" <<EOF
 
 server {
   set \$forward_scheme http;
-  set \$server         "ki-reservation-app";
+  set \$server         "booki-app";
   set \$port           80;
 
   listen 80;
@@ -99,7 +99,7 @@ docker exec npm-app-1 nginx -s reload
 echo "==> Tenant kaydı güncelleniyor"
 # 2026-09-10 düzeltmesi: container_name docker-compose.yml'de "ki-reservation-app" (bu script
 # "ki-rezervasyon-app" yazıyordu, muhtemelen eski bir isimlendirmeden kalmıştı - bkz. `docker ps`).
-docker exec -w /var/www/html ki-reservation-app php index.php console tenant_set_custom_domain "$SUBDOMAIN" "$CUSTOM_DOMAIN"
+docker exec -w /var/www/html booki-app php index.php console tenant_set_custom_domain "$SUBDOMAIN" "$CUSTOM_DOMAIN"
 
 echo "==> Doğrulama"
 sleep 2

@@ -1198,8 +1198,8 @@ class Console extends App_Controller
      *   php index.php console migrate_salonflora_live_data dry      # report only, no writes anywhere
      *   php index.php console migrate_salonflora_live_data commit    # actually import into the tenant
      *
-     * Requires: ki-reservation-app container connected to the salonflora_salonflora-net Docker
-     * network (`docker network connect salonflora_salonflora-net ki-reservation-app`), so it can reach
+     * Requires: booki-app container connected to the salonflora_salonflora-net Docker
+     * network (`docker network connect salonflora_salonflora-net booki-app`), so it can reach
      * the live `easyappointments-db` host - this is NOT part of the container's own compose file
      * (deliberately - the connection is only needed for this one-off script, not ongoing operation).
      */

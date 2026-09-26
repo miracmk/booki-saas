@@ -45,8 +45,8 @@
 
                     If you face any problems during the usage of BooKi you can always check the
                     <a href="https://kisoftware.com">Documentation</a> for getting help.
-                    You may also submit new issues on
-                    <a href="https://github.com/miracmk/ki-reservation/issues">GitHub Issues</a>
+                    You may also submit questions or feedback to
+                    <a href="https://kisoftware.com/support">Ki Software Support</a>
                     in order to help our development process.
                 </p>
             </div>
@@ -180,7 +180,7 @@
                 <h3>License</h3>
                 BooKi is licensed under the <span class="badge text-bg-primary">Ki Software License</span>. By using the
                 code of BooKi in any way <br> you agree with the terms described in the following url:
-                <a href="https://github.com/miracmk/ki-reservation/blob/main/LICENSE">https://github.com/miracmk/ki-reservation/blob/main/LICENSE</a>
+                <a href="https://kisoftware.com/license">https://kisoftware.com/license</a>
             </div>
 
             <br>

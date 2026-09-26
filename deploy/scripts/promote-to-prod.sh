@@ -77,7 +77,7 @@ else
     cd "$DEPLOY_DIR"
     docker compose up -d app
     sleep 5
-    docker exec -u www-data ki-reservation-app php index.php console migrate --force
+    docker exec -u www-data booki-app php index.php console migrate --force
     log "✓ Container restart + migration tamamlandı"
 fi
 

@@ -14,7 +14,7 @@ $hide_brand = plan_allows('white_label') && setting('white_label_enabled') == 1;
     <?php if (!$hide_brand): ?>
     <div class="mb-3 me-lg-5 mb-lg-0">
         <?= lang('licensed_under') ?>
-        <a href="https://github.com/miracmk/ki-reservation/blob/main/LICENSE" target="_blank">
+        <a href="https://kisoftware.com/license" target="_blank">
             Ki Software License
         </a>
     </div>

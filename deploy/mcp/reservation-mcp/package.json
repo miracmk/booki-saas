@@ -1,5 +1,5 @@
 {
-  "name": "kirsv-mcp",
+  "name": "booki-mcp",
   "version": "1.0.0",
   "description": "BooKi MCP server - exposes the platform's agent/v1 booking API as MCP tools for AI assistants/agents.",
   "type": "module",

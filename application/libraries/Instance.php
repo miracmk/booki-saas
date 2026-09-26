@@ -175,7 +175,7 @@ class Instance
 
         $contents = $this->CI->dbutil->backup();
 
-        $filename = 'ki-reservation-backup-' . date('Y-m-d-His') . '.gz';
+        $filename = 'booki-backup-' . date('Y-m-d-His') . '.gz';
 
         write_file(rtrim($path, '/') . '/' . $filename, $contents);
     }

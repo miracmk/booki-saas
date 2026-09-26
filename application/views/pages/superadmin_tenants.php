@@ -1909,6 +1909,7 @@
                                                 <button class="btn btn-success btn-sm" onclick="setStatus(<?= e($tenant['id']) ?>, 'active')">Aktif</button>
                                             <?php endif; ?>
                                             <button class="btn btn-secondary btn-sm" onclick="openPlanModal(<?= e($tenant['id']) ?>, '<?= e($tenant['plan'] ?? '') ?>', '<?= e($tenant['billing_cycle'] ?? 'monthly') ?>', '<?= e($tenant['mrr_amount'] ?? 0) ?>', '<?= e($tenant['trial_ends_at'] ?? '') ?>', '<?= e($tenant['license_expires_at'] ?? '') ?>')">Plan</button>
+                                            <button class="btn btn-sm" onclick="openMcpModal('<?= e($tenant['subdomain']) ?>')" title="MCP AI Entegrasyon Ucu" style="background:#059669;color:#fff;border-color:#059669;">MCP</button>
                                             <button class="btn btn-secondary btn-sm" onclick="openAdminModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Admin</button>
                                             <button class="btn btn-danger btn-sm" onclick="openDeleteModal(<?= e($tenant['id']) ?>, '<?= e($tenant['subdomain']) ?>')">Sil</button>
                                         </td>
@@ -3773,6 +3774,52 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="sendAdminReset()">Şifre Sıfırlama Gönder</button>
                 <button type="button" class="btn btn-secondary" onclick="document.getElementById('admin-modal').classList.remove('open')">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCP connection modal -->
+    <div class="modal-backdrop" id="mcp-modal">
+        <div class="modal" style="max-width:540px;">
+            <div class="modal-header">
+                <div class="modal-title">🔌 MCP Bağlantı Ucu — <span id="mcp-modal-subdomain"></span></div>
+                <button class="btn btn-secondary btn-icon" onclick="document.getElementById('mcp-modal').classList.remove('open')">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin:0 0 .75rem;font-size:.85rem;color:#475569;">
+                    Claude Desktop, Cursor veya harici AI asistanlarının bu kiracıya bağlanmasını sağlayan Model Context Protocol (MCP) bilgileri.
+                </p>
+
+                <div class="form-group" style="margin-bottom:.8rem;">
+                    <label style="font-weight:600;font-size:.8rem;">MCP Endpoint URL (SSE / Streamable HTTP)</label>
+                    <div style="display:flex;gap:.5rem;">
+                        <input type="text" id="mcp-modal-url" class="form-control" readonly style="font-size:0.8rem;background:#f8fafc;font-family:monospace;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('mcp-modal-url').value); alert('URL Kopyalandı!');">Kopyala</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:.8rem;">
+                    <label style="font-weight:600;font-size:.8rem;">HTTP Başlıkları (Headers)</label>
+                    <div style="background:#f1f5f9;padding:.6rem;border-radius:6px;font-family:monospace;font-size:0.8rem;">
+                        <strong>X-Tenant:</strong> <span id="mcp-modal-subdomain-val"></span><br>
+                        <strong>Authorization:</strong> Bearer &lt;tenant_agent_api_key&gt;
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:.8rem;">
+                    <label style="font-weight:600;font-size:.8rem;">İstemci JSON Yapılandırması (Claude Desktop / Cursor)</label>
+                    <div style="position:relative;">
+                        <pre id="mcp-modal-json" style="background:#1e293b;color:#f8fafc;padding:.75rem;border-radius:6px;font-family:monospace;font-size:0.75rem;white-space:pre-wrap;margin:0;max-height:160px;overflow-y:auto;"></pre>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById('mcp-modal-json').innerText); alert('JSON Kopyalandı!');" style="position:absolute;top:6px;right:6px;font-size:0.7rem;padding:2px 8px;">Kopyala</button>
+                    </div>
+                </div>
+
+                <div style="font-size:0.75rem;color:#64748b;margin-top:.5rem;">
+                    💡 Kiracı kendi panelinde <em>Ayarlar &gt; API &gt; MCP Entegrasyonu</em> sekmesinden doğrudan Ajan API anahtarını görebilir ve yeni anahtarlar oluşturabilir.
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('mcp-modal').classList.remove('open')">Kapat</button>
             </div>
         </div>
     </div>
@@ -5713,6 +5760,27 @@
 
             post('<?= site_url('superadmin_tenants/update_status') ?>', { tenant_id: tenantId, status: status })
                 .then((data) => { if (data.success) window.location.reload(); else alert(data.message || 'Hata'); });
+        }
+
+        function openMcpModal(subdomain) {
+            var appDomain = 'bookiapp.kibusiness.co';
+            var mcpUrl = 'https://' + appDomain + '/mcp?tenant=' + encodeURIComponent(subdomain);
+            document.getElementById('mcp-modal-subdomain').textContent = subdomain;
+            document.getElementById('mcp-modal-subdomain-val').textContent = subdomain;
+            document.getElementById('mcp-modal-url').value = mcpUrl;
+            var json = JSON.stringify({
+                mcpServers: {
+                    ["booki-" + subdomain]: {
+                        url: mcpUrl,
+                        headers: {
+                            Authorization: "Bearer <tenant_agent_api_key>",
+                            "X-Tenant": subdomain
+                        }
+                    }
+                }
+            }, null, 2);
+            document.getElementById('mcp-modal-json').textContent = json;
+            document.getElementById('mcp-modal').classList.add('open');
         }
 
         function openAdminModal(tenantId, subdomain) {

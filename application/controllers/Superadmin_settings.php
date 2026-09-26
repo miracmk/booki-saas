@@ -34,6 +34,8 @@ class Superadmin_settings extends App_Controller
             'page_title' => 'BooKi - Platform Ayarları',
             'csrf_token' => $this->security->get_csrf_hash(),
             'superadmin_username' => session('superadmin_username'),
+            'mcp_server_url' => 'https://' . (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co') . '/mcp',
+            'mcp_internal_url' => 'http://booki-mcp:8765/mcp',
             'google_client_id' => master_setting('google_client_id') ?? '',
             'google_client_secret_set' => !empty(master_setting('google_client_secret')),
             'meta_app_id' => master_setting('meta_app_id') ?? '',

@@ -108,6 +108,47 @@
             </form>
         </div>
 
+        <!-- BOOTSTRAP MCP (MODEL CONTEXT PROTOCOL) AI SUNUCUSU KARTI -->
+        <div class="card" style="border-top: 4px solid #10b981;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="font-size:1.15rem;margin-top:0;color:#10b981;">🔌 BooKi MCP (Model Context Protocol) AI Sunucusu</h2>
+                <span class="badge" style="background:#d1fae5;color:#065f46;">Aktif / HTTP Streamable</span>
+            </div>
+            <p class="hint">
+                Claude Desktop, Cursor, Windsurf, ElevenLabs AI Voice Agent ve harici ajanların tüm platform kiracılarına (tenant) güvenle bağlanmasını sağlayan merkezi Model Context Protocol sunucusu.
+            </p>
+
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;margin-top:1rem;">
+                <label style="margin-top:0;">Merkezi MCP Sunucu Ucu (Public HTTP Streamable)</label>
+                <div style="display:flex;gap:8px;margin-top:4px;">
+                    <input type="text" id="mcp_url_input" value="<?= e(vars('mcp_server_url')) ?>" readonly style="background:#fff;font-family:monospace;font-size:0.85rem;">
+                    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('mcp_url_input').value); alert('Kopyalandı!');" style="margin-top:0;padding:.5rem 1rem;white-space:nowrap;background:#10b981;">Kopyala</button>
+                </div>
+
+                <label style="margin-top:0.8rem;">İç Docker Ağı Bağlantı Ucu (Internal Service)</label>
+                <input type="text" value="<?= e(vars('mcp_internal_url')) ?>" readonly style="background:#f1f5f9;font-family:monospace;font-size:0.85rem;color:#64748b;">
+
+                <label style="margin-top:0.8rem;">Dinamik Kiracı Yönlendirme Formatı</label>
+                <p class="hint" style="margin:4px 0 8px;">
+                    Harici istemciler herhangi bir kiracıya şu şekillerde bağlanabilir:
+                </p>
+                <div style="background:#1e293b;color:#f8fafc;padding:.75rem;border-radius:6px;font-family:monospace;font-size:0.8rem;line-height:1.6;">
+                    • <strong>URL ile:</strong> <code><?= e(vars('mcp_server_url')) ?>?tenant={subdomain}</code><br>
+                    • <strong>Header ile:</strong> <code>X-Tenant: {subdomain}</code><br>
+                    • <strong>Yetkilendirme:</strong> <code>Authorization: Bearer {tenant_agent_api_key}</code>
+                </div>
+            </div>
+
+            <div style="margin-top:1rem;display:flex;gap:10px;">
+                <a href="<?= e(vars('mcp_server_url')) ?>" target="_blank" style="display:inline-block;background:#0f172a;color:#fff;text-decoration:none;padding:.5rem 1rem;border-radius:6px;font-size:.85rem;font-weight:600;">
+                    🔍 MCP Sağlık Kontrolü (JSON Test)
+                </a>
+                <a href="<?= site_url('superadmin_tenants') ?>" style="display:inline-block;background:#e2e8f0;color:#1e293b;text-decoration:none;padding:.5rem 1rem;border-radius:6px;font-size:.85rem;font-weight:600;">
+                    👥 Kiracı Bazlı MCP Kodlarını Gör
+                </a>
+            </div>
+        </div>
+
         <div class="card">
             <h2 style="font-size:1.05rem;margin-top:0;">Ki Business Google OAuth</h2>
             <p class="hint">

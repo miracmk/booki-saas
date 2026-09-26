@@ -13,7 +13,7 @@ echo "Tarih: $(date)"
 echo "Çalışma Dizini: $ROOT_DIR"
 echo "=============================================================================="
 
-CONTAINER="ki-reservation-app"
+CONTAINER="booki-app"
 
 # 1. Konteyner Durum Kontrolü
 echo ""

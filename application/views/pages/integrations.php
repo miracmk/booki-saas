@@ -116,6 +116,32 @@
                 </div>
 
                 <div class="col-sm-6 mb-4">
+                    <div class="card h-100 border-primary shadow-sm" style="border-width: 2px;">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="fw-light mb-0">
+                                <i class="fas fa-robot me-2"></i>MCP (Model Context Protocol) AI
+                            </h5>
+                            <span class="badge bg-light text-primary fw-bold">YENİ</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 integration-info">
+                                <small>
+                                    Claude Desktop, Cursor, ElevenLabs sesli asistanı ve harici AI ajanlarının
+                                    randevu sisteminizi (hizmetler, müsaitlik saatleri, randevu oluşturma ve iptal)
+                                    doğrudan yönetebilmesi için Model Context Protocol bağlantı ucu.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer border-0">
+                            <a href="<?= site_url('api_settings') ?>#mcp" class="btn btn-primary w-100">
+                                <i class="fas fa-plug me-2"></i>
+                                MCP Bağlantı Bilgilerini Gör
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 mb-4">
                     <div class="card h-100">
                         <div class="card-header">
                             <h5 class="fw-light mb-0">

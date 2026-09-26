@@ -1,11 +1,11 @@
-name: ki-reservation
+name: booki
 
 services:
   app:
     build:
       context: ..
       dockerfile: deploy/Dockerfile
-    container_name: ki-reservation-app
+    container_name: booki-app
     restart: unless-stopped
     depends_on:
       - db
@@ -56,7 +56,7 @@ services:
       # Unofficial WhatsApp mode default bridge (Messaging_settings_model::get_settings()) - points
       # at our own `wa-bridge` sidecar service below so the QR wizard works without the admin having
       # to fill in bridge URL/secret manually first. Per-tenant panel values still override this.
-      WA_BRIDGE_URL: http://wa-bridge:3000
+      WA_BRIDGE_URL: http://booki-wa:3000
       WA_BRIDGE_SECRET: ${WA_BRIDGE_SECRET}
       # AI Asistan admin-panel agent (Ai_agent_client.php, Dalga 4, 2026-09-12) - separate from the
       # Ai_llm_client.php booking-widget assistant above. Provider-agnostic via OpenRouter (one API
@@ -70,16 +70,19 @@ services:
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       # JS/CSS cache-busting token (see application/config/app.php) - bump on every deploy that
       # changes a JS/CSS file.
-      ASSET_VERSION: "prod-20260926-0931"
+      ASSET_VERSION: "prod-20260925-1630"
     volumes:
-      - /opt/ki-ecosystem/ki-reservation/files:/var/www/html/storage
+      - /opt/ki-ecosystem/booki/files:/var/www/html/storage
     networks:
-      - ki-reservation-net
-      - external_network
+      booki-net:
+      external_network:
+        aliases:
+          - booki-app
+          - ki-reservation-app
 
   db:
     image: mysql:8.0
-    container_name: ki-reservation-db
+    container_name: booki-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
@@ -87,22 +90,22 @@ services:
       MYSQL_USER: ki_reservation_master
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - /opt/ki-ecosystem/ki-reservation/db/mysql:/var/lib/mysql
+      - /opt/ki-ecosystem/booki/db/mysql:/var/lib/mysql
     networks:
-      - ki-reservation-net
+      - booki-net
 
   # Faz 3.5 part 2 - unofficial WhatsApp (resmi) mesaj gönderim sidecar'ı.
   # Sözleşme: docs/whatsapp-bridge-contract.md (canonical repo). Baileys tabanlı,
   # tenant başına izole oturumlar tutar; admin panelindeki WhatsApp Sihirbazı
-  # uygulama tarafından bridge'e bu servisin adı (http://wa-bridge:3000) ile ulaşır.
+  # uygulama tarafından bridge'e bu servisin adı (http://booki-wa:3000) ile ulaşır.
   wa-bridge:
     build:
       context: ./bridge
       dockerfile: Dockerfile
-    container_name: ki-wa-bridge
+    container_name: booki-wa
     # Host'ta 3000 dolu (Ki-Aetheris/Hermes agent'in kendi WhatsApp köprüsü
     # 127.0.0.1:3000'de dinliyor) - köprüyü yalnızca host-lokal 3039'da yayınlıyoruz.
-    # Uygulama docker ağı üzerinden hâlâ http://wa-bridge:3000 ile konuşur; bu
+    # Uygulama docker ağı üzerinden hâlâ http://booki-wa:3000 ile konuşur; bu
     # yayın yalnızca host tarafındaki tanı/hata ayıklama erişimi içindir ve
     # loopback'e bağlıdır (secret her route'ta zorunlu, bkz. docs/whatsapp-bridge-contract.md).
     ports:
@@ -119,34 +122,43 @@ services:
       LOG_LEVEL: info
     volumes:
       # Oturum auth durumu (creds.json + QR) - files/ altında, .gitignore korumalı.
-      - /opt/ki-ecosystem/ki-reservation/files/wa-bridge-sessions:/app/sessions
+      - /opt/ki-ecosystem/booki/files/wa-bridge-sessions:/app/sessions
     networks:
-      - ki-reservation-net
+      booki-net:
+        aliases:
+          - wa-bridge
+          - booki-wa
 
-# Ki Reservation MCP sunucusu - rezervasyon ajanı için agent/v1 sözleşmesini MCP araçları
+  # BooKi MCP sunucusu - rezervasyon ajanı için agent/v1 sözleşmesini MCP araçları
   # olarak sunar (business/services/providers/availability/customer_lookup/customer_appointments/
   # create_appointment/reschedule_appointment/cancel_appointment). HTTP streamable /mcp üzerinde.
-  # KI_AGENT_API_BASE + KI_AGENT_API_TOKEN hangi tenant agent API'sine bağlanacağını belirler
-  # (ör. https://salonflora-reservationapp.kibusiness.co/agent/v1).
-  kirsv-mcp:
+  mcp:
     build:
       context: ./mcp/reservation-mcp
       dockerfile: Dockerfile
-    container_name: kirsv-mcp
+    container_name: booki-mcp
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8765:8765"
     environment:
       PORT: "8765"
       BASE_PATH: /mcp
       TRANSPORT: http
       LOG_LEVEL: info
-      KI_AGENT_API_BASE: ${KI_AGENT_API_BASE:-}
+      APP_INTERNAL_URL: http://booki-app
+      TENANT_APP_DOMAIN: bookiapp.kibusiness.co
+      KI_AGENT_API_BASE: ${KI_AGENT_API_BASE:-http://booki-app/index.php/agent/v1}
       KI_AGENT_API_TOKEN: ${KI_AGENT_API_TOKEN:-}
       MCP_SERVER_TOKEN: ${MCP_SERVER_TOKEN:-}
     networks:
-      - ki-reservation-net
+      booki-net:
+      external_network:
+        aliases:
+          - booki-mcp
+          - kirsv-mcp
 
 networks:
-  ki-reservation-net:
+  booki-net:
     driver: bridge
   external_network:
     external: true

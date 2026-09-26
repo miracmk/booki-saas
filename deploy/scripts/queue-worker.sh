@@ -8,7 +8,7 @@
 
 set -uo pipefail
 
-APP_CONTAINER="${APP_CONTAINER:-ki-reservation-app}"
+APP_CONTAINER="${APP_CONTAINER:-booki-app}"
 
 if ! docker ps --format '{{.Names}}' | grep -q "^${APP_CONTAINER}$"; then
     echo "[$(date -u +'%Y-%m-%d %H:%M:%SZ')] Container ${APP_CONTAINER} is not running, skipping queue drain."

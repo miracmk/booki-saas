@@ -4,44 +4,63 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import http from 'node:http';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 const PORT = Number(process.env.PORT || 8765);
 const BASE_PATH = process.env.BASE_PATH || '/mcp';
+const APP_INTERNAL_URL = (process.env.APP_INTERNAL_URL || 'http://booki-app').replace(/\/+$/, '');
+const TENANT_APP_DOMAIN = process.env.TENANT_APP_DOMAIN || 'bookiapp.kibusiness.co';
 const AGENT_API_BASE = (process.env.KI_AGENT_API_BASE || '').replace(/\/+$/, '');
 const AGENT_API_TOKEN = process.env.KI_AGENT_API_TOKEN || '';
 const LOG_LEVEL = (process.env.LOG_LEVEL || 'info').toLowerCase();
+
+const asyncLocalStorage = new AsyncLocalStorage();
+const sessionStore = new Map();
 
 function log(level, msg, data) {
   if (LOG_LEVEL !== 'debug' && level === 'debug') return;
   console.log(JSON.stringify({ ts: new Date().toISOString(), level, msg, ...(data || {}) }));
 }
 
-if (!AGENT_API_BASE) log('warn', 'KI_AGENT_API_BASE is not set - agent/v1 tools will return configuration errors.');
-if (!AGENT_API_TOKEN) log('warn', 'KI_AGENT_API_TOKEN is not set - agent/v1 tools will return configuration errors.');
-
 async function callApi(pathname, { method = 'GET', query, body } = {}) {
-  if (!AGENT_API_BASE) {
-    throw new Error('Reservation agent API is not configured. Set KI_AGENT_API_BASE.');
+  const store = asyncLocalStorage.getStore() || {};
+  const tenant = store.tenant || process.env.KI_TENANT || '';
+  const token = store.token || AGENT_API_TOKEN;
+
+  let requestUrl;
+  const headers = {
+    Accept: 'application/json',
+    'User-Agent': 'booki-mcp/1.0',
+  };
+
+  if (tenant) {
+    requestUrl = new URL(`${APP_INTERNAL_URL}/index.php/agent/v1${pathname}`);
+    headers['Host'] = `${tenant}-${TENANT_APP_DOMAIN}`;
+    headers['X-Tenant'] = tenant;
+    headers['X-Tenant-Subdomain'] = tenant;
+  } else if (AGENT_API_BASE) {
+    requestUrl = new URL(AGENT_API_BASE + pathname);
+  } else {
+    throw new Error('Tenant is not specified. Provide ?tenant=<subdomain> in the MCP URL or pass X-Tenant header.');
   }
 
-  const url = new URL(AGENT_API_BASE + pathname);
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  } else {
+    throw new Error('Agent API token is not specified. Provide Authorization: Bearer <agent_api_key> header or ?token=<key> parameter.');
+  }
+
   if (query) {
     for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
+      if (value !== undefined && value !== null && value !== '') requestUrl.searchParams.set(key, String(value));
     }
   }
 
-  const headers = {
-    Accept: 'application/json',
-    Authorization: `Bearer ${AGENT_API_TOKEN}`,
-    'User-Agent': 'kirsv-mcp/1.0',
-  };
-
   if (method === 'POST' && body !== undefined) headers['Content-Type'] = 'application/json';
 
-  log('debug', 'agent/v1 request', { method, url: url.toString() });
+  log('debug', 'agent/v1 request', { method, url: requestUrl.toString(), tenant });
 
-  const response = await fetch(url, {
+  const response = await fetch(requestUrl, {
     method,
     headers,
     body: method === 'POST' && body !== undefined ? JSON.stringify(body) : undefined,
@@ -64,7 +83,7 @@ async function callApi(pathname, { method = 'GET', query, body } = {}) {
 }
 
 const server = new McpServer({
-  name: 'kirsv-mcp',
+  name: 'booki-mcp',
   version: '1.0.0',
 });
 
@@ -351,16 +370,26 @@ if (process.env.TRANSPORT === 'http') {
 } else {
   const stdio = new StdioServerTransport();
   await server.connect(stdio);
-  log('info', 'kirsv-mcp listening on stdio');
+  log('info', 'booki-mcp listening on stdio');
 }
 
 const MCP_SERVER_TOKEN = process.env.MCP_SERVER_TOKEN || process.env.MCP_AUTH_TOKEN || '';
 
 async function startHttp() {
+  let pendingSessionTenant = '';
+  let pendingSessionToken = '';
+
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => randomUUID(),
     onsessioninitialized: (sessionId) => {
-      log('info', 'MCP HTTP session started', { sessionId });
+      log('info', 'MCP HTTP session started', { sessionId, tenant: pendingSessionTenant });
+      if (sessionId && (pendingSessionTenant || pendingSessionToken)) {
+        sessionStore.set(sessionId, {
+          tenant: pendingSessionTenant,
+          token: pendingSessionToken,
+          createdAt: Date.now(),
+        });
+      }
     },
   });
 
@@ -380,13 +409,31 @@ async function startHttp() {
       return;
     }
 
+    // Health and probe check endpoint
+    if (pathname === '/' || pathname === '/health' || pathname === '/mcp/health' || (pathname === BASE_PATH && req.method === 'GET' && !req.headers['accept']?.includes('text/event-stream'))) {
+      const headers = { 'Content-Type': 'application/json' };
+      applyCors(headers, req);
+      res.writeHead(200, headers);
+      res.end(JSON.stringify({
+        status: 'ok',
+        server: 'booki-mcp',
+        version: '1.0.0',
+        transport: 'streamable-http',
+        endpoint: BASE_PATH,
+        tenants: 'Multi-tenant routing supported via ?tenant=<subdomain> or X-Tenant header',
+        auth: 'Bearer <agent_api_key>',
+        time: new Date().toISOString()
+      }, null, 2));
+      return;
+    }
+
     if (pathname !== BASE_PATH) {
       res.writeHead(404);
       res.end('Not found');
       return;
     }
 
-    // Authenticate MCP transport request if token is configured
+    // Authenticate MCP transport request if global token is configured
     if (MCP_SERVER_TOKEN) {
       const authHeader = req.headers['authorization'] || '';
       const match = authHeader.match(/^Bearer\s+(.+)$/i);
@@ -402,6 +449,45 @@ async function startHttp() {
       }
     }
 
+    // Extract tenant and agent token from request
+    const queryTenant = url.searchParams.get('tenant') || '';
+    const queryToken = url.searchParams.get('token') || url.searchParams.get('key') || '';
+    const headerTenant = req.headers['x-tenant'] || req.headers['x-tenant-subdomain'] || '';
+    const authHeader = req.headers['authorization'] || '';
+    const headerToken = authHeader.replace(/^Bearer\s+/i, '').trim() || req.headers['x-agent-api-key'] || '';
+
+    let hostTenant = '';
+    const host = (req.headers.host || '').toLowerCase();
+    const appDomain = TENANT_APP_DOMAIN.toLowerCase();
+    if (host.includes('-' + appDomain)) {
+      hostTenant = host.split('-' + appDomain)[0];
+    } else if (host.includes('.' + appDomain) && !host.startsWith('admin-') && !host.startsWith('booki.')) {
+      hostTenant = host.split('.' + appDomain)[0];
+    }
+
+    const reqTenant = queryTenant || headerTenant || hostTenant;
+    const reqToken = headerToken || queryToken;
+
+    const sessionId = req.headers['mcp-session-id'] || url.searchParams.get('sessionId') || '';
+
+    if (sessionId) {
+      const existing = sessionStore.get(sessionId) || {};
+      if (reqTenant || reqToken) {
+        sessionStore.set(sessionId, {
+          tenant: reqTenant || existing.tenant || '',
+          token: reqToken || existing.token || '',
+          updatedAt: Date.now()
+        });
+      }
+    }
+
+    const activeSession = sessionId ? sessionStore.get(sessionId) : null;
+    const effectiveTenant = reqTenant || activeSession?.tenant || '';
+    const effectiveToken = reqToken || activeSession?.token || '';
+
+    pendingSessionTenant = effectiveTenant;
+    pendingSessionToken = effectiveToken;
+
     const origWriteHead = res.writeHead.bind(res);
     res.writeHead = (code, ...args) => {
       try {
@@ -413,7 +499,9 @@ async function startHttp() {
     };
 
     try {
-      await transport.handleRequest(req, res);
+      await asyncLocalStorage.run({ tenant: effectiveTenant, token: effectiveToken }, async () => {
+        await transport.handleRequest(req, res);
+      });
     } catch (error) {
       log('error', 'MCP request failed', { error: String(error) });
       if (!res.headersSent) {
@@ -427,7 +515,7 @@ async function startHttp() {
     httpServerInstance.listen(PORT, resolve);
   });
 
-  log('info', `kirsv-mcp HTTP streamable listening on :${PORT}${BASE_PATH}`);
+  log('info', `booki-mcp HTTP streamable listening on :${PORT}${BASE_PATH}`);
 }
 
 function applyCors(headers, req) {
