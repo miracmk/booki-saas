@@ -1104,8 +1104,11 @@ class Superadmin_tenants extends App_Controller
                 return;
             }
 
+            $superadmin_domain = getenv('SUPERADMIN_DOMAIN') ?: 'admin-bookiapp.kibusiness.co';
+            $webhook_url = 'https://' . $superadmin_domain . '/index.php/superadmin_tenants/platform_bridge_inbound';
+
             $result = $bridge->session_start('platform', [
-                'webhookUrl' => site_url('superadmin_tenants/platform_bridge_inbound'),
+                'webhookUrl' => $webhook_url,
             ]);
 
             if ($result === null) {

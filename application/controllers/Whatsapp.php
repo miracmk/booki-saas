@@ -542,8 +542,12 @@ class Whatsapp extends App_Controller
                 throw new InvalidArgumentException('Köprü adresi tanımlı değil.');
             }
 
-            $result = $bridge->session_start($this->tenant_identifier(), [
-                'webhookUrl' => site_url('whatsapp/bridge_inbound'),
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+            $tenant_subdomain = $this->tenant_identifier();
+            $webhook_url = 'https://' . $tenant_subdomain . '-' . $app_domain . '/index.php/whatsapp/bridge_inbound';
+
+            $result = $bridge->session_start($tenant_subdomain, [
+                'webhookUrl' => $webhook_url,
             ]);
 
             if ($result === null) {

@@ -125,7 +125,14 @@ async function restoreSessionConfig(entry) {
         const config = JSON.parse(await readFile(sessionConfigPath(entry.tenant), 'utf8'));
 
         if (typeof config.webhookUrl === 'string' && config.webhookUrl !== '') {
-            entry.webhookUrl = config.webhookUrl;
+            let url = config.webhookUrl;
+            if (entry.tenant === 'platform' && url.includes('/whatsapp/bridge_inbound')) {
+                url = url.replace('/whatsapp/bridge_inbound', '/superadmin_tenants/platform_bridge_inbound');
+            }
+            if (url.includes('book.salonflora.tr')) {
+                url = url.replace('book.salonflora.tr', 'salonflora-bookiapp.kibusiness.co');
+            }
+            entry.webhookUrl = url;
         }
 
         if (typeof config.webhookSecret === 'string' && config.webhookSecret !== '') {
@@ -183,29 +190,38 @@ function forwardInbound(entry, payload) {
 
     const headers = {
         'Content-Type': 'application/json',
+        'X-Tenant': entry.tenant,
+        'X-Tenant-Subdomain': entry.tenant,
     };
 
     if (entry.webhookSecret) {
         headers['X-Bridge-Secret'] = entry.webhookSecret;
     }
 
+    log.info({ tenant: entry.tenant, from: payload.from, url: entry.webhookUrl }, 'forwarding inbound message to app');
+
     fetch(entry.webhookUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({ tenant: entry.tenant, ...payload }),
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(15000),
     })
-        .then((res) => {
+        .then(async (res) => {
             if (!res.ok) {
-                log.warn({ tenant: entry.tenant, status: res.status }, 'inbound forward non-200');
+                const text = await res.text().catch(() => '');
+                log.warn({ tenant: entry.tenant, status: res.status, body: text.slice(0, 200), url: entry.webhookUrl }, 'inbound forward non-200');
+            } else {
+                log.info({ tenant: entry.tenant, from: payload.from }, 'inbound forward succeeded (200)');
             }
         })
         .catch((err) => {
-            log.warn({ tenant: entry.tenant, err: err.message }, 'inbound forward failed');
+            log.warn({ tenant: entry.tenant, err: err.message, url: entry.webhookUrl }, 'inbound forward failed');
         });
 }
 
 function onMessagesUpsert(entry, upsert) {
+    log.info({ tenant: entry.tenant, count: upsert.messages?.length, type: upsert.type }, 'messages.upsert received');
+
     for (const msg of upsert.messages || []) {
         if (!msg.message) {
             continue;
@@ -423,7 +439,14 @@ export async function startSession(tenant, webhookUrl, webhookSecret) {
     const entry = getEntry(tenant);
 
     if (webhookUrl) {
-        entry.webhookUrl = webhookUrl;
+        let url = webhookUrl;
+        if (tenant === 'platform' && url.includes('/whatsapp/bridge_inbound')) {
+            url = url.replace('/whatsapp/bridge_inbound', '/superadmin_tenants/platform_bridge_inbound');
+        }
+        if (url.includes('book.salonflora.tr')) {
+            url = url.replace('book.salonflora.tr', 'salonflora-bookiapp.kibusiness.co');
+        }
+        entry.webhookUrl = url;
     }
 
     if (webhookSecret) {
