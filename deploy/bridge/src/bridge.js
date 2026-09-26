@@ -283,7 +283,10 @@ function forwardInbound(entry, payload) {
     try {
         const parsed = new URL(entry.webhookUrl);
         headers['Host'] = parsed.host;
-        if (parsed.hostname.endsWith('kibusiness.co')) {
+        if (entry.tenant === 'platform') {
+            headers['Host'] = process.env.SUPERADMIN_DOMAIN || 'admin-bookiapp.kibusiness.co';
+        }
+        if (parsed.hostname.endsWith('kibusiness.co') || parsed.hostname === 'booki-app') {
             // Direct internal HTTP call over docker network to booki-app:
             primaryUrl = `http://booki-app${parsed.pathname}${parsed.search}`;
         }

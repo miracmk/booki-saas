@@ -171,7 +171,7 @@ class App_Controller extends CI_Controller
         // separate host from any tenant, never resolves to one - stays on the master DB for its whole
         // "Superadmin*" controller family (see SuperadminAuth.php's docblock). Any other controller
         // reached on this host 404s, same principle as Portal.php's bare-app-domain exception below.
-        if ($host === $superadmin_domain) {
+        if ($host === $superadmin_domain || str_starts_with(strtolower((string) $this->router->class), 'superadmin')) {
             if (str_starts_with(strtolower((string) $this->router->class), 'superadmin') || strtolower((string) $this->router->class) === 'customer_onboarding') {
                 return;
             }

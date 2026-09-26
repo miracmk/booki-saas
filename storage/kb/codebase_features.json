@@ -1,0 +1,304 @@
+{
+    "system_name": "BooKi Enterprise SaaS Appointment & Business Operating System",
+    "version": "2026.4",
+    "git_commit": "128ec4a7c46789d51a76aa7f98d5c837d8644cb4",
+    "scanned_at": "2026-09-26 10:19:14",
+    "total_controllers": 100,
+    "total_models": 61,
+    "total_migrations": 163,
+    "modules": {
+        "multi_tenant_core": {
+            "name": "İzole Multi-Tenant SaaS Mimarisi",
+            "description": "Her işletmeye özel dinamik veritabanı, subdomain ({subdomain}-bookiapp.kibusiness.co), özel domain desteği (custom_domain), master katalog ve lisans takibi.",
+            "files": [
+                "App_Controller.php",
+                "Tenants_model.php",
+                "Superadmin_tenants.php"
+            ]
+        },
+        "appointment_engine": {
+            "name": "Gelişmiş Randevu & Müsaitlik Motoru",
+            "description": "Personel takvimi, çalışma saatleri, molalar, servis süreleri, tampon süreler (buffer time), çoklu slot hesaplama ve çifte rezervasyon önleme.",
+            "files": [
+                "Appointments.php",
+                "Appointments_model.php",
+                "Availability_model.php",
+                "Calendar.php"
+            ]
+        },
+        "resource_station_management": {
+            "name": "İstasyon, Koltuk & Kaynak Yönetimi",
+            "description": "Uzman bağımsız veya uzmanla eşleşen istasyonlar (örn. Manikür Masası, Yıkama Koltuğu, Lazer Cihazı, Muayene Odası).",
+            "files": [
+                "Stations.php",
+                "Stations_model.php"
+            ]
+        },
+        "packages_and_memberships": {
+            "name": "Paket & Üyelik Ayrımı (Session Tracking)",
+            "description": "10 seanslık epilasyon\/masaj paketleri ile aylık\/yıllık üyelik planlarının tam ayrımı; seans düşümü, bonus seans, dondurma ve kullanım logları.",
+            "files": [
+                "Customer_packages_model.php",
+                "Customer_memberships_model.php",
+                "Packages.php",
+                "Memberships.php"
+            ]
+        },
+        "pos_adisyon_finance": {
+            "name": "Adisyon, POS, Kasa & Masraf Yönetimi",
+            "description": "Randevudan veya doğrudan açılan adisyonlar, parça ödemeler (nakit, kredi kartı, havale), kasa hareketleri, gider kayıtları ve günlük z-raporu.",
+            "files": [
+                "Adisyons_model.php",
+                "Cash_registers_model.php",
+                "Expenses_model.php",
+                "Invoices_model.php"
+            ]
+        },
+        "staff_commissions": {
+            "name": "Personel Komisyon & Hakediş Motoru",
+            "description": "Hizmet veya paket bazlı yüzdesel\/sabit komisyon hesaplama, mesai primleri ve hakediş ödeme takibi.",
+            "files": [
+                "Staff_commissions_model.php",
+                "Staff_payouts_model.php"
+            ]
+        },
+        "omnichannel_ai_assistant": {
+            "name": "Çok Kanallı AI Asistan (WhatsApp, Telegram, Instagram)",
+            "description": "Baileys tabanlı yerel WhatsApp köprüsü, Telegram botu ve Instagram DM; Gemini 3.8 \/ LLM Gateway ile 7\/24 konuşma, müsaitlik sorgulama ve randevu alma.",
+            "files": [
+                "Ai_channel_responder.php",
+                "Ai_llm_gateway.php",
+                "Whatsapp.php",
+                "Telegram.php",
+                "Instagram.php"
+            ]
+        },
+        "human_approval_guard": {
+            "name": "Yönetici Onay Mekanizması (Pending Changes)",
+            "description": "AI'ın oluşturduğu veya değiştirdiği randevu ve müşteri verileri doğrudan veritabanına yazılmaz; yönetici onay kuyruğunda bekletilir.",
+            "files": [
+                "Ai_agent_pending_changes_model.php",
+                "Ai_channel_handoffs_model.php"
+            ]
+        },
+        "model_context_protocol_mcp": {
+            "name": "Model Context Protocol (MCP) Sunucusu",
+            "description": "Harici AI modelleri ve IDE\/Agent araçlarının BooKi ile güvenli konuşmasını sağlayan streamable HTTP MCP sunucusu (:8765\/mcp).",
+            "files": [
+                "deploy\/mcp\/reservation-mcp\/server.js",
+                "Agent_v1.php"
+            ]
+        },
+        "lead_crm_and_field_sales": {
+            "name": "Lead CRM & Google Places Taraması",
+            "description": "Bölge ve sektör bazlı potansiyel müşteri keşfi (Google Places API), arama ve ziyaret takibi, otomatik SMS\/WhatsApp teklif gönderimi ve tek tıkla kiracı oluşturma.",
+            "files": [
+                "Leads_model.php",
+                "Superadmin_tenants.php",
+                "Lead_activities_model.php"
+            ]
+        },
+        "marketing_and_review_automation": {
+            "name": "Pazarlama & İtibar Otomasyonu",
+            "description": "Akıllı müşteri segmentasyonu, hedefli SMS\/WhatsApp kampanyaları, randevu sonrası otomatik Google inceleme ve puanlama döngüsü.",
+            "files": [
+                "Marketing_campaigns_model.php",
+                "Marketing_segments_model.php",
+                "Reviews_model.php",
+                "Communication_rules_model.php"
+            ]
+        },
+        "kvkk_gdpr_pii_security": {
+            "name": "KVKK \/ GDPR & PII Şifreleme Güvenliği",
+            "description": "Müşteri telefon ve kişisel verilerinde AES-256-GCM şifreleme (`SFENC1`), HMAC-SHA256 arama hashleri, rıza kayıtları, veri silme\/anonimleştirme ve detaylı audit log.",
+            "files": [
+                "sf_pii_helper.php",
+                "Audit_logs_model.php",
+                "Consents_model.php",
+                "Data_requests_model.php"
+            ]
+        },
+        "industry_vertical_blueprints": {
+            "name": "9 Sektörel Dikey Şablon (Blueprints)",
+            "description": "Güzellik, restoran, gym, klinik\/diş, oto servis, etkinlik, butik otel, eğitim\/kurs ve profesyonel danışmanlık sektörleri için tek tıkla hazır hizmet, istasyon ve iş akışı şablonları.",
+            "files": [
+                "Industry_blueprints.php",
+                "Blueprints_model.php"
+            ]
+        },
+        "telephony_and_integrations": {
+            "name": "Telefoni & Dış Sistem Entegrasyonları",
+            "description": "Zadarma VoIP santral entegrasyonu, Netgsm SMS gateway, Google Takvim iki yönlü senkronizasyonu ve Google E-Tablolar veri aktarımı.",
+            "files": [
+                "Zadarma.php",
+                "Google_sync.php",
+                "Google_sheet_syncs_model.php"
+            ]
+        }
+    },
+    "controllers_list": [
+        "About",
+        "Account",
+        "Accounting_settings",
+        "Adisyons",
+        "Admins",
+        "Agent_api",
+        "Ai_agent",
+        "Ai_assistant",
+        "Altcha_settings",
+        "Api_settings",
+        "Appointments",
+        "Audit_log",
+        "Blocked_periods",
+        "Booking",
+        "Booking_cancellation",
+        "Booking_confirmation",
+        "Booking_settings",
+        "Branches",
+        "Business_settings",
+        "Caldav",
+        "Calendar",
+        "Captcha",
+        "Channel_template_settings",
+        "Checkin",
+        "Consents",
+        "Console",
+        "Custom_domain",
+        "Customer_onboarding",
+        "Customer_portal",
+        "Customers",
+        "Dashboard",
+        "Data_requests",
+        "Data_transfer",
+        "Docs",
+        "Email_template_settings",
+        "Expenses",
+        "Finance",
+        "General_settings",
+        "Google",
+        "Google_analytics_settings",
+        "Google_calendar_settings",
+        "Google_integrations",
+        "Google_sync_dashboard",
+        "Health",
+        "Industry_settings",
+        "Instagram",
+        "Installation",
+        "Integrations",
+        "Invoices",
+        "Jitsi_settings",
+        "Jobs",
+        "Landing",
+        "Landing_page",
+        "Ldap_settings",
+        "Legal_settings",
+        "Localization",
+        "Login",
+        "Logout",
+        "Marketing",
+        "Marketplace",
+        "Matomo_analytics_settings",
+        "Memberships",
+        "Messaging_settings",
+        "Meta",
+        "Notifications_feed",
+        "Onboarding",
+        "Packages",
+        "Payment_settings",
+        "Payment_webhooks",
+        "Places_photo",
+        "Portal",
+        "Pos",
+        "Privacy",
+        "Products",
+        "Providers",
+        "Recovery",
+        "Reports",
+        "Restaurant",
+        "Review",
+        "Reviews",
+        "Search",
+        "Secretaries",
+        "Service_categories",
+        "Services",
+        "Stations",
+        "Superadmin_auth",
+        "Superadmin_settings",
+        "Superadmin_tenants",
+        "Telegram",
+        "Test",
+        "Track",
+        "Unavailabilities",
+        "Update",
+        "User",
+        "Verticals",
+        "Waitlist",
+        "Webhooks",
+        "Whatsapp",
+        "Working_plan_exceptions",
+        "Zadarma"
+    ],
+    "models_list": [
+        "Accounting_settings_model",
+        "Adisyons_model",
+        "Admins_model",
+        "Ai_agent_conversations_model",
+        "Appointments_model",
+        "Audit_logs_model",
+        "Blocked_periods_model",
+        "Branches_model",
+        "Campaigns_model",
+        "Cash_registers_model",
+        "Checkin_model",
+        "Clinical_records_model",
+        "Consents_model",
+        "Customer_memberships_model",
+        "Customers_model",
+        "Data_requests_model",
+        "Digital_waivers_model",
+        "Event_tickets_model",
+        "Expenses_model",
+        "Gift_cards_model",
+        "Instagram_messages_model",
+        "Inventory_consumables_model",
+        "Invoices_model",
+        "Jobs_model",
+        "Landing_pages_model",
+        "Leads_model",
+        "Loyalty_points_model",
+        "Master_audit_model",
+        "Memberships_model",
+        "Messaging_settings_model",
+        "Onboarding_sessions_model",
+        "Orders_model",
+        "Packages_model",
+        "Payment_settings_model",
+        "Payment_transactions_model",
+        "Products_model",
+        "Providers_model",
+        "Recurrence_groups_model",
+        "Reports_model",
+        "Restaurant_model",
+        "Reviews_model",
+        "Roles_model",
+        "Secretaries_model",
+        "Segments_model",
+        "Service_categories_model",
+        "Services_model",
+        "Settings_model",
+        "Skills_model",
+        "Sports_matches_model",
+        "Staff_commissions_model",
+        "Stations_model",
+        "Traffic_attributions_model",
+        "Unavailabilities_model",
+        "User_notification_preferences_model",
+        "Users_model",
+        "Vehicles_model",
+        "Waitlist_model",
+        "Webhooks_model",
+        "Whatsapp_messages_model",
+        "Work_orders_model",
+        "Working_plan_exceptions_model"
+    ]
+}

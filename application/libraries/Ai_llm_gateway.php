@@ -217,8 +217,10 @@ class Ai_llm_gateway
 
         return match ($provider) {
             'google', 'gemini' => getenv('GEMINI_MODEL') ?: 'gemini-3.8-flash',
-            'groq' => getenv('GROQ_MODEL') ?: 'openai/gpt-oss-120b',
-            'openrouter' => getenv('AI_AGENT_MODEL') ?: 'google/gemini-2.5-flash',
+            'groq' => getenv('GROQ_MODEL') ?: 'qwen/qwen3.8-27b',
+            'openrouter' => (!empty(getenv('OPENROUTER_MODEL')) && getenv('OPENROUTER_MODEL') !== 'nvidia/nemotron-3.5-lightning:free')
+                ? getenv('OPENROUTER_MODEL')
+                : 'qwen/qwen-2.5-72b-instruct',
             'openai' => getenv('OPENAI_MODEL') ?: 'gpt-4o-mini',
             'anthropic', 'claude' => getenv('ANTHROPIC_MODEL') ?: 'claude-3-5-haiku-20241022',
             default => 'gemini-3.8-flash',
@@ -230,12 +232,27 @@ class Ai_llm_gateway
      */
     protected function call_google_gemini(array $messages, string $model, string $api_key, ?array $tools, float $temperature, int $max_tokens): ?array
     {
-        if ($model === 'gemini-2.5-flash' || str_starts_with($model, 'gemini-1.') || str_starts_with($model, 'gemini-2.0')) {
-            $model = 'gemini-3.8-flash';
-        }
-
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
 
+        $payload = $this->format_messages_for_gemini($messages, $tools, $temperature, $max_tokens);
+        $headers = [
+            'Content-Type: application/json',
+        ];
+
+        $res = $this->http_post($url, $payload, $headers);
+        if (!$res && $model === 'gemini-3.8-flash') {
+            $fallback_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" . urlencode($api_key);
+            $res = $this->http_post($fallback_url, $payload, $headers);
+        }
+        if (!$res) {
+            return null;
+        }
+
+        return $this->parse_gemini_response($res);
+    }
+
+    protected function format_messages_for_gemini(array $messages, ?array $tools, float $temperature, int $max_tokens): array
+    {
         $system_text = '';
         $contents = [];
 
@@ -284,22 +301,32 @@ class Ai_llm_gateway
                 if (!is_array($response_data) || array_is_list($response_data)) {
                     $response_data = ['response' => $response_data];
                 }
-                $contents[] = [
-                    'role' => 'user',
-                    'parts' => [
-                        [
-                            'functionResponse' => [
-                                'name' => $m['name'] ?? 'tool_result',
-                                'response' => $response_data,
-                            ],
-                        ],
+                $tool_part = [
+                    'functionResponse' => [
+                        'name' => $m['name'] ?? 'tool_result',
+                        'response' => $response_data,
                     ],
                 ];
+
+                $last_idx = count($contents) - 1;
+                if ($last_idx >= 0 && $contents[$last_idx]['role'] === 'user' && !empty($contents[$last_idx]['parts'][0]['functionResponse'])) {
+                    $contents[$last_idx]['parts'][] = $tool_part;
+                } else {
+                    $contents[] = [
+                        'role' => 'user',
+                        'parts' => [$tool_part],
+                    ];
+                }
             } else {
-                $contents[] = [
-                    'role' => 'user',
-                    'parts' => [['text' => (string) $content]],
-                ];
+                $last_idx = count($contents) - 1;
+                if ($last_idx >= 0 && $contents[$last_idx]['role'] === 'user' && empty($contents[$last_idx]['parts'][0]['functionResponse'])) {
+                    $contents[$last_idx]['parts'][] = ['text' => (string) $content];
+                } else {
+                    $contents[] = [
+                        'role' => 'user',
+                        'parts' => [['text' => (string) $content]],
+                    ];
+                }
             }
         }
 
@@ -343,12 +370,11 @@ class Ai_llm_gateway
             }
         }
 
-        $headers = ['Content-Type: application/json'];
-        $res = $this->http_post($url, $payload, $headers);
-        if ($res === null) {
-            return null;
-        }
+        return $payload;
+    }
 
+    protected function parse_gemini_response(array $res): ?array
+    {
         $candidate = $res['candidates'][0] ?? null;
         if (!$candidate) {
             return null;
@@ -411,6 +437,10 @@ class Ai_llm_gateway
         ];
 
         $res = $this->http_post($url, $payload, $headers);
+        if (!$res && $model !== 'openai/gpt-oss-20b') {
+            $payload['model'] = 'openai/gpt-oss-20b';
+            $res = $this->http_post($url, $payload, $headers);
+        }
         return $res ? $this->parse_openai_response($res) : null;
     }
 
