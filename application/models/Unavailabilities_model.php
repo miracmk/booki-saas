@@ -15,7 +15,7 @@
  *
  * @package Models
  */
-class Unavailabilities_model extends EA_Model
+class Unavailabilities_model extends App_Model
 {
     /**
      * @var array

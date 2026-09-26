@@ -1,10 +1,5 @@
-# Ki Reservation (2026-08-28, Dalga 2 Faz 29) - composer.json gained two new runtime dependencies
-# (robthree/twofactorauth, bacon/bacon-qr-code, for MFA/TOTP) that do NOT exist in the base image's
-# own baked-in vendor/ - that vendor/ was built from the STOCK EasyAppointments composer.json, before
-# our fork's composer.json (a full superset, listing every package the app needs) ever ran. Without
-# this stage, the app would silently ship with a stale vendor/ missing both new classes, and MFA
-# setup would fatal with "Class not found" on first use. Resolving from OUR composer.json here
-# replaces the base image's vendor/ wholesale with one that matches what the source actually requires.
+# Ki Reservation - composer.json runtime dependencies
+# Resolving from composer.json here ensures vendor/ matches what the application requires.
 # Repo konsolidasyonu (2026-09-16) - build context artik deploy/'un ust dizini (repo koku), tek
 # repoda uygulama kodu + deploy config bir arada. Onceki "src/" alt klasoru kalkti, kod dogrudan
 # repo kokunde (application/, assets/, vb.).
@@ -27,8 +22,5 @@ RUN a2enmod rewrite
 COPY --chown=www-data:www-data . /var/www/html/
 COPY --from=vendor --chown=www-data:www-data /app/vendor /var/www/html/vendor
 
-# Fixes the base image's own entrypoint script (outside /var/www/html, so the COPY above never
-# touches it) so it stops generating "Easy!Appointments" as the SMTP useragent header on every
-# container start - see deploy/docker-entrypoint.sh for the one-line diff against the base
-# image's original.
+# Configures entrypoint script for the container
 COPY deploy/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

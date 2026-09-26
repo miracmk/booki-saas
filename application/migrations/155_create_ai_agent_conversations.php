@@ -15,7 +15,7 @@
  * 137) without unbounded token growth.
  * -------------------------------------------------------------------------- */
 
-class Migration_Create_ai_agent_conversations extends EA_Migration
+class Migration_Create_ai_agent_conversations extends App_Migration
 {
     public function up(): void
     {

@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Drop_caldav_calendar_column_from_user_settings_table extends EA_Migration
+class Migration_Drop_caldav_calendar_column_from_user_settings_table extends App_Migration
 {
     /**
      * Upgrade method.

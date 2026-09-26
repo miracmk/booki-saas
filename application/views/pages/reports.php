@@ -284,7 +284,7 @@
         // string "undefined", every POST below failed CI3's CSRF check (403), and every analytics
         // card showed the caught error message - this is the concrete reason the user reported
         // "Analitik raporlar çalışmıyor". Fixed by using the same `vars('csrf_token')` PHP helper the
-        // rest of the app's script_vars-based pages use (see EA_Controller::load_common_script_vars()).
+        // rest of the app's script_vars-based pages use (see App_Controller::load_common_script_vars()).
         const token = <?= json_encode(vars('csrf_token')) ?>;
 
         function formatMoney(n) {

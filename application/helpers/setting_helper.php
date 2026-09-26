@@ -33,7 +33,7 @@ if (!function_exists('setting')) {
      */
     function setting(array|string|null $key = null, mixed $default = null): mixed
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         if (empty($key)) {

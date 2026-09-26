@@ -17,7 +17,7 @@
  * 'customer' role reaches here; every other role is redirected to the calendar/backend they already
  * use (see Login::validate()'s role-aware redirect).
  */
-class Customer_portal extends EA_Controller
+class Customer_portal extends App_Controller
 {
     public function __construct()
     {

@@ -7,7 +7,7 @@
  * Mirrors the design of telegram_messages for consistency.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_whatsapp_messages_table extends EA_Migration
+class Migration_Create_whatsapp_messages_table extends App_Migration
 {
     /**
      * Upgrade method.

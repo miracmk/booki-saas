@@ -4,7 +4,7 @@
  * BooKi - Global Command Center & Omnisearch Controller (Cmd+K / Ctrl+K)
  * ---------------------------------------------------------------------------- */
 
-class Search extends EA_Controller
+class Search extends App_Controller
 {
     public function __construct()
     {

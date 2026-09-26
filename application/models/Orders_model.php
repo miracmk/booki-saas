@@ -11,7 +11,7 @@
  * new nullable columns, nothing else).
  * ---------------------------------------------------------------------------- */
 
-class Orders_model extends EA_Model
+class Orders_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

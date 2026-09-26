@@ -19,7 +19,7 @@
  *    before treating it as the business's actual legal position; it is not legal advice.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Kvkk_privacy_policy_and_retention extends EA_Migration
+class Migration_Kvkk_privacy_policy_and_retention extends App_Migration
 {
     /**
      * Upgrade method.

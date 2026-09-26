@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Admins extends EA_Controller
+class Admins extends App_Controller
 {
     public array $allowed_admin_fields = [
         'id',

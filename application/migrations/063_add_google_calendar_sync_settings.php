@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_google_calendar_sync_settings extends EA_Migration
+class Migration_Add_google_calendar_sync_settings extends App_Migration
 {
     /**
      * Upgrade method.

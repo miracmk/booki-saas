@@ -15,7 +15,7 @@
  * unaffected either way.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_stations_services_table extends EA_Migration
+class Migration_Create_stations_services_table extends App_Migration
 {
     /**
      * Upgrade method.

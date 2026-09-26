@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Booking_cancellation extends EA_Controller
+class Booking_cancellation extends App_Controller
 {
     /**
      * Booking_cancellation constructor.

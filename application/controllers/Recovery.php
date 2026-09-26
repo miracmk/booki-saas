@@ -16,7 +16,7 @@
  *
  * @package Controllers
  */
-class Recovery extends EA_Controller
+class Recovery extends App_Controller
 {
     /**
      * Recovery constructor.

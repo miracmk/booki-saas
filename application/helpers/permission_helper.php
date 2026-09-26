@@ -26,7 +26,7 @@ if (!function_exists('can')) {
      */
     function can(string $action, string $resource, ?int $user_id = null): bool
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         $CI->load->model('roles_model');

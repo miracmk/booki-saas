@@ -8,7 +8,7 @@
  * but never touch payment data).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_payment_fields_to_appointments_table extends EA_Migration
+class Migration_Add_payment_fields_to_appointments_table extends App_Migration
 {
     /**
      * Upgrade method.

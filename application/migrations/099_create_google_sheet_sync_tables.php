@@ -9,7 +9,7 @@
  * sheet immediately (see Google_sheets_writer::sync_record()).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_google_sheet_sync_tables extends EA_Migration
+class Migration_Create_google_sheet_sync_tables extends App_Migration
 {
     /**
      * Upgrade method.

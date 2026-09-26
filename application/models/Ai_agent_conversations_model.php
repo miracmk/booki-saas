@@ -14,7 +14,7 @@
  *
  * @package Models
  */
-class Ai_agent_conversations_model extends EA_Model
+class Ai_agent_conversations_model extends App_Model
 {
     /** How many recent closed-conversation summaries form the memory context. */
     public const MEMORY_SUMMARY_LIMIT = 5;

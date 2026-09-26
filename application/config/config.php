@@ -142,7 +142,7 @@ if ($requested_language !== null && !in_array($requested_language, $languages, t
 // header before Config::LANGUAGE, silently overriding the platform's own configured default
 // (Turkish) for anyone whose browser happened to be set to English/etc. A site operator who
 // explicitly configured Config::LANGUAGE should win unless the visitor (or their saved account
-// preference, applied later in EA_Controller::configure_language()) explicitly asks for something
+// preference, applied later in App_Controller::configure_language()) explicitly asks for something
 // else via ?language=.
 $config['language'] = $requested_language ?? Config::LANGUAGE;
 
@@ -236,7 +236,7 @@ $config['enable_hooks'] = true;
 | http://codeigniter.com/user_guide/general/creating_libraries.html
 |
 */
-$config['subclass_prefix'] = 'EA_';
+$config['subclass_prefix'] = 'App_';
 
 /*
 |--------------------------------------------------------------------------
@@ -379,7 +379,7 @@ $config['encryption_key'] =
 |
 */
 $config['sess_driver'] = 'files';
-$config['sess_cookie_name'] = 'ea_session';
+$config['sess_cookie_name'] = 'booki_session';
 $config['sess_expiration'] = 604800; // 1 week
 $config['sess_save_path'] = __DIR__ . '/../../storage/sessions';
 $config['sess_match_ip'] = false; // Disabled to prevent mobile session loss during IP changes

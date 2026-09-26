@@ -6,7 +6,7 @@
  * it runs - not a per-additional-hour multiplier).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_overtime_bonus_to_users_table extends EA_Migration
+class Migration_Add_overtime_bonus_to_users_table extends App_Migration
 {
     /**
      * Upgrade method.

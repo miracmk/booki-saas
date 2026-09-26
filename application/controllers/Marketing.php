@@ -10,7 +10,7 @@
  * deliveries never block a single request.
  * ---------------------------------------------------------------------------- */
 
-class Marketing extends EA_Controller
+class Marketing extends App_Controller
 {
     /**
      * Marketing constructor.

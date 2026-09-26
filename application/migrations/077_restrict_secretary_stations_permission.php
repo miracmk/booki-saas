@@ -6,7 +6,7 @@
  * migration 073).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Restrict_secretary_stations_permission extends EA_Migration
+class Migration_Restrict_secretary_stations_permission extends App_Migration
 {
     public function up(): void
     {

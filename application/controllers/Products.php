@@ -7,7 +7,7 @@
  * Access: admin/secretary only.
  * ---------------------------------------------------------------------------- */
 
-class Products extends EA_Controller
+class Products extends App_Controller
 {
     public array $allowed_product_fields = [
         'id',

@@ -8,7 +8,7 @@
  * directly into the provisioned tenant database.
  * -------------------------------------------------------------------------- */
 
-class Customer_onboarding extends EA_Controller
+class Customer_onboarding extends App_Controller
 {
     public function __construct()
     {

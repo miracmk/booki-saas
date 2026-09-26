@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_working_plan_exceptions_to_user_settings extends EA_Migration
+class Migration_Add_working_plan_exceptions_to_user_settings extends App_Migration
 {
     /**
      * Upgrade method.

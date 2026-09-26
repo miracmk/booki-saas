@@ -11,7 +11,7 @@
  * entry can be notified.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_waitlist_table extends EA_Migration
+class Migration_Create_waitlist_table extends App_Migration
 {
     /**
      * Upgrade method.

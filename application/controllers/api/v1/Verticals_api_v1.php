@@ -4,7 +4,7 @@
  * BooKi - Multi-Vertical Enterprise Suite API v1 Controller
  * ---------------------------------------------------------------------------- */
 
-class Verticals_api_v1 extends EA_Controller
+class Verticals_api_v1 extends App_Controller
 {
     public function __construct()
     {

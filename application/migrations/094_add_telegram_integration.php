@@ -14,7 +14,7 @@
  *   wrote on Telegram and reply, without building a full chat UI.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_telegram_integration extends EA_Migration
+class Migration_Add_telegram_integration extends App_Migration
 {
     /**
      * Upgrade method.

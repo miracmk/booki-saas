@@ -14,7 +14,7 @@
  *   somewhere to write to without another migration.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_crm_fields_to_users_table extends EA_Migration
+class Migration_Add_crm_fields_to_users_table extends App_Migration
 {
     /**
      * Upgrade method.

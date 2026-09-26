@@ -3,7 +3,7 @@
 /**
  * Stores multiple tenant-wide default notification channels.
  */
-class Migration_Add_notification_channel_selection extends EA_Migration
+class Migration_Add_notification_channel_selection extends App_Migration
 {
     public function up(): void
     {

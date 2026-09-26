@@ -5,7 +5,7 @@
  * (FareHarbor / Bókun / Escape Room & Activity style)
  * ---------------------------------------------------------------------------- */
 
-class Digital_waivers_model extends EA_Model
+class Digital_waivers_model extends App_Model
 {
     /**
      * Create or update digital waiver / contract template.

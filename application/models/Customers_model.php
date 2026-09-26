@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Customers_model extends EA_Model
+class Customers_model extends App_Model
 {
     /**
      * Salon Flora customization (2026-08-24, KVKK hardening) - forked from stock ONLY to add

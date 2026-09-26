@@ -8,7 +8,7 @@
  * Tokens are encrypted at rest using sf_pii_encrypt() from the salonflora_crypto_helper.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_accounting_connections_table extends EA_Migration
+class Migration_Create_accounting_connections_table extends App_Migration
 {
     /**
      * Upgrade method.

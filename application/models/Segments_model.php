@@ -16,7 +16,7 @@
  *   custom   → {"customer_ids": [1,2,3]}       explicit list
  * ---------------------------------------------------------------------------- */
 
-class Segments_model extends EA_Model
+class Segments_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

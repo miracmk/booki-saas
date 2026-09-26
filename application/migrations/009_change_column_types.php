@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Change_column_types extends EA_Migration
+class Migration_Change_column_types extends App_Migration
 {
     /**
      * Upgrade method.

@@ -13,9 +13,9 @@
 class Data_export
 {
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * How long a generated export stays downloadable.
@@ -278,7 +278,7 @@ class Data_export
      * Webhooks_client::handle_queued_delivery()'s try/catch-and-log-only shape - a queue worker
      * must never let one bad job crash the batch.
      *
-     * @param EA_Controller|CI_Controller $CI
+     * @param App_Controller|CI_Controller $CI
      * @param array $payload ['request_id' => int]
      * @return void
      */

@@ -20,9 +20,9 @@
 class Notifications
 {
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * Notifications constructor.
@@ -1004,7 +1004,7 @@ class Notifications
      * Queued handler for SMS notifications (called by Job_dispatcher).
      * Re-fetches the user and sends the SMS via the configured gateway.
      *
-     * @param EA_Controller|CI_Controller $CI
+     * @param App_Controller|CI_Controller $CI
      * @param array $payload Must contain 'user_id' and 'text'; 'recipient_type' optional.
      */
     public function handle_queued_sms($CI, array $payload): void
@@ -1035,7 +1035,7 @@ class Notifications
      * Queued handler for WhatsApp notifications (called by Job_dispatcher).
      * Re-fetches the user and sends the WhatsApp message via the configured gateway.
      *
-     * @param EA_Controller|CI_Controller $CI
+     * @param App_Controller|CI_Controller $CI
      * @param array $payload Must contain 'user_id' and 'text'; 'recipient_type' optional.
      */
     public function handle_queued_whatsapp($CI, array $payload): void
@@ -1066,7 +1066,7 @@ class Notifications
      * Queued handler for Telegram notifications (called by Job_dispatcher).
      * Re-fetches the user and sends the Telegram message via the configured bot.
      *
-     * @param EA_Controller|CI_Controller $CI
+     * @param App_Controller|CI_Controller $CI
      * @param array $payload Must contain 'user_id' and 'text'; 'recipient_type' optional.
      */
     public function handle_queued_telegram($CI, array $payload): void
@@ -1097,7 +1097,7 @@ class Notifications
      * BooKi (Dalga 3 / Faz 3.1) - queued handler for the Communication Hub's generic
      * email channel (called by Job_dispatcher). Re-fetches the user and sends a simple HTML mail.
      *
-     * @param EA_Controller|CI_Controller $CI
+     * @param App_Controller|CI_Controller $CI
      * @param array $payload Must contain 'user_id', 'subject', 'text'; 'recipient_type' optional.
      */
     public function handle_queued_generic_email($CI, array $payload): void
@@ -1129,7 +1129,7 @@ class Notifications
      * Queued handler for appointment saved email notifications (called by Job_dispatcher).
      * Re-fetches the appointment and related data, then sends the email to the specified recipient.
      *
-     * @param EA_Controller|CI_Controller $CI
+     * @param App_Controller|CI_Controller $CI
      * @param array $payload Must contain 'appointment_id', 'recipient_type', 'recipient_id', 'manage_mode'
      */
     public function handle_queued_appointment_saved_email($CI, array $payload): void

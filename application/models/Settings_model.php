@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Settings_model extends EA_Model
+class Settings_model extends App_Model
 {
     /**
      * @var array

@@ -8,7 +8,7 @@
  * only knows how to read/write rows.
  * ---------------------------------------------------------------------------- */
 
-class Waitlist_model extends EA_Model
+class Waitlist_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

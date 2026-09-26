@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_meeting_link_column_to_appointments_table extends EA_Migration
+class Migration_Add_meeting_link_column_to_appointments_table extends App_Migration
 {
     /**
      * Upgrade method.

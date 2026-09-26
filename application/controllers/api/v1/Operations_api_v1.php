@@ -4,7 +4,7 @@
  * BooKi - Live Operations, QR Check-in & Floor Plan API v1
  * ---------------------------------------------------------------------------- */
 
-class Operations_api_v1 extends EA_Controller
+class Operations_api_v1 extends App_Controller
 {
     public function __construct()
     {

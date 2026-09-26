@@ -17,7 +17,7 @@
  * source_appointment_hash until the admin moderates it.
  * ---------------------------------------------------------------------------- */
 
-class Review extends EA_Controller
+class Review extends App_Controller
 {
     public function __construct()
     {

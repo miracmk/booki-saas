@@ -7,7 +7,7 @@
  * Tracks view counts, conversion rates, links directly to bookable services.
  * ---------------------------------------------------------------------------- */
 
-class Landing_pages_model extends EA_Model
+class Landing_pages_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

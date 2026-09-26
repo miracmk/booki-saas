@@ -6,7 +6,7 @@
  * admin-editable priority instead: lower display_order sorts first. Existing stations default to 0
  * (all equal - ties break on name, unchanged behavior until an admin sets a real order).
  */
-class Migration_Add_display_order_to_stations extends EA_Migration
+class Migration_Add_display_order_to_stations extends App_Migration
 {
     public function up(): void
     {

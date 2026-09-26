@@ -9,7 +9,7 @@
  * appointment_products: line items for products used/sold in an appointment.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_inventory_tables extends EA_Migration
+class Migration_Create_inventory_tables extends App_Migration
 {
     public function up()
     {

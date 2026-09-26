@@ -20,7 +20,7 @@
  *
  * @package Controllers
  */
-class Appointments extends EA_Controller
+class Appointments extends App_Controller
 {
     public array $allowed_appointment_fields = [
         'id',

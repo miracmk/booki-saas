@@ -9,7 +9,7 @@
  * @package Models
  */
 
-class Whatsapp_messages_model extends EA_Model
+class Whatsapp_messages_model extends App_Model
 {
     /**
      * Save a new WhatsApp message to the log.

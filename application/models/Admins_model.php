@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Admins_model extends EA_Model
+class Admins_model extends App_Model
 {
     /**
      * Salon Flora customization (2026-08-24, KVKK hardening) - column-level encryption for

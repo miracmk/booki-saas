@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Loyalty_points_model extends EA_Model
+class Loyalty_points_model extends App_Model
 {
     /**
      * @var array

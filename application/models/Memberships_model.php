@@ -8,7 +8,7 @@
  * Customer_memberships_model for the customer-facing subscription instances.
  * ---------------------------------------------------------------------------- */
 
-class Memberships_model extends EA_Model
+class Memberships_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

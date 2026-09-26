@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_service_attendants_number extends EA_Migration
+class Migration_Add_service_attendants_number extends App_Migration
 {
     /**
      * Upgrade method.

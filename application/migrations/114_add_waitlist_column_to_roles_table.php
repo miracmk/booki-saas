@@ -10,7 +10,7 @@
  * they join the waitlist through the booking flow, not this admin page.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_waitlist_column_to_roles_table extends EA_Migration
+class Migration_Add_waitlist_column_to_roles_table extends App_Migration
 {
     /**
      * Upgrade method.

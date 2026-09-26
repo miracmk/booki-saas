@@ -9,7 +9,7 @@
  * different amounts for the same service.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_provider_service_commissions_table extends EA_Migration
+class Migration_Create_provider_service_commissions_table extends App_Migration
 {
     /**
      * Upgrade method.

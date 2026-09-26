@@ -24,13 +24,13 @@
  *
  * @package Models
  */
-class Providers_model extends EA_Model
+class Providers_model extends App_Model
 {
     /**
      * Salon Flora customization (2026-08-24, KVKK hardening) - column-level encryption for
      * email/phone_number/address/state/zip_code/notes, mirroring Customers_model's encrypt_pii()/
      * decrypt_pii() (see that file's docblock for the full rationale - same scheme, same shared
-     * `users` table, kept as two copies rather than a shared trait/base method because EA_Model
+     * `users` table, kept as two copies rather than a shared trait/base method because App_Model
      * doesn't define one and this codebase doesn't otherwise use PHP traits).
      */
     private const ENCRYPTED_ONLY_FIELDS = ['address', 'state', 'zip_code', 'notes'];

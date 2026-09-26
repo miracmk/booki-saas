@@ -9,7 +9,7 @@
  * rejected (removed from the marketplace entirely).
  * ---------------------------------------------------------------------------- */
 
-class Reviews extends EA_Controller
+class Reviews extends App_Controller
 {
     /**
      * Reviews constructor.

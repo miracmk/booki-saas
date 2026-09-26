@@ -8,7 +8,7 @@
  * All gateway credentials are PII-encrypted (sf_pii_encrypt/sf_pii_decrypt).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_sms_whatsapp_settings extends EA_Migration
+class Migration_Add_sms_whatsapp_settings extends App_Migration
 {
     /**
      * Upgrade method.

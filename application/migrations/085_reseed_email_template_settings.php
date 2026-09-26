@@ -28,7 +28,7 @@
  * including the two orphan rows this migration removes).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Reseed_email_template_settings extends EA_Migration
+class Migration_Reseed_email_template_settings extends App_Migration
 {
     private const ROLE_KEYS = [
         'email_template_appointment_saved_customer' => 'appointment_saved',

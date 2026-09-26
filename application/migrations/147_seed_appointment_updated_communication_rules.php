@@ -15,7 +15,7 @@
  * aborting it), so this is an opt-in complementary channel + per-tenant template, not a
  * duplicate-by-default send.
  */
-class Migration_Seed_appointment_updated_communication_rules extends EA_Migration
+class Migration_Seed_appointment_updated_communication_rules extends App_Migration
 {
     public function up(): void
     {

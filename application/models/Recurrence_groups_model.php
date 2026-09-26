@@ -9,7 +9,7 @@
  * for a series - this model never touches the appointments table.
  * ---------------------------------------------------------------------------- */
 
-class Recurrence_groups_model extends EA_Model
+class Recurrence_groups_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

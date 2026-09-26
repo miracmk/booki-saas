@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Consents_model extends EA_Model
+class Consents_model extends App_Model
 {
     /**
      * @var array

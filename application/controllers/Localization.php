@@ -18,7 +18,7 @@
  *
  * @package Controllers
  */
-class Localization extends EA_Controller
+class Localization extends App_Controller
 {
     /**
      * Change system language for current user.

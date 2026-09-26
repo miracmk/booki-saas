@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_secret_header_column_to_webhooks_table extends EA_Migration
+class Migration_Add_secret_header_column_to_webhooks_table extends App_Migration
 {
     /**
      * Upgrade method.

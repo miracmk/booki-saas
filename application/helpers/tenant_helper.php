@@ -8,7 +8,7 @@
  * 1. Single-tenant / standalone (e.g. Salon Flora's own production deployment) - the 'default' DB
  *    connection group IS the tenant's own database, exactly as before multi-tenancy was added.
  * 2. Multi-tenant cloud SaaS - the 'default' connection is a lightweight MASTER database holding only
- *    the `tenants` catalog; EA_Controller::resolve_tenant() (called from the constructor every
+ *    the `tenants` catalog; App_Controller::resolve_tenant() (called from the constructor every
  *    controller shares) resolves the request's Host header to a tenant row and swaps $this->db to
  *    that tenant's own database for the rest of the request. Console.php's connect_tenant()/
  *    connect_master() do the CLI equivalent for multi-tenant-aware commands (migrate/sync/cleanup/
@@ -83,7 +83,7 @@ if (!function_exists('master_setting')) {
      *
      * Deliberately reconnects to the 'default' connection GROUP BY NAME (not $CI->db, which during a
      * tenant request has already been swapped to that tenant's own DB - see
-     * EA_Controller::resolve_tenant()) via a throwaway, non-active connection object
+     * App_Controller::resolve_tenant()) via a throwaway, non-active connection object
      * ($this->load->database('default', true) - the TRUE "return, don't replace $this->db" form), so
      * calling this never disturbs whichever DB the current request is actually working against.
      * Single-tenant/standalone deployments have no `master_settings` table at all - always returns
@@ -164,7 +164,7 @@ if (!function_exists('get_google_oauth_relay_key')) {
      */
     function get_google_oauth_relay_key(): string
     {
-        $key = getenv('EA_APP_KEY') ?: getenv('TENANT_MASTER_KEY');
+        $key = getenv('BOOKI_APP_KEY') ?: getenv('EA_APP_KEY') ?: getenv('TENANT_MASTER_KEY');
         if (!empty($key)) {
             return $key;
         }
@@ -176,7 +176,7 @@ if (!function_exists('get_google_oauth_relay_key')) {
             }
         }
 
-        throw new RuntimeException('Encryption key (EA_APP_KEY / encryption_key) is not configured for OAuth relay state.');
+        throw new RuntimeException('Encryption key (BOOKI_APP_KEY / encryption_key) is not configured for OAuth relay state.');
     }
 }
 

@@ -16,7 +16,7 @@
  * tenants, which comprise the vast majority of production deployments).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_branches_table extends EA_Migration
+class Migration_Create_branches_table extends App_Migration
 {
     public function up()
     {

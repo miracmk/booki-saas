@@ -11,7 +11,7 @@
  * Scope: this column is generic on `users`, but only Providers_model/the Providers settings
  * page read or expose it in this tour - customers/admins/secretaries are unaffected.
  */
-class Migration_Add_is_active_to_users extends EA_Migration
+class Migration_Add_is_active_to_users extends App_Migration
 {
     public function up(): void
     {

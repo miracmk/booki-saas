@@ -7,7 +7,7 @@
  * the structure of Services.php.
  * ---------------------------------------------------------------------------- */
 
-class Stations extends EA_Controller
+class Stations extends App_Controller
 {
     public array $allowed_station_fields = ['id', 'name', 'notes', 'is_active', 'display_order']; // display_order: BooKi (2026-09-17), İlk Müsaitlik room ranking
 

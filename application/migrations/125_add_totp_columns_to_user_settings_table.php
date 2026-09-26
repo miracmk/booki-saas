@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_totp_columns_to_user_settings_table extends EA_Migration
+class Migration_Add_totp_columns_to_user_settings_table extends App_Migration
 {
     /**
      * Upgrade method.

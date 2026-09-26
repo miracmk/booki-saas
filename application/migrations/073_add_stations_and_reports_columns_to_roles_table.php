@@ -6,7 +6,7 @@
  * consumed by Roles_model::get_permissions_by_slug).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_stations_and_reports_columns_to_roles_table extends EA_Migration
+class Migration_Add_stations_and_reports_columns_to_roles_table extends App_Migration
 {
     /**
      * Upgrade method.

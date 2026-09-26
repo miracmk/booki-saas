@@ -47,8 +47,7 @@ on every `composer install`/`update`.
 ## Frontend dependencies (`assets/vendor/`)
 
 Pre-built distribution assets, not managed via package.json in this
-repository. Versions correspond to what was vendored at the time of the
-EasyAppointments 1.6.0 baseline this project was rebranded from.
+repository. Versions correspond to vendored frontend packages.
 
 | Library | License |
 |---|---|
@@ -78,8 +77,7 @@ EasyAppointments 1.6.0 baseline this project was rebranded from.
 - No known copyleft-obligation conflicts: the two LGPL components
   (`ezyang/htmlpurifier`, `phpmailer/phpmailer`) are used as unmodified
   libraries (dynamically included, not modified/relinked in a way that
-  would trigger LGPL's stricter provisions) — consistent with how the
-  upstream EasyAppointments project used them.
+  would trigger LGPL's stricter provisions).
 - This SBOM should be regenerated whenever `composer.json`/`composer.lock`
   changes materially (new dependency, major version bump), and reviewed
   as part of any formal ISO 27001 / SOC 2 supply-chain assessment.

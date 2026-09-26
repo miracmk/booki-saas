@@ -11,7 +11,7 @@
  * stored on the appointment itself).
  * ---------------------------------------------------------------------------- */
 
-class Reports extends EA_Controller
+class Reports extends App_Controller
 {
     private const COMPLETED_STATUS = 'Tamamlandı';
 

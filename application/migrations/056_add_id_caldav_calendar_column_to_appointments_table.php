@@ -11,7 +11,7 @@
  * @since       v1.4.0
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_id_caldav_calendar_column_to_appointments_table extends EA_Migration
+class Migration_Add_id_caldav_calendar_column_to_appointments_table extends App_Migration
 {
     /**
      * Upgrade method.

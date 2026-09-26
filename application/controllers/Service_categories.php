@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Service_categories extends EA_Controller
+class Service_categories extends App_Controller
 {
     public array $allowed_service_category_fields = ['id', 'name', 'description'];
 

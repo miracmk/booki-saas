@@ -9,7 +9,7 @@
  * no longer be inferred as a single fixed value.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_stations_providers_table extends EA_Migration
+class Migration_Create_stations_providers_table extends App_Migration
 {
     /**
      * Upgrade method.

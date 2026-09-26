@@ -39,7 +39,7 @@
  *   6. Kayıp randevu telafisi – appointment_cancelled → provider → sms
  */
 
-class Migration_Create_automation_rules_table extends EA_Migration
+class Migration_Create_automation_rules_table extends App_Migration
 {
     public function up(): void
     {

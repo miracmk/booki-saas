@@ -4,7 +4,7 @@
  * Salon Flora customization - Stations (istasyon) support.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_stations_table extends EA_Migration
+class Migration_Create_stations_table extends App_Migration
 {
     /**
      * Upgrade method.

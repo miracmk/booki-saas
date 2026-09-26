@@ -13,7 +13,7 @@
 /**
  * Portal controller - the bare app-domain (reservationapp.kibusiness.co) entry point.
  *
- * Multi-tenant SaaS only. This controller is the ONE thing EA_Controller::resolve_tenant() lets
+ * Multi-tenant SaaS only. This controller is the ONE thing App_Controller::resolve_tenant() lets
  * through on the bare app domain without a resolved tenant - $this->db here is still the MASTER DB
  * (holds only the `tenants` catalog, no `users`/`settings` tables), so it does not attempt real
  * password authentication itself. It only identifies which tenant a submitted username/email belongs
@@ -21,7 +21,7 @@
  * Console.php's migrate/sync/cleanup already use) and redirects the browser to that tenant's own
  * domain to actually log in there, against its own DB, exactly as it would if reached directly.
  */
-class Portal extends EA_Controller
+class Portal extends App_Controller
 {
     public function __construct()
     {

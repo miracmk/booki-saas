@@ -70,7 +70,7 @@ class GoogleOAuthCentralRelayTest extends TestCase
         $json = json_encode($payload);
         $b64 = rtrim(strtr(base64_encode($json), '+/', '-_'), '=');
         $key = (function_exists('config_item') ? config_item('encryption_key') : null)
-            ?: (getenv('EA_APP_KEY') ?: 'booki-oauth-relay-secret-key');
+            ?: (getenv('BOOKI_APP_KEY') ?: getenv('EA_APP_KEY') ?: 'booki-oauth-relay-secret-key');
         $sig = hash_hmac('sha256', $b64, $key);
         $expired_state = $b64 . '.' . $sig;
 

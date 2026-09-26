@@ -9,7 +9,7 @@
  * - messaging_settings.reminder_notifications_enabled (TINYINT)
  * - messaging_settings.reminder_hours_ahead (INT)
  */
-class Migration_Add_appointment_reminder_tracking extends EA_Migration
+class Migration_Add_appointment_reminder_tracking extends App_Migration
 {
     public function up(): void
     {

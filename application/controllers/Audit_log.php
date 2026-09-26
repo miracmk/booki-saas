@@ -15,7 +15,7 @@
  * salonflora_audit_helper.php). Admin-only (gated on PRIV_SYSTEM_SETTINGS, same as General Settings),
  * because this can reveal e.g. which staff member erased which customer and when.
  */
-class Audit_log extends EA_Controller
+class Audit_log extends App_Controller
 {
     private const PAGE_SIZE = 100;
 

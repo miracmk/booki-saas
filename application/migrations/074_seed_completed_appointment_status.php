@@ -6,7 +6,7 @@
  * check-out timestamp.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Seed_completed_appointment_status extends EA_Migration
+class Migration_Seed_completed_appointment_status extends App_Migration
 {
     private const STATUS_LABEL = 'Tamamlandı';
 

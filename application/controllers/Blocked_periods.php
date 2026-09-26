@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Blocked_periods extends EA_Controller
+class Blocked_periods extends App_Controller
 {
     public array $allowed_blocked_period_fields = ['id', 'name', 'start_datetime', 'end_datetime', 'notes'];
 

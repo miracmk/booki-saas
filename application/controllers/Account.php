@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Account extends EA_Controller
+class Account extends App_Controller
 {
     public array $allowed_user_fields = [
         'id',

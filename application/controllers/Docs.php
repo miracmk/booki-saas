@@ -1,6 +1,6 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
-class Docs extends EA_Controller
+class Docs extends App_Controller
 {
     public function __construct()
     {

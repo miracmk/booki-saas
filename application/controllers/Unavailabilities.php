@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Unavailabilities extends EA_Controller
+class Unavailabilities extends App_Controller
 {
     public array $allowed_unavailability_fields = [
         'id',

@@ -11,7 +11,7 @@
  * for the admin dashboard.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_google_calendar_watch_tables extends EA_Migration
+class Migration_Create_google_calendar_watch_tables extends App_Migration
 {
     /**
      * Upgrade method.

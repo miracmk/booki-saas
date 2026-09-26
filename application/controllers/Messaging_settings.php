@@ -9,7 +9,7 @@
  * @package Controllers
  */
 
-class Messaging_settings extends EA_Controller
+class Messaging_settings extends App_Controller
 {
     public function __construct()
     {

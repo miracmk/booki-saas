@@ -21,7 +21,7 @@
  *
  * @package Models
  */
-class Skills_model extends EA_Model
+class Skills_model extends App_Model
 {
     /**
      * Return every skill as a {value, label} option list, for checkbox rendering.

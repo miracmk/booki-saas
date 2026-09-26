@@ -33,7 +33,7 @@
 
 class Erp_manager
 {
-    protected CI_Controller|EA_Controller $CI;
+    protected CI_Controller|App_Controller $CI;
 
     public const PROVIDERS = [
         'parasut' => 'Paraşüt',

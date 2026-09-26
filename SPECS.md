@@ -14,10 +14,9 @@ licensees evaluating it.
 BooKi is a self-hosted appointment/booking platform for service
 businesses that need more than a generic calendar: physical resource
 (room/station) management, staff commission tracking, session/payment
-tracking, and compliance-grade handling of customer data. It began as a
-customized deployment of the open-source EasyAppointments project and has
-since been substantially rewritten, hardened, and rebranded under the Ki
-Software License (see [LICENSE](LICENSE)).
+tracking, and compliance-grade handling of customer data. It is
+engineered and built as an enterprise-grade booking and multi-tenant SaaS platform
+under the Ki Software License (see [LICENSE](LICENSE)).
 
 ---
 

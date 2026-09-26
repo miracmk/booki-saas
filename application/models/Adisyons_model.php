@@ -6,7 +6,7 @@
  * Sits between Appointments/Reservations and Payments/Invoices.
  * ---------------------------------------------------------------------------- */
 
-class Adisyons_model extends EA_Model
+class Adisyons_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

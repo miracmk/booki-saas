@@ -24,7 +24,7 @@
  * changes to the model itself.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_pos_invoice_types_to_payment_transactions extends EA_Migration
+class Migration_Add_pos_invoice_types_to_payment_transactions extends App_Migration
 {
     private const WIDENED_TYPES = ['deposit', 'full_payment', 'refund', 'pos_sale', 'invoice_payment'];
 

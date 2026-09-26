@@ -7,7 +7,7 @@
  * abstraction. Access: admin/secretary/provider (register access).
  * ---------------------------------------------------------------------------- */
 
-class Pos extends EA_Controller
+class Pos extends App_Controller
 {
     /**
      * Pos constructor.

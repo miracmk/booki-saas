@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class General_settings extends EA_Controller
+class General_settings extends App_Controller
 {
     /**
      * Calendar constructor.

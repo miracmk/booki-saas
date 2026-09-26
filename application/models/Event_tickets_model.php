@@ -4,7 +4,7 @@
  * BooKi - Event Tickets & Pass Generator Model (Biletinial / FareHarbor style)
  * ---------------------------------------------------------------------------- */
 
-class Event_tickets_model extends EA_Model
+class Event_tickets_model extends App_Model
 {
     /**
      * Generate unique ticket code (e.g. TKT-7A4B-9C2D).

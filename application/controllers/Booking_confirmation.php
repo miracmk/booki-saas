@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Booking_confirmation extends EA_Controller
+class Booking_confirmation extends App_Controller
 {
     /**
      * Booking_confirmation constructor.

@@ -8,7 +8,7 @@
  * 503 only if the master DB is unreachable.
  * ---------------------------------------------------------------------------- */
 
-class Health extends EA_Controller
+class Health extends App_Controller
 {
     /**
      * Health controller constructor.

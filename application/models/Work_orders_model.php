@@ -5,7 +5,7 @@
  * (Tekmetric / AutoLeap / Otomax / PratikServis style)
  * ---------------------------------------------------------------------------- */
 
-class Work_orders_model extends EA_Model
+class Work_orders_model extends App_Model
 {
     /**
      * Generate unique work order number (e.g. WO-2026-0042).

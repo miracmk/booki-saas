@@ -17,7 +17,7 @@
  *    customer.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Pii_encryption_schema extends EA_Migration
+class Migration_Pii_encryption_schema extends App_Migration
 {
     private const WIDENED_COLUMNS = ['email', 'phone_number', 'address', 'state', 'zip_code'];
 

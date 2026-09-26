@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Working_plan_exceptions_model extends EA_Model
+class Working_plan_exceptions_model extends App_Model
 {
     /**
      * @var array

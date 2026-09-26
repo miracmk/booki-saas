@@ -35,9 +35,9 @@ class Communication_hub
     public const CHANNELS = ['email', 'sms', 'whatsapp', 'telegram'];
 
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * Communication_hub constructor.

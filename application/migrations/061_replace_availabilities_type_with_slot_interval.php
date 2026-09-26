@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Replace_availabilities_type_with_slot_interval extends EA_Migration
+class Migration_Replace_availabilities_type_with_slot_interval extends App_Migration
 {
     /**
      * Upgrade method.

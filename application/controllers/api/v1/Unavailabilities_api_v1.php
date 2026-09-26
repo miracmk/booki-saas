@@ -15,7 +15,7 @@
  *
  * @package Controllers
  */
-class Unavailabilities_api_v1 extends EA_Controller
+class Unavailabilities_api_v1 extends App_Controller
 {
     /**
      * Unavailabilities_api_v1 constructor.

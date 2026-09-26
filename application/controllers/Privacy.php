@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Privacy extends EA_Controller
+class Privacy extends App_Controller
 {
     /**
      * Privacy constructor.
@@ -41,9 +41,9 @@ class Privacy extends EA_Controller
             // Apply rate limiting for privacy deletion requests (3 attempts per 15 minutes)
             $this->apply_privacy_rate_limit();
 
-            // Note: CSRF validation is already performed globally by EA_Security
+            // Note: CSRF validation is already performed globally by App_Security
             // (the privacy/* URI is not in csrf_exclude_uris). Re-checking the cookie
-            // here would always fail because EA_Security unsets the previous CSRF
+            // here would always fail because App_Security unsets the previous CSRF
             // cookie after validation in order to regenerate a fresh token.
 
             $display_delete_personal_information = setting('display_delete_personal_information');

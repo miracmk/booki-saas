@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Booking_settings extends EA_Controller
+class Booking_settings extends App_Controller
 {
     public array $allowed_setting_fields = ['id', 'name', 'value'];
 

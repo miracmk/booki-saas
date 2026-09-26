@@ -10,7 +10,7 @@
  * package (appointment -> package link, with UNIQUE constraint to prevent double-usage).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_customer_packages_tables extends EA_Migration
+class Migration_Create_customer_packages_tables extends App_Migration
 {
     public function up()
     {

@@ -27,7 +27,7 @@ if (!function_exists('request')) {
      */
     function request(?string $key = null, $default = null): mixed
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         if (empty($key)) {
@@ -58,7 +58,7 @@ if (!function_exists('response')) {
      */
     function response(string $content = '', int $status = 200, array $headers = []): void
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         foreach ($headers as $header) {
@@ -85,7 +85,7 @@ if (!function_exists('json_response')) {
      */
     function json_response(array $content = [], int $status = 200, array $headers = []): void
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         foreach ($headers as $header) {
@@ -201,7 +201,7 @@ if (!function_exists('abort')) {
      */
     function abort(int $code, string $message = '', array $headers = []): void
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         foreach ($headers as $header) {
@@ -254,7 +254,7 @@ if (!function_exists('method')) {
      */
     function method(string $expected_method): void
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         $current_method = $CI->input->method();

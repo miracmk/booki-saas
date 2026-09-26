@@ -7,7 +7,7 @@
  * enter API credentials, configure deposit requirements).
  * ---------------------------------------------------------------------------- */
 
-class Payment_settings extends EA_Controller
+class Payment_settings extends App_Controller
 {
     public function __construct()
     {

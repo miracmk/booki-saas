@@ -7,7 +7,7 @@
  * pattern as migration 073/114/117.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_invoices_column_to_roles_table extends EA_Migration
+class Migration_Add_invoices_column_to_roles_table extends App_Migration
 {
     /**
      * Upgrade method.

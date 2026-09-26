@@ -7,7 +7,7 @@
  * API keys using sf_pii_encrypt/sf_pii_decrypt (same as customer PII).
  * ---------------------------------------------------------------------------- */
 
-class Payment_settings_model extends EA_Model
+class Payment_settings_model extends App_Model
 {
     /**
      * Encrypted fields (API keys, secrets, webhook secret).

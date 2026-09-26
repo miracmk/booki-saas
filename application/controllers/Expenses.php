@@ -4,7 +4,7 @@
  * BooKi - Expenses Controller (Operational & Supplier Cost Management)
  * ---------------------------------------------------------------------------- */
 
-class Expenses extends EA_Controller
+class Expenses extends App_Controller
 {
     public function __construct()
     {

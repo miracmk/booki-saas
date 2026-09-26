@@ -7,7 +7,7 @@
  * treatment rooms/tables). Mirrors the structure of Services_model.php.
  * ---------------------------------------------------------------------------- */
 
-class Stations_model extends EA_Model
+class Stations_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

@@ -16,7 +16,7 @@ Son güncelleme: 2026-09-18
    - `Whatsapp.php` & `Instagram.php`: Meta Webhook (`webhook_receive`) için `X-Hub-Signature-256` HMAC-SHA256 imza doğrulama güvenlik katmanı eklendi.
    - `deploy/mcp/reservation-mcp/server.js`: MCP HTTP endpoint'lerine `MCP_SERVER_TOKEN` Bearer authentication ve güvenli Origin kontrolü eklendi.
    - `rate_limit_helper.php` & `config.php`: Rate limiting kuralları `ENVIRONMENT === 'testing'` ve Docker bridge IP'leri için güvenli istisnayla yapılandırıldı.
-   - `EA_Controller.php`: Veritabanı hata detayı sızıntısı `ENVIRONMENT === 'development'` ile sınırlandırıldı.
+   - `App_Controller.php`: Veritabanı hata detayı sızıntısı `ENVIRONMENT === 'development'` ile sınırlandırıldı.
    - `Agent_api.php`: Müşteri arama (`customer_lookup`) minimum sorgu uzunluğu 3 karaktere çıkarıldı.
 
 2. **Faz 2: Backend Sistemleri, Eşzamanlılık & Veri Bütünlüğü (Backend & Systems):**
@@ -199,7 +199,7 @@ Kullanıcı istekleri:
 **1) Altyapı, CSP ve CSRF Kök Neden Düzeltmeleri:**
 - **CSP Font İzni (`security_headers.php`):** Content-Security-Policy başlığı `https://fonts.googleapis.com` (style-src) ve `https://fonts.gstatic.com` (font-src) eklenerek Google Fonts CSP engellemesi çözüldü.
 - **Konsol Çökmesi (`active_sessions_widget.js`):** `poll()` fonksiyonu `App.Http.Calendar.getActiveSessions` varlık kontrolüyle korundu, takvim harici sayfalardaki fatal TypeErrors giderildi.
-- **CSRF Token Kök Neden Fix'i (`EA_Security.php` & `app.js`):** AJAX istekleri `X-CSRF-Token` başlığı gönderdiğinde, Apache bunu PHP'de `$_SERVER['HTTP_X_CSRF_TOKEN']` olarak sunuyordu; ancak `EA_Security.php` yalnızca `$_SERVER['HTTP_X_CSRF']` ve `$_POST['csrf_token']` kontrolü yapıyordu. Bu uyumsuzluk nedeniyle `waitlist/search`, `data_requests/search`, `memberships` ve `pos` AJAX çağrıları 403 CSRF hatası veriyordu. `EA_Security.php` hem `HTTP_X_CSRF_TOKEN` hem JSON body desteğiyle güncellendi; ayrıca `app.js` ve `app.min.js` içine global `$.ajaxSetup` eklenerek tüm non-GET AJAX isteklerine otomatik CSRF başlıkları bağlandı.
+- **CSRF Token Kök Neden Fix'i (`App_Security.php` & `app.js`):** AJAX istekleri `X-CSRF-Token` başlığı gönderdiğinde, Apache bunu PHP'de `$_SERVER['HTTP_X_CSRF_TOKEN']` olarak sunuyordu; ancak `App_Security.php` yalnızca `$_SERVER['HTTP_X_CSRF']` ve `$_POST['csrf_token']` kontrolü yapıyordu. Bu uyumsuzluk nedeniyle `waitlist/search`, `data_requests/search`, `memberships` ve `pos` AJAX çağrıları 403 CSRF hatası veriyordu. `App_Security.php` hem `HTTP_X_CSRF_TOKEN` hem JSON body desteğiyle güncellendi; ayrıca `app.js` ve `app.min.js` içine global `$.ajaxSetup` eklenerek tüm non-GET AJAX isteklerine otomatik CSRF başlıkları bağlandı.
 - **Eksik Dil Satırları:** EasyAppointments çekirdeğinde `lang('id')` anahtarı bulunmadığı için view seviyesinde loglanan hatalar giderildi (`#` ile değiştirildi), `english/translations_lang.php`'ye eksik `email_templates` ve `id` tanımları eklendi.
 
 **2) 8 Sayfanın Görsel Harmonizasyonu & Script Senkronizasyonu:**
@@ -710,7 +710,7 @@ gerçek dönüşüm + WhatsApp bridge stale-session + Randevu modal tek sütun +
   `Whatsapp::save_mode()` (mode=unofficial denendiğinde), `save_bridge()`, `qr_start()`. `Google::oauth()`
   (Calendar bağlama girişimi) `require_plan_feature('google_calendar')` ile kapılı (buradaki gibi sayfa-
   seviyesi 403 akışında `abort()` kullanmak doğru, JSON dönmüyor).
-  **tenant_context()'e `plan` eklendi** (`EA_Controller::resolve_tenant()`), superadmin'deki iki plan
+  **tenant_context()'e `plan` eklendi** (`App_Controller::resolve_tenant()`), superadmin'deki iki plan
   text-input'u (`#c-plan`, `#p-plan`) 4 seçenekli `<select>`'e çevrildi (schema değişmedi, hâlâ
   `tenants.plan varchar(32)` free-text - sadece UI kısıtlandı). **salonflora tenant'ı "Elite"e ayarlandı**
   (mevcut "Premium LifeTime" değerini eşleşmeyen bir plan bırakırsa bu turda kurulan WhatsApp/AI Asistan/
@@ -845,7 +845,7 @@ fark edilen birkaç gerçek prod bug'ı düzeltildi. Hepsi commit'lendi ve push'
   dosyasına hiç eklenmemişti (sadece Turkish'te vardı) → ham anahtar adı ekrana düşüyordu. Düzeltme: (1)
   browser Accept-Language artık `Config::LANGUAGE`'i ezmiyor, (2) General Settings'teki "Varsayılan Dil"
   ayarı ŞİMDİYE KADAR SADECE yeni kayıtları etkiliyordu, hiç çalışan dili değiştirmiyordu — artık
-  `EA_Controller::configure_language()`'da session (kullanıcının kendi tercihi) > query param >
+  `App_Controller::configure_language()`'da session (kullanıcının kendi tercihi) > query param >
   **tenant'ın `default_language` ayarı** > `Config::LANGUAGE` sırasıyla fallback olarak kullanılıyor.
   Admin hesabının (`users.id=1`) DB'deki `language` alanı `english` olarak kayıtlıydı, `turkish` yapıldı.
 - **KRİTİK ALTYAPI BULGUSU — `.min.js` build gap:** `asset_url()` prod'da (`config('debug')=false`) HER
@@ -1171,7 +1171,7 @@ Kullanıcının "BooKi" marka değişikliği isteğiyle başlandı. Repo `miracm
 - Dev anahtarlar gerçek base64-encoded 32-byte olarak üretildi (`EA_APP_KEY`, `TENANT_MASTER_KEY`, `BACKUP_ENCRYPTION_KEY`) — bu, `console tenant_create`'in "invalid key" hatasını çözdü.
 - Dev superadmin: `admin` / `admin@booki.dev` / `BookiAdmin#2026`.
 - Dev tenant: `devsalon` (id 1, DB `ki_tenant_devsalon`, login `administrator`/`administrator`).
-- `/etc/hosts`: `127.0.0.1 booki-app.dev booki-admin.dev booki.dev devsalon-booki-app.dev`. **Önemli:** `EA_Controller::resolve_tenant()` HTTP_HOST'dan port'u söküyor (satır 163) — bu yüzden dev env var'ları port'suz domain'ler (`booki-app.dev` vb.) olmalı; tarayıcıda `:8080`/`:8081` ile erişilir.
+- `/etc/hosts`: `127.0.0.1 booki-app.dev booki-admin.dev booki.dev devsalon-booki-app.dev`. **Önemli:** `App_Controller::resolve_tenant()` HTTP_HOST'dan port'u söküyor (satır 163) — bu yüzden dev env var'ları port'suz domain'ler (`booki-app.dev` vb.) olmalı; tarayıcıda `:8080`/`:8081` ile erişilir.
 
 ### Doğrulamalar (dev)
 

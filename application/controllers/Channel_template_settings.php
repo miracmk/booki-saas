@@ -16,7 +16,7 @@
  *
  * @package Controllers
  */
-class Channel_template_settings extends EA_Controller
+class Channel_template_settings extends App_Controller
 {
     /**
      * Flat "template key" -> settings-table name whitelist. Keeps the save/preview endpoints from

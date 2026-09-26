@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Ldap_settings extends EA_Controller
+class Ldap_settings extends App_Controller
 {
     /**
      * Ldap_settings constructor.

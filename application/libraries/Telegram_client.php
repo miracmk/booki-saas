@@ -22,9 +22,9 @@ use GuzzleHttp\Exception\GuzzleException;
 class Telegram_client
 {
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     public function __construct()
     {

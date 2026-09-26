@@ -4,7 +4,7 @@
  * BooKi - Restaurant Operations Model (Floor Plans, Tables, Reservations & Experiences)
  * ---------------------------------------------------------------------------- */
 
-class Restaurant_model extends EA_Model
+class Restaurant_model extends App_Model
 {
     /**
      * Get all tables grouped by section with live status and active adisyon details.

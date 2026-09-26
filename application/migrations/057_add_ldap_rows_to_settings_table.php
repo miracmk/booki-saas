@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_ldap_rows_to_settings_table extends EA_Migration
+class Migration_Add_ldap_rows_to_settings_table extends App_Migration
 {
     /**
      * Upgrade method.

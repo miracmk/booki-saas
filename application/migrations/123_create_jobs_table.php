@@ -26,7 +26,7 @@
  * Exponential backoff on failure: available_at is set to now() + (60 * 2^attempts) on retry.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_jobs_table extends EA_Migration
+class Migration_Create_jobs_table extends App_Migration
 {
     /**
      * Upgrade method.

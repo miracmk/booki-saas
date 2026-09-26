@@ -11,7 +11,7 @@
  * a data request is fundamentally about a customer record).
  * ---------------------------------------------------------------------------- */
 
-class Data_requests extends EA_Controller
+class Data_requests extends App_Controller
 {
     public function __construct()
     {

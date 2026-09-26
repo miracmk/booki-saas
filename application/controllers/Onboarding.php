@@ -6,7 +6,7 @@
  * Provides a smart interactive onboarding wizard for selecting an industry vertical,
  * toggling sector-specific modules, previewing service structures, and seeding full demo datasets.
  */
-class Onboarding extends EA_Controller
+class Onboarding extends App_Controller
 {
     public function __construct()
     {

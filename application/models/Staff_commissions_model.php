@@ -4,7 +4,7 @@
  * BooKi - Staff Commissions & Payroll Engine
  * ---------------------------------------------------------------------------- */
 
-class Staff_commissions_model extends EA_Model
+class Staff_commissions_model extends App_Model
 {
     /**
      * Calculate and record commissions for items in an adisyon or completed appointment.

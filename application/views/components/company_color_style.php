@@ -90,11 +90,11 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
         --bs-focus-ring-color: rgba(<?= $rgb ?>, 0.25);
         
         /* Custom app color shades */
-        --ea-primary-hover: <?= $hover ?>;
-        --ea-primary-active: <?= $active ?>;
-        --ea-primary-dark: <?= $dark ?>;
-        --ea-primary-darker: <?= $darker ?>;
-        --ea-primary-subtle: <?= $subtle ?>;
+        --app-primary-hover: <?= $hover ?>;
+        --app-primary-active: <?= $active ?>;
+        --app-primary-dark: <?= $dark ?>;
+        --app-primary-darker: <?= $darker ?>;
+        --app-primary-subtle: <?= $subtle ?>;
     }
 
     /*
@@ -107,10 +107,10 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
     .btn-primary {
         --bs-btn-bg: var(--bs-primary);
         --bs-btn-border-color: var(--bs-primary);
-        --bs-btn-hover-bg: var(--ea-primary-hover);
-        --bs-btn-hover-border-color: var(--ea-primary-hover);
-        --bs-btn-active-bg: var(--ea-primary-active);
-        --bs-btn-active-border-color: var(--ea-primary-active);
+        --bs-btn-hover-bg: var(--app-primary-hover);
+        --bs-btn-hover-border-color: var(--app-primary-hover);
+        --bs-btn-active-bg: var(--app-primary-active);
+        --bs-btn-active-border-color: var(--app-primary-active);
         --bs-btn-disabled-bg: var(--bs-primary);
         --bs-btn-disabled-border-color: var(--bs-primary);
     }
@@ -122,8 +122,8 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
         --bs-btn-hover-bg: var(--bs-primary);
         --bs-btn-hover-border-color: var(--bs-primary);
         --bs-btn-active-color: var(--bs-white, #fff);
-        --bs-btn-active-bg: var(--ea-primary-active);
-        --bs-btn-active-border-color: var(--ea-primary-active);
+        --bs-btn-active-bg: var(--app-primary-active);
+        --bs-btn-active-border-color: var(--app-primary-active);
         --bs-btn-disabled-color: var(--bs-primary);
         --bs-btn-disabled-border-color: var(--bs-primary);
     }
@@ -160,7 +160,7 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
 
     .nav-pills .nav-link:hover:not(.active) {
         background: rgba(var(--bs-primary-rgb), 0.08);
-        color: var(--ea-primary-active);
+        color: var(--app-primary-active);
     }
 
     .nav-pills .nav-link.active {
@@ -191,7 +191,7 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
 
     .nav-link {
         --bs-nav-link-color: var(--bs-primary);
-        --bs-nav-link-hover-color: var(--ea-primary-hover);
+        --bs-nav-link-hover-color: var(--app-primary-hover);
     }
 
     .dropdown-menu {
@@ -214,7 +214,7 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
     /*
     .alert-primary {
         background: rgba(var(--bs-primary-rgb), 0.1);
-        color: var(--ea-primary-darker);
+        color: var(--app-primary-darker);
     }
     */
 
@@ -260,11 +260,11 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
     }
 
     #book-appointment-wizard .book-step {
-        background: var(--ea-primary-dark);
+        background: var(--app-primary-dark);
     }
 
     #book-appointment-wizard .book-step strong {
-        color: var(--ea-primary-subtle);
+        color: var(--app-primary-subtle);
     }
 
     #book-appointment-wizard #available-hours .selected-hour {
@@ -275,8 +275,8 @@ if (!empty($company_color) && $company_color !== DEFAULT_COMPANY_COLOR):
     #book-appointment-wizard #company-name .display-selected-service,
     #book-appointment-wizard #company-name .display-selected-provider,
     #book-appointment-wizard #company-name .display-booking-selection {
-        color: var(--ea-primary-darker);
-        border-right-color: var(--ea-primary-darker);
+        color: var(--app-primary-darker);
+        border-right-color: var(--app-primary-darker);
     }
 
     .backend-page .filter-records .results .entry.selected {

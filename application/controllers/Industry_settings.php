@@ -8,7 +8,7 @@
  * Station/Unit/Table), and toggle modular features directly from Settings at any time.
  * ---------------------------------------------------------------------------- */
 
-class Industry_settings extends EA_Controller
+class Industry_settings extends App_Controller
 {
     public function __construct()
     {

@@ -7,7 +7,7 @@
  * audit trail of payment attempts/completions.
  * ---------------------------------------------------------------------------- */
 
-class Payment_transactions_model extends EA_Model
+class Payment_transactions_model extends App_Model
 {
     /**
      * Save a new payment transaction.

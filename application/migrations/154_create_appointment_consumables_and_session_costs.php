@@ -8,7 +8,7 @@
  * and gross profit per session).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_appointment_consumables_and_session_costs extends EA_Migration
+class Migration_Create_appointment_consumables_and_session_costs extends App_Migration
 {
     public function up(): void
     {

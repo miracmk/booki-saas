@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Google_analytics_settings extends EA_Controller
+class Google_analytics_settings extends App_Controller
 {
     /**
      * Google_analytics_settings constructor.

@@ -5,7 +5,7 @@
  * daily revenue report to compute the payout owed to each therapist.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_commission_columns_to_users_table extends EA_Migration
+class Migration_Add_commission_columns_to_users_table extends App_Migration
 {
     /**
      * Upgrade method.

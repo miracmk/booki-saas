@@ -15,7 +15,7 @@
  * SQL are not required.
  */
 
-class Migration_Specific_calendar_sync extends EA_Migration
+class Migration_Specific_calendar_sync extends App_Migration
 {
     /**
      * Upgrade method.

@@ -11,7 +11,7 @@
  * @since       v1.4.0
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_is_private_column_to_users_table extends EA_Migration
+class Migration_Add_is_private_column_to_users_table extends App_Migration
 {
     /**
      * Upgrade method.

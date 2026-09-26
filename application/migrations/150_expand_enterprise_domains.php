@@ -3,7 +3,7 @@
 /**
  * Migration 150: Expand Enterprise Domains (Reviews, Waitlist, POS Gateways, Invoices ERP, Marketing Suite & Attribution).
  */
-class Migration_Expand_enterprise_domains extends EA_Migration
+class Migration_Expand_enterprise_domains extends App_Migration
 {
     public function up(): void
     {

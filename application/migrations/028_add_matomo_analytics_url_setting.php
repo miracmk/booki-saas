@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_matomo_analytics_url_setting extends EA_Migration
+class Migration_Add_matomo_analytics_url_setting extends App_Migration
 {
     /**
      * Upgrade method.

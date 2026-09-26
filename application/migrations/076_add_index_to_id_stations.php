@@ -5,7 +5,7 @@
  * queries run on every availability calculation).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_index_to_id_stations extends EA_Migration
+class Migration_Add_index_to_id_stations extends App_Migration
 {
     public function up(): void
     {

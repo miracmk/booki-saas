@@ -14,7 +14,7 @@
  * oluşturuldu, 2 tanesi çakışma nedeniyle atlandı".
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_recurrence_groups_table extends EA_Migration
+class Migration_Create_recurrence_groups_table extends App_Migration
 {
     /**
      * Upgrade method.

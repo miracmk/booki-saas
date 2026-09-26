@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Telegram extends EA_Controller
+class Telegram extends App_Controller
 {
     public function __construct()
     {

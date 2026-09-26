@@ -39,7 +39,7 @@ if (!function_exists('is_callback')) {
      */
     function is_callback(string $class, string $method): bool
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         return $CI->router->class === $class && $CI->router->method === $method;

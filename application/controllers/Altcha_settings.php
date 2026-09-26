@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Altcha_settings extends EA_Controller
+class Altcha_settings extends App_Controller
 {
     /**
      * Altcha_settings constructor.

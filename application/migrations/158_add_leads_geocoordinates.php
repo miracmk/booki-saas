@@ -4,7 +4,7 @@
  * BooKi - Migration 158: Add geocoordinates to leads table for map view.
  * -------------------------------------------------------------------------- */
 
-class Migration_Add_leads_geocoordinates extends EA_Migration
+class Migration_Add_leads_geocoordinates extends App_Migration
 {
     public function up(): void
     {

@@ -9,7 +9,7 @@
  * @package Models
  */
 
-class Reports_model extends EA_Model
+class Reports_model extends App_Model
 {
     private const COMPLETED_STATUS = 'Tamamlandı';
 

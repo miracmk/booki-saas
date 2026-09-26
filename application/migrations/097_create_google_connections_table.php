@@ -15,7 +15,7 @@
  * customer/provider contact fields (see salonflora_crypto_helper.php) - never stored in plaintext.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_google_connections_table extends EA_Migration
+class Migration_Create_google_connections_table extends App_Migration
 {
     /**
      * Upgrade method.

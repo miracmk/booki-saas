@@ -15,7 +15,7 @@
  * - appointments.reminders_notified = [reminder_hours_ahead] for rows already fully
  *   notified (is_reminder_sent = 1) so they are not re-sent after the upgrade.
  */
-class Migration_Add_appointment_reminder_offsets extends EA_Migration
+class Migration_Add_appointment_reminder_offsets extends App_Migration
 {
     public function up(): void
     {

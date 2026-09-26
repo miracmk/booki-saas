@@ -12,7 +12,7 @@
  * sessions widget already uses) - no duplicated business logic.
  * ---------------------------------------------------------------------------- */
 
-class Dashboard extends EA_Controller
+class Dashboard extends App_Controller
 {
     private const CANCELLED_LIKE_STATUSES = ['Cancelled', 'Draft'];
 

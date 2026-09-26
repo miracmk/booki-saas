@@ -16,7 +16,7 @@
  * Google::webhook(), google_calendar_watch_channels/google_calendar_sync_log tables). Admin-only
  * (gated on PRIV_SYSTEM_SETTINGS, same posture as Audit_log/General Settings).
  */
-class Google_sync_dashboard extends EA_Controller
+class Google_sync_dashboard extends App_Controller
 {
     /**
      * Google_sync_dashboard constructor.

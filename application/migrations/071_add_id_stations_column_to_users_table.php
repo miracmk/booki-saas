@@ -4,7 +4,7 @@
  * Salon Flora customization - assigns a fixed station to each provider.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_id_stations_column_to_users_table extends EA_Migration
+class Migration_Add_id_stations_column_to_users_table extends App_Migration
 {
     /**
      * Upgrade method.

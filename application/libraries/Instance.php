@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-require_once __DIR__ . '/../core/EA_Migration.php';
+require_once __DIR__ . '/../core/App_Migration.php';
 
 /**
  * Instance library.
@@ -22,9 +22,9 @@ require_once __DIR__ . '/../core/EA_Migration.php';
 class Instance
 {
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * Installation constructor.

@@ -4,7 +4,7 @@
  * BooKi - Check-in / Check-out Controller (Operational Access & Kiosk Terminal)
  * ---------------------------------------------------------------------------- */
 
-class Checkin extends EA_Controller
+class Checkin extends App_Controller
 {
     public function __construct()
     {

@@ -29,7 +29,7 @@
  * / communication_rule_set() / communication_rule_template().
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_communication_rules_table extends EA_Migration
+class Migration_Create_communication_rules_table extends App_Migration
 {
     /**
      * Upgrade method.

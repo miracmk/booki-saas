@@ -20,7 +20,7 @@
  * ileride gerekirse yeni bir migration ile 1'e yukseltmek tek satir.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_branches_column_to_roles_table extends EA_Migration
+class Migration_Add_branches_column_to_roles_table extends App_Migration
 {
     /**
      * Upgrade method.

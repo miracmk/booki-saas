@@ -17,7 +17,7 @@
  * a modern, searchable/filterable discovery site with comprehensive SEO & GEO (Generative Engine Optimization).
  * Stays on the master DB for the entire request - never tenant-resolves.
  */
-class Marketplace extends EA_Controller
+class Marketplace extends App_Controller
 {
     public function __construct()
     {

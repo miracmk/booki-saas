@@ -7,7 +7,7 @@
  * for unlinked transactions) and customers. Tracks status changes and raw gateway responses.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_payment_transactions_table extends EA_Migration
+class Migration_Create_payment_transactions_table extends App_Migration
 {
     /**
      * Upgrade method.

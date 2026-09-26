@@ -22,7 +22,7 @@
  * follow-up once/if a stored-payment-method capability exists.
  * ---------------------------------------------------------------------------- */
 
-class Customer_memberships_model extends EA_Model
+class Customer_memberships_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

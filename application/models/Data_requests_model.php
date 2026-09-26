@@ -6,7 +6,7 @@
  * Thin CRUD layer for data export/erasure request tracking.
  * ---------------------------------------------------------------------------- */
 
-class Data_requests_model extends EA_Model
+class Data_requests_model extends App_Model
 {
     /**
      * Protected casts for automatic type conversion on retrieval.

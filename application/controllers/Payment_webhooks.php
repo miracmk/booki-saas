@@ -8,7 +8,7 @@
  * Signature verification is handled per-gateway via Payment_gateway_interface.
  * ---------------------------------------------------------------------------- */
 
-class Payment_webhooks extends EA_Controller
+class Payment_webhooks extends App_Controller
 {
     public function __construct()
     {

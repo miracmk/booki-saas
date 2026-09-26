@@ -55,7 +55,7 @@ $route['default_controller'] = 'booking';
 
 // BooKi (2026-08-26) - multi-tenant SaaS: the bare app domain (bookiapp.kibusiness.co,
 // no tenant subdomain) has no booking page of its own - it's the "which company are you with?"
-// portal instead. See Portal.php / EA_Controller::resolve_tenant()'s bare-host exception.
+// portal instead. See Portal.php / App_Controller::resolve_tenant()'s bare-host exception.
 $portal_host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
 
 if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) {
@@ -76,7 +76,7 @@ $route['meta/oauth_callback'] = 'meta/oauth_callback';
 $route['instagram/oauth_callback'] = 'meta/oauth_callback';
 
 // BooKi (2026-08-26) - SaaS admin panel: admin-bookiapp.kibusiness.co has no booking page
-// either - it's the super-admin login/dashboard. See EA_Controller::resolve_tenant()'s superadmin
+// either - it's the super-admin login/dashboard. See App_Controller::resolve_tenant()'s superadmin
 // host exception (stays on the master DB for the whole "Superadmin*" controller family).
 if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'admin-bookiapp.kibusiness.co')) {
     $route['default_controller'] = 'superadmin_auth';
@@ -84,7 +84,7 @@ if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'adm
 
 // BooKi (2026-09-16) - public marketing site on the marketplace host (booki.kibusiness.co).
 // The root of this host serves the Landing page; the discovery portal stays reachable at
-// /marketplace. See EA_Controller::resolve_tenant()'s marketplace host exception.
+// /marketplace. See App_Controller::resolve_tenant()'s marketplace host exception.
 $marketplace_domain = strtolower((string) (getenv('MARKETPLACE_DOMAIN') ?: 'booki.kibusiness.co'));
 $randevuburada_domain = strtolower((string) (getenv('RANDEVUBURADA_DOMAIN') ?: 'randevuburada.kibusiness.co'));
 

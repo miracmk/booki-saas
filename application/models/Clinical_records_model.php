@@ -4,7 +4,7 @@
  * BooKi - Clinical Records & EHR Model (SimplePractice / Jane App / BulutKlinik style)
  * ---------------------------------------------------------------------------- */
 
-class Clinical_records_model extends EA_Model
+class Clinical_records_model extends App_Model
 {
     /**
      * Add a clinical charting note (SOAP, Anamnesis, Prescription, Lab, Vet examination).

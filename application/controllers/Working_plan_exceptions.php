@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Working_plan_exceptions extends EA_Controller
+class Working_plan_exceptions extends App_Controller
 {
     public array $allowed_working_plan_exception_fields = [
         'id',

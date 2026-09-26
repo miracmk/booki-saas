@@ -10,7 +10,7 @@
  * needs to be traceable to who authorized it).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_conflict_override_to_appointments extends EA_Migration
+class Migration_Add_conflict_override_to_appointments extends App_Migration
 {
     /**
      * Upgrade method.

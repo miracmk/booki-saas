@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class About extends EA_Controller
+class About extends App_Controller
 {
     /**
      * About constructor.
@@ -83,10 +83,7 @@ class About extends EA_Controller
     }
 
     /**
-     * Salon Flora / BooKi customization - the stock "fetch blog posts from an external RSS
-     * feed" feature pointed at easyappointments.org, which has no meaning for BooKi and would
-     * otherwise silently phone out to a third-party domain from the About page. No Ki Software blog
-     * feed exists to point this at, so it's a deliberate no-op.
+     * External blog RSS feed is disabled for BooKi.
      *
      * @return array
      */

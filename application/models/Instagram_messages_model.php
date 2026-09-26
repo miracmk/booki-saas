@@ -9,7 +9,7 @@
  * @package Models
  */
 
-class Instagram_messages_model extends EA_Model
+class Instagram_messages_model extends App_Model
 {
     /**
      * Save a new Instagram message to the log.

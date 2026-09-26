@@ -9,7 +9,7 @@
  * Access: admin/secretary only.
  * ---------------------------------------------------------------------------- */
 
-class Invoices extends EA_Controller
+class Invoices extends App_Controller
 {
     /**
      * Invoices constructor.

@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Modify_sync_period_columns extends EA_Migration
+class Migration_Modify_sync_period_columns extends App_Migration
 {
     /**
      * Upgrade method.

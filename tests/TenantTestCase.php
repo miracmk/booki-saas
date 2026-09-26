@@ -10,7 +10,7 @@ use RuntimeException;
  *
  * This class bootstraps the CodeIgniter3 framework once per test run (static, shared across all test
  * methods) and provides helpers to connect to tenant-specific databases, mirroring the behavior of
- * Console::connect_tenant() and EA_Controller::resolve_tenant().
+ * Console::connect_tenant() and App_Controller::resolve_tenant().
  *
  * IMPORTANT: MySQL DDL (CREATE/ALTER/DROP) is NOT transactional — any test that runs a migration
  * must NOT rely on the trans_begin/trans_rollback wrapper in setUp/tearDown and must clean up manually.
@@ -124,7 +124,7 @@ abstract class TenantTestCase extends BaseTestCase
     /**
      * Connect to a tenant's database and set up the tenant context.
      *
-     * This method replicates the logic from Console::connect_tenant() and EA_Controller::resolve_tenant().
+     * This method replicates the logic from Console::connect_tenant() and App_Controller::resolve_tenant().
      * It swaps $this->db to the tenant's own database and sets tenant_context() so encryption helpers
      * use the tenant's own PII keys.
      *

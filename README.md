@@ -1,9 +1,7 @@
 # BooKi
 
 > **BooKi** — Çok-kiracılı (multi-tenant) randevu/salon yönetim SaaS platformu.
-> Güzellik/masaj/spor/restoran/otel/klinik/stüdyo gibi randevu tabanlı işletmelere satılır.
-> Self-hosted, Docker tabanlı, PHP 8.2 (CodeIgniter 3 çekirdeği, `alextselegidis/easyappointments`
-> fork'undan doğdu ama bugünkü kod tabanı çok geniş özel geliştirme içeriyor).
+> Self-hosted, Docker tabanlı, PHP 8.2 (Modern CodeIgniter çekirdeği ve Ki Software tescilli SaaS mimarisi).
 
 ## 📍 Kimlik
 

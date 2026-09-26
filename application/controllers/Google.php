@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Google extends EA_Controller
+class Google extends App_Controller
 {
     /**
      * Google constructor.
@@ -43,7 +43,7 @@ class Google extends EA_Controller
     public static function sync(?string $provider_id = null): void
     {
         try {
-            /** @var EA_Controller $CI */
+            /** @var App_Controller $CI */
             $CI = get_instance();
 
             $CI->load->library('google_sync');
@@ -504,7 +504,7 @@ class Google extends EA_Controller
      */
     public static function ensure_watch_channel(array $provider): void
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = get_instance();
 
         $CI->load->library('google_sync');
@@ -605,7 +605,7 @@ class Google extends EA_Controller
      */
     public static function webhook(): void
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = get_instance();
 
         $resource_state = $CI->input->get_request_header('X-Goog-Resource-State');

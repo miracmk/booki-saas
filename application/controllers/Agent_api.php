@@ -28,7 +28,7 @@
  *
  * @package Controllers
  */
-class Agent_api extends EA_Controller
+class Agent_api extends App_Controller
 {
     protected array $allowed_customer_lookup_fields = [
         'id',

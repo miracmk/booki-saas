@@ -19,7 +19,7 @@
 
 class Review_service
 {
-    private EA_Controller|CI_Controller $CI;
+    private App_Controller|CI_Controller $CI;
 
     public function __construct()
     {

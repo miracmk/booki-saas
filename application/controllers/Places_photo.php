@@ -10,7 +10,7 @@
  * GET /api/places/photo?ref={photo_reference}&maxwidth={px}
  * -------------------------------------------------------------------------- */
 
-class Places_photo extends EA_Controller
+class Places_photo extends App_Controller
 {
     public function __construct()
     {

@@ -34,9 +34,9 @@ use Jsvrcek\ICS\Utility\Formatter;
 class Ics_file
 {
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * Availability constructor.
@@ -243,7 +243,7 @@ class Ics_file
 
     public function generate_uid(int $db_record_id): string
     {
-        return 'ea-' . md5($db_record_id);
+        return 'booki-' . md5($db_record_id);
     }
 
     /**

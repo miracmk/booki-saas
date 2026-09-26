@@ -13,13 +13,13 @@ services:
       # CLI-only fallback (e.g. cron-triggered emails) - real web requests compute base_url from the
       # actual tenant subdomain in the request, see application/config/database.php.
       BASE_URL: https://bookiapp.kibusiness.co
-      # Kiracı subdomain kalıbının çözüldüğü kök domain - EA_Controller::resolve_tenant() hem
+      # Kiracı subdomain kalıbının çözüldüğü kök domain - App_Controller::resolve_tenant() hem
       # "{subdomain}-TENANT_APP_DOMAIN" (güncel) hem "{subdomain}.TENANT_APP_DOMAIN" (eski) kalıbını kabul eder.
       TENANT_APP_DOMAIN: bookiapp.kibusiness.co
-      # SaaS admin paneli (kiracı CRUD + lisans takibi) bu domain'de - EA_Controller::resolve_tenant()
+      # SaaS admin paneli (kiracı CRUD + lisans takibi) bu domain'de - App_Controller::resolve_tenant()
       # bu host'ta master DB'de kalır, sadece "Superadmin*" controller ailesine izin verir.
       SUPERADMIN_DOMAIN: admin-bookiapp.kibusiness.co
-      # Marketplace (tüketici keşif sitesi) bu domain'de - EA_Controller::resolve_tenant() bu host'ta
+      # Marketplace (tüketici keşif sitesi) bu domain'de - App_Controller::resolve_tenant() bu host'ta
       # da master DB'de kalır, sadece "Marketplace" controller'ına izin verir.
       MARKETPLACE_DOMAIN: booki.kibusiness.co
       RANDEVUBURADA_DOMAIN: randevuburada.kibusiness.co
@@ -28,12 +28,13 @@ services:
       DEBUG_MODE: "FALSE"
       # 'default' connection group = the MASTER DB (holds only the `tenants` catalog). Each request is
       # transparently re-pointed at the resolved tenant's own DB - see
-      # application/core/EA_Controller.php::resolve_tenant().
+      # application/core/App_Controller.php::resolve_tenant().
       DB_HOST: db
       DB_NAME: ki_reservation_master
       DB_USERNAME: ki_reservation_master
       DB_PASSWORD: ${DB_PASSWORD}
-      EA_APP_KEY: ${EA_APP_KEY}
+      BOOKI_APP_KEY: ${BOOKI_APP_KEY:-${EA_APP_KEY}}
+      EA_APP_KEY: ${EA_APP_KEY:-${BOOKI_APP_KEY}}
       TENANT_MASTER_KEY: ${TENANT_MASTER_KEY}
       BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY}
       MAIL_PROTOCOL: mail
@@ -69,7 +70,7 @@ services:
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       # JS/CSS cache-busting token (see application/config/app.php) - bump on every deploy that
       # changes a JS/CSS file.
-      ASSET_VERSION: "prod-20260925-1630"
+      ASSET_VERSION: "prod-20260926-0931"
     volumes:
       - /opt/ki-ecosystem/ki-reservation/files:/var/www/html/storage
     networks:

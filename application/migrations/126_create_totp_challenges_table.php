@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_totp_challenges_table extends EA_Migration
+class Migration_Create_totp_challenges_table extends App_Migration
 {
     /**
      * Upgrade method.

@@ -18,7 +18,7 @@
  * yedeğinden geri yüklemek için. Müşteri tekilleştirme mantığı (telefon-hash → tam isim eşleşmesi +
  * unvan ayıklama) Console::migrate_salonflora_live_data()'da kurulup doğrulanan algoritmanın aynısı.
  */
-class Data_transfer extends EA_Controller
+class Data_transfer extends App_Controller
 {
     private array $honorifics = ['bey', 'hanım', 'hanim', 'hoca', 'usta', 'abi', 'abla', 'beyefendi', 'hanımefendi', 'hanimefendi'];
 

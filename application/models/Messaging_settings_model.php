@@ -9,7 +9,7 @@
  * @package Models
  */
 
-class Messaging_settings_model extends EA_Model
+class Messaging_settings_model extends App_Model
 {
     /**
      * Get the messaging settings row (decrypted).

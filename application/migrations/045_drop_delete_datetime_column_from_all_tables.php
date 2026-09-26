@@ -11,7 +11,7 @@
  * @since       v1.4.0
  * ---------------------------------------------------------------------------- */
 
-class Migration_Drop_delete_datetime_column_from_all_tables extends EA_Migration
+class Migration_Drop_delete_datetime_column_from_all_tables extends App_Migration
 {
     /**
      * @var string[]

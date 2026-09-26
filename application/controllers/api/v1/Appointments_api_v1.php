@@ -15,7 +15,7 @@
  *
  * @package Controllers
  */
-class Appointments_api_v1 extends EA_Controller
+class Appointments_api_v1 extends App_Controller
 {
     /**
      * Appointments_api_v1 constructor.

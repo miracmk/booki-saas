@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Accounting_settings extends EA_Controller
+class Accounting_settings extends App_Controller
 {
     /**
      * Accounting_settings constructor.

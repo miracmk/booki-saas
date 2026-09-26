@@ -19,7 +19,7 @@ use Gregwar\Captcha\CaptchaBuilder;
  *
  * @package Controllers
  */
-class Captcha extends EA_Controller
+class Captcha extends App_Controller
 {
     /**
      * Class Constructor

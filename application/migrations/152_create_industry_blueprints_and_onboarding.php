@@ -7,7 +7,7 @@
  * 1. industry_blueprints table for managing sector-based presets, module activations, and terminologies
  * 2. industry_code and onboarding_completed settings in settings table
  */
-class Migration_Create_industry_blueprints_and_onboarding extends EA_Migration
+class Migration_Create_industry_blueprints_and_onboarding extends App_Migration
 {
     public function up(): void
     {

@@ -31,9 +31,9 @@ class Caldav_sync
     protected bool $enable_ssrf_check = true;
 
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * Caldav_sync constructor.

@@ -152,7 +152,7 @@ if (!function_exists('format_timezone')) {
      */
     function format_timezone(string $value): ?string
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         $CI->load->library('timezones');

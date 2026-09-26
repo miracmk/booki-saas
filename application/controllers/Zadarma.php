@@ -8,7 +8,7 @@
  * + zd_echo dogrulamasi (gelen string aynen dondurulur).
  * ---------------------------------------------------------------------------- */
 
-class Zadarma extends EA_Controller
+class Zadarma extends App_Controller
 {
     public function __construct()
     {

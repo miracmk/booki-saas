@@ -22,7 +22,7 @@
  * exhaustion semantics.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_membership_tables extends EA_Migration
+class Migration_Create_membership_tables extends App_Migration
 {
     /**
      * Upgrade method.

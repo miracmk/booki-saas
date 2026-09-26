@@ -7,7 +7,7 @@
  * failed jobs. Access is gated on the PRIV_SYSTEM_SETTINGS permission.
  * ---------------------------------------------------------------------------- */
 
-class Jobs extends EA_Controller
+class Jobs extends App_Controller
 {
     /**
      * Jobs controller constructor.

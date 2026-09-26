@@ -20,7 +20,7 @@ require_once __DIR__ . '/Caldav.php';
  *
  * Handles all the Console related operations.
  */
-class Console extends EA_Controller
+class Console extends App_Controller
 {
     /**
      * Console constructor.
@@ -355,7 +355,7 @@ class Console extends EA_Controller
 
         // BooKi (2026-08-26) - SaaS admin panel (admin-bookiapp.kibusiness.co) support.
         // master_admins is a credential store entirely separate from any tenant's own users - Ki
-        // Software's own staff, not tied to a tenant, never resolved via EA_Controller::resolve_tenant().
+        // Software's own staff, not tied to a tenant, never resolved via App_Controller::resolve_tenant().
         if (!$this->db->table_exists('master_admins')) {
             $this->dbforge->add_field([
                 'id' => ['type' => 'INT', 'constraint' => 11, 'unsigned' => true, 'auto_increment' => true],
@@ -1233,10 +1233,10 @@ class Console extends EA_Controller
 
         $old_db = $this->load->database(
             [
-                'hostname' => 'easyappointments-db',
-                'username' => 'easyappointments',
-                'password' => 'NZEJtaocUqaLqQeH45jibYGt',
-                'database' => 'easyappointments',
+                'hostname' => getenv('LEGACY_DB_HOST') ?: 'easyappointments-db',
+                'username' => getenv('LEGACY_DB_USER') ?: 'easyappointments',
+                'password' => getenv('LEGACY_DB_PASS') ?: 'NZEJtaocUqaLqQeH45jibYGt',
+                'database' => getenv('LEGACY_DB_NAME') ?: 'easyappointments',
                 'dbdriver' => 'mysqli',
                 'dbprefix' => 'ea_',
                 'pconnect' => false,
@@ -1750,7 +1750,7 @@ class Console extends EA_Controller
      * Purely a DB update - actually provisioning the domain (DNS check, Let's Encrypt HTTP-01
      * certificate, nginx server block) is the host-side script's job
      * (/opt/apps/ki-rezervasyon/scripts/add-custom-domain.sh), which calls this as its last step.
-     * EA_Controller::resolve_tenant() already reads `custom_domain` on every request - nothing else
+     * App_Controller::resolve_tenant() already reads `custom_domain` on every request - nothing else
      * needs to change once this is set.
      *
      * Usage: php index.php console tenant_set_custom_domain <subdomain> <custom_domain|-->
@@ -2719,7 +2719,7 @@ class Console extends EA_Controller
     /**
      * BooKi (2026-08-26) - swap $this->db to a tenant's own database AND set
      * tenant_context() so salonflora_crypto_helper.php uses this tenant's own PII keys (mirrors what
-     * EA_Controller::resolve_tenant() does for web requests). $tenant must have
+     * App_Controller::resolve_tenant() does for web requests). $tenant must have
      * db_host/db_username/db_password/pii_enc_key/pii_hash_key (all tenant_master_encrypt()-ed) and
      * db_name - accepts either a full row from the `tenants` table or the minimal array tenant_create()
      * builds right after inserting one.

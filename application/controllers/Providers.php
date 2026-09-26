@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Providers extends EA_Controller
+class Providers extends App_Controller
 {
     public array $allowed_provider_fields = [
         'id',

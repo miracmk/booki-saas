@@ -7,7 +7,7 @@
  * Access: admin/secretary manage the list; providers can view their own.
  * ---------------------------------------------------------------------------- */
 
-class Waitlist extends EA_Controller
+class Waitlist extends App_Controller
 {
     public array $allowed_entry_fields = [
         'id',

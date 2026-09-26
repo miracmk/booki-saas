@@ -24,7 +24,7 @@ if (!function_exists('lang')) {
      */
     function lang(string $line, string $for = '', array $attributes = []): string
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = get_instance();
 
         $result = $CI->lang->line($line);

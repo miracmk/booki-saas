@@ -7,7 +7,7 @@
  * token itself stays the one real credential - short_code is never accepted as a
  * substitute auth mechanism anywhere else.
  */
-class Migration_Add_short_code_to_reviews extends EA_Migration
+class Migration_Add_short_code_to_reviews extends App_Migration
 {
     public function up(): void
     {

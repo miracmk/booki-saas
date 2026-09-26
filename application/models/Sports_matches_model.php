@@ -5,7 +5,7 @@
  * (Playtomic / Glofox / CourtReserve / SahaBurada style)
  * ---------------------------------------------------------------------------- */
 
-class Sports_matches_model extends EA_Model
+class Sports_matches_model extends App_Model
 {
     /**
      * Create an open or private court match.

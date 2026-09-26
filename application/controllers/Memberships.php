@@ -10,7 +10,7 @@
  * Access: admin/secretary only.
  * ---------------------------------------------------------------------------- */
 
-class Memberships extends EA_Controller
+class Memberships extends App_Controller
 {
     public array $allowed_plan_fields = [
         'id',

@@ -12,7 +12,7 @@
  * invoice can exist in draft/issued/paid status purely as a billing record).
  * ---------------------------------------------------------------------------- */
 
-class Invoices_model extends EA_Model
+class Invoices_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

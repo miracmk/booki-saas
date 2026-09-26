@@ -21,7 +21,7 @@
  * themselves is self-approving (see Calendar.php::check_out()).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_early_exit_justification extends EA_Migration
+class Migration_Add_early_exit_justification extends App_Migration
 {
     /**
      * Upgrade method.

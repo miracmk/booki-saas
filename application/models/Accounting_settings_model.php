@@ -18,7 +18,7 @@
  *
  * @package Models
  */
-class Accounting_settings_model extends EA_Model
+class Accounting_settings_model extends App_Model
 {
     /**
      * @var array

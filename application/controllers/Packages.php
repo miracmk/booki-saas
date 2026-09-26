@@ -7,7 +7,7 @@
  * Access: admin/secretary only.
  * ---------------------------------------------------------------------------- */
 
-class Packages extends EA_Controller
+class Packages extends App_Controller
 {
     public array $allowed_package_fields = [
         'id',

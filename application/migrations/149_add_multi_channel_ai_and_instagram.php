@@ -4,7 +4,7 @@
  * Migration 149: Add multi-channel AI auto-reply toggles to messaging_settings,
  * create instagram_messages table for Instagram logging, and add instagram_user_id to users.
  */
-class Migration_Add_multi_channel_ai_and_instagram extends EA_Migration
+class Migration_Add_multi_channel_ai_and_instagram extends App_Migration
 {
     public function up(): void
     {

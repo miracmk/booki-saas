@@ -19,7 +19,7 @@
  *   base).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_pricing_override_fields_to_appointments_table extends EA_Migration
+class Migration_Add_pricing_override_fields_to_appointments_table extends App_Migration
 {
     /**
      * Upgrade method.

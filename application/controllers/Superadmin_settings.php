@@ -14,7 +14,7 @@
  * SaaS admin panel (admin-bookiapp.kibusiness.co) - platform-wide settings.
  * Manages Google OAuth, Platform SMTP/IMAP, and Universal AI/LLM Provider API Keys.
  */
-class Superadmin_settings extends EA_Controller
+class Superadmin_settings extends App_Controller
 {
     public function __construct()
     {

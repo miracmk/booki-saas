@@ -9,7 +9,7 @@
  * @package Controllers
  */
 
-class Whatsapp extends EA_Controller
+class Whatsapp extends App_Controller
 {
     public function __construct()
     {

@@ -12,7 +12,7 @@
  *    Handles multi-tenant OAuth login & Meta Business account linking.
  * ---------------------------------------------------------------------------- */
 
-class Meta extends EA_Controller
+class Meta extends App_Controller
 {
     public function __construct()
     {

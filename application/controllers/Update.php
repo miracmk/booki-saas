@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Update extends EA_Controller
+class Update extends App_Controller
 {
     /**
      * Update constructor.

@@ -4,7 +4,7 @@
  * BooKi - Gift Cards & Deposit (Kapora) Management Model
  * ---------------------------------------------------------------------------- */
 
-class Gift_cards_model extends EA_Model
+class Gift_cards_model extends App_Model
 {
     /**
      * Generate a unique uppercase gift card code (e.g. GC-98B2-X5A1).

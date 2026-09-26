@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Rename_is_unavailable_column_of_appointments_table extends EA_Migration
+class Migration_Rename_is_unavailable_column_of_appointments_table extends App_Migration
 {
     /**
      * Upgrade method.

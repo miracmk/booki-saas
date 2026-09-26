@@ -8,7 +8,7 @@
  * and extracts/reconstructs customer identities from ad journeys and interactions.
  * ---------------------------------------------------------------------------- */
 
-class Traffic_attributions_model extends EA_Model
+class Traffic_attributions_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

@@ -10,7 +10,7 @@
  * purely additive, no existing read/write path changes behavior.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_recurrence_to_appointments extends EA_Migration
+class Migration_Add_recurrence_to_appointments extends App_Migration
 {
     /**
      * Upgrade method.

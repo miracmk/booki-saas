@@ -4,7 +4,7 @@
  * BooKi - Check-in / Check-out Model (Operational Entry/Exit, Kiosk & Occupancy)
  * ---------------------------------------------------------------------------- */
 
-class Checkin_model extends EA_Model
+class Checkin_model extends App_Model
 {
     /**
      * Unified Identifier Resolver (resolves phone, QR token, appointment hash, membership token, customer ID, or URL).

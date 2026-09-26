@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Ai_agent extends EA_Controller
+class Ai_agent extends App_Controller
 {
     private const SESSION_KEY = 'ai_agent_history';
 

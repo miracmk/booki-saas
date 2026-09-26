@@ -4,7 +4,7 @@
  * BooKi - Customer Vehicles Management Model (Tekmetric / Shopmonkey / PratikServis style)
  * ---------------------------------------------------------------------------- */
 
-class Vehicles_model extends EA_Model
+class Vehicles_model extends App_Model
 {
     /**
      * Normalize plate number (e.g. "34 ABC 123" -> "34ABC123").

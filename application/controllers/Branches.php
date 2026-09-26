@@ -8,7 +8,7 @@
  * admin-level access.
  * ---------------------------------------------------------------------------- */
 
-class Branches extends EA_Controller
+class Branches extends App_Controller
 {
     public array $allowed_branch_fields = ['id', 'name', 'address', 'phone', 'is_default', 'is_active'];
 

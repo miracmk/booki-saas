@@ -8,7 +8,7 @@
  * and gross profit margin per appointment/service).
  * ---------------------------------------------------------------------------- */
 
-class Inventory_consumables_model extends EA_Model
+class Inventory_consumables_model extends App_Model
 {
     /**
      * Get consumable recipe rules for a service with product cost and unit details.

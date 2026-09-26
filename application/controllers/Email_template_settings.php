@@ -26,7 +26,7 @@
  *
  * @package Controllers
  */
-class Email_template_settings extends EA_Controller
+class Email_template_settings extends App_Controller
 {
     /**
      * Salon Flora customization - flat "template key" -> settings-table name whitelist. Keeps the

@@ -16,7 +16,7 @@ function storage_cleanup(): void
     $cutoff_time = time() - (STORAGE_RETENTION_DAYS * 86400);
 
     $directories = [
-        'sessions' => $storage_path . '/sessions/ea_session*',
+        'sessions' => $storage_path . '/sessions/*session*',
         'logs' => $storage_path . '/logs/log-*.php',
         'cache' => $storage_path . '/cache/*',
     ];

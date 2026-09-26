@@ -4,7 +4,7 @@
  * BooKi - Stations (Tables / Treatment Rooms) API v1
  * ---------------------------------------------------------------------------- */
 
-class Stations_api_v1 extends EA_Controller
+class Stations_api_v1 extends App_Controller
 {
     public function __construct()
     {

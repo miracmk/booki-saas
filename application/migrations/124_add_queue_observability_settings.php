@@ -24,7 +24,7 @@
  * overwrite any later customizations).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_queue_observability_settings extends EA_Migration
+class Migration_Add_queue_observability_settings extends App_Migration
 {
     /**
      * Upgrade method.

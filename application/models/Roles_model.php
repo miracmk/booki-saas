@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Roles_model extends EA_Model
+class Roles_model extends App_Model
 {
     /**
      * @var array

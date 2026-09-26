@@ -5,7 +5,7 @@
  * from the planned start_datetime / end_datetime of the booking.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_actual_datetimes_to_appointments_table extends EA_Migration
+class Migration_Add_actual_datetimes_to_appointments_table extends App_Migration
 {
     /**
      * Upgrade method.

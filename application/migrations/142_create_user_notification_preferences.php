@@ -3,7 +3,7 @@
 /**
  * Per-customer notification channel overrides.
  */
-class Migration_Create_user_notification_preferences extends EA_Migration
+class Migration_Create_user_notification_preferences extends App_Migration
 {
     public function up(): void
     {

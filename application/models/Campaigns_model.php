@@ -10,7 +10,7 @@
  * outcomes. Campaign lifecycle: draft → queued → sending → sent|failed.
  * ---------------------------------------------------------------------------- */
 
-class Campaigns_model extends EA_Model
+class Campaigns_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

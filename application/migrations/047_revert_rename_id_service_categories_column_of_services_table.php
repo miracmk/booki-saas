@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Revert_rename_id_service_categories_column_of_services_table extends EA_Migration
+class Migration_Revert_rename_id_service_categories_column_of_services_table extends App_Migration
 {
     /**
      * Upgrade method.

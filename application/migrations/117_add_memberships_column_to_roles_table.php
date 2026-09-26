@@ -9,7 +9,7 @@
  * memberships are sold/managed by staff for now.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_memberships_column_to_roles_table extends EA_Migration
+class Migration_Add_memberships_column_to_roles_table extends App_Migration
 {
     /**
      * Upgrade method.

@@ -15,7 +15,7 @@
  *   Add a secondary index starting with id_users for that direction.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Station_join_table_indexes extends EA_Migration
+class Migration_Station_join_table_indexes extends App_Migration
 {
     /**
      * Upgrade method.

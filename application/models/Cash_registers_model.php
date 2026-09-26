@@ -4,7 +4,7 @@
  * BooKi - Cash Registers Model (Kasa Yönetimi & Gün Sonu Kapanışı)
  * ---------------------------------------------------------------------------- */
 
-class Cash_registers_model extends EA_Model
+class Cash_registers_model extends App_Model
 {
     /**
      * Get currently active open cash register or initialize one.

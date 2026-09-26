@@ -12,25 +12,29 @@
 
 /**
  * SaaS admin panel (admin-bookiapp.kibusiness.co) - tenant CRUD + plan/license tracking. Runs
- * against the master DB (see EA_Controller::resolve_tenant()'s superadmin host exception). Tenant
+ * against the master DB (see App_Controller::resolve_tenant()'s superadmin host exception). Tenant
  * provisioning here mirrors Console::tenant_create() exactly (same DB-swap dance, same
  * Instance::migrate()/seed() call) - duplicated rather than shared because Console's version is
  * CLI-only (private connect_tenant()/connect_master() helpers, echo-based output) and this is a web
  * JSON endpoint; keep the two in sync if the provisioning steps ever change.
  */
-class Superadmin_tenants extends EA_Controller
+class Superadmin_tenants extends App_Controller
 {
     public function __construct()
     {
         parent::__construct();
 
-        if (!session('superadmin_id')) {
-            redirect('superadmin_auth');
-            exit();
+        $method = strtolower((string) $this->router->fetch_method());
+        if ($method !== 'platform_bridge_inbound') {
+            if (!session('superadmin_id')) {
+                redirect('superadmin_auth');
+                exit();
+            }
         }
 
         $this->load->library('instance');
         $this->load->library('whatsapp_bridge');
+        $this->load->library('platform_ai_responder');
         $this->load->model('leads_model');
         $this->load->model('onboarding_sessions_model');
         $this->load->model('master_audit_model');
@@ -89,7 +93,7 @@ class Superadmin_tenants extends EA_Controller
     /**
      * users.email is PII-encrypted per-tenant (see salonflora_crypto_helper.php) - sf_pii_decrypt()
      * only works once tenant_context() carries THIS tenant's own key, exactly like
-     * EA_Controller::resolve_tenant() sets it for a normal (non-superadmin) request. Must be called
+     * App_Controller::resolve_tenant() sets it for a normal (non-superadmin) request. Must be called
      * before any sf_pii_decrypt()/generate_reset_token() use below.
      */
     private function activate_tenant_pii_context(array $tenant): void
@@ -206,6 +210,8 @@ class Superadmin_tenants extends EA_Controller
             'districts_count' => count($districts),
             'sectors_count' => count($sectors),
         ];
+
+        $active_tab = (string) request('tab', 'dashboard');
 
         html_vars([
             'page_title' => 'BooKi — Super Admin & Saha Satış / CRM Platformu',
@@ -1099,7 +1105,7 @@ class Superadmin_tenants extends EA_Controller
             }
 
             $result = $bridge->session_start('platform', [
-                'webhookUrl' => site_url('whatsapp/bridge_inbound'),
+                'webhookUrl' => site_url('superadmin_tenants/platform_bridge_inbound'),
             ]);
 
             if ($result === null) {
@@ -1108,6 +1114,100 @@ class Superadmin_tenants extends EA_Controller
             }
 
             json_response(['success' => true, 'result' => $result]);
+        } catch (Throwable $e) {
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Platform WhatsApp Bridge Inbound Webhook.
+     * Called by ki-wa-bridge when an inbound message arrives for the 'platform' tenant session.
+     * Authenticated via X-Bridge-Secret header (bypasses admin session check).
+     *
+     * POST /superadmin_tenants/platform_bridge_inbound
+     */
+    public function platform_bridge_inbound(): void
+    {
+        try {
+            $raw_input = file_get_contents('php://input');
+            $payload = json_decode($raw_input, true) ?: [];
+
+            if (empty($payload)) {
+                json_response(['success' => true, 'message' => 'empty payload']);
+                return;
+            }
+
+            $bridge = $this->resolve_platform_bridge();
+            $received = $_SERVER['HTTP_X_BRIDGE_SECRET'] ?? ($this->input->get_request_header('X-Bridge-Secret') ?? '');
+
+            $secret = master_setting('wa_bridge_secret') ?: (getenv('WA_BRIDGE_SECRET') ?: '');
+            if (!empty($secret) && !$bridge->verify_secret_header(is_string($received) ? $received : '')) {
+                log_message('error', 'Superadmin_tenants::platform_bridge_inbound - secret mismatch');
+                $this->output->set_status_header(403)->set_output('Unauthorized');
+                return;
+            }
+
+            if (!empty($payload['tenant']) && $payload['tenant'] !== 'platform') {
+                log_message('error', 'Superadmin_tenants::platform_bridge_inbound - expected platform tenant, got: ' . $payload['tenant']);
+                json_response(['success' => false, 'message' => 'tenant mismatch'], 400);
+                return;
+            }
+
+            $from = (string) ($payload['from'] ?? '');
+            $body = (string) ($payload['body'] ?? '');
+
+            if ($from === '') {
+                json_response(['success' => true, 'message' => 'empty sender']);
+                return;
+            }
+
+            $reply = $this->platform_ai_responder->respond_whatsapp($from, $body);
+
+            if (!empty($reply)) {
+                $bridge->send('platform', $from, $reply);
+            }
+
+            json_response([
+                'success' => true,
+                'replied' => !empty($reply),
+            ]);
+        } catch (Throwable $e) {
+            log_message('error', 'Superadmin_tenants::platform_bridge_inbound - ' . $e->getMessage());
+            json_response(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    /**
+     * Interactive AI Chat endpoint for the Superadmin AI panel.
+     *
+     * POST /superadmin_tenants/api_ai_chat
+     * Body: { message: string, history?: array, lead_id?: int }
+     */
+    public function api_ai_chat(): void
+    {
+        try {
+            method('post');
+            check('message', 'string');
+
+            $message = trim((string) request('message'));
+            if ($message === '') {
+                json_response(['success' => false, 'message' => 'Mesaj metni boş olamaz.'], 400);
+                return;
+            }
+
+            $raw_history = request('history');
+            $history = [];
+            if (is_array($raw_history)) {
+                $history = $raw_history;
+            } elseif (is_string($raw_history) && $raw_history !== '') {
+                $history = json_decode($raw_history, true) ?: [];
+            }
+
+            $lead_id = request('lead_id') ? (int) request('lead_id') : null;
+
+            $result = $this->platform_ai_responder->respond_chat($message, $history, $lead_id);
+
+            json_response($result);
         } catch (Throwable $e) {
             json_response(['success' => false, 'message' => $e->getMessage()], 400);
         }

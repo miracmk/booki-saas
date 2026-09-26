@@ -24,7 +24,7 @@
  *
  * @package Controllers
  */
-class Customers extends EA_Controller
+class Customers extends App_Controller
 {
     public array $allowed_customer_fields = [
         'id',

@@ -4,7 +4,7 @@
  * BooKi - Adisyons Controller (Service Tickets, Orders & Checkout Operations)
  * ---------------------------------------------------------------------------- */
 
-class Adisyons extends EA_Controller
+class Adisyons extends App_Controller
 {
     public function __construct()
     {

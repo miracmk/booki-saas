@@ -8,7 +8,7 @@
  * Sensitive fields (API keys/secrets) are encrypted via sf_pii_encrypt() before storage.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_payment_settings_table extends EA_Migration
+class Migration_Create_payment_settings_table extends App_Migration
 {
     /**
      * Upgrade method.

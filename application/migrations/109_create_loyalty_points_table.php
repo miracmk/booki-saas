@@ -9,7 +9,7 @@
  * on the users table for quick lookups.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_loyalty_points_table extends EA_Migration
+class Migration_Create_loyalty_points_table extends App_Migration
 {
     /**
      * Upgrade method.

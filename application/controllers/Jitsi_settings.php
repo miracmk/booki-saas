@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Jitsi_settings extends EA_Controller
+class Jitsi_settings extends App_Controller
 {
     /**
      * Jitsi_settings constructor.

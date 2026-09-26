@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Remove_prefix_from_fkey_constraints extends EA_Migration
+class Migration_Remove_prefix_from_fkey_constraints extends App_Migration
 {
     /**
      * Upgrade method.

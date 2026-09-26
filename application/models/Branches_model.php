@@ -8,7 +8,7 @@
  * single-location deployments and fully utilized for multi-location SaaS.
  * ---------------------------------------------------------------------------- */
 
-class Branches_model extends EA_Model
+class Branches_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

@@ -4,7 +4,7 @@
  * BooKi - Expenses Model (Operational & Recurring Cost Tracking)
  * ---------------------------------------------------------------------------- */
 
-class Expenses_model extends EA_Model
+class Expenses_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

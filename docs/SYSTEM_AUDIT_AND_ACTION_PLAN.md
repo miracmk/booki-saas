@@ -48,7 +48,7 @@
 - **[VULN-03 - Yüksek] Meta Webhook HMAC Eksikliği:** `Whatsapp.php` ve `Instagram.php` webhook POST endpoint'leri `X-Hub-Signature-256` HMAC kontrolü yapmıyor.
 - **[VULN-04 - Yüksek] İptal Sayfası CSRF Açığı:** `Booking_cancellation.php` CSRF korumasından muaf ve manuel kontrol yapmıyor.
 - **[VULN-05 - Yüksek] Docker Rate-Limit Bypass:** `rate_limit_helper.php` özel IP bloklarını (`172.*`, `10.*`) muaf tutuyor; Docker arkasında tüm istekler `172.x` geldiği için rate limit tamamen devre dışı kalıyor.
-- **[VULN-06 - Orta] Canlıda db_debug Açık:** `EA_Controller.php:247` tenant bağlantısında `'db_debug' => true` sabit kodlanmış, hata durumunda SQL sızdırıyor.
+- **[VULN-06 - Orta] Canlıda db_debug Açık:** `App_Controller.php:247` tenant bağlantısında `'db_debug' => true` sabit kodlanmış, hata durumunda SQL sızdırıyor.
 - **[VULN-07 - Orta] İyzico Header Case & Replay:** `Iyzico_gateway.php` imza başlığını büyük harfle arıyor ve replay koruması içermiyor.
 - **[VULN-08 - Orta] Agent Müşteri PII Sızıntısı:** `Agent_api::customer_lookup` 2 karakterli joker sorgularla çok geniş müşteri listesi ve maskelenmemiş telefon/e-posta dönüyor.
 
@@ -67,7 +67,7 @@
 - **[BE-04] Non-Sargable DATE() Sorguları:** `Appointments_model.php` ve `Dashboard.php` B-Tree indekslerini devre dışı bırakan `DATE(start_datetime) = ?` kullanıyor.
 - **[BE-05] `json_exception` HTTP 500 Zorlaması:** `http_helper.php` tüm istisnaları HTTP 500'e çeviriyor (400, 404, 422 kodlarını yutuyor).
 - **[BE-06] Ölü Kod & Çift Fonksiyonlar:** `http_helper.php` içinde çift `response()` tanımı, `User.php` kullanılmayan yönlendirme dosyası.
-- **[BE-07] Domain Sabitleri Tutarsızlığı:** `routes.php`, `EA_Controller.php` ve `Landing.php` arasında varsayılan domain fallback'leri uyumsuz.
+- **[BE-07] Domain Sabitleri Tutarsızlığı:** `routes.php`, `App_Controller.php` ve `Landing.php` arasında varsayılan domain fallback'leri uyumsuz.
 
 ---
 
@@ -119,7 +119,7 @@ flowchart TD
 - `application/controllers/Whatsapp.php` & `Instagram.php`
 - `deploy/mcp/reservation-mcp/server.js`
 - `application/helpers/rate_limit_helper.php` & `application/config/config.php`
-- `application/core/EA_Controller.php`
+- `application/core/App_Controller.php`
 
 ### Adım 2: Backend Concurrency, Bug & Performans Düzeltmeleri
 - `application/models/Loyalty_points_model.php` & `Products_model.php`

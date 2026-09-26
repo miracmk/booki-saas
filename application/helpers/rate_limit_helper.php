@@ -27,7 +27,7 @@ if (!function_exists('rate_limit')) {
      */
     function rate_limit(string $ip, int $max_requests = 1000, int $duration = 120): void
     {
-        /** @var EA_Controller $CI */
+        /** @var App_Controller $CI */
         $CI = &get_instance();
 
         $rate_limiting = $CI->config->item('rate_limiting');

@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Google_integrations extends EA_Controller
+class Google_integrations extends App_Controller
 {
     public function __construct()
     {

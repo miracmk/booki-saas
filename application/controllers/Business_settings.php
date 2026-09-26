@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Business_settings extends EA_Controller
+class Business_settings extends App_Controller
 {
     public array $allowed_setting_fields = ['id', 'name', 'value'];
 

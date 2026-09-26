@@ -23,9 +23,9 @@ use GuzzleHttp\Client;
 class Webhooks_client
 {
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * Webhook client constructor.
@@ -144,7 +144,7 @@ class Webhooks_client
      * Queued handler for webhook deliveries (called by Job_dispatcher).
      * Re-fetches the webhook configuration and delivers the payload.
      *
-     * @param EA_Controller|CI_Controller $CI
+     * @param App_Controller|CI_Controller $CI
      * @param array $payload Must contain 'webhook_id', 'action', 'payload'
      */
     public function handle_queued_delivery($CI, array $payload): void

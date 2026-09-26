@@ -12,7 +12,7 @@
  * Ayni desen: 114_add_waitlist_column_to_roles_table.php.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_products_and_packages_columns_to_roles_table extends EA_Migration
+class Migration_Add_products_and_packages_columns_to_roles_table extends App_Migration
 {
     /**
      * Upgrade method.

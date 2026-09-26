@@ -17,7 +17,7 @@
  *
  * @package Models
  */
-class Users_model extends EA_Model
+class Users_model extends App_Model
 {
     /**
      * Salon Flora customization (2026-08-24, KVKK hardening) - see Admins_model's docblock for the

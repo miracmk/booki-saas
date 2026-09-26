@@ -4,7 +4,7 @@
  * BooKi - Restaurant Operations Controller (Floor Plan, Tables & Reservations)
  * ---------------------------------------------------------------------------- */
 
-class Restaurant extends EA_Controller
+class Restaurant extends App_Controller
 {
     public function __construct()
     {

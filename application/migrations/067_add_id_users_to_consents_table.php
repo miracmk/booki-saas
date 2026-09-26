@@ -16,7 +16,7 @@
  * Links consents to users by ID instead of storing personal data directly,
  * improving GDPR compliance by allowing proper data anonymization on deletion.
  */
-class Migration_Add_id_users_to_consents_table extends EA_Migration
+class Migration_Add_id_users_to_consents_table extends App_Migration
 {
     /**
      * Upgrade method.

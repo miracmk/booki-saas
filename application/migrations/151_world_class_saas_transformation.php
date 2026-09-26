@@ -14,7 +14,7 @@
  * 8. Audit Logging & Notification Events
  * 9. Industry & Modularity Settings
  */
-class Migration_World_class_saas_transformation extends EA_Migration
+class Migration_World_class_saas_transformation extends App_Migration
 {
     public function up(): void
     {

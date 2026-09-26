@@ -16,7 +16,7 @@
  *
  * @package Controllers
  */
-class Notifications_feed extends EA_Controller
+class Notifications_feed extends App_Controller
 {
     public function __construct()
     {

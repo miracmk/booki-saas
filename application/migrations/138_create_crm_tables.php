@@ -22,7 +22,7 @@
  * pushed to, so later events (appointment.updated / appointment.cancelled) can update the SAME deal
  * instead of duplicating it.
  */
-class Migration_Create_crm_tables extends EA_Migration
+class Migration_Create_crm_tables extends App_Migration
 {
     public function up(): void
     {

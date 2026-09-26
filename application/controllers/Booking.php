@@ -20,7 +20,7 @@
  *
  * @package Controllers
  */
-class Booking extends EA_Controller
+class Booking extends App_Controller
 {
     public array $allowed_customer_fields = [
         'id',

@@ -16,7 +16,7 @@
  * this model owns the rest of the lifecycle (claims, submission, moderation).
  * ---------------------------------------------------------------------------- */
 
-class Reviews_model extends EA_Model
+class Reviews_model extends App_Model
 {
     public const STATUS_REQUESTED = 'requested';
     public const STATUS_PENDING = 'pending';

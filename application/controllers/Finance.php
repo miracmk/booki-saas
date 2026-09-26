@@ -4,7 +4,7 @@
  * BooKi - Finance Controller (Central Financial Operations, Cash, Bank & Expenses)
  * ---------------------------------------------------------------------------- */
 
-class Finance extends EA_Controller
+class Finance extends App_Controller
 {
     public function __construct()
     {

@@ -7,7 +7,7 @@
  * Used by Queue library and the observability/monitoring layer.
  * ---------------------------------------------------------------------------- */
 
-class Jobs_model extends EA_Model
+class Jobs_model extends App_Model
 {
     /**
      * Protected casts for automatic type conversion on retrieval.

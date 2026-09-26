@@ -4,7 +4,7 @@
  * BooKi - Migration 156: SaaS Sales CRM, Leads & Onboarding Master Tables.
  * -------------------------------------------------------------------------- */
 
-class Migration_Create_saas_crm_and_onboarding_master_tables extends EA_Migration
+class Migration_Create_saas_crm_and_onboarding_master_tables extends App_Migration
 {
     public function up(): void
     {

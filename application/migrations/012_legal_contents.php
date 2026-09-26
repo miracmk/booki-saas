@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Legal_contents extends EA_Migration
+class Migration_Legal_contents extends App_Migration
 {
     /**
      * Upgrade method.

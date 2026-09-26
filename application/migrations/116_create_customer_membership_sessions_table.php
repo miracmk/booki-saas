@@ -8,7 +8,7 @@
  * membership, UNIQUE on id_appointments to prevent double-consumption.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_customer_membership_sessions_table extends EA_Migration
+class Migration_Create_customer_membership_sessions_table extends App_Migration
 {
     /**
      * Upgrade method.

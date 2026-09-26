@@ -17,13 +17,13 @@
  * host (the bare `MARKETPLACE_DOMAIN`, e.g. booki.kibusiness.co) so the sales/landing page,
  * the tenant discovery portal and the superadmin panel are all reachable on their own distinct
  * hosts. Stays on the master DB for the whole request - never tenant-resolves (see
- * EA_Controller::resolve_tenant()'s marketplace host exception).
+ * App_Controller::resolve_tenant()'s marketplace host exception).
  *
  * The landing page is intentionally plain server-rendered PHP + CSS (no SPA): it must be
  * fast, indexable and dependency-free. Lead capture is wired in Dalga 0.5 (ea_leads + email +
  * Zoho CRM); until then the CTA simply points at the existing portal/marketplace.
  */
-class Landing extends EA_Controller
+class Landing extends App_Controller
 {
     public function __construct()
     {

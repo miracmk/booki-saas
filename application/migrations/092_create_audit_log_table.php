@@ -9,7 +9,7 @@
  * unreadable) - see audit_helper.php for exactly which actions are wired up.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_audit_log_table extends EA_Migration
+class Migration_Create_audit_log_table extends App_Migration
 {
     /**
      * Upgrade method.

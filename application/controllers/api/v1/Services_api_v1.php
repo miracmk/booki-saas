@@ -15,7 +15,7 @@
  *
  * @package Controllers
  */
-class Services_api_v1 extends EA_Controller
+class Services_api_v1 extends App_Controller
 {
     /**
      * Services_api_v1 constructor.

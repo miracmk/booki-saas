@@ -22,7 +22,7 @@
  *
  * @package Controllers\Api\V1
  */
-class Auth_api_v1 extends EA_Controller
+class Auth_api_v1 extends App_Controller
 {
     public function __construct()
     {

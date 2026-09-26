@@ -19,7 +19,7 @@
  *
  * @package Controllers
  */
-class Ai_assistant extends EA_Controller
+class Ai_assistant extends App_Controller
 {
     /**
      * Ai_assistant constructor.

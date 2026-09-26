@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Integrations extends EA_Controller
+class Integrations extends App_Controller
 {
     /**
      * Integrations constructor.

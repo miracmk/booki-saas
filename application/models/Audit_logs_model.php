@@ -4,7 +4,7 @@
  * BooKi - Audit Logs Model (Security & Financial Traceability)
  * ---------------------------------------------------------------------------- */
 
-class Audit_logs_model extends EA_Model
+class Audit_logs_model extends App_Model
 {
     /**
      * Record an audit trail entry.

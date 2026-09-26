@@ -6,7 +6,7 @@
  * Handles database operations for multi-session package management.
  * ---------------------------------------------------------------------------- */
 
-class Packages_model extends EA_Model
+class Packages_model extends App_Model
 {
     protected array $casts = [
         'id' => 'integer',

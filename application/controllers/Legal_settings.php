@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Legal_settings extends EA_Controller
+class Legal_settings extends App_Controller
 {
     /**
      * Legal_contents constructor.

@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_appointment_location_column extends EA_Migration
+class Migration_Create_appointment_location_column extends App_Migration
 {
     /**
      * Upgrade method.

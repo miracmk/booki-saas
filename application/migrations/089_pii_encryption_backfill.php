@@ -22,7 +22,7 @@
  * this migration ran).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Pii_encryption_backfill extends EA_Migration
+class Migration_Pii_encryption_backfill extends App_Migration
 {
     private const ENCRYPT_ONLY_COLUMNS = ['address', 'state', 'zip_code', 'notes'];
 

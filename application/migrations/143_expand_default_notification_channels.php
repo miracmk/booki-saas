@@ -3,7 +3,7 @@
 /**
  * Adds call and Instagram to the tenant default notification channel choices.
  */
-class Migration_Expand_default_notification_channels extends EA_Migration
+class Migration_Expand_default_notification_channels extends App_Migration
 {
     public function up(): void
     {

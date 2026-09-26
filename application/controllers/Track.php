@@ -7,7 +7,7 @@
  * from public booking pages and marketing landing pages.
  * ---------------------------------------------------------------------------- */
 
-class Track extends EA_Controller
+class Track extends App_Controller
 {
     public function __construct()
     {

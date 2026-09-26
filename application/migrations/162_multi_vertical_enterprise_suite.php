@@ -11,7 +11,7 @@
  * 5. Otomotiv / Servis / Ekspertiz: Customer Vehicles, DVI (Digital Vehicle Inspection) & Work Orders
  * 6. Deneyim / Eğlence / Escape Room: Digital Waivers, Booking Addons & QR Event Tickets
  */
-class Migration_Multi_vertical_enterprise_suite extends EA_Migration
+class Migration_Multi_vertical_enterprise_suite extends App_Migration
 {
     public function up(): void
     {

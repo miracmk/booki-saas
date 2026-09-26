@@ -28,7 +28,7 @@
  * This migration detects the master DB (the `tenants` table only exists in the master) and
  * realigns only that copy. It is a no-op on tenant DBs, where 132's schema is correct.
  */
-class Migration_Fix_master_reviews_mirror extends EA_Migration
+class Migration_Fix_master_reviews_mirror extends App_Migration
 {
     public function up(): void
     {

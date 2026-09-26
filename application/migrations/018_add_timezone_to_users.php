@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_timezone_to_users extends EA_Migration
+class Migration_Add_timezone_to_users extends App_Migration
 {
     /**
      * Upgrade method.

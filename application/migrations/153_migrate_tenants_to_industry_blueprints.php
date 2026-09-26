@@ -8,7 +8,7 @@
  * in industry_blueprints table, and applies the industry blueprint settings, terminology,
  * service categories, services, and stations.
  */
-class Migration_Migrate_tenants_to_industry_blueprints extends EA_Migration
+class Migration_Migrate_tenants_to_industry_blueprints extends App_Migration
 {
     public function up(): void
     {

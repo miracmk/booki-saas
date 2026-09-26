@@ -7,7 +7,7 @@
  * records ad parameters (UTM, gclid, fbclid), and forwards to booking.
  * ---------------------------------------------------------------------------- */
 
-class Landing_page extends EA_Controller
+class Landing_page extends App_Controller
 {
     /**
      * View a specific landing page by slug.

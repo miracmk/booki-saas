@@ -8,7 +8,7 @@
  * Google_integrations.php::set_drive_target()/set_sheets_target().
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_drive_sheets_targets extends EA_Migration
+class Migration_Add_drive_sheets_targets extends App_Migration
 {
     private const COLUMNS = [
         'drive_folder_id' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],

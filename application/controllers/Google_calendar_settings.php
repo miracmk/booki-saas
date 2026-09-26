@@ -17,7 +17,7 @@
  *
  * @package Controllers
  */
-class Google_calendar_settings extends EA_Controller
+class Google_calendar_settings extends App_Controller
 {
     /**
      * Google_calendar_settings constructor.

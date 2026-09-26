@@ -4,7 +4,7 @@
  * BooKi - Multi-Vertical Enterprise Operations Controller
  * ---------------------------------------------------------------------------- */
 
-class Verticals extends EA_Controller
+class Verticals extends App_Controller
 {
     public function __construct()
     {

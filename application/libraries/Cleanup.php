@@ -20,9 +20,9 @@
 class Cleanup
 {
     /**
-     * @var EA_Controller|CI_Controller
+     * @var App_Controller|CI_Controller
      */
-    protected EA_Controller|CI_Controller $CI;
+    protected App_Controller|CI_Controller $CI;
 
     /**
      * Cleanup constructor.
@@ -65,7 +65,7 @@ class Cleanup
         $deleted_count = 0;
         $cutoff_time = time() - $max_age_seconds;
 
-        foreach (glob($session_path . '/ea_session*') as $file) {
+        foreach (glob($session_path . '/*session*') as $file) {
             if (is_file($file) && filemtime($file) < $cutoff_time) {
                 if (unlink($file)) {
                     $deleted_count++;

@@ -23,12 +23,12 @@
  *      domain.sh is unchanged and still does the real provisioning).
  *
  * `custom_domain_pending` is deliberately separate from the LIVE, routed
- * `custom_domain` column (EA_Controller::resolve_tenant() only ever reads the
+ * `custom_domain` column (App_Controller::resolve_tenant() only ever reads the
  * latter) - nothing in this controller can affect which domain currently
  * routes traffic until the host worker promotes it.
  * ---------------------------------------------------------------------------- */
 
-class Custom_domain extends EA_Controller
+class Custom_domain extends App_Controller
 {
     // BooKi (2026-09-10) - where a verified/active tenant domain should ultimately point.
     // Mirrors scripts/add-custom-domain.sh's own DNS check (same server IP / canonical CNAME target).
@@ -50,7 +50,7 @@ class Custom_domain extends EA_Controller
         // method runs, resolve_tenant() has already swapped $this->db to the TENANT's own database
         // (which has no `tenants` table), so that check always reads as false and this feature looked
         // "multi-tenant only, but broken on every real tenant". tenant_context() is what actually means
-        // "this request was resolved to some tenant" - see EA_Controller::enforce_onboarding()'s
+        // "this request was resolved to some tenant" - see App_Controller::enforce_onboarding()'s
         // identical note for the same bug class.
         if (!tenant_context()) {
             return null;

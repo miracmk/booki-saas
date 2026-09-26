@@ -15,7 +15,7 @@
  * @package Controllers
  * ---------------------------------------------------------------------------- */
 
-class Instagram extends EA_Controller
+class Instagram extends App_Controller
 {
     public function __construct()
     {

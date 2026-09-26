@@ -7,7 +7,7 @@
  * automatic free-station algorithm.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Add_session_deviation_to_appointments_table extends EA_Migration
+class Migration_Add_session_deviation_to_appointments_table extends App_Migration
 {
     /**
      * Upgrade method.

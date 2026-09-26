@@ -3,7 +3,7 @@
 /**
  * Stores per-customer notification channel preferences.
  */
-class User_notification_preferences_model extends EA_Model
+class User_notification_preferences_model extends App_Model
 {
     private const CHANNELS = [
         'email',

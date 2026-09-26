@@ -16,7 +16,7 @@
  * Adds a setting for automatic personal data erasure after X days.
  * When set to 0, automatic erasure is disabled.
  */
-class Migration_Add_data_retention_days_setting extends EA_Migration
+class Migration_Add_data_retention_days_setting extends App_Migration
 {
     /**
      * Upgrade method.

@@ -15,7 +15,7 @@
  *
  * @package Controllers
  */
-class Working_plan_exceptions_api_v1 extends EA_Controller
+class Working_plan_exceptions_api_v1 extends App_Controller
 {
     /**
      * Working_plan_exceptions_api_v1 constructor.

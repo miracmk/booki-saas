@@ -10,7 +10,7 @@
  * @link        https://kisoftware.com
  * ---------------------------------------------------------------------------- */
 
-class Migration_Insert_custom_field_rows_to_settings_table extends EA_Migration
+class Migration_Insert_custom_field_rows_to_settings_table extends App_Migration
 {
     /**
      * @var int

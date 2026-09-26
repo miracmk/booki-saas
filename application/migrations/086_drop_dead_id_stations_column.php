@@ -8,7 +8,7 @@
  * schema that could otherwise confuse a future reader into thinking it's still load-bearing.
  * ---------------------------------------------------------------------------- */
 
-class Migration_Drop_dead_id_stations_column extends EA_Migration
+class Migration_Drop_dead_id_stations_column extends App_Migration
 {
     /**
      * Upgrade method.

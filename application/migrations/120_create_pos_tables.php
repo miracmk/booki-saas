@@ -13,7 +13,7 @@
  * columns).
  * ---------------------------------------------------------------------------- */
 
-class Migration_Create_pos_tables extends EA_Migration
+class Migration_Create_pos_tables extends App_Migration
 {
     /**
      * Upgrade method.
