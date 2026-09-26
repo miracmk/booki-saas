@@ -40,7 +40,20 @@
  */
 class App_Router extends CI_Router
 {
-    //
+    public function fetch_class(): string
+    {
+        return (string) ($this->class ?? '');
+    }
+
+    public function fetch_method(): string
+    {
+        return (string) ($this->method ?? '');
+    }
+
+    public function fetch_directory(): string
+    {
+        return (string) ($this->directory ?? '');
+    }
 }
 
 if (!class_exists('EA_Router', false)) {

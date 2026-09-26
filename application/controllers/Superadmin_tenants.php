@@ -24,7 +24,7 @@ class Superadmin_tenants extends App_Controller
     {
         parent::__construct();
 
-        $method = strtolower((string) $this->router->fetch_method());
+        $method = strtolower((string) ($this->router->method ?? ($this->router->fetch_method() ?? '')));
         if ($method !== 'platform_bridge_inbound') {
             if (!session('superadmin_id')) {
                 redirect('superadmin_auth');
