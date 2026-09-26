@@ -1,53 +1,60 @@
 # 🌟 BooKi SaaS — Çok Kiracılı Rezervasyon, CRM & RandevuBurada Pazaryeri Ekosistemi
 
 > **Geliştirici & Üretici Firma:** [Ki Software](https://software.kibusiness.co) (`software.kibusiness.co`)  
-> **Ana SaaS Platformu:** [BooKi](https://bookiapp.kibusiness.co) & [booki.kibusiness.co](https://booki.kibusiness.co)  
-> **Tüketici Pazaryeri:** [RandevuBurada](https://randevuburada.kibusiness.co)
+> **Ana SaaS Platformu:** [BooKi SaaS](https://bookiapp.kibusiness.co) & [booki.kibusiness.co](https://booki.kibusiness.co)  
+> **Tüketici Pazaryeri:** [RandevuBurada](https://randevuburada.kibusiness.co)  
+> **Proje Haritası & Beyin Dokümanı:** [PROJECTMAP.md](file:///opt/ki-ecosystem/ki-reservation-src/PROJECTMAP.md)
+
+---
+
+## 🧠 Merkezi Proje Haritası (PROJECTMAP)
+
+Bu deponun tüm mimari yapısı, API uç noktaları, MCP araçları, ortam değişkenleri ve servis iletişim şemaları **[PROJECTMAP.md](file:///opt/ki-ecosystem/ki-reservation-src/PROJECTMAP.md)** içinde eksiksiz olarak haritalandırılmıştır. Geliştirme yaparken veya yapay zeka ajanları ile çalışırken bağlam (context) ve token tasarrufu sağlamak için doğrudan `PROJECTMAP.md` belgesine başvurunuz.
 
 ---
 
 ## 🏛️ Monorepo Mimarisi ve Dizin Düzeni
 
-Bu repo (`booki-saas`), BooKi SaaS platformunun tüm bileşenlerini tek bir çatı altında toplayan modern bir monorepo yapısına sahiptir:
-
-```
+```text
 booki-saas/
 ├── ⚙️ Backend/                        # PHP CodeIgniter 3 SaaS Çekirdeği, REST API & Sidecar'lar
 │   ├── application/                   # Controllers (API, Admin, Marketplace), Models, Libraries
-│   ├── system/                        # CodeIgniter Framework
-│   ├── assets/                        # Panel & Widget CSS/JS Varlıkları
+│   ├── system/                        # CodeIgniter Framework Çekirdeği
+│   ├── assets/                        # Panel & Randevu Widget CSS/JS Varlıkları
 │   ├── storage/                       # Loglar, Yedekler, Oturumlar
 │   ├── deploy/                        # Dockerfile, docker-compose.yml, wa-bridge, booki-mcp
 │   ├── composer.json                  # PHP Bağımlılıkları
-│   └── README.md                      # Backend Dokümantasyonu
+│   └── README.md                      # Backend Mimari Dokümantasyonu
 │
 ├── 🌐 WebApp/                         # React 19 + Vite + Tailwind Resmi Tanıtım & Fiyatlandırma Sitesi
-│   ├── client/                        # React Sayfaları, Bileşenler, Tema ve Formlar
+│   ├── client/                        # React Sayfaları, UI Bileşenleri, Tema ve Formlar
 │   ├── server/                        # Node.js Express, tRPC, Zoho CRM & SMTP Entegrasyonu
-│   ├── Dockerfile                     # WebApp Konteyner Yapılandırması (booki-website)
+│   ├── Dockerfile & compose           # booki-website Konteyner Yapılandırması (Port 8091)
 │   └── README.md                      # WebApp Dokümantasyonu
 │
 ├── 📱 MobileApp/                      # Flutter Çoklu Platform Mobil Uygulama (iOS & Android)
-│   ├── android/                       # Android Yerel Projesi
-│   ├── ios/                           # iOS Xcode Projesi
+│   ├── android/                       # Android Yerel Projesi & Gradle
+│   ├── ios/                           # iOS Xcode Projesi & Podfile
 │   ├── lib/                           # Flutter/Dart UI, Riverpod State, Dio API İstemcisi
+│   ├── pubspec.yaml                   # booki_mobile Paket Tanımı
 │   └── README.md                      # Mobil Uygulama Kılavuzu
 │
-├── 🖥️ DesktopApp/                     # Windows & macOS Masaüstü Uygulama Altyapısı
-│   ├── windows/                       # Windows Runner
-│   ├── macos/                         # macOS Runner
-│   ├── docs/                          # ESC/POS Fiş Yazıcı & Offline SQLite Senkronizasyon Mimarisi
+├── 🖥️ DesktopApp/                     # Windows & macOS Masaüstü Uygulaması
+│   ├── windows/                       # Windows Runner & MSIX Dağıtım
+│   ├── macos/                         # macOS Runner & DMG Dağıtım
+│   ├── docs/                          # ESC/POS Termal Fiş Yazıcı & Offline SQLite Senkronizasyon Mimarisi
 │   └── README.md                      # Masaüstü Yol Haritası
 │
-├── 🏪 RandevuBurada/                  # Tüketici Hizmet & Randevu Pazaryeri
-│   ├── assets/                        # RandevuBurada Kurumsal Logoları ve Varlıkları
+├── 🏪 RandevuBurada/                  # Tüketici Hizmet & Randevu Pazaryeri (Marketplace)
+│   ├── assets/                        # RandevuBurada Kurumsal Logoları, Rozetleri ve İkonları
 │   ├── docs/                          # PSEO, Google Places Crawler & Sahiplenme Sözleşmesi
-│   └── README.md                      # RandevuBurada Pazaryeri Kılavuzu
+│   └── README.md                      # RandevuBurada Kılavuzu
 │
-├── 📂 docs/                           # Sistem Mimarisi, Denetim ve Oturum Notları
+├── 📂 docs/                           # Sistem Mimarisi, Saha Satış Platformu & Denetim Notları
+├── 🧠 PROJECTMAP.md                   # Proje Beyni: Tüm API, MCP, ENV ve Mimari Haritası
 ├── .github/                           # CI/CD GitHub Actions İş Akışları
 ├── .gitignore                         # Kapsamlı Monorepo Dışlama Kuralları
-└── README.md                          # Genel Ekosistem Dokümantasyonu
+└── README.md                          # Genel BooKi SaaS Ekosistem Kılavuzu
 ```
 
 ---
@@ -61,6 +68,8 @@ booki-saas/
 | `admin-bookiapp.kibusiness.co` | **Backend (Admin)** | 80 &rarr; `booki-app` | Çok kiracılı SaaS yönetim ve lisans paneli |
 | `{tenant}-bookiapp.kibusiness.co` | **Backend (Kiracı)** | 80 &rarr; `booki-app` | Kiracıya özel personel paneli ve online randevu sayfası |
 | `randevuburada.kibusiness.co` | **RandevuBurada** | 80 &rarr; `booki-app` | Tüketici keşif ve online randevu pazaryeri (Marketplace) |
+| `127.0.0.1:3039` | **WhatsApp Bridge** | 3000 &rarr; `booki-wa` | Baileys izole WhatsApp oturum köprüsü |
+| Port `8765` | **MCP Server** | 8765 &rarr; `booki-mcp` | Harici AI ajanları için Model Context Protocol sunucusu |
 
 ---
 
@@ -79,4 +88,4 @@ Tüm servisler `/opt/ki-ecosystem/` üzerinde Docker ile izole olarak çalışma
 ## 📜 Lisans & Telif Hakkı
 
 Tüm hakları saklıdır.  
-Geliştirici: **Ki Software** ([software.kibusiness.co](https://software.kibusiness.co)) — Ki Business Solutions.
+Geliştirici & Üretici: **Ki Software** ([software.kibusiness.co](https://software.kibusiness.co)) — Ki Business Solutions.
