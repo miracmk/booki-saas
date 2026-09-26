@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta name="theme-color" content="#0a1724" />
+  <title>User Data Deletion Instructions — BooKi (Meta Platforms)</title>
+  <meta name="description" content="Official User Data Deletion Instructions for BooKi on Meta Platforms (Facebook, Instagram, WhatsApp Business API). Step-by-step guidance on how to request erasure of your data." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <link rel="canonical" href="https://booki.kibusiness.co/data-deletion" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="BooKi" />
+  <meta property="og:title" content="User Data Deletion Instructions — BooKi" />
+  <meta property="og:description" content="How to remove BooKi and request complete erasure of your user data from Meta Platforms." />
+  <meta property="og:url" content="https://booki.kibusiness.co/data-deletion" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1b5e64;
+      --primary-hover: #154c51;
+      --primary-soft: #eaf3f4;
+      --navy: #0a1724;
+      --navy-card: #0f2133;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 4px 20px -2px rgba(10, 23, 36, .06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .site-header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 72px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+    }
+    .brand-mark {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: .04em;
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+    }
+    .brand-name {
+      font-family: "DM Sans", sans-serif;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--navy);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lang-btn {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid rgba(27, 94, 100, 0.2);
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lang-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .lang-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0a1724 0%, #12283a 100%);
+      color: #fff;
+      padding: 4rem 0 3.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(80, 200, 194, 0.15);
+      color: #76dbd3;
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-family: "DM Sans", sans-serif;
+      font-size: clamp(2rem, 3.8vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 720px;
+      line-height: 1.6;
+    }
+
+    /* Status Banner / Lookup */
+    .status-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin: -2rem auto 2.5rem;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 10;
+    }
+    .status-card h3 {
+      font-size: 1.15rem;
+      color: var(--navy);
+      margin-bottom: 0.5rem;
+    }
+    .code-display {
+      display: inline-block;
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: #e2e8f0;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      color: #0f172a;
+      margin: 0.5rem 0;
+    }
+    .badge-success {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      background: #dcfce7;
+      color: #166534;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: 6px;
+    }
+
+    /* Content Area */
+    .content-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 2.75rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 3rem;
+      border: 1px solid var(--border);
+    }
+    .content-card h2 {
+      font-family: "DM Sans", sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 2.25rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary-soft);
+    }
+    .content-card h2:first-of-type { margin-top: 0; }
+    .content-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin: 1.5rem 0 0.5rem;
+    }
+    .content-card p, .content-card li {
+      font-size: 1rem;
+      color: #334155;
+      margin-bottom: 0.9rem;
+    }
+    .content-card ul, .content-card ol {
+      margin-left: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .step-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--primary);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.25rem 0;
+    }
+    .step-box strong { color: var(--navy); }
+
+    /* Footer */
+    .site-footer {
+      background: var(--navy);
+      color: #cbd5e1;
+      padding: 3rem 0 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.9rem;
+    }
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .footer-bar a { color: #94a3b8; }
+    .footer-bar a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="brand" aria-label="BooKi Homepage">
+      <span class="brand-mark">BOO·KI</span>
+      <span class="brand-name">BooKi</span>
+    </a>
+    <div class="header-actions">
+      <button class="lang-btn active" id="btnEn" onclick="setLanguage('en')">English</button>
+      <button class="lang-btn" id="btnTr" onclick="setLanguage('tr')">Türkçe</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <span class="hero-badge">🛡️ META PLATFORMS COMPLIANCE</span>
+    <h1 id="heroH1">User Data Deletion Instructions</h1>
+    <p id="heroSub">
+      Step-by-step guidance on how to request the deletion of your personal data and remove BooKi permissions from your Meta (Facebook / Instagram / WhatsApp) account.
+    </p>
+  </div>
+</section>
+
+<main class="container">
+  <!-- Interactive Deletion Code Status Box -->
+  <div id="statusBox" class="status-card" style="display: none;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h3>Data Deletion Request Status</h3>
+        <p style="margin: 0; color: #64748b; font-size: 0.95rem;">
+          Your deletion request tracking code: <span id="requestCode" class="code-display"></span>
+        </p>
+      </div>
+      <div class="badge-success">
+        ✓ Request Received &amp; Processed
+      </div>
+    </div>
+    <p style="margin-top: 0.75rem; font-size: 0.9rem; color: #475569;">
+      All associated Meta Platform user identifiers have been severed and scheduled for cryptographic erasure in accordance with statutory GDPR/KVKK retention policies.
+    </p>
+  </div>
+
+  <div class="content-card">
+    
+    <!-- English Content -->
+    <article id="contentEn">
+      <p>
+        <strong>BooKi</strong> (developed by <strong>Ki Software / Ki Business Solutions</strong>) values your privacy and data ownership. In compliance with the <strong>Meta Platform Terms</strong>, <strong>European Union General Data Protection Regulation (GDPR Art. 17)</strong>, and <strong>Turkish Personal Data Protection Law (KVKK Art. 11)</strong>, users have the right to request the complete deletion of their data collected through Meta Platforms (Facebook Login, Instagram Graph API, or WhatsApp Business API).
+      </p>
+
+      <h2>1. What Data BooKi Collects from Meta</h2>
+      <p>
+        When you interact with a business using BooKi via Meta platforms or log in via Facebook:
+      </p>
+      <ul>
+        <li><strong>Facebook Login:</strong> Public profile details (Name, Email address, Facebook User ID).</li>
+        <li><strong>WhatsApp Business API:</strong> Phone number and message exchange timestamps used strictly for appointment confirmations, reminders, and customer support.</li>
+        <li><strong>Instagram Direct:</strong> Direct message interactions for booking requests routed to the business calendar.</li>
+      </ul>
+      <p>
+        BooKi <strong>never sells, rents, or shares</strong> your Meta user data with third-party advertisers or data brokers, and does not use this data for automated profiling or AI model training.
+      </p>
+
+      <h2>2. How to Delete Your Data via Meta (Facebook Settings)</h2>
+      <p>
+        If you connected BooKi via Facebook Login or granted app permissions, you can revoke permissions and initiate an automated data deletion request directly from Facebook:
+      </p>
+
+      <div class="step-box">
+        <strong>Step 1:</strong> Log in to your Facebook account and navigate to <strong>Settings &amp; Privacy &gt; Settings</strong>.<br>
+        <strong>Step 2:</strong> In the left sidebar, select <strong>Apps and Websites</strong> (or visit directly: <a href="https://www.facebook.com/settings?tab=applications" target="_blank" rel="noopener">https://www.facebook.com/settings?tab=applications</a>).<br>
+        <strong>Step 3:</strong> Search for <strong>BooKi</strong> in your list of active apps.<br>
+        <strong>Step 4:</strong> Click <strong>Remove</strong> next to BooKi.<br>
+        <strong>Step 5:</strong> Check the box to <em>"Delete posts, videos or events BooKi posted on your timeline"</em> and confirm by clicking <strong>Remove</strong>.<br>
+        <strong>Step 6:</strong> In the <strong>Removed Apps and Websites</strong> tab, find BooKi and click <strong>Send Request</strong> to notify BooKi to erase your user data from our databases.
+      </div>
+
+      <h2>3. How to Delete Your Data via BooKi Application</h2>
+      <p>
+        If you are an active business subscriber or registered user on BooKi:
+      </p>
+      <div class="step-box">
+        <strong>Step 1:</strong> Log in to your BooKi dashboard at <a href="https://bookiapp.kibusiness.co/portal" target="_blank" rel="noopener">https://bookiapp.kibusiness.co/portal</a>.<br>
+        <strong>Step 2:</strong> Go to <strong>Settings &gt; Integrations &gt; Meta / WhatsApp</strong>.<br>
+        <strong>Step 3:</strong> Click <strong>"Disconnect &amp; Delete Data"</strong>.<br>
+        <strong>Step 4:</strong> Confirm the prompt. All stored access tokens and webhook associations are immediately and permanently destroyed.
+      </div>
+
+      <h2>4. Direct Email Deletion Request (Right to Erasure)</h2>
+      <p>
+        You may also directly submit a manual deletion request to our Data Protection Officer at any time. We will process your request and confirm data erasure within <strong>30 days</strong> as required by law.
+      </p>
+      <div class="step-box" style="background:#eef7f8; border-left-color: var(--primary);">
+        <p style="margin-bottom:0.5rem;"><strong>Email:</strong> <a href="mailto:privacy@kibusiness.co?subject=Meta%20User%20Data%20Deletion%20Request">privacy@kibusiness.co</a> (CC: <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a>)</p>
+        <p style="margin-bottom:0.5rem;"><strong>Subject Line:</strong> <code>Meta User Data Deletion Request - [Your Name / Phone Number]</code></p>
+        <p style="margin-bottom:0;">Please specify your registered email address or WhatsApp phone number so our team can locate and purge all matching records from our system.</p>
+      </div>
+
+      <h2>5. Confirmation &amp; Data Deletion Status</h2>
+      <p>
+        When a data deletion callback is executed by Meta, our system generates a unique <strong>Confirmation Code</strong> and provides a tracking URL. If you received a confirmation code from Meta, you can verify your status at:
+      </p>
+      <p>
+        <code>https://booki.kibusiness.co/data-deletion?code=[YOUR_CONFIRMATION_CODE]</code>
+      </p>
+    </article>
+
+    <!-- Turkish Content -->
+    <article id="contentTr" style="display: none;">
+      <p>
+        <strong>BooKi</strong> (<strong>Ki Software / Ki Business Solutions</strong> tarafından geliştirilmiştir), kullanıcılarının gizliliğine ve kişisel verilerinin korunmasına en üst düzeyde önem verir. <strong>Meta Platform Şartları</strong>, <strong>6698 Sayılı Kişisel Verilerin Korunması Kanunu (KVKK Madde 11)</strong> ve <strong>Avrupa Birliği Genel Veri Koruma Tüzüğü (GDPR Madde 17)</strong> uyarınca; Meta platformları (Facebook Girişi, Instagram veya WhatsApp Business API) aracılığıyla toplanan kişisel verilerinizin kalıcı olarak silinmesini talep etme hakkınız bulunmaktadır.
+      </p>
+
+      <h2>1. BooKi Tarafından Meta Üzerinden İşlenen Veriler</h2>
+      <p>
+        BooKi altyapısını kullanan bir işletmeden randevu aldığınızda veya Facebook ile giriş yaptığınızda:
+      </p>
+      <ul>
+        <li><strong>Facebook ile Giriş:</strong> Temel profil bilgileri (Ad, Soyad, E-posta adresi, Facebook Kullanıcı Kimliği / User ID).</li>
+        <li><strong>WhatsApp Business API:</strong> Yalnızca randevu teyidi, hatırlatma ve çift yönlü misafir desteği için kullanılan telefon numarası ve mesajlaşma zaman damgaları.</li>
+        <li><strong>Instagram Doğrudan Mesaj:</strong> İşletme takvimine randevu talebi olarak aktarılan mesaj içerikleri.</li>
+      </ul>
+      <p>
+        BooKi bu verileri <strong>asla üçüncü şahıslara veya reklam şirketlerine satmaz</strong>, ticarileştirmez ve yapay zeka modellerinin eğitimi için kullanmaz.
+      </p>
+
+      <h2>2. Meta (Facebook Ayarları) Üzerinden Veri Silme Prosedürü</h2>
+      <p>
+        BooKi'ye Facebook hesabınız üzerinden yetki verdiyseniz, bu izinleri kaldırarak otomatik veri silme talebi iletebilirsiniz:
+      </p>
+
+      <div class="step-box">
+        <strong>1. Adım:</strong> Facebook hesabınıza giriş yapın ve <strong>Ayarlar ve Gizlilik &gt; Ayarlar</strong> sekmesine gidin.<br>
+        <strong>2. Adım:</strong> Sol menüden <strong>Uygulamalar ve Web Siteleri</strong> seçeneğini açın (Doğrudan bağlantı: <a href="https://www.facebook.com/settings?tab=applications" target="_blank" rel="noopener">https://www.facebook.com/settings?tab=applications</a>).<br>
+        <strong>3. Adım:</strong> Uygulama listenizde <strong>BooKi</strong> uygulamasını bulun.<br>
+        <strong>4. Adım:</strong> BooKi'nin yanındaki <strong>Kaldır (Remove)</strong> butonuna tıklayın.<br>
+        <strong>5. Adım:</strong> İsteğe bağlı olarak <em>"BooKi tarafından zaman tünelinizde paylaşılan gönderileri, videoları veya etkinlikleri sil"</em> onay kutusunu işaretleyin ve <strong>Kaldır</strong>'a basın.<br>
+        <strong>6. Adım:</strong> <strong>Kaldırılan Uygulamalar</strong> sekmesine geçerek BooKi'yi seçin ve <strong>İstek Gönder</strong> butonuna basarak BooKi sistemlerine otomatik veri silme bildirimi iletin.
+      </div>
+
+      <h2>3. BooKi Yönetim Paneli Üzerinden Veri Silme</h2>
+      <p>
+        BooKi abonesi veya işletme yöneticisiyseniz:
+      </p>
+      <div class="step-box">
+        <strong>1. Adım:</strong> <a href="https://bookiapp.kibusiness.co/portal" target="_blank" rel="noopener">https://bookiapp.kibusiness.co/portal</a> adresinden panelinize giriş yapın.<br>
+        <strong>2. Adım:</strong> <strong>Ayarlar &gt; Entegrasyonlar &gt; Meta / WhatsApp</strong> sayfasına geçin.<br>
+        <strong>3. Adım:</strong> <strong>"Bağlantıyı Kes ve Verileri Sil"</strong> butonuna basın.<br>
+        <strong>4. Adım:</strong> Onay verdiğinizde sistemdeki tüm OAuth erişim belirteçleri ve veri tabanı bağlantıları anında, kalıcı ve geri döndürülemez biçimde yok edilir.
+      </div>
+
+      <h2>4. E-posta ile Doğrudan Silme Başvurusu (Unutulma Hakkı)</h2>
+      <p>
+        Dilediğiniz zaman Veri Sorumlumuza yazılı olarak başvurarak Meta verilerinizin imha edilmesini talep edebilirsiniz. Talebiniz en geç <strong>30 gün</strong> içinde tamamlanır ve tarafınıza teyit iletilir.
+      </p>
+      <div class="step-box" style="background:#eef7f8; border-left-color: var(--primary);">
+        <p style="margin-bottom:0.5rem;"><strong>E-posta:</strong> <a href="mailto:privacy@kibusiness.co?subject=Meta%20Kullanici%20Verisi%20Silme%20Talebi">privacy@kibusiness.co</a> (CC: <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a>)</p>
+        <p style="margin-bottom:0.5rem;"><strong>Konu Başlığı:</strong> <code>Meta Kullanıcı Verisi Silme Talebi - [Adınız / Telefon Numaranız]</code></p>
+        <p style="margin-bottom:0;">Lütfen sistemde kayıtlı e-posta adresinizi veya WhatsApp numaranızı belirtiniz.</p>
+      </div>
+
+      <h2>5. Silme Talebi Sorgulama ve Onay Kodu</h2>
+      <p>
+        Meta veri silme geri çağırma (callback) mekanizması tetiklendiğinde sistemimiz benzersiz bir <strong>Doğrulama / Onay Kodu</strong> üretir. Onay kodunuzu aşağıdaki formattaki bağlantı ile sorgulayabilirsiniz:
+      </p>
+      <p>
+        <code>https://booki.kibusiness.co/data-deletion?code=[ONAY_KODUNUZ]</code>
+      </p>
+    </article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bar">
+      <div>© 2026 BooKi — Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</div>
+      <div>
+        <a href="/privacy" style="margin-right:1rem;">Privacy Policy</a>
+        <a href="/terms" style="margin-right:1rem;">Terms of Service</a>
+        <a href="/data-deletion">User Data Deletion</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Check for ?code= URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const code = urlParams.get("code") || urlParams.get("id");
+if (code) {
+  document.getElementById("statusBox").style.display = "block";
+  document.getElementById("requestCode").innerText = code;
+}
+
+function setLanguage(lang) {
+  const en = document.getElementById("contentEn");
+  const tr = document.getElementById("contentTr");
+  const btnEn = document.getElementById("btnEn");
+  const btnTr = document.getElementById("btnTr");
+  const h1 = document.getElementById("heroH1");
+  const sub = document.getElementById("heroSub");
+
+  if (lang === "tr") {
+    en.style.display = "none";
+    tr.style.display = "block";
+    btnEn.classList.remove("active");
+    btnTr.classList.add("active");
+    h1.innerText = "Kullanıcı Verisi Silme Talimatları";
+    sub.innerText = "Meta (Facebook / Instagram / WhatsApp) hesabınızdan BooKi erişimini kaldırma ve kişisel verilerinizin silinmesini talep etme adımları.";
+    document.documentElement.lang = "tr";
+  } else {
+    en.style.display = "block";
+    tr.style.display = "none";
+    btnTr.classList.remove("active");
+    btnEn.classList.add("active");
+    h1.innerText = "User Data Deletion Instructions";
+    sub.innerText = "Step-by-step guidance on how to request the deletion of your personal data and remove BooKi permissions from your Meta (Facebook / Instagram / WhatsApp) account.";
+    document.documentElement.lang = "en";
+  }
+}
+</script>
+
+</body>
+</html>

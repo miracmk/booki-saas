@@ -1,0 +1,62 @@
+# BooKi — Komisyonsuz Online Randevu ve Masa Rezervasyon Sistemi
+
+> BooKi; restoran, kafe, güzellik salonu, spa, klinik, stüdyo ve tüm uzman işletmeler için geliştirilmiş, %0 komisyonla çalışan akıllı bir online randevu ve masa rezervasyon yazılımıdır. WhatsApp onaylı randevu, ekip takvimi, müşteri notları ve akıllı raporlama tek platformda sunulur.
+
+## Şirket & İletişim Bilgisi
+
+- **Ürün adı**: BooKi
+- **Geliştirici**: KiBusiness
+- **Web sitesi**: https://booki.kibusiness.co/
+- **Uygulama Girişi**: https://bookiapp.kibusiness.co/portal
+- **İletişim & WhatsApp Hattı**: +90 506 250 55 62 (0506 250 55 62)
+- **WhatsApp Linki**: https://wa.me/905062505562
+- **Instagram**: https://instagram.com/kibusiness.solutions
+- **KiBusiness Yazılım Çözümleri**: https://software.kibusiness.co/
+- **İletişim E-posta**: hello@kibusiness.co
+- **Dil**: Türkçe (tr-TR)
+- **Hedef pazar**: Türkiye
+
+## Ödeme & Başlangıç Modeli
+
+- **Ödeme Zamanı**: Canlı demo yapılıp sistem 15 dakikada kurulduktan ve onay alındıktan sonra (Kurulumda Güvenli Ödeme).
+- **Kredi Kartı Zorunluluğu**: Yok.
+- **Rezervasyon Başına Komisyon**: %0 (Sıfır).
+- **Taahhüt**: Yok, istenen an iptal edilebilir.
+
+## Sektörel Çözümler & Sayfalar
+
+1. **Restoran & Kafe**: Masa rezervasyonu, çift vardiya doluluk, bekleme listesi. (https://booki.kibusiness.co/sektorler/restoran-masa-rezervasyon)
+2. **Güzellik Salonu & Estetik**: Lazer, cilt bakımı oda/cihaz ve uzman takvimi. (https://booki.kibusiness.co/sektorler/guzellik-salonu-randevu)
+3. **Kuaför & Berber**: Usta koltuk takvimi, hızlı WhatsApp teyitleri. (https://booki.kibusiness.co/sektorler/kuafor-berber-randevu)
+4. **Klinik & Hekim**: KVKK uyumlu hasta randevu ve hekim takvimi. (https://booki.kibusiness.co/sektorler/klinik-doktor-randevu)
+5. **Spa & Wellness**: Terapist ve masaj odası çiftli eşleşmesi. (https://booki.kibusiness.co/sektorler/spa-wellness-rezervasyon)
+6. **Psikolog & Danışman**: Online ve yüz yüze seans planlaması. (https://booki.kibusiness.co/sektorler/uzman-danisman-randevu)
+7. **Stüdyo & Pilates**: Kontenjanlı grup dersleri ve eğitmen takvimi. (https://booki.kibusiness.co/sektorler/studyo-kurs-rezervasyon)
+8. **Çoklu Şube & Zincir**: Merkezi raporlama ve çoklu lokasyon yönetimi. (https://booki.kibusiness.co/sektorler/coklu-sube-randevu-yonetimi)
+
+## Özellikler
+
+1. **WhatsApp Onay & Teyit**: No-show oranını %40 düşüren otomatik WhatsApp hatırlatması. (https://booki.kibusiness.co/ozellikler/whatsapp-randevu-onayi)
+2. **No-Show Önleme & Waitlist**: Boşalan saatleri sırada bekleyenlerle doldurma. (https://booki.kibusiness.co/ozellikler/no-show-onleme)
+3. **Akıllı Ekip & Kaynak Takvimi**: Personel, oda ve cihaz çakışmalarını önleme. (https://booki.kibusiness.co/ozellikler/ekip-ve-kaynak-takvimi)
+4. **Müşteri CRM & Sadakat**: Geçmiş ziyaretler, alerjiler ve özel notlar. (https://booki.kibusiness.co/ozellikler/musteri-yonetimi-crm)
+5. **%0 Komisyonlu Altyapı**: Aracı platformlara komisyon ödememe garantisi. (https://booki.kibusiness.co/ozellikler/komisyonsuz-rezervasyon)
+
+## Rakip Karşılaştırması (20+ Yazılım)
+
+Detaylı analiz sayfası: https://booki.kibusiness.co/karsilastirma
+BooKi; SalonAppy, KolayRandevu, Fresha, Restorano, Calendly, SimplyBook ve 20+ rakiple kıyaslandığında; çok sektörlü esneklik (hem restoran masa hem salon/klinik randevu), %0 net komisyon, şeffaf her şey dahil paketler ve kurulumda ödeme güvencesi ile ayrışır.
+
+## Fiyatlandırma Paketleri
+
+- **Starter**: ₺1.999 / ay (Yıllık alımda ₺1.665/ay) — Tek kişilik ve yeni işletmeler
+- **Professional**: ₺2.199 / ay (Yıllık alımda ₺1.832/ay) — Büyüyen restoran, klinik ve salonlar (En çok tercih edilen)
+- **Enterprise**: ₺4.499 / ay (Yıllık alımda ₺3.749/ay) — Zincirler ve çoklu şubeli işletmeler
+
+## Canlı Demo & İletişim
+
+- Nasıl Çalışır?: https://booki.kibusiness.co/nasil-calisir
+- İletişim & Demo: https://booki.kibusiness.co/iletisim
+- Telefon / WhatsApp: 0506 250 55 62
+- Instagram: https://instagram.com/kibusiness.solutions
+- KiBusiness Software: https://software.kibusiness.co

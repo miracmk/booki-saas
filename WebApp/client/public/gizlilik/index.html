@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta name="theme-color" content="#0a1724" />
+  <title>Privacy Policy — BooKi Appointment &amp; Booking Platform | Ki Software</title>
+  <meta name="description" content="Official Privacy Policy and Google API Services User Data Policy Compliance for BooKi by Ki Software. Complete disclosures on Google Calendar data access, use, security, retention, and deletion." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <link rel="canonical" href="https://booki.kibusiness.co/privacy" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="BooKi" />
+  <meta property="og:title" content="Privacy Policy — BooKi by Ki Software" />
+  <meta property="og:description" content="Comprehensive disclosure of data practices and strict compliance with Google API Services User Data Policy." />
+  <meta property="og:url" content="https://booki.kibusiness.co/privacy" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1b5e64;
+      --primary-hover: #154c51;
+      --primary-soft: #eaf3f4;
+      --navy: #0a1724;
+      --navy-card: #0f2133;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 4px 20px -2px rgba(10, 23, 36, .06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 980px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .site-header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 72px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+    }
+    .brand-mark {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: .04em;
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+    }
+    .brand-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--navy);
+      font-family: "DM Serif Display", serif;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lang-switcher {
+      display: inline-flex;
+      background: #e2e8f0;
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .lang-btn {
+      border: none;
+      background: transparent;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lang-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(27, 94, 100, 0.3);
+    }
+
+    /* Hero */
+    .hero-strip {
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      padding: 3.5rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .hero-strip h1 {
+      font-family: "DM Serif Display", Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 400;
+      color: var(--navy);
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+    }
+    .hero-strip p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 800px;
+    }
+    .meta-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .meta-box strong { color: var(--navy); }
+
+    /* Content Area */
+    .content-area {
+      padding: 3rem 0 5rem;
+    }
+    .policy-box {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 3rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) {
+      .policy-box { padding: 1.75rem; }
+      .hero-strip h1 { font-size: 2rem; }
+    }
+
+    .policy-box h2 {
+      font-family: "DM Serif Display", serif;
+      font-weight: 400;
+      font-size: 1.65rem;
+      color: var(--navy);
+      margin: 2.25rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary-soft);
+    }
+    .policy-box h2:first-of-type { margin-top: 0; }
+    .policy-box h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin: 1.5rem 0 0.5rem;
+    }
+    .policy-box p {
+      margin-bottom: 1.15rem;
+      color: var(--text);
+    }
+    .policy-box ul, .policy-box ol {
+      margin: 0.75rem 0 1.25rem 1.5rem;
+      color: var(--text);
+    }
+    .policy-box li { margin-bottom: 0.55rem; }
+
+    /* Callouts */
+    .google-callout {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-left: 5px solid #16a34a;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1.75rem 0;
+    }
+    .google-callout h4 {
+      color: #15803d;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .google-callout p {
+      color: #166534;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+    .google-callout p:last-child { margin-bottom: 0; }
+
+    .prohibition-callout {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 5px solid #d97706;
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1.75rem 0;
+    }
+    .prohibition-callout h4 {
+      color: #b45309;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .prohibition-callout p {
+      color: #92400e;
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+    .prohibition-callout p:last-child { margin-bottom: 0; }
+
+    /* Table */
+    .data-table-wrapper {
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      background: #ffffff;
+    }
+    .data-table th {
+      background: #f1f5f9;
+      color: var(--navy);
+      font-weight: 700;
+      padding: 0.9rem 1.15rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    .data-table td {
+      padding: 0.9rem 1.15rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table code {
+      background: #f1f5f9;
+      color: var(--primary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    /* Footer */
+    .site-footer {
+      background: var(--navy);
+      color: #94a3b8;
+      padding: 4rem 0 2rem;
+      font-size: 0.92rem;
+    }
+    .footer-cols {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2.5rem;
+      margin-bottom: 3rem;
+    }
+    @media (max-width: 800px) {
+      .footer-cols { grid-template-columns: 1fr; gap: 2rem; }
+    }
+    .site-footer h4 {
+      color: #ffffff;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    .site-footer ul { list-style: none; }
+    .site-footer li { margin-bottom: 0.6rem; }
+    .site-footer a { color: #cbd5e1; font-weight: 500; }
+    .site-footer a:hover { color: #ffffff; text-decoration: none; }
+    .footer-bar {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/" aria-label="BooKi Homepage">
+      <span class="brand-mark">BOO·KI</span>
+      <span class="brand-name">BooKi</span>
+    </a>
+    <div class="header-actions">
+      <div class="lang-switcher" role="tablist" aria-label="Language">
+        <button type="button" class="lang-btn active" id="btnEn" onclick="setLanguage('en')">English</button>
+        <button type="button" class="lang-btn" id="btnTr" onclick="setLanguage('tr')">Türkçe</button>
+      </div>
+      <a href="/" style="font-size:0.9rem; color:var(--text);">← Back to Site</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero-strip">
+  <div class="container">
+    <span class="badge">🔒 Privacy &amp; Data Protection</span>
+    <h1 id="heroH1">BooKi Privacy Policy</h1>
+    <p id="heroSub">Detailed disclosure of our data collection practices, security standards, and strict adherence to the Google API Services User Data Policy.</p>
+    <div class="meta-box">
+      <div><strong>Application Name:</strong> BooKi Appointment &amp; Booking Platform</div>
+      <div><strong>Developer / Owner:</strong> Ki Software (Ki Business Solutions)</div>
+      <div><strong>Application Website:</strong> <a href="https://booki.kibusiness.co">https://booki.kibusiness.co</a></div>
+      <div><strong>Effective Date:</strong> September 19, 2026</div>
+      <div><strong>Dedicated URL:</strong> <a href="https://booki.kibusiness.co/privacy">booki.kibusiness.co/privacy</a></div>
+    </div>
+  </div>
+</section>
+
+<main class="content-area">
+  <div class="container">
+
+    <!-- ================= ENGLISH VERSION ================= -->
+    <article class="policy-box" id="contentEn">
+      <h2>1. Introduction &amp; Application Identity</h2>
+      <p>
+        This Privacy Policy applies to the <strong>BooKi</strong> online appointment scheduling and business management platform ("BooKi", "Platform", "we", "us", or "our"), designed, owned, and operated by <strong>Ki Software</strong>, a division of <strong>Ki Business Solutions</strong> (official website: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a>; software solutions: <a href="https://software.kibusiness.co" target="_blank" rel="noopener">https://software.kibusiness.co</a>).
+      </p>
+      <p>
+        BooKi is hosted and made publicly available at <strong>https://booki.kibusiness.co</strong>, with authorized tenant management portals hosted at <strong>https://bookiapp.kibusiness.co</strong>. This Privacy Policy governs the manner in which BooKi collects, accesses, uses, processes, maintains, protects, and discloses personal data and Google user data obtained from users, customers, and business service providers.
+      </p>
+      <p>
+        We are dedicated to safeguarding your privacy and ensuring full compliance with the European Union General Data Protection Regulation (GDPR), the Turkish Law on the Protection of Personal Data (KVKK No. 6698), and Google's API Services User Data Policy.
+      </p>
+
+      <h2>2. Personal Data We Collect</h2>
+      <p>
+        To deliver seamless appointment bookings, customer communication, and calendar management, BooKi collects the following categories of information:
+      </p>
+      <h3>A. Information Provided Directly by Users</h3>
+      <ul>
+        <li><strong>Account Registration Details:</strong> Full name, business trade name, professional title, phone number, email address, physical location or salon address, and encrypted authentication passwords.</li>
+        <li><strong>Customer &amp; Appointment Records:</strong> Client names, phone numbers, email addresses, selected services, assigned staff members, appointment dates and times, duration, session notes, and transaction values.</li>
+        <li><strong>Customer Inquiries &amp; Support Data:</strong> Text, logs, and correspondence transmitted when contacting our customer support or submitting feedback.</li>
+      </ul>
+
+      <h3>B. Technical &amp; Operational Data</h3>
+      <ul>
+        <li><strong>Device and Access Logs:</strong> IP address, browser type, operating system version, referring URLs, request timestamps, and security cookies used strictly for rate-limiting, session maintenance, and intrusion prevention.</li>
+      </ul>
+
+      <h2>3. Google User Data Accessed, Used &amp; Disclosed</h2>
+      <p>
+        BooKi provides an optional, user-initiated integration with Google APIs (primarily <strong>Google Calendar</strong>) allowing businesses and service providers to synchronize their appointments with their personal or corporate Google Calendar. When you choose to link your Google Account with BooKi, our application requests access to specific scopes only upon your explicit consent.
+      </p>
+
+      <div class="google-callout">
+        <h4>🛡️ Google API Services User Data Policy &amp; Limited Use Compliance</h4>
+        <p>
+          BooKi's use and transfer to any other app of information received from Google APIs adheres to the 
+          <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener"><strong>Google API Services User Data Policy</strong></a>, including the <strong>Limited Use requirements</strong>.
+        </p>
+        <p>
+          We strictly access only the minimum necessary Google user data required to provide and improve user-facing features of our appointment scheduling service.
+        </p>
+      </div>
+
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 28%;">Google OAuth Scope</th>
+              <th style="width: 32%;">Google User Data Accessed</th>
+              <th style="width: 40%;">Purpose &amp; Specific Use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <code>openid</code><br>
+                <code>https://www.googleapis.com/auth/userinfo.email</code><br>
+                <code>https://www.googleapis.com/auth/userinfo.profile</code>
+              </td>
+              <td>
+                Google User ID, primary email address, verified profile name, and account avatar.
+              </td>
+              <td>
+                To securely authenticate user identity, facilitate single sign-on (SSO), associate your BooKi user profile with your Google identity, and prevent unauthorized account access.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>https://www.googleapis.com/auth/calendar</code><br>
+                <code>https://www.googleapis.com/auth/calendar.events</code>
+              </td>
+              <td>
+                Calendar titles, calendar identifiers (IDs), event summaries, descriptions, start/end dates and times, event location, and attendee response status.
+              </td>
+              <td>
+                <strong>Two-Way Real-Time Calendar Synchronization:</strong><br>
+                1. Automatically creates, updates, or cancels events on your designated Google Calendar whenever an appointment is booked, rescheduled, or cancelled on BooKi.<br>
+                2. Reads busy/free time slots from your connected Google Calendar to automatically block unavailable hours on BooKi, preventing overlapping bookings or double-booking.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>https://www.googleapis.com/auth/contacts.readonly</code><br>
+                <em>(Optional Admin Add-on)</em>
+              </td>
+              <td>
+                Customer names, phone numbers, and email addresses.
+              </td>
+              <td>
+                Allows providers to easily import client contacts to dispatch appointment confirmations and SMS/WhatsApp reminders, strictly when explicitly enabled by the administrator.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>https://www.googleapis.com/auth/spreadsheets</code><br>
+                <code>https://www.googleapis.com/auth/drive.file</code><br>
+                <em>(Optional Admin Add-on)</em>
+              </td>
+              <td>
+                Spreadsheet rows, column data, and Google Drive files created or selected specifically by the user for BooKi.
+              </td>
+              <td>
+                Enables automated daily export of appointment logs, commission summaries, and revenue reports to a dedicated Google Sheet chosen by the business owner for bookkeeping.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>https://www.googleapis.com/auth/tasks</code><br>
+                <em>(Optional Admin Add-on)</em>
+              </td>
+              <td>
+                Task titles, due dates, and task completion flags.
+              </td>
+              <td>
+                Creates actionable task checklist reminders for upcoming customer sessions in Google Tasks.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>4. Prohibited Uses of Google User Data</h2>
+      <p>
+        In strict alignment with Google Cloud Verification standards and Google API Services User Data Policy, BooKi enforces the following strict prohibitions:
+      </p>
+      <ul>
+        <li><strong>No Sale of Google Data:</strong> We will <strong>NEVER sell, rent, lease, trade, or monetize</strong> Google user data, contact records, or calendar information to third parties, data brokers, or marketing intermediaries under any circumstance.</li>
+        <li><strong>No Advertising or Marketing:</strong> Google user data is <strong>NEVER used, transferred, or disclosed</strong> for serving advertisements, personalized ads, retargeted advertisements, or interest-based marketing campaigns.</li>
+        <li><strong>No Creditworthiness or Financial Scoring:</strong> Google user data is never used to assess creditworthiness, lending eligibility, or insurance risks.</li>
+        <li><strong>Strict Limitation of Use:</strong> All Google user data is utilized solely and exclusively to deliver, maintain, and enhance user-facing scheduling, calendar synchronization, and booking features requested directly by the user.</li>
+      </ul>
+
+      <div class="prohibition-callout">
+        <h4>🤖 Explicit Affirmation on Artificial Intelligence (AI) &amp; Machine Learning (ML)</h4>
+        <p>
+          <strong>BooKi explicitly affirms that Google Workspace APIs and data obtained from Google APIs are NOT used to develop, build, improve, fine-tune, or train generalized, foundational, or non-personalized artificial intelligence (AI) and/or machine learning (ML) models.</strong>
+        </p>
+        <p>
+          No customer calendar data, attendee identities, or appointment descriptions are ingested into public or private model training pipelines.
+        </p>
+      </div>
+
+      <h2>5. Data Sharing, Transfer &amp; Third-Party Disclosures</h2>
+      <p>
+        We do not transfer or disclose your Google user data to third parties for purposes other than those specified in this policy. We share data only in the following strictly confined circumstances:
+      </p>
+      <ul>
+        <li><strong>Infrastructure Sub-Processors:</strong> Secure, enterprise-grade cloud hosting providers (e.g., ISO 27001 / SOC 2 certified data centers) who process data strictly on our behalf under binding data processing agreements that mandate stringent security and confidentiality.</li>
+        <li><strong>Legal Mandates:</strong> Where strictly required to comply with a valid court subpoena, warrant, or binding statutory obligation issued by a competent governmental authority.</li>
+      </ul>
+
+      <h2>6. Technical Security &amp; Protection Mechanisms</h2>
+      <p>
+        We implement rigorous technical, organizational, and physical security measures to safeguard Google user data and personal information against unauthorized access, loss, or alteration:
+      </p>
+      <ul>
+        <li><strong>Encryption in Transit:</strong> All communications between your browser, our application servers, and Google APIs are encrypted using modern Transport Layer Security (<strong>TLS 1.3 / HTTPS</strong>) with forward secrecy.</li>
+        <li><strong>Encryption at Rest:</strong> All stored OAuth tokens (access tokens and refresh tokens) as well as sensitive customer personally identifiable information (PII) are encrypted at rest using <strong>AES-256-GCM</strong> (Galois/Counter Mode) with secure cryptographic key management.</li>
+        <li><strong>Cryptographic Integrity &amp; Search:</strong> Blind indexing using <strong>HMAC-SHA256</strong> ensures that searches can be executed without decrypting or exposing sensitive data in clear text.</li>
+        <li><strong>Access Control &amp; Isolation:</strong> Multi-tenant isolation ensures data belonging to one business is strictly inaccessible to another. Role-Based Access Control (RBAC) and Multi-Factor Authentication (MFA) protect administrative endpoints.</li>
+      </ul>
+
+      <h2>7. Data Retention &amp; Deletion (User Control &amp; Rights)</h2>
+      <p>
+        Google user data and calendar synchronization tokens are retained only for as long as your BooKi account remains active and the Google integration remains connected.
+      </p>
+      <h3>How to Disconnect Google Integration and Delete Stored Data:</h3>
+      <ol>
+        <li>
+          <strong>In-App Disconnection:</strong> You can disconnect your Google Calendar at any time directly from the BooKi dashboard by navigating to <strong>Settings &gt; Integrations &gt; Google Calendar</strong> and clicking <strong>"Disconnect"</strong>. This action immediately, permanently, and irrevocably purges your stored OAuth tokens from our database and terminates all calendar synchronization.
+        </li>
+        <li>
+          <strong>Google Account Revocation:</strong> You can independently revoke BooKi's access at any moment via your Google Account Security Dashboard at 
+          <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">https://myaccount.google.com/permissions</a>.
+        </li>
+        <li>
+          <strong>Complete Account &amp; Data Erasure:</strong> To request complete deletion of your BooKi account, appointments, and all associated personal data, submit an erasure request via our online portal or email our Data Protection Team at <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a> or <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a>. All verified deletion requests are completely executed within 30 days.
+        </li>
+      </ol>
+
+      <h2>8. User Rights Under GDPR &amp; KVKK</h2>
+      <p>
+        Depending on your jurisdiction, you possess the following statutory rights regarding your personal data:
+      </p>
+      <ul>
+        <li>The right to be informed regarding whether your personal data is processed.</li>
+        <li>The right to access and obtain a copy of your personal data.</li>
+        <li>The right to rectify inaccurate, out-of-date, or incomplete data.</li>
+        <li>The right to request the deletion or destruction of your personal data.</li>
+        <li>The right to restrict or object to the processing of your data.</li>
+        <li>The right to data portability in a machine-readable format.</li>
+      </ul>
+
+      <h2>9. Contact Information &amp; Data Protection Officer</h2>
+      <p>
+        If you have any questions, inquiries, or complaints concerning this Privacy Policy or our data handling practices, please reach out to us:
+      </p>
+      <p style="background:#f1f5f9; padding:1.25rem; border-radius:8px; line-height:1.8;">
+        <strong>Ki Software / Ki Business Solutions</strong><br>
+        Application Name: BooKi Appointment &amp; Booking Platform<br>
+        Company Website: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
+        Application Website: <a href="https://booki.kibusiness.co">https://booki.kibusiness.co</a><br>
+        Privacy Inquiries &amp; Data Erasure: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a><br>
+        General Inquiries: <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a><br>
+        Support Hotline: +90 506 250 55 62
+      </p>
+    </article>
+
+    <!-- ================= TURKISH VERSION ================= -->
+    <article class="policy-box" id="contentTr" style="display:none;">
+      <h2>1. Giriş ve Veri Sorumlusu Bilgileri</h2>
+      <p>
+        Bu Gizlilik Politikası, <strong>Ki Business Solutions</strong> bünyesindeki <strong>Ki Software</strong> tarafından geliştirilen ve işletilen <strong>BooKi</strong> online randevu, masa ve salon yönetim platformu ("BooKi", "Platform", "biz", "tarafımız") için geçerlidir. Ki Business Solutions kurumsal web sitesi <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a>; yazılım çözümleri web sitesi <a href="https://software.kibusiness.co" target="_blank" rel="noopener">https://software.kibusiness.co</a> adresindedir.
+      </p>
+      <p>
+        BooKi platformu <strong>https://booki.kibusiness.co</strong> alan adı üzerinden genel erişime sunulmakta, yetkili işletme yönetim portalları ise <strong>https://bookiapp.kibusiness.co</strong> üzerinden çalışmaktadır. Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK"), Avrupa Birliği Genel Veri Koruma Tüzüğü ("GDPR") ve Google API Hizmetleri Kullanıcı Verileri Politikası doğrultusunda hazırlanmış kapsamlı aydınlatma metnidir.
+      </p>
+
+      <h2>2. İşlenen Kişisel Veriler</h2>
+      <p>
+        Randevu, takvim yönetimi ve müşteri iletişiminin sağlanması amacıyla aşağıdaki veri kategorileri işlenmektedir:
+      </p>
+      <h3>A. Doğrudan Tarafınızca Sağlanan Bilgiler</h3>
+      <ul>
+        <li><strong>Hesap ve İletişim Bilgileri:</strong> Ad, soyad, işletme unvanı, telefon numarası, e-posta adresi, işletme adresi ve şifrelenmiş parola kayıtları.</li>
+        <li><strong>Randevu ve Rezervasyon Verileri:</strong> Müşteri isim-soyisim, telefon, e-posta, tercih edilen hizmetler, atanan uzman personel, randevu tarih ve saati, seans notları ve ücret bilgileri.</li>
+        <li><strong>Destek ve Bildirim Kayıtları:</strong> Müşteri destek hattımız veya WhatsApp hattımız üzerinden iletilen talep ve yazışmalar.</li>
+      </ul>
+
+      <h3>B. Otomatik Olarak Toplanan Teknik Bilgiler</h3>
+      <ul>
+        <li><strong>Cihaz ve Erişim Kayıtları:</strong> IP adresi, tarayıcı tipi, işletim sistemi sürümü, istek zaman damgaları ve sistem güvenliğini sağlamaya yönelik oturum çerezleri.</li>
+      </ul>
+
+      <h2>3. Google Kullanıcı Verilerine Erişim, Kullanım ve Kapsam</h2>
+      <p>
+        BooKi, hizmet sağlayıcı personelin ve işletmelerin randevularını kendi Google Takvimleri ile çakışmasız biçimde senkronize edebilmesi amacıyla Google API'leri (özellikle <strong>Google Calendar API</strong>) ile entegre çalışır. Google hesabınızı BooKi'ye bağladığınızda yalnızca açık rızanız doğrultusunda aşağıdaki verilere erişilir:
+      </p>
+
+      <div class="google-callout">
+        <h4>🛡️ Google API Hizmetleri Kullanıcı Verisi Politikası ve Sınırlı Kullanım Uyumu</h4>
+        <p>
+          BooKi'nin Google API'lerinden aldığı bilgileri kullanımı ve başka uygulamalara aktarımı, Sınırlı Kullanım (Limited Use) gereksinimleri dahil olmak üzere 
+          <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener"><strong>Google API Services User Data Policy</strong></a> şartlarına eksiksiz olarak uygundur.
+        </p>
+        <p>
+          Yalnızca randevu yönetim hizmetinin sağlanması ve geliştirilmesi için kesin olarak gerekli olan asgari Google kullanıcı verilerine erişilmektedir.
+        </p>
+      </div>
+
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 28%;">Google OAuth Kapsamı (Scope)</th>
+              <th style="width: 32%;">Erişilen Google Kullanıcı Verisi</th>
+              <th style="width: 40%;">Kullanım Amacı ve İşleme Faaliyeti</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <code>openid</code><br>
+                <code>.../auth/userinfo.email</code><br>
+                <code>.../auth/userinfo.profile</code>
+              </td>
+              <td>
+                Google Kullanıcı ID'si, birincil e-posta adresi, profil adı ve avatar.
+              </td>
+              <td>
+                Kimliğinizi doğrulamak, güvenli oturum açmanızı (SSO) sağlamak ve bağlanan Google hesabının doğrulanması.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>.../auth/calendar</code><br>
+                <code>.../auth/calendar.events</code>
+              </td>
+              <td>
+                Takvim başlıkları, takvim kimlikleri (IDs), etkinlik açıklamaları, başlangıç ve bitiş tarih/saatleri, konum ve katılımcı durumu.
+              </td>
+              <td>
+                <strong>Çift Yönlü Anlık Takvim Senkronizasyonu:</strong><br>
+                1. BooKi üzerinden oluşturulan, güncellenen veya iptal edilen randevuların seçtiğiniz Google Takviminize otomatik olarak işlenmesi.<br>
+                2. Google Takviminizdeki mevcut meşgul zaman dilimlerinin okunarak BooKi'de randevuya kapatılması, böylece çifte randevunun (double-booking) önlenmesi.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>.../auth/contacts.readonly</code><br>
+                <em>(İsteğe Bağlı Yönetici Eklentisi)</em>
+              </td>
+              <td>
+                Müşteri ad-soyad, telefon numarası ve e-posta kayıtları.
+              </td>
+              <td>
+                İşletme yöneticisi açıkça etkinleştirdiğinde, randevu teyit ve bildirimlerinin kolaylaştırılması amacıyla rehber eşitlemesi.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>.../auth/spreadsheets</code><br>
+                <code>.../auth/drive.file</code><br>
+                <em>(İsteğe Bağlı Yönetici Eklentisi)</em>
+              </td>
+              <td>
+                Kullanıcının belirlediği Google E-Tablo ve dosya içerikleri.
+              </td>
+              <td>
+                Randevu listelerinin ve günlük gelir raporlarının, kullanıcının seçtiği bir Google E-Tablosuna muhasebe amacıyla otomatik aktarılması.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>.../auth/tasks</code><br>
+                <em>(İsteğe Bağlı Yönetici Eklentisi)</em>
+              </td>
+              <td>
+                Görev başlıkları ve bitiş tarihleri.
+              </td>
+              <td>
+                Yaklaşan randevular için Google Görevler listesinde hatırlatıcı oluşturulması.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>4. Google Kullanıcı Verilerine İlişkin Kesin Yasaklar</h2>
+      <p>
+        Google Cloud Doğrulama kriterleri ve kurumsal etik ilkelerimiz gereğince:
+      </p>
+      <ul>
+        <li><strong>Veri Satışı Kesinlikle Yasaktır:</strong> Google kullanıcı verileri hiçbir şart ve koşulda üçüncü taraflara, veri simsarlarına (data brokers) veya reklam şirketlerine <strong>satılmaz, kiralanmaz, takas edilmez veya ticarileştirilmez</strong>.</li>
+        <li><strong>Hedefli veya İlgi Alanına Dayalı Reklam Yapılmaz:</strong> Google kullanıcı verileri kişiselleştirilmiş, yeniden hedeflemeli (retargeting) veya davranışsal reklamcılık amacıyla <strong>kullanılamaz ve aktarılamaz</strong>.</li>
+        <li><strong>Kredi Değerlendirmesi Yapılamaz:</strong> Google verileri finansal puanlama, kredi değerliliği tespiti veya borç verme amacıyla işlenemez.</li>
+        <li><strong>Hizmet Dışı Kullanım Yasaktır:</strong> Google kullanıcı verileri yalnızca kullanıcının talep ettiği randevu oluşturma ve takvim eşitlemesi özelliklerini sunmak amacıyla işlenir.</li>
+      </ul>
+
+      <div class="prohibition-callout">
+        <h4>🤖 Yapay Zeka (AI) ve Makine Öğrenimi (ML) Modelleri Taahhüdü</h4>
+        <p>
+          <strong>BooKi, Google Workspace API'leri ve Google üzerinden elde edilen kullanıcı verilerini; genel, temel veya kişiselleştirilmemiş yapay zeka (AI) ve makine öğrenimi (ML) modellerini geliştirmek, iyileştirmek veya eğitmek amacıyla KESİNLİKLE KULLANMAZ.</strong>
+        </p>
+        <p>
+          Hiçbir takvim içeriği, randevu notu veya müşteri bilgisi yapay zeka eğitim veri setlerine dahil edilmez.
+        </p>
+      </div>
+
+      <h2>5. Veri Paylaşımı ve Üçüncü Taraflara Aktarım</h2>
+      <p>
+        Google kullanıcı verileriniz bu politikada belirtilen randevu hizmetinin sağlanması dışında üçüncü şahıslara aktarılmaz. Yalnızca aşağıdaki hallerde sınırlı veri işleme söz konusudur:
+      </p>
+      <ul>
+        <li><strong>Güvenli Altyapı Sağlayıcıları:</strong> Platformun barındırıldığı ISO 27001 / SOC 2 sertifikalarına sahip kurumsal bulut sunucuları (veri işleyen sıfatıyla ve gizlilik sözleşmeleri altında).</li>
+        <li><strong>Yasal Zorunluluklar:</strong> Yürürlükteki mevzuat uyarınca yetkili adli ve idari merciler tarafından usulüne uygun olarak tebliğ edilen bağlayıcı mahkeme kararları.</li>
+      </ul>
+
+      <h2>6. Veri Güvenliği ve Koruma Mekanizmaları</h2>
+      <p>
+        Kişisel verilerinizin ve Google kullanıcı verilerinizin güvenliğini sağlamak için üst düzey teknik önlemler alınmıştır:
+      </p>
+      <ul>
+        <li><strong>Aktarım Sırasında Şifreleme:</strong> Tüm ağ trafiği modern <strong>TLS 1.3 / HTTPS</strong> protokolleri ve güçlü şifreleme anahtarları ile korunur.</li>
+        <li><strong>Depolama Sırasında Şifreleme (At-Rest):</strong> Google OAuth belirteçleri (access ve refresh token) ile hassas müşteri kişisel verileri veri tabanında <strong>AES-256-GCM</strong> (Galois/Counter Mode) algoritmasıyla şifrelenerek saklanır.</li>
+        <li><strong>Kriptografik İndeksleme:</strong> Alan bazlı arama indekslemeleri için <strong>HMAC-SHA256</strong> kullanılmakta olup ham veriler açık metin olarak tutulmaz.</li>
+        <li><strong>Rol Tabanlı Erişim ve Çoklu Kiracı İzolasyonu:</strong> Çok kiracılı mimarimizde (multi-tenancy) her işletmenin verisi diğerlerinden tamamen izole edilmiştir.</li>
+      </ul>
+
+      <h2>7. Veri Saklama Süresi ve Silme / İptal Hakkı</h2>
+      <p>
+        Google kullanıcı verileri ve takvim senkronizasyon belirteçleri, yalnızca BooKi hesabınız aktif olduğu ve Google entegrasyonunu sürdürdüğünüz süre boyunca saklanır.
+      </p>
+      <h3>Google Bağlantısını Kesme ve Verileri Silme Prosedürü:</h3>
+      <ol>
+        <li>
+          <strong>BooKi Panelinden Bağlantıyı Kesme:</strong> BooKi yönetim panelinizde <strong>Ayarlar &gt; Entegrasyonlar &gt; Google Takvim</strong> sekmesine giderek <strong>"Bağlantıyı Kes"</strong> butonuna basabilirsiniz. Bu işlem, saklanan tüm OAuth erişim ve yenileme belirteçlerini veri tabanından anında, kalıcı ve geri döndürülemez biçimde siler.
+        </li>
+        <li>
+          <strong>Google Hesap Güvenliği Üzerinden İptal:</strong> Dilediğiniz her an Google Hesap İzinleri sayfasından (<a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">https://myaccount.google.com/permissions</a>) BooKi'ye verdiğiniz yetkileri tek tıkla geri alabilirsiniz.
+        </li>
+        <li>
+          <strong>Hesap ve Tüm Verilerin Kalıcı Silinmesi:</strong> Tüm müşteri ve randevu kayıtlarınızın kalıcı olarak imha edilmesini talep etmek için <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a> veya <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a> adresine yazılı talepte bulunabilirsiniz. Talebiniz en geç 30 gün içinde eksiksiz yerine getirilir.
+        </li>
+      </ol>
+
+      <h2>8. İletişim ve Veri Sorumlusu</h2>
+      <p>
+        Gizlilik Politikamız veya veri işleme süreçlerimizle ilgili her türlü soru, başvuru ve talepleriniz için iletişim bilgilerimiz:
+      </p>
+      <p style="background:#f1f5f9; padding:1.25rem; border-radius:8px; line-height:1.8;">
+        <strong>Ki Software / Ki Business Solutions</strong><br>
+        Uygulama Adı: BooKi Online Randevu ve Masa Rezervasyon Platformu<br>
+        Kurumsal Web Sitesi: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
+        Uygulama Web Sitesi: <a href="https://booki.kibusiness.co">https://booki.kibusiness.co</a><br>
+        Gizlilik ve Veri Silme Başvuruları: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a><br>
+        Genel İletişim: <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a><br>
+        Telefon / WhatsApp Destek: +90 506 250 55 62
+      </p>
+    </article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-cols">
+      <div>
+        <a class="brand" href="/" aria-label="BooKi" style="margin-bottom:0.75rem;">
+          <span class="brand-mark">BOO·KI</span>
+        </a>
+        <p style="margin-top:0.75rem; max-width:24rem; line-height:1.6; color:#94a3b8;">
+          Restoran, güzellik salonu, spa ve klinikler için %0 komisyonlu akıllı randevu ve masa yönetim platformu. Ki Software tarafından geliştirilmiştir.
+        </p>
+      </div>
+      <div>
+        <h4>Ürün / Product</h4>
+        <ul>
+          <li><a href="/fiyatlar">Fiyatlandırma</a></li>
+          <li><a href="/nasil-calisir">Nasıl Çalışır</a></li>
+          <li><a href="/karsilastirma">Rakip Karşılaştırma</a></li>
+          <li><a href="https://bookiapp.kibusiness.co/portal" target="_blank" rel="noopener">Giriş Yap</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Yasal &amp; Güvenlik</h4>
+        <ul>
+          <li><a href="/privacy">Privacy Policy (Gizlilik)</a></li>
+          <li><a href="/terms">Terms of Service (Şartlar)</a></li>
+          <li><a href="/sitemap.xml" target="_blank">Sitemap.xml</a></li>
+          <li><a href="/robots.txt" target="_blank">Robots.txt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Kurumsal</h4>
+        <ul>
+          <li><a href="https://kibusiness.co" target="_blank" rel="noopener">Ki Business Solutions</a></li>
+          <li><a href="https://software.kibusiness.co" target="_blank" rel="noopener">Ki Software</a></li>
+          <li><a href="/iletisim">İletişim &amp; Demo</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div>© 2026 BooKi — Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</div>
+      <div>
+        <a href="/privacy" style="color:#cbd5e1; margin-right:1rem;">Privacy Policy</a>
+        <a href="/terms" style="color:#cbd5e1;">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function setLanguage(lang) {
+  const en = document.getElementById('contentEn');
+  const tr = document.getElementById('contentTr');
+  const btnEn = document.getElementById('btnEn');
+  const btnTr = document.getElementById('btnTr');
+  const h1 = document.getElementById('heroH1');
+  const sub = document.getElementById('heroSub');
+
+  if (lang === 'tr') {
+    en.style.display = 'none';
+    tr.style.display = 'block';
+    btnEn.classList.remove('active');
+    btnTr.classList.add('active');
+    h1.innerText = 'BooKi Gizlilik Politikası';
+    sub.innerText = 'Veri işleme ilkelerimiz, güvenlik standartlarımız ve Google API Hizmetleri Kullanıcı Verisi Politikası uyumluluk bildirimimiz.';
+    document.documentElement.lang = 'tr';
+  } else {
+    en.style.display = 'block';
+    tr.style.display = 'none';
+    btnTr.classList.remove('active');
+    btnEn.classList.add('active');
+    h1.innerText = 'BooKi Privacy Policy';
+    sub.innerText = 'Detailed disclosure of our data collection practices, security standards, and strict adherence to the Google API Services User Data Policy.';
+    document.documentElement.lang = 'en';
+  }
+}
+</script>
+
+</body>
+</html>

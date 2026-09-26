@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "csrf_cookie",
+      "value": "7b95a3f9f1c43db89e16d1d389f121ac",
+      "domain": "qatest-bookiapp.kibusiness.co",
+      "path": "/",
+      "expires": 1789873216.679741,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ea_session",
+      "value": "cac498c764faaf7134fdebd4c37b3dc00fa217f3",
+      "domain": "qatest-bookiapp.kibusiness.co",
+      "path": "/",
+      "expires": 1790470816.630246,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

@@ -1,0 +1,40 @@
+name: booki-website
+
+services:
+  app:
+    build: .
+    container_name: booki-website
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8091:3000"
+    networks:
+      - default
+      - npm_shared
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      # Demo/trial request forms send an email via SMTP - no database is used (trpc routers.ts
+      # only calls sendDemoRequestEmail, DATABASE_URL is intentionally left unset).
+      SMTP_HOST: "${SMTP_HOST:-mail.kibusiness.co}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_USER: "${SMTP_USER}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD}"
+      DEMO_RECIPIENT: "${DEMO_RECIPIENT:-satis@kibusiness.co}"
+      # Ki Software'in kendi (admin/platform seviyesi) Zoho CRM'i - kiracıların kendi CRM'inden
+      # ayrı. Refresh token diskte (zoho-token-data volume) kalıcı tutulur, bkz. server/zohoCrm.ts.
+      ZOHO_CLIENT_ID: "${ZOHO_CLIENT_ID}"
+      ZOHO_CLIENT_SECRET: "${ZOHO_CLIENT_SECRET}"
+      ZOHO_DATA_CENTER: "${ZOHO_DATA_CENTER:-US}"
+      ZOHO_REDIRECT_URI: "${ZOHO_REDIRECT_URI:-https://booki.kibusiness.co/api/zoho/oauth/callback}"
+      ZOHO_TOKEN_STORE_PATH: /app/data/zoho-token.json
+    volumes:
+      - zoho-token-data:/app/data
+
+volumes:
+  zoho-token-data:
+
+networks:
+  default:
+  npm_shared:
+    name: ki-reservation_ki-reservation-net
+    external: true

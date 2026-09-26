@@ -1,0 +1,15 @@
+# Ki Reservation - CodeIgniter 3 front-controller rewrite (mod_rewrite).
+# Routes all clean (segment-based) URLs to index.php so /health, /booking, etc.
+# work without a literal matching file. Requires mod_rewrite (enabled in the
+# Dockerfile via a2enmod).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Serve real files and directories directly.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Everything else goes to the front controller.
+    RewriteRule ^(.*)$ index.php?/$1 [L]
+</IfModule>

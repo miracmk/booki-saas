@@ -1,4 +1,29 @@
+# Environment and local configs
+.env
+*.env
+config.php
 /config.php
+Backend/config.php
+Backend/deploy/.env
+WebApp/.env
+
+# Node.js and Frontend builds
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.pnpm-store/
+.npm/
+
+# Backend Storage and Logs
+Backend/storage/logs/*
+!Backend/storage/logs/.gitkeep
+Backend/storage/sessions/*
+!Backend/storage/sessions/.gitkeep
+Backend/storage/cache/*
+!Backend/storage/cache/.gitkeep
+Backend/storage/backups/*
+!Backend/storage/backups/.gitkeep
 storage/logs/*
 !storage/logs/.gitkeep
 storage/sessions/*
@@ -7,34 +32,35 @@ storage/cache/*
 !storage/cache/.gitkeep
 storage/backups/*
 !storage/backups/.gitkeep
-.env
 *.log
+
+# Caches and Temp
 .DS_Store
+Thumbs.db
 .phpunit.cache/
-/tests/*.log
-.tokensave
-
-# Repo konsolidasyonu (2026-09-16) - artik/eski dosyalar, silinmedi ama artik izlenmiyor.
-/_arsiv/
-/deploy/.env
-/dev/.env
-node_modules/
-
-# Playwright E2E (tests/e2e/) - auth session state + local run artifacts.
-/tests/e2e/.auth/
+Backend/.phpunit.cache/
 /test-results/
 /playwright-report/
 /scratch/
+.tokensave/
 
-# Flutter Mobile
+# Flutter Mobile & Desktop builds
+MobileApp/build/
+MobileApp/.dart_tool/
+MobileApp/.flutter-plugins-dependencies
+MobileApp/.pub-cache/
+MobileApp/.pub/
+MobileApp/android/.gradle/
+MobileApp/android/local.properties
+DesktopApp/build/
+DesktopApp/.dart_tool/
 apps/**/build/
 apps/**/.dart_tool/
-apps/**/.flutter-plugins-dependencies
-apps/**/.pub-cache/
-apps/**/.pub/
-mobile/builds/*.apk
-mobile/builds/*.ipa
-mobile/builds/*.zip
 
-
-
+# Binary builds
+*.apk
+*.ipa
+*.zip
+*.msix
+*.dmg
+*.exe

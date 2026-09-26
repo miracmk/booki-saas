@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta name="theme-color" content="#0a1724" />
+  <title>Terms of Service — BooKi Appointment &amp; Booking Platform | Ki Software</title>
+  <meta name="description" content="Terms of Service for BooKi Appointment & Booking Platform by Ki Software. Terms of use, acceptable use policy, and Google API Services compliance." />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <link rel="canonical" href="https://booki.kibusiness.co/terms" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="BooKi" />
+  <meta property="og:title" content="Terms of Service — BooKi by Ki Software" />
+  <meta property="og:description" content="Terms and conditions governing the use of the BooKi online booking platform and Google integrations." />
+  <meta property="og:url" content="https://booki.kibusiness.co/terms" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1b5e64;
+      --primary-hover: #154c51;
+      --primary-soft: #eaf3f4;
+      --navy: #0a1724;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 4px 20px -2px rgba(10, 23, 36, .06);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 980px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .site-header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 72px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+    }
+    .brand-mark {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: .04em;
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+    }
+    .brand-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--navy);
+      font-family: "DM Serif Display", serif;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .lang-switcher {
+      display: inline-flex;
+      background: #e2e8f0;
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .lang-btn {
+      border: none;
+      background: transparent;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lang-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(27, 94, 100, 0.3);
+    }
+
+    /* Hero */
+    .hero-strip {
+      background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+      padding: 3.5rem 0 2.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .hero-strip h1 {
+      font-family: "DM Serif Display", Georgia, serif;
+      font-size: 2.5rem;
+      font-weight: 400;
+      color: var(--navy);
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+    }
+    .hero-strip p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 800px;
+    }
+    .meta-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .meta-box strong { color: var(--navy); }
+
+    /* Content Area */
+    .content-area {
+      padding: 3rem 0 5rem;
+    }
+    .policy-box {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      padding: 3rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) {
+      .policy-box { padding: 1.75rem; }
+      .hero-strip h1 { font-size: 2rem; }
+    }
+
+    .policy-box h2 {
+      font-family: "DM Serif Display", serif;
+      font-weight: 400;
+      font-size: 1.65rem;
+      color: var(--navy);
+      margin: 2.25rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary-soft);
+    }
+    .policy-box h2:first-of-type { margin-top: 0; }
+    .policy-box h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin: 1.5rem 0 0.5rem;
+    }
+    .policy-box p {
+      margin-bottom: 1.15rem;
+      color: var(--text);
+    }
+    .policy-box ul, .policy-box ol {
+      margin: 0.75rem 0 1.25rem 1.5rem;
+      color: var(--text);
+    }
+    .policy-box li { margin-bottom: 0.55rem; }
+
+    .highlight-box {
+      background: #f1f5f9;
+      border-left: 5px solid var(--primary);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1.75rem 0;
+    }
+    .highlight-box h4 {
+      color: var(--navy);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .highlight-box p {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+    .highlight-box p:last-child { margin-bottom: 0; }
+
+    /* Footer */
+    .site-footer {
+      background: var(--navy);
+      color: #94a3b8;
+      padding: 4rem 0 2rem;
+      font-size: 0.92rem;
+    }
+    .footer-cols {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2.5rem;
+      margin-bottom: 3rem;
+    }
+    @media (max-width: 800px) {
+      .footer-cols { grid-template-columns: 1fr; gap: 2rem; }
+    }
+    .site-footer h4 {
+      color: #ffffff;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+    .site-footer ul { list-style: none; }
+    .site-footer li { margin-bottom: 0.6rem; }
+    .site-footer a { color: #cbd5e1; font-weight: 500; }
+    .site-footer a:hover { color: #ffffff; text-decoration: none; }
+    .footer-bar {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/" aria-label="BooKi Homepage">
+      <span class="brand-mark">BOO·KI</span>
+      <span class="brand-name">BooKi</span>
+    </a>
+    <div class="header-actions">
+      <div class="lang-switcher" role="tablist" aria-label="Language">
+        <button type="button" class="lang-btn active" id="btnEn" onclick="setLanguage('en')">English</button>
+        <button type="button" class="lang-btn" id="btnTr" onclick="setLanguage('tr')">Türkçe</button>
+      </div>
+      <a href="/" style="font-size:0.9rem; color:var(--text);">← Back to Site</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero-strip">
+  <div class="container">
+    <span class="badge">📜 Terms &amp; Conditions</span>
+    <h1 id="heroH1">BooKi Terms of Service</h1>
+    <p id="heroSub">General terms, acceptable use policies, and conditions governing access to the BooKi appointment platform.</p>
+    <div class="meta-box">
+      <div><strong>Application Name:</strong> BooKi Appointment &amp; Booking Platform</div>
+      <div><strong>Developer / Owner:</strong> Ki Software (Ki Business Solutions)</div>
+      <div><strong>Application Website:</strong> <a href="https://booki.kibusiness.co">https://booki.kibusiness.co</a></div>
+      <div><strong>Effective Date:</strong> September 19, 2026</div>
+      <div><strong>Dedicated URL:</strong> <a href="https://booki.kibusiness.co/terms">booki.kibusiness.co/terms</a></div>
+    </div>
+  </div>
+</section>
+
+<main class="content-area">
+  <div class="container">
+
+    <!-- ================= ENGLISH VERSION ================= -->
+    <article class="policy-box" id="contentEn">
+      <h2>1. Acceptance of Terms</h2>
+      <p>
+        These Terms of Service ("Terms") constitute a legally binding agreement between you (whether an individual user, business entity, or authorized representative, "User", "you", or "your") and <strong>Ki Software</strong> (a division of <strong>Ki Business Solutions</strong>, operator of <strong>BooKi</strong>, "we", "us", or "our"), governing your access to and use of the <strong>BooKi</strong> appointment scheduling software, accessible at <strong>https://booki.kibusiness.co</strong> and associated portals (<strong>https://bookiapp.kibusiness.co</strong>).
+      </p>
+      <p>
+        By creating an account, browsing the website, or utilizing the platform, you acknowledge that you have read, understood, and agreed to be bound by these Terms and our <a href="/privacy">Privacy Policy</a>. If you do not agree to all provisions, you must immediately discontinue use of the platform.
+      </p>
+
+      <h2>2. Description of the Service</h2>
+      <p>
+        BooKi provides cloud-based software tools for service businesses (beauty salons, spas, clinics, studios, restaurants, and independent professionals) to automate online booking, staff scheduling, resource/room management, commission tracking, customer relationship management, and external calendar integrations.
+      </p>
+
+      <h2>3. Account Registration &amp; Security</h2>
+      <ul>
+        <li>Users must provide genuine, accurate, and current information upon registration.</li>
+        <li>You are responsible for maintaining the confidentiality of your credentials, passwords, and multi-factor authentication tokens.</li>
+        <li>You must notify us immediately of any unauthorized breach or compromised security regarding your account.</li>
+      </ul>
+
+      <h2>4. Google API Services &amp; Third-Party Integrations</h2>
+      <p>
+        BooKi enables optional synchronization with external third-party services, including Google Services (specifically Google Calendar).
+      </p>
+      <div class="highlight-box">
+        <h4>Google API Services Compliance</h4>
+        <p>
+          When you link your Google Account with BooKi:
+        </p>
+        <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
+          <li>You authorize BooKi to access your Google Calendar solely to synchronize scheduled appointment times and check busy intervals to prevent double-booking.</li>
+          <li>BooKi's use and transfer to any other app of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener"><strong>Google API Services User Data Policy</strong></a>, including the Limited Use requirements.</li>
+          <li>You retain the right to revoke or disconnect Google access at any time through the BooKi settings panel or via your Google Account Permissions portal.</li>
+        </ul>
+      </div>
+
+      <h2>5. Acceptable Use Policy</h2>
+      <p>When accessing or using BooKi, you strictly agree NOT to:</p>
+      <ul>
+        <li>Violate any applicable local, national, or international data protection and privacy statutes (including GDPR and KVKK).</li>
+        <li>Transmit unsolicited communications, spam, phishing emails, or fraudulent booking requests.</li>
+        <li>Attempt to reverse-engineer, decompile, compromise, or probe the platform's security mechanisms.</li>
+        <li>Introduce viruses, malware, trojans, or harmful automated scraping mechanisms.</li>
+      </ul>
+
+      <h2>6. Intellectual Property Rights</h2>
+      <p>
+        All software, visual interfaces, documentation, trade secrets, trademarks, and logos associated with BooKi remain the exclusive property of <strong>Ki Software / Ki Business Solutions</strong>.
+      </p>
+
+      <h2>7. Disclaimers &amp; Limitation of Liability</h2>
+      <p>
+        THE PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMISSIBLE BY APPLICABLE LAW, KI SOFTWARE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES (INCLUDING LOST PROFITS, BUSINESS INTERRUPTION, OR LOSS OF DATA) ARISING OUT OF YOUR USE OF THE SERVICE.
+      </p>
+
+      <h2>8. Governing Law &amp; Dispute Resolution</h2>
+      <p>
+        These Terms shall be governed by and construed in accordance with the laws of the Republic of Turkey. Any disputes shall be subject to the exclusive jurisdiction of the competent courts in Istanbul, Turkey.
+      </p>
+
+      <h2>9. Contact Details</h2>
+      <p>
+        <strong>Ki Software / Ki Business Solutions</strong><br>
+        Website: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
+        Email: <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a><br>
+        Legal &amp; Privacy: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a>
+      </p>
+    </article>
+
+    <!-- ================= TURKISH VERSION ================= -->
+    <article class="policy-box" id="contentTr" style="display:none;">
+      <h2>1. Şartların Kabulü</h2>
+      <p>
+        Bu Kullanım Şartları ("Şartlar"), <strong>Ki Business Solutions</strong> bünyesindeki <strong>Ki Software</strong> tarafından sunulan ve işletilen <strong>BooKi</strong> online randevu ve masa yönetim platformuna (<strong>https://booki.kibusiness.co</strong> ve <strong>https://bookiapp.kibusiness.co</strong>) erişiminizi düzenleyen yasal bir sözleşmedir.
+      </p>
+      <p>
+        BooKi üzerinde bir hesap oluşturarak veya platformu kullanarak bu Şartları ve <a href="/privacy">Gizlilik Politikamızı</a> okuduğunuzu ve kabul ettiğinizi beyan etmiş olursunuz.
+      </p>
+
+      <h2>2. Hizmetin Tanımı ve Kapsamı</h2>
+      <p>
+        BooKi; restoran, güzellik salonu, spa, klinik ve benzeri randevu ile çalışan işletmelere yönelik komisyonsuz bulut tabanlı bir rezervasyon ve kaynak yönetim platformudur.
+      </p>
+
+      <h2>3. Üçüncü Taraf Entegrasyonları ve Google API Hizmetleri</h2>
+      <div class="highlight-box">
+        <h4>Google API Hizmetleri Uyumluluğu</h4>
+        <p>
+          Google Hesabınızı BooKi'ye bağladığınızda:
+        </p>
+        <ul style="margin-left: 1.25rem; margin-top: 0.5rem;">
+          <li>BooKi'ye yalnızca randevu senkronizasyonu ve çakışma önleme amacıyla Google Takviminize erişim izni vermiş olursunuz.</li>
+          <li>BooKi'nin Google API'lerinden aldığı bilgileri kullanımı ve aktarımı, Sınırlı Kullanım gereksinimleri dahil olmak üzere <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener">Google API Services User Data Policy</a> şartlarına tabidir.</li>
+          <li>Google entegrasyonunu BooKi yönetim panelinizden veya Google Hesap İzinleri sayfasından dilediğiniz an tek tıkla iptal edebilirsiniz.</li>
+        </ul>
+      </div>
+
+      <h2>4. Kabul Edilebilir Kullanım Kuralları</h2>
+      <ul>
+        <li>Yürürlükteki yasal mevzuata ve kişisel verilerin korunması kanunlarına (KVKK / GDPR) aykırı davranılamaz.</li>
+        <li>Sistemin kaynak kodlarına erişmeye çalışmak, tersine mühendislik uygulamak veya güvenlik açıklarını kötüye kullanmak yasaktır.</li>
+      </ul>
+
+      <h2>5. Fikri Mülkiyet Hakları</h2>
+      <p>
+        BooKi platformunun yazılım mimarisi, tasarımları, logoları ve tescilli markaları münhasıran <strong>Ki Software / Ki Business Solutions</strong>'a aittir.
+      </p>
+
+      <h2>6. Yetkili Mahkeme ve Uygulanacak Hukuk</h2>
+      <p>
+        Bu Kullanım Şartları Türkiye Cumhuriyeti kanunlarına tabidir. Uyuşmazlıklarda İstanbul Mahkemeleri ve İcra Daireleri yetkilidir.
+      </p>
+
+      <h2>7. İletişim Bilgileri</h2>
+      <p>
+        <strong>Ki Software / Ki Business Solutions</strong><br>
+        Web Sitesi: <a href="https://kibusiness.co" target="_blank" rel="noopener">https://kibusiness.co</a><br>
+        E-posta: <a href="mailto:hello@kibusiness.co">hello@kibusiness.co</a><br>
+        Hukuki İşler: <a href="mailto:privacy@kibusiness.co">privacy@kibusiness.co</a>
+      </p>
+    </article>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-cols">
+      <div>
+        <a class="brand" href="/" aria-label="BooKi" style="margin-bottom:0.75rem;">
+          <span class="brand-mark">BOO·KI</span>
+        </a>
+        <p style="margin-top:0.75rem; max-width:24rem; line-height:1.6; color:#94a3b8;">
+          Restoran, güzellik salonu, spa ve klinikler için %0 komisyonlu akıllı randevu ve masa yönetim platformu. Ki Software tarafından geliştirilmiştir.
+        </p>
+      </div>
+      <div>
+        <h4>Ürün / Product</h4>
+        <ul>
+          <li><a href="/fiyatlar">Fiyatlandırma</a></li>
+          <li><a href="/nasil-calisir">Nasıl Çalışır</a></li>
+          <li><a href="/karsilastirma">Rakip Karşılaştırma</a></li>
+          <li><a href="https://bookiapp.kibusiness.co/portal" target="_blank" rel="noopener">Giriş Yap</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Yasal &amp; Güvenlik</h4>
+        <ul>
+          <li><a href="/privacy">Privacy Policy (Gizlilik)</a></li>
+          <li><a href="/terms">Terms of Service (Şartlar)</a></li>
+          <li><a href="/sitemap.xml" target="_blank">Sitemap.xml</a></li>
+          <li><a href="/robots.txt" target="_blank">Robots.txt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Kurumsal</h4>
+        <ul>
+          <li><a href="https://kibusiness.co" target="_blank" rel="noopener">Ki Business Solutions</a></li>
+          <li><a href="https://software.kibusiness.co" target="_blank" rel="noopener">Ki Software</a></li>
+          <li><a href="/iletisim">İletişim &amp; Demo</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div>© 2026 BooKi — Ki Software (Ki Business Solutions). Tüm hakları saklıdır.</div>
+      <div>
+        <a href="/privacy" style="color:#cbd5e1; margin-right:1rem;">Privacy Policy</a>
+        <a href="/terms" style="color:#cbd5e1;">Terms of Service</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function setLanguage(lang) {
+  const en = document.getElementById('contentEn');
+  const tr = document.getElementById('contentTr');
+  const btnEn = document.getElementById('btnEn');
+  const btnTr = document.getElementById('btnTr');
+  const h1 = document.getElementById('heroH1');
+  const sub = document.getElementById('heroSub');
+
+  if (lang === 'tr') {
+    en.style.display = 'none';
+    tr.style.display = 'block';
+    btnEn.classList.remove('active');
+    btnTr.classList.add('active');
+    h1.innerText = 'BooKi Kullanım Şartları';
+    sub.innerText = 'BooKi online randevu ve rezervasyon platformunun kullanımına ilişkin şartlar ve kurallar.';
+    document.documentElement.lang = 'tr';
+  } else {
+    en.style.display = 'block';
+    tr.style.display = 'none';
+    btnTr.classList.remove('active');
+    btnEn.classList.add('active');
+    h1.innerText = 'BooKi Terms of Service';
+    sub.innerText = 'General terms, acceptable use policies, and conditions governing access to the BooKi appointment platform.';
+    document.documentElement.lang = 'en';
+  }
+}
+</script>
+
+</body>
+</html>
