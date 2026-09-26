@@ -138,8 +138,6 @@ services:
       dockerfile: Dockerfile
     container_name: booki-mcp
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:8765:8765"
     environment:
       PORT: "8765"
       BASE_PATH: /mcp
