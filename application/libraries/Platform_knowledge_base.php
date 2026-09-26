@@ -48,6 +48,20 @@ class Platform_knowledge_base
                 'url' => 'https://bookiapp.kibusiness.co',
             ],
             'plans' => [
+                'free' => [
+                    'name' => 'Ücretsiz Başlangıç (Free Tier)',
+                    'monthly_price' => 0,
+                    'annual_monthly_equivalent' => 0,
+                    'annual_total_price' => 0,
+                    'annual_saving' => 'Süresiz %100 Ücretsiz (Kredi kartı veya taahhüt gerekmez)',
+                    'limits' => [
+                        'staff_limit' => 1,
+                        'resource_limit' => '1 istasyon / cihaz / oda / alan / saha / kort / masa vb.',
+                        'monthly_bookings_limit' => 40,
+                    ],
+                    'target' => 'Tek başına çalışan uzmanlar, butik odalar, tek kort/saha/cihaz işletenler ve mikro işletmeler.',
+                    'highlights' => '1 kişi, 1 istasyon/cihaz/oda/alan/saha/kort/masa, aylık 40 randevu kotası, online takvim, müşteri CRM ve bildirimler.',
+                ],
                 'starter' => [
                     'name' => 'Başlangıç (Starter)',
                     'monthly_price' => 1250,
@@ -67,7 +81,7 @@ class Platform_knowledge_base
                     'highlights' => 'Gelişmiş paket/seans takibi, POS & adisyon, personel prim/komisyon motoru, yapay zeka asistanı, pazarlama otomasyonu.',
                 ],
                 'enterprise' => [
-                    'name' => 'Kurumsal / Zincir (Enterprise)',
+                    'name' => 'Kurumsal / Zincir (Enterprise / Premium)',
                     'monthly_price' => 4750,
                     'annual_monthly_equivalent' => 3800,
                     'annual_total_price' => 45600,
@@ -75,8 +89,16 @@ class Platform_knowledge_base
                     'target' => 'Çok şubeli zincirler, klinikler, büyük fitness merkezleri ve kurumsal işletmeler.',
                     'highlights' => 'Çoklu şube konsolidasyonu, özel alan adı (custom domain), MCP/API uçları, sınırsız personel, öncelikli 7/24 destek ve özel onboarding.',
                 ],
+                'custom_enterprise' => [
+                    'name' => 'Özel Teklif / Kurumsal Genişleme (Custom Enterprise)',
+                    'monthly_price' => 'Özel Teklif',
+                    'annual_monthly_equivalent' => 'Görüşmeye Bağlı',
+                    'target' => 'Enterprise / Premium paketin yetmediği çok şubeli zincirler, dev tesisler, franchise ağları ve özel entegrasyon talepleri.',
+                    'highlights' => 'Sınırsız şube, sınırsız istasyon, özel SLA & dedike sunucu, özel API & MCP genişletmesi, yerinde kurulum ve eğitim, dedike hesap yöneticisi.',
+                    'action_rule' => 'İşletmenin ihtiyaçları Premium/Enterprise paketini aşıyorsa veya özel teklif talep ediliyorsa, AI asistanı müşteriyi CRM leadlerine (crm_tag: SPECIAL_OFFER_REQUEST veya CUSTOM_ENTERPRISE_OFFER) ekler ve "Ekibimiz sizin için özel teklif hazırlayıp gönderecektir" bilgisini verir.',
+                ],
             ],
-            'roi_value_pitch' => 'Ayda sadece 1 müşterinin gelmeme (no-show) kaybı veya kaçan 1 randevu engellendiğinde, BooKi kendi aylık maliyetini ilk haftadan katbekat amorti eder.',
+            'roi_value_pitch' => 'İster 0 TL\'lik ücretsiz paketle (1 kişi, 1 istasyon, 40 randevu) başlayın, ister ücretli paketlere geçin; ayda sadece 1 müşterinin gelmeme (no-show) kaybı veya kaçan 1 randevu engellendiğinde sistem kendi maliyetini katbekat amorti eder. Premium yetmezse kurumsal ekibimiz özel teklif sunar.',
         ];
     }
 
@@ -1125,10 +1147,12 @@ TEMEL KİMLİK VE TON:
 
 --------------------------------------------------
 BOOKI FİYATLANDIRMASI (ŞEFFAF & SABİT TL):
-- 10 Günlük Ücretsiz Deneme: Kredi kartsız, taahhütsüz, 30 saniyede açılır (https://bookiapp.kibusiness.co).
+- Ücretsiz Paket (Free Tier / Süresiz 0 TL): 1 kişi (personel/uzman), 1 istasyon/cihaz/oda/alan/saha/kort/masa vb. ve aylık 40 randevu kotası tamamen ÜCRETSİZDİR (0 TL). Kredi kartı veya taahhüt gerekmez. Tek çalışanlı mikro işletmeler veya sistemi riske girmeden kullanmak isteyen bağımsız uzmanlar için idealdir.
+- 10 Günlük Ücretsiz Deneme (Full Pro Demo): Kredi kartsız, taahhütsüz, tüm modüller ve yapay zeka açık 30 saniyede başlar (https://bookiapp.kibusiness.co).
 - Başlangıç (Starter): 1.250 TL / ay (Yıllık peşin ödemede 1.000 TL/ay - Yıllık 12.000 TL). Tek şubeli butik işletmeler için tam çözüm.
 - Büyüme (Growth/Pro): 2.450 TL / ay (Yıllıkta 1.950 TL/ay). Çok personelli, paket/seans takipli, POS adisyonlu işletmeler.
-- Kurumsal (Enterprise): 4.750 TL / ay (Yıllıkta 3.800 TL/ay). Zincirler, çoklu şubeler, özel domain ve MCP/API entegrasyonu.
+- Kurumsal / Premium (Enterprise): 4.750 TL / ay (Yıllıkta 3.800 TL/ay). Zincirler, çoklu şubeler, özel domain ve MCP/API entegrasyonu.
+- Özel Kurumsal Teklif (Premium / Enterprise Yetersiz Gelirse): Çok şubeli zincirler, dev spor ve sağlık kompleksleri, franchise ağları, sınırsız istasyon veya özel API/SLA ihtiyacı olan ve Enterprise/Premium paketi yetmeyen işletmeler için: "İhtiyaçlarınız için kurumsal ekibimiz size özel bir teklif hazırlayacaktır. Bilgilerinizi alıyorum, ekibimiz size özel teklif iletecektir" de ve `create_demo_lead` aracını `crm_tag: SPECIAL_OFFER_REQUEST` veya `CUSTOM_ENTERPRISE_OFFER` ile çağırarak lead'lere ekle!
 * Gizli maliyet, kurulum ücreti, randevu başı komisyon YOKTUR!
 
 --------------------------------------------------
@@ -1141,6 +1165,8 @@ KOD TABANINDAN CANLI TARANAN GERÇEK SİSTEM YETENEKLERİ (Git Commit: {$feature
 
 --------------------------------------------------
 SATIŞ VE İTİRAZ YÖNETİMİ PROTOKOLLERİ (KI BUSINESS REHBERİ):
+- Ücretsiz Paket Talebi / Bütçe Sıkıntısı: "Dilerseniz hiçbir ücret ödemeden 1 kişi, 1 istasyon ve aylık 40 randevuya kadar olan tamamen Ücretsiz Paketimizle (0 TL) hemen başlayabilirsiniz. Kredi kartı veya taahhüt gerekmez."
+- Premium / Enterprise Yetersiz Gelirse / Özel Teklif Talebi: "İşletmenizin ölçeği ve ihtiyaçları standart paketlerimizin üzerindeyse hiç sorun değil; kurumsal satış ekibimiz size özel esnek bir teklif hazırlayacaktır. İletişim bilgilerinizi ve taleplerinizi sistemimize kaydediyorum, ekibimiz size en kısa sürede özel teklifle dönecektir." diyerek `create_demo_lead` aracını çalıştır (`crm_tag: SPECIAL_OFFER_REQUEST` veya `CUSTOM_ENTERPRISE_OFFER`).
 - Müşteri Fiyat İtirazı Yaptığında (HO-02 / TEI Method): Fiyatı hemen savunmaya geçme. "Fiyat önemli, haklısınız. Ancak ayda sadece 1-2 randevuya gelmeyen müşteriyi kurtardığınızda BooKi kendi aylık ücretini sıfırlıyor. Geriye kalan tüm müşteri takibi, seans paketleri ve kasa yönetimi işletmenize net kâr kalıyor." şeklinde yanıt ver.
 - Müşteri Rakip Söylediğinde (TI-02 / Challenger): Rakibin güçlü yanını teyit et, ardından BooKi farkını sun (Örn. Menajer.im, Adisyo, GymTekno, Fresha, Elektraweb). "Sadece randevu/adisyon tutmak için onlar kullanılabilir; ancak müşteri sadakati, paket ayrımı, WhatsApp AI ve pazarlamayı tek yerde birleştirmek istiyorsanız BooKi farklı bir kategoride."
 - Müşteri Zaman Baskısındaysa (HO-03 / Fast-Track): "BooKi bulut tabanlıdır; 10 dakikada salonunuzun online randevu sayfasını ve WhatsApp botunu hazır hale getirebiliriz."

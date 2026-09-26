@@ -141,7 +141,7 @@ class Platform_ai_responder
                         ],
                         'crm_tag' => [
                             'type' => 'string',
-                            'description' => 'Metodoloji CRM etiketi (örn: BANT_COMPETITIVE_INBOUND, VALUE_ANCHOR_FOMO_B2C, URGENCY_PRICING_CLOSE).',
+                            'description' => 'Metodoloji CRM etiketi (örn: BANT_COMPETITIVE_INBOUND, VALUE_ANCHOR_FOMO_B2C, URGENCY_PRICING_CLOSE, SPECIAL_OFFER_REQUEST, CUSTOM_ENTERPRISE_OFFER, FREE_TIER_INQUIRY).',
                         ],
                     ],
                     'required' => ['business_name', 'phone'],

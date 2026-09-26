@@ -1,8 +1,8 @@
 {
     "system_name": "BooKi Enterprise SaaS Appointment & Business Operating System",
     "version": "2026.4",
-    "git_commit": "128ec4a7c46789d51a76aa7f98d5c837d8644cb4",
-    "scanned_at": "2026-09-26 10:19:14",
+    "git_commit": "02f73de7d6b36f524cccb1c67c5fa1f2ec898fbd",
+    "scanned_at": "2026-09-26 10:34:16",
     "total_controllers": 100,
     "total_models": 61,
     "total_migrations": 163,

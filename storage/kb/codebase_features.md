@@ -1,8 +1,8 @@
 # BooKi Yazılım Yetenekleri & Kod Tabanı Özellik Kataloğu
 
 **Sistem:** BooKi Enterprise SaaS Appointment & Business Operating System
-**Git Sürüm / Commit:** `128ec4a7c46789d51a76aa7f98d5c837d8644cb4`
-**Son Tarama Tarihi:** 2026-09-26 10:19:14
+**Git Sürüm / Commit:** `02f73de7d6b36f524cccb1c67c5fa1f2ec898fbd`
+**Son Tarama Tarihi:** 2026-09-26 10:34:16
 **Kapsam:** 100 Controller, 61 Veri Modeli
 
 ---
