@@ -15,6 +15,10 @@ dist/
 .pnpm-store/
 .npm/
 
+# Composer dependencies
+vendor/
+**/vendor/
+
 # Backend Storage and Logs
 Backend/storage/logs/*
 !Backend/storage/logs/.gitkeep
