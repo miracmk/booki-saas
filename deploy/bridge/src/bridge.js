@@ -4,10 +4,14 @@ import makeWASocket, {
     DisconnectReason,
     fetchLatestBaileysVersion,
     Browsers,
+    isJidUser,
+    isLidUser,
+    jidNormalizedUser,
+    normalizeMessageContent,
 } from '@whiskeysockets/baileys';
 
 import pino from 'pino';
-import { mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs';
+import { mkdirSync, existsSync, readdirSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
@@ -83,9 +87,49 @@ function sessionConfigPath(tenant) {
     return join(sessionDir(tenant), 'bridge-config.json');
 }
 
+function jidMapPath(tenant) {
+    return join(sessionDir(tenant), 'jid-map.json');
+}
+
+function loadJidMap(entry) {
+    try {
+        if (existsSync(entry.dir)) {
+            const files = readdirSync(entry.dir);
+            for (const f of files) {
+                const m = f.match(/^session-(\d{13,})\./);
+                if (m) {
+                    const lidId = m[1];
+                    entry.jidMap.set(lidId, `${lidId}@lid`);
+                    entry.jidMap.set(`${lidId}@lid`, `${lidId}@lid`);
+                }
+            }
+        }
+
+        const file = jidMapPath(entry.tenant);
+        if (existsSync(file)) {
+            const data = JSON.parse(readFileSync(file, 'utf8'));
+            for (const [k, v] of Object.entries(data)) {
+                entry.jidMap.set(k, v);
+            }
+        }
+    } catch {
+        // ignore
+    }
+}
+
+function saveJidMap(entry) {
+    try {
+        const file = jidMapPath(entry.tenant);
+        const obj = Object.fromEntries(entry.jidMap);
+        writeFileSync(file, JSON.stringify(obj, null, 2), 'utf8');
+    } catch {
+        // ignore
+    }
+}
+
 function getEntry(tenant) {
     if (!sessions.has(tenant)) {
-        sessions.set(tenant, {
+        const entry = {
             tenant,
             dir: sessionDir(tenant),
             sock: null,
@@ -98,7 +142,11 @@ function getEntry(tenant) {
             creating: null,
             reconnectTimer: null,
             reconnectAttempts: 0,
-        });
+            jidMap: new Map(),
+            sentMessageIds: new Set(),
+        };
+        loadJidMap(entry);
+        sessions.set(tenant, entry);
     }
 
     return sessions.get(tenant);
@@ -147,10 +195,15 @@ async function restoreSessionConfig(entry) {
 
 /**
  * Extract a human-readable text payload from a Baileys message node, or null
- * when the node carries no text.
+ * when the node carries no text. Unwraps ephemeral, viewOnce, and other wrappers.
  */
 function extractText(msg) {
-    const m = msg.message || {};
+    if (!msg || !msg.message) {
+        return null;
+    }
+
+    const m = normalizeMessageContent(msg.message) || {};
+
     if (typeof m.conversation === 'string' && m.conversation.length > 0) {
         return m.conversation;
     }
@@ -158,6 +211,30 @@ function extractText(msg) {
     const ext = m.extendedTextMessage && m.extendedTextMessage.text;
     if (typeof ext === 'string' && ext.length > 0) {
         return ext;
+    }
+
+    if (typeof m.imageMessage?.caption === 'string' && m.imageMessage.caption.length > 0) {
+        return m.imageMessage.caption;
+    }
+
+    if (typeof m.videoMessage?.caption === 'string' && m.videoMessage.caption.length > 0) {
+        return m.videoMessage.caption;
+    }
+
+    if (typeof m.documentWithCaptionMessage?.message?.documentMessage?.caption === 'string') {
+        return m.documentWithCaptionMessage.message.documentMessage.caption;
+    }
+
+    if (typeof m.buttonsResponseMessage?.selectedButtonId === 'string') {
+        return m.buttonsResponseMessage.selectedButtonId;
+    }
+
+    if (typeof m.templateButtonReplyMessage?.selectedId === 'string') {
+        return m.templateButtonReplyMessage.selectedId;
+    }
+
+    if (typeof m.listResponseMessage?.singleSelectReply?.selectedRowId === 'string') {
+        return m.listResponseMessage.singleSelectReply.selectedRowId;
     }
 
     return null;
@@ -168,7 +245,12 @@ function extractText(msg) {
  * proto field name (e.g. 'imageMessage').
  */
 function messageType(msg) {
-    const keys = Object.keys(msg.message || {});
+    if (!msg || !msg.message) {
+        return 'unknown';
+    }
+
+    const m = normalizeMessageContent(msg.message) || {};
+    const keys = Object.keys(m);
 
     if (keys.includes('conversation') || keys.includes('extendedTextMessage')) {
         return 'text';
@@ -184,7 +266,6 @@ function messageType(msg) {
 function forwardInbound(entry, payload) {
     if (!entry.webhookUrl) {
         log.warn({ tenant: entry.tenant }, 'inbound message dropped: no webhookUrl configured');
-
         return;
     }
 
@@ -198,24 +279,46 @@ function forwardInbound(entry, payload) {
         headers['X-Bridge-Secret'] = entry.webhookSecret;
     }
 
-    log.info({ tenant: entry.tenant, from: payload.from, url: entry.webhookUrl }, 'forwarding inbound message to app');
+    let primaryUrl = entry.webhookUrl;
+    try {
+        const parsed = new URL(entry.webhookUrl);
+        headers['Host'] = parsed.host;
+        if (parsed.hostname.endsWith('kibusiness.co')) {
+            // Direct internal HTTP call over docker network to booki-app:
+            primaryUrl = `http://booki-app${parsed.pathname}${parsed.search}`;
+        }
+    } catch {
+        // keep entry.webhookUrl
+    }
 
-    fetch(entry.webhookUrl, {
+    log.info({ tenant: entry.tenant, from: payload.from, url: primaryUrl }, 'forwarding inbound message to app');
+
+    fetch(primaryUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify({ tenant: entry.tenant, ...payload }),
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(60000),
     })
         .then(async (res) => {
             if (!res.ok) {
                 const text = await res.text().catch(() => '');
-                log.warn({ tenant: entry.tenant, status: res.status, body: text.slice(0, 200), url: entry.webhookUrl }, 'inbound forward non-200');
+                log.warn({ tenant: entry.tenant, status: res.status, body: text.slice(0, 200), url: primaryUrl }, 'inbound forward non-200');
             } else {
                 log.info({ tenant: entry.tenant, from: payload.from }, 'inbound forward succeeded (200)');
             }
         })
         .catch((err) => {
-            log.warn({ tenant: entry.tenant, err: err.message, url: entry.webhookUrl }, 'inbound forward failed');
+            log.warn({ tenant: entry.tenant, err: err.message, url: primaryUrl }, 'primary inbound forward failed, retrying original URL');
+            if (primaryUrl !== entry.webhookUrl) {
+                fetch(entry.webhookUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ tenant: entry.tenant, ...payload }),
+                    signal: AbortSignal.timeout(60000),
+                }).catch((fallbackErr) => {
+                    log.warn({ tenant: entry.tenant, err: fallbackErr.message, url: entry.webhookUrl }, 'fallback inbound forward failed');
+                });
+            }
         });
 }
 
@@ -231,24 +334,70 @@ function onMessagesUpsert(entry, upsert) {
             storeMessage(entry.tenant, msg.key.id, msg.message);
         }
 
-        if (msg.key.fromMe) {
+        const rawJid = msg.key?.remoteJid;
+        if (!rawJid || (!isJidUser(rawJid) && !isLidUser(rawJid))) {
+            log.debug({ tenant: entry.tenant, rawJid }, 'ignoring non-user jid');
             continue;
         }
 
-        if (!msg.key.remoteJid || !msg.key.remoteJid.endsWith('@s.whatsapp.net')) {
+        // Avoid infinite loop if this message was sent by our own socket
+        if (msg.key?.id && entry.sentMessageIds?.has(msg.key.id)) {
             continue;
         }
 
-        const from = msg.key.remoteJid.split('@')[0];
+        // Check self-chat test vs normal outbound message:
+        const botJid = entry.sock?.user?.id ? jidNormalizedUser(entry.sock.user.id) : null;
+        const botLid = entry.sock?.user?.lid ? jidNormalizedUser(entry.sock.user.lid) : null;
+        const normRemote = jidNormalizedUser(rawJid);
+        const isSelfChat = (botJid && normRemote === botJid) || (botLid && normRemote === botLid);
+
+        if (msg.key?.fromMe) {
+            if (!isSelfChat) {
+                // Outgoing message to another customer sent from phone/web, skip
+                continue;
+            }
+            // In self-chat (user testing their own bot from the paired phone), allow it through
+        }
+
+        // Ignore reaction messages and empty protocol messages
+        const normMsg = normalizeMessageContent(msg.message);
+        if (normMsg?.reactionMessage || normMsg?.protocolMessage) {
+            continue;
+        }
+
+        // Sender identifier: use participant if it contains a user jid, or rawJid
+        let fromNumber = rawJid.split('@')[0];
+        if (msg.key?.participant && isJidUser(msg.key.participant)) {
+            fromNumber = msg.key.participant.split('@')[0];
+        }
+
+        // Track both fromNumber and rawJid in jidMap so sendMessage can route back
+        if (!entry.jidMap) entry.jidMap = new Map();
+        entry.jidMap.set(fromNumber, rawJid);
+        entry.jidMap.set(rawJid, rawJid);
+        saveJidMap(entry);
+
         const type = messageType(msg);
         const text = extractText(msg);
         const body = text ?? `[${type} message]`;
 
+        log.info({
+            tenant: entry.tenant,
+            from: fromNumber,
+            rawJid,
+            fromMe: msg.key?.fromMe,
+            pushName: msg.pushName,
+            type,
+            body: body.slice(0, 100),
+        }, 'forwarding inbound WhatsApp message');
+
         forwardInbound(entry, {
-            from,
+            from: fromNumber,
+            raw_jid: rawJid,
+            push_name: msg.pushName || '',
             body,
             type,
-            message_id: `WA-${msg.key.id || 'unknown'}`,
+            message_id: `WA-${msg.key?.id || 'unknown'}`,
         });
     }
 }
@@ -557,29 +706,54 @@ export async function sendMessage(tenant, to, text) {
         return { success: false, error: 'no_connected_session' };
     }
 
-    let digits = String(to || '').replace(/^\+/, '').replace(/\D/g, '');
-    if (digits.startsWith('0') && digits.length === 11) {
-        digits = '9' + digits;
-    } else if (digits.length === 10 && digits.startsWith('5')) {
-        digits = '90' + digits;
-    }
+    const toStr = String(to || '').trim();
+    let targetJid = null;
 
-    if (digits.length < 8) {
-        return { success: false, error: 'invalid_number' };
+    if (toStr.endsWith('@s.whatsapp.net') || toStr.endsWith('@lid') || toStr.endsWith('@g.us')) {
+        targetJid = toStr;
+    } else if (entry.jidMap && entry.jidMap.has(toStr)) {
+        targetJid = entry.jidMap.get(toStr);
+    } else if (isJidUser(toStr) || isLidUser(toStr)) {
+        targetJid = toStr;
+    } else {
+        let digits = toStr.replace(/^\+/, '').replace(/\D/g, '');
+        if (digits.startsWith('0') && digits.length === 11) {
+            digits = '9' + digits;
+        } else if (digits.length === 10 && digits.startsWith('5')) {
+            digits = '90' + digits;
+        }
+
+        if (digits.length < 8) {
+            return { success: false, error: 'invalid_number' };
+        }
+
+        if (digits.length >= 13 && !digits.startsWith('90')) {
+            targetJid = `${digits}@lid`;
+        } else {
+            targetJid = `${digits}@s.whatsapp.net`;
+        }
     }
 
     try {
-        const jid = `${digits}@s.whatsapp.net`;
-        const sent = await entry.sock.sendMessage(jid, { text: String(text) });
+        log.info({ tenant, targetJid, text: String(text).slice(0, 50) }, 'sending WhatsApp message');
+        const sent = await entry.sock.sendMessage(targetJid, { text: String(text) });
         const messageId = sent?.key?.id;
 
-        if (messageId && sent?.message) {
-            storeMessage(tenant, messageId, sent.message);
+        if (messageId) {
+            if (!entry.sentMessageIds) entry.sentMessageIds = new Set();
+            entry.sentMessageIds.add(messageId);
+            if (entry.sentMessageIds.size > 1000) {
+                const first = entry.sentMessageIds.values().next().value;
+                if (first) entry.sentMessageIds.delete(first);
+            }
+            if (sent?.message) {
+                storeMessage(tenant, messageId, sent.message);
+            }
         }
 
         return { success: true, message_id: `WA-${messageId || 'unknown'}` };
     } catch (err) {
-        log.warn({ tenant, err: err.message }, 'send failed');
+        log.warn({ tenant, err: err.message, targetJid }, 'send failed');
 
         return { success: false, error: String(err.message || 'send_failed').slice(0, 200) };
     }

@@ -684,6 +684,7 @@ class Whatsapp extends App_Controller
             }
 
             $from = (string) ($payload['from'] ?? '');
+            $push_name = (string) ($payload['push_name'] ?? '');
             $body = (string) ($payload['body'] ?? '[non-text message]');
 
             if ($from === '') {
@@ -694,7 +695,7 @@ class Whatsapp extends App_Controller
                 return;
             }
 
-            $matched_user = $this->match_user_by_wa_id($from);
+            $matched_user = $this->match_user_by_wa_id($from, $push_name);
 
             // Store the inbound message (mirrors webhook_receive() behavior).
             $this->whatsapp_messages_model->save([
@@ -737,16 +738,17 @@ class Whatsapp extends App_Controller
 
     /**
      * BooKi (Dalga 3 / Faz 3.5) - resolve an inbound sender to a known
-     * customer by their whatsapp_wa_id (exact, then digit-normalized fallback).
+     * customer by their whatsapp_wa_id, phone candidates, or push_name.
      *
      * @return array|null
      */
-    private function match_user_by_wa_id(string $wa_id): ?array
+    private function match_user_by_wa_id(string $wa_id, ?string $push_name = null): ?array
     {
         if (!$this->db->field_exists('whatsapp_wa_id', 'users')) {
             return null;
         }
 
+        // 1. Direct whatsapp_wa_id match
         $user = $this->db
             ->select('users.*, roles.slug AS role_slug')
             ->from('users')
@@ -757,7 +759,7 @@ class Whatsapp extends App_Controller
             ->row_array();
 
         if ($user) {
-            return $user;
+            return $this->decrypt_user_pii($user);
         }
 
         $normalized = preg_replace('/\D+/', '', $wa_id);
@@ -773,29 +775,102 @@ class Whatsapp extends App_Controller
                 ->row_array();
 
             if ($user) {
-                return $user;
+                return $this->decrypt_user_pii($user);
             }
         }
 
-        // Fallback: match by phone_number (last 10 digits) if whatsapp_wa_id was not previously linked
-        if ($normalized !== '' && strlen($normalized) >= 10) {
+        // 2. If $wa_id is a telephone number (10-12 digits, e.g. 905xxxxxxxxx or 5xxxxxxxxx)
+        if ($normalized !== '' && strlen($normalized) >= 10 && strlen($normalized) <= 12) {
             $last10 = substr($normalized, -10);
+            $candidates = array_values(array_unique(array_filter([
+                $normalized,
+                $last10,
+                '0' . $last10,
+                '90' . $last10,
+                '+90' . $last10,
+                sprintf('0 (%s) %s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)),
+                sprintf('0%s %s %s %s', substr($last10, 0, 3), substr($last10, 3, 3), substr($last10, 6, 2), substr($last10, 8, 2)),
+            ])));
+
+            // A. PII Hash matching (for encrypted databases)
+            if (function_exists('sf_pii_hash') && $this->db->field_exists('phone_number_hash', 'users')) {
+                $hashes = array_values(array_unique(array_filter(array_map('sf_pii_hash', $candidates))));
+                if (!empty($hashes)) {
+                    $user = $this->db
+                        ->select('users.*, roles.slug AS role_slug')
+                        ->from('users')
+                        ->join('roles', 'roles.id = users.id_roles', 'left')
+                        ->where_in('users.phone_number_hash', $hashes)
+                        ->limit(1)
+                        ->get()
+                        ->row_array();
+
+                    if ($user) {
+                        $this->db->update('users', ['whatsapp_wa_id' => $wa_id], ['id' => $user['id']]);
+                        return $this->decrypt_user_pii($user);
+                    }
+                }
+            }
+
+            // B. Plaintext match fallback
             $user = $this->db
                 ->select('users.*, roles.slug AS role_slug')
                 ->from('users')
                 ->join('roles', 'roles.id = users.id_roles', 'left')
-                ->like('users.phone_number', $last10)
+                ->group_start()
+                ->where_in('users.phone_number', $candidates)
+                ->or_like('users.phone_number', $last10)
+                ->group_end()
                 ->limit(1)
                 ->get()
                 ->row_array();
 
             if ($user) {
                 $this->db->update('users', ['whatsapp_wa_id' => $wa_id], ['id' => $user['id']]);
-                return $user;
+                return $this->decrypt_user_pii($user);
+            }
+        }
+
+        // 3. Fallback: match by WhatsApp profile display name (push_name) if available
+        $clean_push = trim((string) $push_name);
+        if ($clean_push !== '' && mb_strlen($clean_push) >= 3) {
+            $matching_users = $this->db
+                ->select('users.*, roles.slug AS role_slug')
+                ->from('users')
+                ->join('roles', 'roles.id = users.id_roles', 'left')
+                ->group_start()
+                ->where('CONCAT_WS(" ", users.first_name, users.last_name)', $clean_push)
+                ->or_where('users.first_name', $clean_push)
+                ->group_end()
+                ->limit(2)
+                ->get()
+                ->result_array();
+
+            // Link only if uniquely matched to 1 customer
+            if (count($matching_users) === 1) {
+                $user = $matching_users[0];
+                $this->db->update('users', ['whatsapp_wa_id' => $wa_id], ['id' => $user['id']]);
+                return $this->decrypt_user_pii($user);
             }
         }
 
         return null;
+    }
+
+    /**
+     * Decrypt customer PII fields if encrypted.
+     */
+    private function decrypt_user_pii(array $user): array
+    {
+        if (function_exists('sf_pii_is_encrypted') && function_exists('sf_pii_decrypt')) {
+            foreach (['phone_number', 'email', 'address', 'notes', 'city', 'zip_code'] as $field) {
+                if (!empty($user[$field]) && sf_pii_is_encrypted($user[$field])) {
+                    $user[$field] = sf_pii_decrypt($user[$field]);
+                }
+            }
+        }
+
+        return $user;
     }
 
     /**

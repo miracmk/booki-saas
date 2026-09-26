@@ -208,20 +208,20 @@ class Ai_llm_gateway
         $setting_key = "ai_model_{$provider}";
         $custom_model = $this->get_setting_safely($setting_key);
         if (!empty($custom_model)) {
-            // Automatically upgrade deprecated/sunset Google models to gemini-2.5-flash
-            if (($provider === 'google' || $provider === 'gemini') && (str_starts_with($custom_model, 'gemini-1.5') || str_starts_with($custom_model, 'gemini-1.0'))) {
-                return 'gemini-2.5-flash';
+            // Automatically upgrade deprecated/sunset/limited Google models to gemini-3.8-flash
+            if (($provider === 'google' || $provider === 'gemini') && ($custom_model === 'gemini-2.5-flash' || str_starts_with($custom_model, 'gemini-1.') || str_starts_with($custom_model, 'gemini-2.0'))) {
+                return 'gemini-3.8-flash';
             }
             return $custom_model;
         }
 
         return match ($provider) {
-            'google', 'gemini' => getenv('GEMINI_MODEL') ?: 'gemini-2.5-flash',
-            'groq' => getenv('GROQ_MODEL') ?: 'qwen/qwen3.8-27b',
+            'google', 'gemini' => getenv('GEMINI_MODEL') ?: 'gemini-3.8-flash',
+            'groq' => getenv('GROQ_MODEL') ?: 'openai/gpt-oss-120b',
             'openrouter' => getenv('AI_AGENT_MODEL') ?: 'google/gemini-2.5-flash',
             'openai' => getenv('OPENAI_MODEL') ?: 'gpt-4o-mini',
             'anthropic', 'claude' => getenv('ANTHROPIC_MODEL') ?: 'claude-3-5-haiku-20241022',
-            default => 'gemini-2.5-flash',
+            default => 'gemini-3.8-flash',
         };
     }
 
@@ -230,8 +230,8 @@ class Ai_llm_gateway
      */
     protected function call_google_gemini(array $messages, string $model, string $api_key, ?array $tools, float $temperature, int $max_tokens): ?array
     {
-        if (str_starts_with($model, 'gemini-1.5') || str_starts_with($model, 'gemini-1.0')) {
-            $model = 'gemini-2.5-flash';
+        if ($model === 'gemini-2.5-flash' || str_starts_with($model, 'gemini-1.') || str_starts_with($model, 'gemini-2.0')) {
+            $model = 'gemini-3.8-flash';
         }
 
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
@@ -246,27 +246,38 @@ class Ai_llm_gateway
             if ($role === 'system') {
                 $system_text .= $content . "\n";
             } elseif ($role === 'assistant') {
-                $parts = [];
-                if (!empty($content)) {
-                    $parts[] = ['text' => (string) $content];
-                }
-                if (!empty($m['tool_calls'])) {
-                    foreach ($m['tool_calls'] as $tc) {
-                        $fn = $tc['function'] ?? [];
-                        $args = is_string($fn['arguments'] ?? null) ? json_decode($fn['arguments'], true) : ($fn['arguments'] ?? []);
-                        $parts[] = [
-                            'functionCall' => [
-                                'name' => $fn['name'] ?? '',
-                                'args' => $args ?: (object)[],
-                            ],
-                        ];
-                    }
-                }
-                if (!empty($parts)) {
+                if (!empty($m['model_parts'])) {
                     $contents[] = [
                         'role' => 'model',
-                        'parts' => $parts,
+                        'parts' => $m['model_parts'],
                     ];
+                } else {
+                    $parts = [];
+                    if (!empty($content)) {
+                        $parts[] = ['text' => (string) $content];
+                    }
+                    if (!empty($m['tool_calls'])) {
+                        foreach ($m['tool_calls'] as $tc) {
+                            $fn = $tc['function'] ?? [];
+                            $args = is_string($fn['arguments'] ?? null) ? json_decode($fn['arguments'], true) : ($fn['arguments'] ?? []);
+                            $f_part = [
+                                'functionCall' => [
+                                    'name' => $fn['name'] ?? '',
+                                    'args' => $args ?: (object)[],
+                                ],
+                            ];
+                            if (!empty($tc['thought_signature'])) {
+                                $f_part['thoughtSignature'] = $tc['thought_signature'];
+                            }
+                            $parts[] = $f_part;
+                        }
+                    }
+                    if (!empty($parts)) {
+                        $contents[] = [
+                            'role' => 'model',
+                            'parts' => $parts,
+                        ];
+                    }
                 }
             } elseif ($role === 'tool') {
                 $response_data = is_array($content) ? $content : (json_decode((string) $content, true) ?: ['result' => $content]);
@@ -297,6 +308,9 @@ class Ai_llm_gateway
             'generationConfig' => [
                 'temperature' => $temperature,
                 'maxOutputTokens' => $max_tokens,
+                'thinkingConfig' => [
+                    'thinkingBudget' => 0,
+                ],
             ],
         ];
 
@@ -344,11 +358,14 @@ class Ai_llm_gateway
         $tool_calls = [];
 
         foreach ($candidate['content']['parts'] ?? [] as $part) {
+            if (!empty($part['thought'])) {
+                continue;
+            }
             if (!empty($part['text'])) {
                 $reply_text .= $part['text'];
             }
             if (!empty($part['functionCall'])) {
-                $tool_calls[] = [
+                $tc_entry = [
                     'id' => 'call_' . uniqid(),
                     'type' => 'function',
                     'function' => [
@@ -356,14 +373,19 @@ class Ai_llm_gateway
                         'arguments' => json_encode($part['functionCall']['args'] ?? [], JSON_UNESCAPED_UNICODE),
                     ],
                 ];
+                if (!empty($part['thoughtSignature'])) {
+                    $tc_entry['thought_signature'] = $part['thoughtSignature'];
+                }
+                $tool_calls[] = $tc_entry;
             }
         }
 
         return [
             'success' => true,
-            'reply' => trim($reply_text),
+            'reply' => self::clean_thinking_traces($reply_text),
             'tool_calls' => $tool_calls,
             'raw_message' => $candidate,
+            'model_parts' => $candidate['content']['parts'] ?? [],
         ];
     }
 
@@ -552,10 +574,31 @@ class Ai_llm_gateway
 
         return [
             'success' => true,
-            'reply' => $content,
+            'reply' => self::clean_thinking_traces($content),
             'tool_calls' => $tool_calls,
             'raw_message' => $choice,
         ];
+    }
+
+    /**
+     * Remove reasoning / chain-of-thought traces generated by thinking models
+     * (e.g. Qwen, DeepSeek, Nemotron) so internal prompts or draft steps never leak to users.
+     */
+    public static function clean_thinking_traces(string $text): string
+    {
+        // 1. Strip XML-style thought tags
+        $text = preg_replace('/<think(?:ing)?>.*?<\/think(?:ing)?>/is', '', $text);
+        $text = preg_replace('/<thought>.*?<\/thought>/is', '', $text);
+
+        // 2. Strip plaintext thinking blocks such as "Here's a thinking process: ... Draft: ..."
+        if (preg_match('/^(?:Here\'?s a thinking process|Thinking Process|Thought Process|Düşünce Süreci):.*?(?=(?:\n\nDraft:|\nDraft:|\n\n[A-ZÇĞİÖŞÜ]|\n\n\*\*|\n\nMerhaba|\n\nSayın|\n\n[a-zçğıöşü]+ Bey|\n\n[a-zçğıöşü]+ Hanım|\Z))/is', $text, $m)) {
+            $text = substr($text, strlen($m[0]));
+        }
+
+        // 3. If there is a "Draft:" label before the final message, strip it
+        $text = preg_replace('/^Draft:\s*/i', '', trim($text));
+
+        return trim($text);
     }
 
     /**

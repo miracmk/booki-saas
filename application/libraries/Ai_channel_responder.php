@@ -198,6 +198,8 @@ class Ai_channel_responder
             return null;
         }
 
+        $matched_user = $this->decrypt_user_pii($matched_user);
+
         $booking_url = site_url('booking');
 
         // 1. Direct commands to toggle AI
@@ -263,6 +265,7 @@ class Ai_channel_responder
                 'role' => 'assistant',
                 'content' => $response['reply'] ?? '',
                 'tool_calls' => $tool_calls,
+                'model_parts' => $response['model_parts'] ?? null,
             ];
 
             foreach ($tool_calls as $call) {
@@ -295,6 +298,26 @@ class Ai_channel_responder
     }
 
     /**
+     * Decrypt customer PII fields if encrypted.
+     */
+    private function decrypt_user_pii(?array $user): ?array
+    {
+        if (empty($user)) {
+            return null;
+        }
+
+        if (function_exists('sf_pii_is_encrypted') && function_exists('sf_pii_decrypt')) {
+            foreach (['phone_number', 'email', 'address', 'notes', 'city', 'zip_code'] as $field) {
+                if (!empty($user[$field]) && sf_pii_is_encrypted($user[$field])) {
+                    $user[$field] = sf_pii_decrypt($user[$field]);
+                }
+            }
+        }
+
+        return $user;
+    }
+
+    /**
      * Try to auto match customer if a phone number is detected in text.
      */
     private function try_auto_match_phone(string $text, string $channel, string $sender_id): ?array
@@ -303,10 +326,46 @@ class Ai_channel_responder
 
         // Look for 10-11 digit phone number patterns
         if (preg_match('/(\+?90|0)?\s*(5\d{2})[\s.-]*(\d{3})[\s.-]*(\d{2})[\s.-]*(\d{2})/', $text, $matches)) {
-            $clean_phone = '0' . $matches[2] . $matches[3] . $matches[4] . $matches[5];
-            $found = $this->CI->customers_model->search($clean_phone, 1);
-            if (!empty($found[0])) {
-                $customer = $found[0];
+            $digits10 = $matches[2] . $matches[3] . $matches[4] . $matches[5];
+            $candidates = array_values(array_unique(array_filter([
+                $digits10,
+                '0' . $digits10,
+                '90' . $digits10,
+                '+90' . $digits10,
+                sprintf('0 (%s) %s %s %s', $matches[2], $matches[3], $matches[4], $matches[5]),
+                sprintf('0%s %s %s %s', $matches[2], $matches[3], $matches[4], $matches[5]),
+                sprintf('+90 %s %s %s', $matches[2], $matches[3], substr($digits10, 6)),
+            ])));
+
+            $customer = null;
+
+            // 1. Direct PII hash search (most reliable for encrypted databases)
+            if (function_exists('sf_pii_hash') && $this->CI->db->field_exists('phone_number_hash', 'users')) {
+                $hashes = array_values(array_unique(array_filter(array_map('sf_pii_hash', $candidates))));
+                if (!empty($hashes)) {
+                    $row = $this->CI->db
+                        ->where_in('phone_number_hash', $hashes)
+                        ->get('users')
+                        ->row_array();
+                    if ($row) {
+                        $customer = $this->CI->customers_model->find((int) $row['id']);
+                    }
+                }
+            }
+
+            // 2. Search fallback with candidates
+            if (empty($customer)) {
+                foreach ($candidates as $cand) {
+                    $found = $this->CI->customers_model->search($cand, 1);
+                    if (!empty($found[0])) {
+                        $customer = $found[0];
+                        break;
+                    }
+                }
+            }
+
+            if (!empty($customer)) {
+                $customer = $this->decrypt_user_pii($customer);
                 // Auto link channel ID
                 $update_field = match ($channel) {
                     'telegram' => 'telegram_chat_id',
@@ -474,11 +533,21 @@ class Ai_channel_responder
         $customer_context = "MÜŞTERİ DURUMU: Henüz sistemle eşleşmemiş misafir. Gönderici Kimliği: {$sender_id}";
         $is_recognized = false;
 
+        $customer_phone_clean = '';
+        $customer_name_clean = '';
+
         if (!empty($matched_user['id'])) {
             $is_recognized = true;
-            $name = trim(($matched_user['first_name'] ?? '') . ' ' . ($matched_user['last_name'] ?? ''));
-            $phone = $matched_user['phone_number'] ?? $sender_id;
+            $customer_name_clean = trim(($matched_user['first_name'] ?? '') . ' ' . ($matched_user['last_name'] ?? ''));
+            $raw_phone = $matched_user['phone_number'] ?? $sender_id;
+            if (function_exists('sf_pii_is_encrypted') && sf_pii_is_encrypted($raw_phone)) {
+                $raw_phone = sf_pii_decrypt($raw_phone);
+            }
+            $customer_phone_clean = $raw_phone;
             $email = $matched_user['email'] ?? '';
+            if (function_exists('sf_pii_is_encrypted') && sf_pii_is_encrypted($email)) {
+                $email = sf_pii_decrypt($email);
+            }
             $id = $matched_user['id'];
 
             // Fetch upcoming appointments
@@ -504,14 +573,71 @@ class Ai_channel_responder
                 $upcoming_text = implode("\n", $u_lines);
             }
 
+            // Fetch past appointments (last 3)
+            $past_text = 'Yok';
+            $past = $CI->db
+                ->select('appointments.id, appointments.start_datetime, appointments.status, services.name AS service_name, users.first_name AS provider_first_name, users.last_name AS provider_last_name')
+                ->from('appointments')
+                ->join('services', 'services.id = appointments.id_services', 'left')
+                ->join('users', 'users.id = appointments.id_users_provider', 'left')
+                ->where('appointments.id_users_customer', $id)
+                ->where('appointments.start_datetime <', date('Y-m-d H:i:s'))
+                ->order_by('appointments.start_datetime', 'DESC')
+                ->limit(3)
+                ->get()
+                ->result_array();
+
+            if (!empty($past)) {
+                $p_lines = [];
+                foreach ($past as $p_item) {
+                    $p_lines[] = "• [Geçmiş Randevu ID: " . $p_item['id'] . "] " . $p_item['start_datetime'] . " - " . ($p_item['service_name'] ?? 'Hizmet') . " (Durum: " . ($p_item['status'] ?? 'Tamamlandı') . ")";
+                }
+                $past_text = implode("\n", $p_lines);
+            }
+
+            // Active packages / memberships
+            $package_text = '(Aktif paket veya seans hakkı bulunmuyor)';
+            try {
+                $packages = $this->CI->db
+                    ->select('cp.*, s.name as service_name')
+                    ->from('customer_packages cp')
+                    ->join('services s', 's.id = cp.id_services', 'left')
+                    ->where('cp.id_users_customer', $id)
+                    ->where('cp.status', 'active')
+                    ->get()
+                    ->result_array();
+
+                if (!empty($packages)) {
+                    $pkg_lines = [];
+                    foreach ($packages as $pkg) {
+                        $remaining = max(0, (int)$pkg['total_sessions'] - (int)$pkg['used_sessions']);
+                        $pkg_lines[] = "• " . ($pkg['service_name'] ?? 'Paket') . ": Toplam {$pkg['total_sessions']} seans, Kalan {$remaining} seans (Bitiş: " . ($pkg['expires_at'] ?? 'Süresiz') . ")";
+                    }
+                    $package_text = implode("\n", $pkg_lines);
+                }
+            } catch (\Throwable $e) {
+                // Table might not exist or error
+            }
+
             $customer_context = <<<CUST
 TANINAN MÜŞTERİ BİLGİLERİ (KAYITLI & EŞLEŞMİŞ):
 - ID: {$id}
-- İsim: {$name}
-- Telefon: {$phone}
+- İsim: {$customer_name_clean}
+- Telefon: {$customer_phone_clean}
 - E-posta: {$email}
 - Yaklaşan Randevuları:
 {$upcoming_text}
+- Geçmiş / Son Randevuları:
+{$past_text}
+- Aktif Paketleri / Kalan Seans Hakları:
+{$package_text}
+CUST;
+        } elseif ($channel === 'whatsapp' && preg_match('/^\+?\d{8,15}$/', $sender_id) && strlen(preg_replace('/\D/', '', $sender_id)) <= 12) {
+            $customer_phone_clean = $sender_id;
+            $customer_context = <<<CUST
+WHATSAPP MÜŞTERİ DURUMU:
+- Müşterinin WhatsApp Telefon Numarası: {$customer_phone_clean}
+- İsim: Henüz sorulmadı (randevu oluştururken adını ve soyadını sor).
 CUST;
         }
 
@@ -522,9 +648,31 @@ CUST;
             default => 'Mesajlaşma Kanalı',
         };
 
-        $recognition_instructions = $is_recognized
-            ? "Müşteri sistemimizde kayıtlıdır ({$matched_user['first_name']} {$matched_user['last_name']}). Eğer konuşma sıfırdan yeni başlıyorsa nazikçe ismiyle hitap et. Ancak devam eden bir konuşmanın ortasındaysanız (örneğin müşteri telefon numarasını ya da randevu detaylarını az önce iletmişse) tekrar 'hoş geldiniz / size nasıl yardımcı olabilirim' gibi sıfırlama ifadeleri kullanma; müşterinin önceki mesajlarında talep ettiği randevu/hizmet akışını (propose_appointment_create vb.) kesintisiz sürdür."
-            : "Müşteri bu kanaldan ({$channel_name}) henüz eşleşmemiştir. Eğer müşteri randevularını sorgulamak, değiştirmek veya yeni randevu almak isterse, sistemdeki kaydını bulabilmemiz için kibarca telefon numarasını iste (Örn: \"Size daha iyi yardımcı olabilmem ve randevularınızı görüntüleyebilmem için kayıtlı telefon numaranızı paylaşabilir misiniz?\"). Müşteri numarasını yazdığında hemen `link_customer_channel` aracını çağır ve talep ettiği randevu işlemini tamamla.";
+        if ($is_recognized) {
+            $recognition_instructions = <<<REC
+MÜŞTERİ SİSTEMDE KAYITLI VE TANINMIŞTIR:
+- Müşterinin Adı: {$customer_name_clean}
+- Müşterinin Telefon Numarası: {$customer_phone_clean}
+- Müşteriye ismiyle son derece nazik, saygılı ve samimi şekilde hitap et (Örn: "Miraç Bey", "Miraç Hanım").
+- ÇOK KATI KURAL (ASLA TELEFON YA DA İSİM SORMA): Müşterinin adı ve telefon numarası zaten sistemimizde kayıtlıdır! Müşteriden KESİNLİKLE ad, soyad veya telefon numarası İSTEME! "Numaranızı yazabilir misiniz" gibi sorular sorma!
+- Müşteri randevu almak istediğinde veya uygun bir saati sorduğunda, saat uygunsa MÜŞTERİDEN BİLGİ SORMA ADIMINI ATLA ve elindeki kayıtlı isim ({$customer_name_clean}) ve telefon ({$customer_phone_clean}) ile DOĞRUDAN `propose_appointment_create` aracını çağır!
+- Müşteri geçmiş randevularını sorduğunda, yukarıdaki "Geçmiş / Son Randevuları" alanında yer alan randevuyu doğrudan müşteriye bildir (Örn: "22 Eylül Salı saat 14:00'te Klasik Masaj randevunuz bulunmaktaydı"). Asla "sisteme erişemiyorum" veya "temsilciye bağlayayım" deme.
+REC;
+        } elseif ($channel === 'whatsapp' && $customer_phone_clean !== '') {
+            $recognition_instructions = <<<REC
+MÜŞTERİ WHATSAPP ÜZERİNDEN YAZMAKTADIR:
+- Müşterinin WhatsApp Telefon Numarası: {$customer_phone_clean}
+- ÇOK KATI KURAL (TELEFON NUMARASI SORMA): Müşterinin telefon numarası WhatsApp hattı üzerinden zaten bilinmektedir ({$customer_phone_clean}). Müşteriden telefon numarası İSTEME!
+- Randevu oluştururken `customer_phone` parametresine doğrudan "{$customer_phone_clean}" değerini gönder.
+- Yalnızca müşterinin adını bilmiyorsan, randevu kaydı için adını ve soyadını rica et (Örn: "Randevunuzu hemen oluşturabilmem için adınızı ve soyadınızı rica edebilir miyim?").
+REC;
+        } else {
+            $recognition_instructions = <<<REC
+MÜŞTERİ BU KANALDAN ({$channel_name}) HENÜZ EŞLEŞMEMİŞTİR:
+- Müşteri randevularını sorgulamak veya değiştirmek isterse, sistemdeki kaydını bulabilmemiz için kibarca telefon numarasını rica et.
+- Müşteri numarasını yazdığında sistem otomatik olarak eşleşecek ve randevu işlemini tamamlayacaktır.
+REC;
+        }
 
         return <<<PROMPT
 Sen "{$company_name}" işletmesinin {$channel_name} üzerindeki resmi, nazik ve akıllı yapay zeka asistanısın.
@@ -546,7 +694,7 @@ UZMANLAR / TERAPİSTLER:
 
 {$customer_context}
 
-MÜŞTERİ TANIMA VE KANAL EŞLEŞTİRME:
+MÜŞTERİ TANIMA VE KANAL EŞLEŞTİRME KURALLARI:
 {$recognition_instructions}
 
 TERAPİST / UZMAN ADI KULLANIMI VE MÜSAİTLİK KURALLARI (ÇOK KATI KURAL):
@@ -563,32 +711,42 @@ TERAPİST / UZMAN ADI KULLANIMI VE MÜSAİTLİK KURALLARI (ÇOK KATI KURAL):
 
 GÖREVLER VE İŞLEM AKIŞI (YÖNETİCİ ONAY PRENSİBİ):
 1. **YENİ RANDEVU ALMA TALEBİ:**
-   - Müşteri hizmet, tarih/saat, isim ve telefon belirttiğinde (uzman belirtilmişse uzmanıyla birlikte) `propose_appointment_create` aracını çağırarak talebi yönetici onay kuyruğuna ilet.
-   - Müşteri uzman belirtmemişse, sisteme otomatik atat ve müşteriye cevabında ASLA uzman adı geçirme.
-   - Müşteriye yanıtında: Randevu talebinin (hizmet, tarih ve saat; yalnızca müşteri özellikle talep ettiyse uzmanıyla) alındığını, yönetici onayından sonra randevunun kesinleşeceğini bildir.
+   - Müşteri randevu almak istediğinde veya belirli bir saat üzerinde mutabık kalındığında:
+     * Eğer müşteri sistemde tanınıyorsa VEYA telefon numarası biliniyorsa: MÜŞTERİYE TEKRAR TELEFON NUMARASI YA DA İSİM ASLA SORMA! Elindeki kayıtlı bilgileri kullanarak DOĞRUDAN `propose_appointment_create` aracını çağır!
+     * Yalnızca ilk defa yazan misafirin adı bilinmiyorsa isim sor; telefon numarası WhatsApp üzerinden zaten biliniyorsa telefon asla sorma.
+     * Müşteri belirli bir uzman talep etmemişse sisteme otomatik atat ve cevabında ASLA uzman adı geçirme.
+     * Müşteriye randevu talebinin (hizmet, tarih ve saat) alındığını, yönetici onayından sonra randevunun kesinleşeceğini bildir.
 
-2. **RANDEVU DEĞİŞTİRME / SAAT GÜNCELLEME:**
+2. **GEÇMİŞ / YAKLAŞAN RANDEVU VE PAKET SORGULARI:**
+   - Müşteri geçmiş veya yaklaşan randevularını sorduğunda:
+     * Yukarıdaki "TANINAN MÜŞTERİ BİLGİLERİ" alanındaki "Yaklaşan Randevuları" ve "Geçmiş / Son Randevuları" verilerini kullanarak doğrudan yanıt ver (Örn: "25 Eylül Cuma günü saat 15:45'te Klasik Masaj randevunuz bulunmaktaydı").
+     * Asla "sisteme erişemiyorum", "yetkiliye bağlayayım" gibi gereksiz yanıtlar verme; elindeki kayıtlı randevu bilgilerini müşteriye şeffafça sun.
+   - Müşteri paketlerini, seans haklarını veya üyeliğini sorduğunda ("Paketim var mı?", "Kaç seansım kaldı?"):
+     * Yukarıdaki "Aktif Paketleri / Kalan Seans Hakları" alanındaki bilgiyi doğrudan aktar.
+     * Eğer paket yoksa veya "(Aktif paket veya seans hakkı bulunmuyor)" ise: "Sistemimizde adınıza kayıtlı aktif bir paket veya seans hakkı bulunmamaktadır." şeklinde doğrudan, kısa ve net bilgi ver. Cevabında asla İngilizce metin, iç düşünce veya 'Draft:' gibi kelimeler kullanma.
+
+3. **RANDEVU DEĞİŞTİRME / SAAT GÜNCELLEME:**
    - Tanınan müşterinin yaklaşan randevularındaki [Randevu ID] ve istenen yeni tarih/saat ile `propose_appointment_reschedule` aracını çağır.
    - Değişiklik talebinin yönetici onayına iletildiğini bildir.
 
-3. **RANDEVU İPTALİ / SİLME:**
+4. **RANDEVU İPTALİ / SİLME:**
    - İlgili [Randevu ID] ile `propose_appointment_cancel` aracını çağır.
    - İptal talebinin yönetici onayına iletildiğini bildir.
 
-4. **BİLGİ GÜNCELLEME:**
+5. **BİLGİ GÜNCELLEME:**
    - Profil bilgisi (telefon, e-posta, not) değişikliğinde `propose_customer_update` aracını çağır.
 
-5. **ONLİNE RANDEVU SEÇENEĞİ:**
+6. **ONLİNE RANDEVU SEÇENEĞİ:**
    - Müsait saatleri canlı görüp anında randevu almak isteyenlere linki sun: {$booking_url}
 
-6. **ÇALIŞMA SAATLERİ, AÇIKLIK VE MÜSAİTLİK SORULARI (ÖNEMLİ KURAL):**
+7. **ÇALIŞMA SAATLERİ, AÇIKLIK VE MÜSAİTLİK SORULARI (ÖNEMLİ KURAL):**
    - Müşteri "bugün açık mısınız?", "çalışıyor musunuz?", "saat kaçta açılıyorsunuz?", "hafta sonu açık mısınız?" veya belirli bir terapistin (örn: Nur Hanım) müsaitliğini sorduğunda KENDİ KAFANDAN TAHMİN YAPMA VE "asistan olarak her zaman buradayım" GİBİ GEÇİŞTİRİCİ CEVAP VERME.
    - MUTLAKA ilk adım olarak `check_availability` aracını çağır!
    - Bu araç işletmenin ve terapistlerin gerçek çalışma takvimini, kapalı günlerini ve boş randevu saatlerini hesaplar.
    - Araç "kapalıdır" veya "müsait randevu saati bulunmamaktadır" döndürürse: Müşteriye bugün kapalı olduğumuzu veya o tarihte randevu bulunmadığını nazikçe açıkla ve aracın önerdiği en yakın açık iş gününü (örn: Pazartesi) ve saatleri teklif et.
    - Müşteri doğrudan randevu almak istediğinde de önce veya randevu teklifi sırasında saatin uygunluğunu `check_availability` ile doğrula.
 
-7. **CANLI DESTEK VE İNSAN TEMSİLCİYE AKTARMA (HANDOFF PROTOKOLÜ):**
+8. **CANLI DESTEK VE İNSAN TEMSİLCİYE AKTARMA (HANDOFF PROTOKOLÜ):**
    - Müşteri insan müşteri temsilcisi, canlı destek, yetkili personel istediğinde veya sistemin çözemeyeceği özel bir istek/şikayet belirttiğinde MUTLAKA `request_human_handoff` aracını çağır!
    - Bu araç çağrıldığında sistem otomatik olarak yapay zekayı durduracak ve görüşmeyi mağaza/işletme yetkililerine devredecektir.
 
