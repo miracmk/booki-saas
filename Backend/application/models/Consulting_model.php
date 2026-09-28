@@ -6,11 +6,11 @@
  * Implements consulting projects, deliverables/milestones, client sign-offs,
  * and billable timesheet tracking (Leantime / Consultant Management System standard).
  */
-class Consulting_model extends CI_Model
+class Consulting_model extends App_Model
 {
     public function __construct()
     {
-        parent::__construct();
+        //
     }
 
     /**
@@ -81,6 +81,18 @@ class Consulting_model extends CI_Model
     {
         $now = date('Y-m-d H:i:s');
 
+        if (isset($data['budget_amount']) && !isset($data['total_budget'])) {
+            $data['total_budget'] = $data['budget_amount'];
+            unset($data['budget_amount']);
+        }
+        if (isset($data['scope_statement']) && !isset($data['scope'])) {
+            $data['scope'] = $data['scope_statement'];
+            unset($data['scope_statement']);
+        }
+        if (isset($data['pricing_model'])) {
+            unset($data['pricing_model']);
+        }
+
         if (empty($data['project_code'])) {
             $data['project_code'] = 'PRJ-' . date('Y') . '-' . strtoupper(substr(uniqid(), -5));
         }
@@ -119,6 +131,18 @@ class Consulting_model extends CI_Model
 
     public function save_milestone(array $data): int
     {
+        if (isset($data['id_consulting_projects']) && !isset($data['id_projects'])) {
+            $data['id_projects'] = $data['id_consulting_projects'];
+            unset($data['id_consulting_projects']);
+        }
+        if (isset($data['status']) && !isset($data['signoff_status'])) {
+            $data['signoff_status'] = $data['status'];
+            unset($data['status']);
+        }
+        if (isset($data['amount'])) {
+            unset($data['amount']);
+        }
+
         if (isset($data['id']) && $data['id'] > 0) {
             $id = (int) $data['id'];
             unset($data['id']);
@@ -164,6 +188,19 @@ class Consulting_model extends CI_Model
 
     public function save_timesheet(array $data): int
     {
+        if (isset($data['id_consulting_projects']) && !isset($data['id_projects'])) {
+            $data['id_projects'] = $data['id_consulting_projects'];
+            unset($data['id_consulting_projects']);
+        }
+        if (isset($data['work_date']) && !isset($data['log_date'])) {
+            $data['log_date'] = $data['work_date'];
+            unset($data['work_date']);
+        }
+        if (isset($data['task_description']) && !isset($data['work_summary'])) {
+            $data['work_summary'] = $data['task_description'];
+            unset($data['task_description']);
+        }
+
         if (isset($data['id']) && $data['id'] > 0) {
             $id = (int) $data['id'];
             unset($data['id']);

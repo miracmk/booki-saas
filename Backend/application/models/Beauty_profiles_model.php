@@ -6,11 +6,11 @@
  * Implements client hair color formulas, patch test logs, before/after photo records,
  * and POS gratuity/tip split tracking (OpenSalon / Salon Booking System standard).
  */
-class Beauty_profiles_model extends CI_Model
+class Beauty_profiles_model extends App_Model
 {
     public function __construct()
     {
-        parent::__construct();
+        //
     }
 
     /**
@@ -24,21 +24,28 @@ class Beauty_profiles_model extends CI_Model
     /**
      * Save beauty profile (color formulas, hair/skin type, patch test).
      */
-    public function save_profile(int $customer_id, array $data): int
+    public function save_profile($customer_id_or_data, array $data = []): int
     {
+        if (is_array($customer_id_or_data)) {
+            $data = $customer_id_or_data;
+            $customer_id = (int) ($data['id_users_customer'] ?? 0);
+        } else {
+            $customer_id = (int) $customer_id_or_data;
+        }
+
         $now = date('Y-m-d H:i:s');
         $existing = $this->get_profile($customer_id);
 
         $record = [
-            'color_formula' => $data['color_formula'] ?? null,
+            'color_formula' => $data['color_formula'] ?? $data['color_formula_history'] ?? null,
             'hair_type' => $data['hair_type'] ?? null,
             'skin_type' => $data['skin_type'] ?? null,
             'patch_test_date' => !empty($data['patch_test_date']) ? $data['patch_test_date'] : null,
-            'patch_test_result' => $data['patch_test_result'] ?? 'negative',
+            'patch_test_result' => $data['patch_test_result'] ?? $data['patch_test_results'] ?? 'negative',
             'nail_notes' => $data['nail_notes'] ?? null,
             'before_photo_url' => $data['before_photo_url'] ?? null,
             'after_photo_url' => $data['after_photo_url'] ?? null,
-            'private_notes' => $data['private_notes'] ?? null,
+            'private_notes' => $data['private_notes'] ?? $data['preferred_stylist_notes'] ?? null,
             'updated_at' => $now,
         ];
 

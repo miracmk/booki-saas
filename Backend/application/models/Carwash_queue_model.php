@@ -6,11 +6,11 @@
  * Implements live bay queues, wait times, vehicle segment pricing,
  * and automated ready-for-pickup SMS/WhatsApp notifications (OpenWashing standard).
  */
-class Carwash_queue_model extends CI_Model
+class Carwash_queue_model extends App_Model
 {
     public function __construct()
     {
-        parent::__construct();
+        //
     }
 
     /**
@@ -56,15 +56,32 @@ class Carwash_queue_model extends CI_Model
     public function add_to_queue(array $data): int
     {
         $now = date('Y-m-d H:i:s');
-        $duration_minutes = (int) ($data['estimated_duration'] ?? 30);
+        $duration_minutes = (int) ($data['estimated_duration'] ?? $data['estimated_minutes'] ?? 30);
+
+        if (empty($data['id_vehicles']) && !empty($data['plate_number'])) {
+            $norm_plate = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $data['plate_number']));
+            $veh = $this->db->get_where('customer_vehicles', ['plate_number' => $norm_plate])->row_array();
+            if ($veh) {
+                $data['id_vehicles'] = (int) $veh['id'];
+            } else {
+                $cust_id = !empty($data['id_users_customer']) ? (int) $data['id_users_customer'] : 1;
+                $this->db->insert('customer_vehicles', [
+                    'id_users_customer' => $cust_id,
+                    'plate_number' => $norm_plate,
+                    'vehicle_segment' => $data['vehicle_segment'] ?? 'sedan',
+                    'created_at' => $now,
+                ]);
+                $data['id_vehicles'] = (int) $this->db->insert_id();
+            }
+        }
 
         $record = [
             'id_appointments' => !empty($data['id_appointments']) ? (int) $data['id_appointments'] : null,
-            'id_vehicles' => (int) $data['id_vehicles'],
+            'id_vehicles' => (int) ($data['id_vehicles'] ?? 1),
             'bay_name' => $data['bay_name'] ?? 'Peron 1',
             'queue_status' => $data['queue_status'] ?? 'waiting',
             'notes' => $data['notes'] ?? null,
-            'started_at' => ($data['queue_status'] ?? '') === 'washing' ? $now : null,
+            'started_at' => in_array($data['queue_status'] ?? '', ['washing', 'detailing'], true) ? $now : null,
             'estimated_ready_at' => date('Y-m-d H:i:s', strtotime("+{$duration_minutes} minutes")),
             'created_at' => $now,
         ];

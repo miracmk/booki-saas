@@ -214,17 +214,17 @@ class Clinical_records_model extends App_Model
         $record = [
             'id_users_patient' => (int) $data['id_users_patient'],
             'id_appointments' => !empty($data['id_appointments']) ? (int) $data['id_appointments'] : null,
-            'systolic_bp' => !empty($data['systolic_bp']) ? (int) $data['systolic_bp'] : null,
-            'diastolic_bp' => !empty($data['diastolic_bp']) ? (int) $data['diastolic_bp'] : null,
-            'pulse_rate' => !empty($data['pulse_rate']) ? (int) $data['pulse_rate'] : null,
-            'temperature_c' => !empty($data['temperature_c']) ? (float) $data['temperature_c'] : null,
+            'systolic_bp' => !empty($data['systolic_bp'] ?? $data['blood_pressure_systolic'] ?? null) ? (int) ($data['systolic_bp'] ?? $data['blood_pressure_systolic']) : null,
+            'diastolic_bp' => !empty($data['diastolic_bp'] ?? $data['blood_pressure_diastolic'] ?? null) ? (int) ($data['diastolic_bp'] ?? $data['blood_pressure_diastolic']) : null,
+            'pulse_rate' => !empty($data['pulse_rate'] ?? $data['pulse_bpm'] ?? null) ? (int) ($data['pulse_rate'] ?? $data['pulse_bpm']) : null,
+            'temperature_c' => !empty($data['temperature_c'] ?? $data['body_temperature_c'] ?? null) ? (float) ($data['temperature_c'] ?? $data['body_temperature_c']) : null,
             'respiratory_rate' => !empty($data['respiratory_rate']) ? (int) $data['respiratory_rate'] : null,
             'weight_kg' => $weight,
             'height_cm' => $height,
             'bmi' => $bmi,
-            'spo2_percent' => !empty($data['spo2_percent']) ? (int) $data['spo2_percent'] : null,
+            'spo2_percent' => !empty($data['spo2_percent'] ?? $data['blood_oxygen_spo2'] ?? null) ? (int) ($data['spo2_percent'] ?? $data['blood_oxygen_spo2']) : null,
             'blood_glucose' => !empty($data['blood_glucose']) ? (float) $data['blood_glucose'] : null,
-            'recorded_by_user_id' => !empty($data['recorded_by_user_id']) ? (int) $data['recorded_by_user_id'] : (int) session('user_id'),
+            'recorded_by_user_id' => !empty($data['recorded_by_user_id'] ?? $data['recorded_by'] ?? null) ? (int) ($data['recorded_by_user_id'] ?? $data['recorded_by']) : (int) session('user_id'),
             'notes' => $data['notes'] ?? null,
             'recorded_at' => !empty($data['recorded_at']) ? $data['recorded_at'] : date('Y-m-d H:i:s'),
         ];
@@ -257,7 +257,7 @@ class Clinical_records_model extends App_Model
         $record = [
             'id_users_patient' => (int) $data['id_users_patient'],
             'id_appointments' => !empty($data['id_appointments']) ? (int) $data['id_appointments'] : null,
-            'id_users_doctor' => !empty($data['id_users_doctor']) ? (int) $data['id_users_doctor'] : (int) session('user_id'),
+            'id_users_doctor' => !empty($data['id_users_doctor'] ?? $data['prescribed_by'] ?? null) ? (int) ($data['id_users_doctor'] ?? $data['prescribed_by']) : (int) session('user_id'),
             'medication_name' => trim($data['medication_name']),
             'dosage' => trim($data['dosage'] ?? '1 tablet'),
             'frequency' => trim($data['frequency'] ?? 'Günde 2 defa'),
@@ -286,9 +286,9 @@ class Clinical_records_model extends App_Model
     {
         $record = [
             'id_users_patient' => (int) $data['id_users_patient'],
-            'allergen' => trim($data['allergen']),
+            'allergen' => trim($data['allergen'] ?? $data['allergen_name'] ?? ''),
             'severity' => in_array($data['severity'] ?? '', ['mild', 'moderate', 'severe'], true) ? $data['severity'] : 'moderate',
-            'reaction_notes' => $data['reaction_notes'] ?? null,
+            'reaction_notes' => $data['reaction_notes'] ?? $data['reaction_description'] ?? null,
             'identified_at' => !empty($data['identified_at']) ? $data['identified_at'] : date('Y-m-d'),
             'created_at' => date('Y-m-d H:i:s'),
         ];

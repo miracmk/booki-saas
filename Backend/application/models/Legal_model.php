@@ -6,11 +6,11 @@
  * Implements matter/case tracking, court hearings calendar, billable hours,
  * trust accounting (expenses/retainers), and conflict of interest checks (Clio standard).
  */
-class Legal_model extends CI_Model
+class Legal_model extends App_Model
 {
     public function __construct()
     {
-        parent::__construct();
+        //
     }
 
     /**
@@ -84,6 +84,23 @@ class Legal_model extends CI_Model
     {
         $now = date('Y-m-d H:i:s');
 
+        // Aliases
+        if (isset($data['docket_number']) && !isset($data['case_number'])) {
+            $data['case_number'] = $data['docket_number'];
+            unset($data['docket_number']);
+        }
+        if (isset($data['status']) && !isset($data['case_status'])) {
+            $data['case_status'] = $data['status'];
+            unset($data['status']);
+        }
+        if (isset($data['retainer_amount']) && !isset($data['retainer_balance'])) {
+            $data['retainer_balance'] = $data['retainer_amount'];
+            unset($data['retainer_amount']);
+        }
+        if (isset($data['billing_type'])) {
+            unset($data['billing_type']);
+        }
+
         if (empty($data['matter_number'])) {
             $data['matter_number'] = 'DOS-' . date('Y') . '-' . strtoupper(substr(uniqid(), -5));
         }
@@ -139,6 +156,22 @@ class Legal_model extends CI_Model
 
     public function save_hearing(array $data): int
     {
+        if (isset($data['hearing_date']) && !isset($data['hearing_datetime'])) {
+            $data['hearing_datetime'] = $data['hearing_date'];
+            unset($data['hearing_date']);
+        }
+        if (isset($data['courtroom']) && !isset($data['court_room'])) {
+            $data['court_room'] = $data['courtroom'];
+            unset($data['courtroom']);
+        }
+        if (isset($data['agenda_notes']) && !isset($data['hearing_summary'])) {
+            $data['hearing_summary'] = $data['agenda_notes'];
+            unset($data['agenda_notes']);
+        }
+        if (isset($data['judge_name'])) {
+            unset($data['judge_name']);
+        }
+
         if (isset($data['id']) && $data['id'] > 0) {
             $id = (int) $data['id'];
             unset($data['id']);
@@ -175,6 +208,14 @@ class Legal_model extends CI_Model
 
     public function save_time_entry(array $data): int
     {
+        if (isset($data['narrative']) && !isset($data['work_description'])) {
+            $data['work_description'] = $data['narrative'];
+            unset($data['narrative']);
+        }
+        if (isset($data['entry_date'])) {
+            unset($data['entry_date']);
+        }
+
         if (!isset($data['total_amount']) || $data['total_amount'] <= 0) {
             $duration_hours = ($data['duration_minutes'] ?? 0) / 60.0;
             $rate = (float) ($data['hourly_rate'] ?? 0.00);
@@ -267,10 +308,13 @@ class Legal_model extends CI_Model
             ->get()
             ->result_array();
 
+        $total = count($matter_matches) + count($client_matches);
         return [
             'matters' => $matter_matches,
             'clients' => $client_matches,
-            'total_conflicts' => count($matter_matches) + count($client_matches),
+            'conflicts' => array_merge($matter_matches, $client_matches),
+            'total_conflicts' => $total,
+            'has_conflict' => $total > 0,
         ];
     }
 }
