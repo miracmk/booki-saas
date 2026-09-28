@@ -443,6 +443,155 @@ class Adisyons extends App_Controller
         ]);
     }
 
+    
+    public function split_payments(int $adisyon_id): void
+    {
+        $this->ensure_authenticated();
+        try {
+            $this->load->model('Split_payments_model', 'split_payments_model');
+
+            $payments = $this->split_payments_model->get_payments('adisyon', $adisyon_id);
+            $totals = $this->split_payments_model->get_totals('adisyon', $adisyon_id);
+
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'payments' => $payments,
+                    'totals' => $totals
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]));
+        }
+    }
+
+    public function add_split_payment(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('Split_payments_model', 'split_payments_model');
+
+        $post = $this->input->post();
+        if (empty($post)) {
+            $post = json_decode($this->input->raw_input_stream, true) ?? [];
+        }
+
+        $data = [
+            'entity_type' => $post['entity_type'] ?? 'adisyon',
+            'entity_id' => $post['entity_id'] ?? 0,
+            'payment_type' => $post['payment_type'] ?? 'cash',
+            'amount' => $post['amount'] ?? 0.00,
+            'discount_percent' => $post['discount_percent'] ?? null,
+            'coupon_code' => $post['coupon_code'] ?? null,
+            'notes' => $post['notes'] ?? null,
+        ];
+
+        $payment_id = $this->split_payments_model->add_payment($data);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'status' => 'success',
+                'payment_id' => $payment_id
+            ]));
+    }
+
+    public function remove_split_payment(int $payment_id): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('Split_payments_model', 'split_payments_model');
+
+        $success = $this->split_payments_model->remove_payment($payment_id);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'status' => $success ? 'success' : 'error'
+            ]));
+    }
+
+    public function finalize_split_payment(int $adisyon_id): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('Split_payments_model', 'split_payments_model');
+        $this->load->model('adisyons_model');
+
+        $adisyon = $this->adisyons_model->find($adisyon_id);
+        if (!$adisyon) {
+            $this->output
+                ->set_status_header(404)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Adisyon not found']));
+            return;
+        }
+
+        $totals = $this->split_payments_model->get_totals('adisyon', $adisyon_id);
+        $payments = $this->split_payments_model->get_payments('adisyon', $adisyon_id);
+        
+        $total_amount = (float) ($adisyon['total_amount'] ?? 0);
+
+        $this->db->trans_start();
+        
+        // Sync to adisyon_payments table
+        $this->db->where('id_adisyons', $adisyon_id)->delete('adisyon_payments');
+
+        $total_paid = 0.0;
+        foreach ($payments as $payment) {
+            $p_type = $payment['payment_type'];
+            if (in_array($p_type, ['cash', 'card', 'transfer', 'gift_card', 'membership'])) {
+                $mapped_type = $p_type;
+                if ($p_type === 'gift_card') $mapped_type = 'cash';
+                if ($p_type === 'membership') $mapped_type = 'cash';
+                
+                $this->db->insert('adisyon_payments', [
+                    'id_adisyons' => $adisyon_id,
+                    'payment_method' => $mapped_type,
+                    'amount' => $payment['amount'],
+                    'notes' => $payment['notes'],
+                    'received_by' => $payment['received_by'],
+                    'created_at' => $payment['created_at']
+                ]);
+                $total_paid += (float) $payment['amount'];
+            }
+        }
+
+        $status = ($total_paid >= $total_amount) ? 'paid' : 'partially_paid';
+        if ($total_paid <= 0) {
+            $status = 'unpaid';
+        }
+
+        $this->db->where('id', $adisyon_id)->update('adisyons', [
+            'payment_status' => $status,
+            'paid_amount' => $total_paid,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->output
+                ->set_status_header(500)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Database error']));
+            return;
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'status' => 'success',
+                'payment_status' => $status,
+                'paid_amount' => $total_paid
+            ]));
+    }
+
     protected function ensure_authenticated(): void
     {
         if (!session('user_id')) {

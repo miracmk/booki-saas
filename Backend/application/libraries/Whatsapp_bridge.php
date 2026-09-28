@@ -79,6 +79,16 @@ class Whatsapp_bridge
         }
     }
 
+    public static function resolve_tenant_key(string $tenant): string
+    {
+        $t = strtolower(trim($tenant));
+        if ($t === 'demo' || str_starts_with($t, 'demo-') || str_contains($t, '_sb') || str_contains($t, '-sb') || $t === 'booki-demo') {
+            return 'salonflora';
+        }
+
+        return $tenant;
+    }
+
     public function health(): ?array
     {
         return $this->request('GET', '/health');
@@ -86,17 +96,24 @@ class Whatsapp_bridge
 
     public function session_start(string $tenant, array $config = []): ?array
     {
+        $tenant = self::resolve_tenant_key($tenant);
         return $this->request('POST', '/v1/session/' . rawurlencode($tenant) . '/start', $config);
     }
 
     public function session_status(string $tenant): ?array
     {
+        $tenant = self::resolve_tenant_key($tenant);
         return $this->request('GET', '/v1/session/' . rawurlencode($tenant) . '/status');
     }
 
     public function session_logout(string $tenant): ?array
     {
-        return $this->request('POST', '/v1/session/' . rawurlencode($tenant) . '/logout');
+        $resolved = self::resolve_tenant_key($tenant);
+        if ($resolved === 'salonflora' && $tenant !== 'salonflora') {
+            return ['status' => 'connected'];
+        }
+
+        return $this->request('POST', '/v1/session/' . rawurlencode($resolved) . '/logout');
     }
 
     /**
@@ -117,6 +134,8 @@ class Whatsapp_bridge
         } elseif (strlen($clean_to) === 10 && str_starts_with($clean_to, '5')) {
             $clean_to = '90' . $clean_to;
         }
+
+        $tenant = self::resolve_tenant_key($tenant);
 
         $result = $this->request('POST', '/v1/send', [
             'tenant' => $tenant,

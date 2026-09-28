@@ -1,0 +1,137 @@
+{
+  "industry": {
+    "code": "law_firm",
+    "name": "Hukuk Bürosu & Avukatlık Ofisi",
+    "icon": "⚖️",
+    "service_type": "duration",
+    "description": "Dava takibi, mahkeme duruşma takvimi, kronometreli saatlik faturalama, çıkar çatışması kontrolü ve müvekkil yönetimi."
+  },
+  "terminology": {
+    "customer_label": "Müvekkil",
+    "provider_label": "Avukat / Hukuk Müşaviri",
+    "appointment_label": "Duruşma / Müvekkil Görüşmesi",
+    "station_label": "Toplantı Odası / Duruşma Salonu",
+    "service_label": "Dava / Hukuki Danışmanlık"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "legal_matters",
+    "billable_hours",
+    "invoices",
+    "expenses",
+    "finance",
+    "marketing",
+    "crm",
+    "reviews"
+  ],
+  "default_settings": {
+    "business_type": "legal",
+    "slot_interval": 30,
+    "future_booking_limit": 60,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 15,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Dava & Uyuşmazlık Çözümü",
+      "description": "Ticaret, iş, ceza ve aile hukuku dava takipleri ve duruşma temsili"
+    },
+    {
+      "name": "Hukuki Danışmanlık & Mütalaa",
+      "description": "Yüz yüze ve online hukuki strateji seansları, yazılı mütalaa ve risk analizi"
+    },
+    {
+      "name": "Sözleşme & Şirketler Hukuku",
+      "description": "Ticari sözleşme taslağı hazırlama, inceleme ve genel kurul danışmanlığı"
+    },
+    {
+      "name": "İcra, İflas & Alacak Takibi",
+      "description": "İlamlı/ilamsız icra takipleri, haciz ve borç tasfiye süreçleri"
+    }
+  ],
+  "services": [
+    {
+      "name": "İlk Hukuki Danışma & Durum Değerlendirmesi",
+      "category": "Hukuki Danışmanlık & Mütalaa",
+      "duration": 60,
+      "price": 3500.00,
+      "slot_interval": 60,
+      "description": "Dava öncesi dosya incelemesi, mevzuat değerlendirmesi ve hukuki yol haritası sunumu."
+    },
+    {
+      "name": "Ticari Sözleşme İnceleme & Revizyon",
+      "category": "Sözleşme & Şirketler Hukuku",
+      "duration": 90,
+      "price": 5000.00,
+      "slot_interval": 30,
+      "description": "Sözleşme risklerinin tespiti, cezai şart ve yetki maddelerinin müvekkil lehine düzenlenmesi."
+    },
+    {
+      "name": "Mahkeme Duruşma Temsili",
+      "category": "Dava & Uyuşmazlık Çözümü",
+      "duration": 120,
+      "price": 8500.00,
+      "slot_interval": 60,
+      "description": "Adliye duruşma salonunda sözlü beyan, delil sunumu ve zabıt takibi."
+    },
+    {
+      "name": "Online Hukuki Danışmanlık (Video Konferans)",
+      "category": "Hukuki Danışmanlık & Mütalaa",
+      "duration": 45,
+      "price": 2750.00,
+      "slot_interval": 45,
+      "description": "Güvenli şifreli video toplantı üzerinden uzaktan hukuki danışma."
+    }
+  ],
+  "stations": [
+    {
+      "name": "Başkan Toplantı Odası (C-Level)",
+      "capacity": 8,
+      "description": "Görüşmeler ve arabuluculuk oturumları için ses yalıtımlı ana salon"
+    },
+    {
+      "name": "Müvekkil Görüşme Odası 1",
+      "capacity": 4,
+      "description": "Bireysel ve kurumsal müvekkil danışma odası"
+    },
+    {
+      "name": "Online Duruşma & Arabuluculuk Kabini",
+      "capacity": 2,
+      "description": "E-Duruşma ve telekonferans donanımlı çalışma alanı"
+    }
+  ],
+  "demo": {
+    "providers": [
+      {
+        "first_name": "Av. Mehmet",
+        "last_name": "Yılmaz",
+        "email": "mehmet.yilmaz@hukukburosu.com",
+        "phone_number": "+905321112233"
+      },
+      {
+        "first_name": "Av. Zeynep",
+        "last_name": "Kaya",
+        "email": "zeynep.kaya@hukukburosu.com",
+        "phone_number": "+905332223344"
+      }
+    ],
+    "customers": [
+      {
+        "first_name": "Kaan",
+        "last_name": "Demirtaş",
+        "email": "kaan.demirtas@ornekmail.com",
+        "phone_number": "+905443334455"
+      },
+      {
+        "first_name": "Selin",
+        "last_name": "Acar",
+        "email": "selin.acar@ornekmail.com",
+        "phone_number": "+905454445566"
+      }
+    ]
+  }
+}

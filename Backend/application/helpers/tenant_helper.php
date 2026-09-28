@@ -31,12 +31,17 @@ if (!function_exists('tenant_context')) {
      *
      * @return array|null Null in single-tenant/standalone mode, or after being cleared.
      */
-    function tenant_context(array|null|string $tenant = '__unset__'): ?array
+    function tenant_context(array|null|string $tenant = '__unset__'): mixed
     {
         static $current = null;
 
-        if ($tenant !== '__unset__') {
+        if (is_array($tenant) || $tenant === null) {
             $current = $tenant;
+            return $current;
+        }
+
+        if ($tenant !== '__unset__' && is_string($tenant)) {
+            return is_array($current) ? ($current[$tenant] ?? null) : null;
         }
 
         return $current;

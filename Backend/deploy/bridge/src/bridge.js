@@ -11,7 +11,7 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys';
 
 import pino from 'pino';
-import { mkdirSync, existsSync, readdirSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, existsSync, readdirSync, rmSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
@@ -51,12 +51,34 @@ const SESSIONS_DIR = process.env.SESSIONS_DIR || '/app/sessions';
 const sessions = new Map();
 
 /**
- * In-memory message store for getMessage retry requests.
+ * Persistent + in-memory message store for getMessage retry requests.
  * Prevents "Waiting for this message. This may take a while" on recipient devices
- * when end-to-end encryption keys are re-negotiated by WhatsApp.
+ * when end-to-end encryption keys are re-negotiated by WhatsApp or after container restart.
  */
 const MAX_STORED_MESSAGES = 1000;
 const messageStore = new Map();
+
+function getMessagePath(tenant, id) {
+    return join(sessionDir(tenant), 'messages', `${id}.json`);
+}
+
+function pruneStoredMessages(tenant) {
+    try {
+        const msgDir = join(sessionDir(tenant), 'messages');
+        if (!existsSync(msgDir)) return;
+        const files = readdirSync(msgDir);
+        if (files.length > 2000) {
+            const stats = files.map((f) => ({ f, time: statSync(join(msgDir, f)).mtimeMs }));
+            stats.sort((a, b) => a.time - b.time);
+            const toDelete = stats.slice(0, files.length - 2000);
+            for (const item of toDelete) {
+                rmSync(join(msgDir, item.f), { force: true });
+            }
+        }
+    } catch {
+        // ignore
+    }
+}
 
 function storeMessage(tenant, id, message) {
     if (!id || !message) return;
@@ -66,11 +88,39 @@ function storeMessage(tenant, id, message) {
         if (oldestKey) messageStore.delete(oldestKey);
     }
     messageStore.set(key, message);
+
+    try {
+        const msgDir = join(sessionDir(tenant), 'messages');
+        if (!existsSync(msgDir)) {
+            mkdirSync(msgDir, { recursive: true });
+        }
+        const filePath = getMessagePath(tenant, id);
+        writeFileSync(filePath, JSON.stringify(message), 'utf8');
+        if (Math.random() < 0.05) {
+            pruneStoredMessages(tenant);
+        }
+    } catch (err) {
+        log.warn({ tenant, id, err: err.message }, 'failed to persist message on disk');
+    }
 }
 
 function getStoredMessage(tenant, id) {
     if (!id) return undefined;
-    return messageStore.get(`${tenant}:${id}`);
+    const mem = messageStore.get(`${tenant}:${id}`);
+    if (mem) return mem;
+
+    try {
+        const filePath = getMessagePath(tenant, id);
+        if (existsSync(filePath)) {
+            const raw = JSON.parse(readFileSync(filePath, 'utf8'));
+            messageStore.set(`${tenant}:${id}`, raw);
+            return raw;
+        }
+    } catch (err) {
+        log.debug({ tenant, id, err: err.message }, 'failed to read stored message from disk');
+    }
+
+    return undefined;
 }
 
 /** Backoff schedule for auto-reconnect after a transient connection close. */
@@ -79,8 +129,17 @@ const RECONNECT_DELAYS_MS = [2000, 5000, 10000];
 /** @type {import('pino').Logger} */
 const log = pino({ level: process.env.LOG_LEVEL || 'info' });
 
+export function resolveSessionTenant(tenant) {
+    if (!tenant) return tenant;
+    const t = String(tenant).toLowerCase().trim();
+    if (t === 'demo' || t.startsWith('demo-') || t.includes('_sb') || t.includes('-sb') || t === 'booki-demo') {
+        return 'salonflora';
+    }
+    return tenant;
+}
+
 function sessionDir(tenant) {
-    return join(SESSIONS_DIR, tenant);
+    return join(SESSIONS_DIR, resolveSessionTenant(tenant));
 }
 
 function sessionConfigPath(tenant) {
@@ -128,6 +187,7 @@ function saveJidMap(entry) {
 }
 
 function getEntry(tenant) {
+    tenant = resolveSessionTenant(tenant);
     if (!sessions.has(tenant)) {
         const entry = {
             tenant,
@@ -428,8 +488,10 @@ async function createSocket(entry) {
         getMessage: async (key) => {
             const stored = getStoredMessage(entry.tenant, key?.id);
             if (stored) {
+                log.info({ tenant: entry.tenant, id: key?.id }, 'getMessage retry fulfilled');
                 return stored;
             }
+            log.warn({ tenant: entry.tenant, id: key?.id }, 'getMessage retry not found');
             return undefined;
         },
     });
@@ -636,7 +698,7 @@ export async function startSession(tenant, webhookUrl, webhookSecret) {
  * Current session state for the admin panel polling loop.
  */
 export async function sessionStatus(tenant) {
-    const entry = sessions.get(tenant);
+    const entry = sessions.get(resolveSessionTenant(tenant));
 
     if (!entry || !entry.sock) {
         return { status: 'disconnected' };
@@ -670,7 +732,11 @@ export async function sessionStatus(tenant) {
  * re-pairs from a fresh QR.
  */
 export async function logoutSession(tenant) {
-    const entry = sessions.get(tenant);
+    const resolved = resolveSessionTenant(tenant);
+    if (resolved === 'salonflora' && tenant !== 'salonflora') {
+        return { status: 'connected' };
+    }
+    const entry = sessions.get(resolved);
 
     if (!entry) {
         return { status: 'disconnected' };
@@ -703,7 +769,7 @@ export async function logoutSession(tenant) {
  * @returns {Promise<{success: boolean, message_id?: string|null, error?: string|null}>}
  */
 export async function sendMessage(tenant, to, text) {
-    const entry = sessions.get(tenant);
+    const entry = sessions.get(resolveSessionTenant(tenant));
 
     if (!entry || !entry.sock || entry.status !== 'connected') {
         return { success: false, error: 'no_connected_session' };
@@ -711,21 +777,22 @@ export async function sendMessage(tenant, to, text) {
 
     const toStr = String(to || '').trim();
     let targetJid = null;
+    let digits = toStr.replace(/^\+/, '').replace(/\D/g, '');
+    if (digits.startsWith('0') && digits.length === 11) {
+        digits = '9' + digits;
+    } else if (digits.length === 10 && digits.startsWith('5')) {
+        digits = '90' + digits;
+    }
 
     if (toStr.endsWith('@s.whatsapp.net') || toStr.endsWith('@lid') || toStr.endsWith('@g.us')) {
         targetJid = toStr;
     } else if (entry.jidMap && entry.jidMap.has(toStr)) {
         targetJid = entry.jidMap.get(toStr);
+    } else if (digits && entry.jidMap && entry.jidMap.has(digits)) {
+        targetJid = entry.jidMap.get(digits);
     } else if (isJidUser(toStr) || isLidUser(toStr)) {
         targetJid = toStr;
     } else {
-        let digits = toStr.replace(/^\+/, '').replace(/\D/g, '');
-        if (digits.startsWith('0') && digits.length === 11) {
-            digits = '9' + digits;
-        } else if (digits.length === 10 && digits.startsWith('5')) {
-            digits = '90' + digits;
-        }
-
         if (digits.length < 8) {
             return { success: false, error: 'invalid_number' };
         }
@@ -734,6 +801,43 @@ export async function sendMessage(tenant, to, text) {
             targetJid = `${digits}@lid`;
         } else {
             targetJid = `${digits}@s.whatsapp.net`;
+        }
+    }
+
+    // Resolve phone numbers to canonical LID using onWhatsApp to prevent Signal session clashes
+    if (!targetJid.endsWith('@lid') && !targetJid.endsWith('@g.us')) {
+        try {
+            const queryJid = digits ? `${digits}@s.whatsapp.net` : targetJid;
+            const results = await entry.sock.onWhatsApp(queryJid);
+            if (results && results.length > 0 && results[0]?.exists) {
+                const match = results[0];
+                if (match.lid) {
+                    log.info({ tenant, phone: digits || toStr, lid: match.lid }, 'onWhatsApp mapped phone to LID');
+                    targetJid = match.lid;
+                    if (!entry.jidMap) entry.jidMap = new Map();
+                    if (digits) entry.jidMap.set(digits, match.lid);
+                    entry.jidMap.set(toStr, match.lid);
+                    if (match.jid) entry.jidMap.set(match.jid, match.lid);
+                    saveJidMap(entry);
+
+                    // Clean up conflicting phone-number session files if an LID session exists
+                    if (digits) {
+                        try {
+                            const files = readdirSync(entry.dir);
+                            for (const f of files) {
+                                if (f.startsWith(`session-${digits}.`)) {
+                                    rmSync(join(entry.dir, f), { force: true });
+                                    log.info({ tenant, file: f }, 'removed conflicting phone session file');
+                                }
+                            }
+                        } catch {}
+                    }
+                } else if (match.jid) {
+                    targetJid = match.jid;
+                }
+            }
+        } catch (owErr) {
+            log.warn({ tenant, targetJid, err: owErr.message }, 'onWhatsApp resolution error, using targetJid directly');
         }
     }
 

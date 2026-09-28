@@ -84,6 +84,11 @@ class Industry_settings extends App_Controller
             'staff_commissions' => ['name' => 'Personel Prim & Hakediş', 'icon' => 'fas fa-percentage', 'desc' => 'Hizmet ve ürün satışlarından personele prim hesabı', 'core' => false],
             'marketing' => ['name' => 'Pazarlama & Kampanyalar', 'icon' => 'fas fa-paper-plane', 'desc' => 'Toplu SMS/WhatsApp, geri kazanım ve doğum günü bildirimleri', 'core' => false],
             'reviews' => ['name' => 'Müşteri Değerlendirmeleri', 'icon' => 'fas fa-star', 'desc' => 'Otomatik memnuniyet anketleri ve itibar puanı', 'core' => false],
+            'legal_matters' => ['name' => 'Dava & Dosya Yönetimi', 'icon' => 'fas fa-balance-scale', 'desc' => 'Dava dosyaları, esas/karar no, duruşmalar ve müvekkil takibi', 'core' => false],
+            'billable_hours' => ['name' => 'Zaman Takibi & Saatlik Ücret', 'icon' => 'fas fa-stopwatch', 'desc' => 'Kronometreli süre sayacı ve faturalandırılabilir çalışma kayıtları', 'core' => false],
+            'consulting_projects' => ['name' => 'Projeler & Kilometre Taşları', 'icon' => 'fas fa-project-diagram', 'desc' => 'Danışmanlık fazları, teslimatlar ve müşteri onay portalı', 'core' => false],
+            'clinical_emr' => ['name' => 'Klinik EMR & Hayati Bulgular', 'icon' => 'fas fa-heartbeat', 'desc' => 'Tansiyon, nabız, kilo/BMI takibi, reçete ve laboratuvar istemleri', 'core' => false],
+            'carwash_queue' => ['name' => 'Oto Yıkama TV Panosu & 360 Kabul', 'icon' => 'fas fa-car', 'desc' => 'Canlı peron TV ekranı, 360 hasar işaretleme ve hazır bildirimi', 'core' => false],
         ];
 
         $csrf_hash = $this->security->get_csrf_hash();

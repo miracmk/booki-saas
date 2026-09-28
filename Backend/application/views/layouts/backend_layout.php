@@ -135,24 +135,33 @@
         font-weight: 600;
     }
 
-    #sidebar,
-    #sidebar .offcanvas-body {
+    #sidebar {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
         display: flex !important;
         flex-direction: column !important;
     }
     #sidebar .offcanvas-body {
-        flex-grow: 1 !important;
-        overflow-y: hidden !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
         padding: 0 !important;
     }
     #sidebar .sidebar-nav {
-        flex: 1 1 auto;
-        min-height: 0;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         overscroll-behavior: contain;
         scrollbar-width: thin;
         scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+    }
+    #sidebar .sidebar-footer-account {
+        flex-shrink: 0 !important;
+        margin-top: auto !important;
     }
     #sidebar .sidebar-nav::-webkit-scrollbar {
         width: 5px;

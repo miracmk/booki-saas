@@ -4005,10 +4005,13 @@ class Console extends App_Controller
 
             // Ping bridge health
             try {
-                $client = new \GuzzleHttp\Client();
-                $b_res = $client->get(rtrim($bridge_url, '/') . '/health', ['timeout' => 5]);
-                $b_data = json_decode((string) $b_res->getBody(), true);
-                echo "   ✓ Bridge Servisi: " . ($b_data['status'] ?? 'OK') . " (Uptime: " . round($b_data['uptime'] ?? 0) . "s)" . PHP_EOL;
+                $bridge = new Whatsapp_bridge($bridge_url, $msg_settings['whatsapp_bridge_secret'] ?? '');
+                $b_data = $bridge->health();
+                if ($b_data && !empty($b_data['status'])) {
+                    echo "   ✓ Bridge Servisi: " . $b_data['status'] . " (Versiyon: " . ($b_data['version'] ?? '1.0.0') . ")" . PHP_EOL;
+                } else {
+                    echo "   ✗ Bridge Servisi: Yanıt vermedi" . PHP_EOL;
+                }
             } catch (\Throwable $e) {
                 echo "   ✗ Bridge Servisi Erişilemedi: " . $e->getMessage() . PHP_EOL;
             }
@@ -5433,7 +5436,202 @@ class Console extends App_Controller
         echo "📊 TEST SONUÇLARI: {$passed} Başarılı, {$failed} Başarısız" . PHP_EOL;
         echo "================================================================================" . PHP_EOL;
     }
+
+    /**
+     * Pre-provision sandbox slots for all demo tenants.
+     *
+     * Usage:
+     * php index.php console provision_sandboxes 5
+     */
+    public function provision_sandboxes(string $count = '5'): void
+    {
+        $slot_count = (int) $count;
+        $this->load->library('sandbox_manager');
+        echo PHP_EOL . "=== BooKi SaaS: Pre-provisioning Sandbox Slots ===" . PHP_EOL;
+
+        $sectors = array_keys(Sandbox_manager::DEMO_SECTORS);
+        foreach ($sectors as $subdomain) {
+            echo "Provisioning {$slot_count} slots for {$subdomain}... ";
+            $created = $this->sandbox_manager->pre_provision_slots($subdomain, $slot_count);
+            echo "Done! ({$created} new slots initialized)" . PHP_EOL;
+        }
+
+        echo "=== Provisioning completed successfully! ===" . PHP_EOL . PHP_EOL;
+    }
+
+    /**
+     * Clean up expired sandbox slots for all demo tenants.
+     *
+     * Usage:
+     * php index.php console cleanup_sandboxes
+     */
+    public function cleanup_sandboxes(): void
+    {
+        $this->load->library('sandbox_manager');
+        echo PHP_EOL . "=== BooKi SaaS: Cleaning Up Expired Sandbox Slots ===" . PHP_EOL;
+
+        $recycled = $this->sandbox_manager->cleanup_expired();
+        echo "Recycled {$recycled} expired sandbox slot(s) back to available pool." . PHP_EOL;
+        echo "=== Cleanup completed! ===" . PHP_EOL . PHP_EOL;
+    }
+
+    /**
+     * Reset ALL sandbox slots to fresh template state (Purge cache / Reset all).
+     *
+     * Usage:
+     * php index.php console reset_sandboxes
+     */
+    public function reset_sandboxes(): void
+    {
+        $this->load->library('sandbox_manager');
+        echo PHP_EOL . "=== BooKi SaaS: Resetting ALL Demo Sandbox Slots ===" . PHP_EOL;
+
+        $reset = $this->sandbox_manager->reset_all();
+        echo "Reset {$reset} sandbox slot(s) to factory template state." . PHP_EOL;
+        echo "=== Reset completed! ===" . PHP_EOL . PHP_EOL;
+    }
+
+    /**
+     * Configure WhatsApp bridge (+90 501 592 5562) and Telegram (@bookidemobot)
+     * for all demo tenants and existing sandbox slots.
+     *
+     * Usage:
+     * php index.php console configure_demo_messaging
+     */
+    public function configure_demo_messaging(): void
+    {
+        echo PHP_EOL . "=== BooKi SaaS: Configuring WhatsApp & Telegram for All Demo Tenants ===" . PHP_EOL;
+
+        $this->load->library('sandbox_manager');
+        $this->load->model('messaging_settings_model');
+        $this->load->model('settings_model');
+
+        $demo_sectors = array_keys(Sandbox_manager::DEMO_SECTORS);
+
+        // Fetch all demo tenant rows from master
+        $tenants = $this->db->where_in('subdomain', $demo_sectors)->get('tenants')->result_array();
+
+        foreach ($tenants as $tenant) {
+            $subdomain = $tenant['subdomain'];
+            echo "Configuring master demo tenant '{$subdomain}'... ";
+            $this->connect_tenant($tenant);
+
+            $this->messaging_settings_model->save_settings([
+                'whatsapp_mode' => 'unofficial',
+                'whatsapp_notifications_enabled' => 1,
+                'whatsapp_unofficial_status' => 'connected',
+                'whatsapp_unofficial_name' => 'BooKi Demo',
+                'whatsapp_business_phone_display' => '+90 501 592 5562',
+                'whatsapp_bridge_url' => 'http://wa-bridge:3000',
+                'whatsapp_bridge_secret' => 'f7318295bcbfa2505a0c61ea1dff1add19bd619136b77324',
+                'telegram_notifications_enabled' => 1,
+                'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                'default_notification_channels' => 'whatsapp,telegram,email',
+                'default_notification_channel' => 'whatsapp',
+                'email_notifications_enabled' => 1,
+                'reminder_notifications_enabled' => 1,
+                'ai_reply_whatsapp_enabled' => 1,
+                'ai_reply_telegram_enabled' => 1,
+            ]);
+
+            setting([
+                'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                'telegram_bot_username' => 'bookidemobot',
+                'telegram_notifications_enabled' => '1',
+                'telegram_webhook_secret' => 'f69a991d0d5171b3d2cd9533f0b760972a97d7653ac0c50c9e8b8aa91441b4dd',
+                'ai_reply_telegram_enabled' => '1',
+                'ai_reply_whatsapp_enabled' => '1',
+                'customer_notifications' => '1',
+            ]);
+
+            echo "Done!" . PHP_EOL;
+        }
+
+        // Reconnect master DB
+        $this->connect_master();
+
+        // Also update all existing sandbox slots!
+        $parent_tenants = [];
+        foreach ($this->db->get('tenants')->result_array() as $t) {
+            $parent_tenants[$t['subdomain']] = $t;
+        }
+
+        $slots = $this->db->get('sandbox_slots')->result_array();
+        echo "Updating " . count($slots) . " existing sandbox slot(s)..." . PHP_EOL;
+
+        foreach ($slots as $slot) {
+            $slot_db = $slot['db_name'];
+            $parent = $parent_tenants[$slot['tenant_subdomain']] ?? null;
+            if (!$parent) continue;
+
+            $fake_tenant = $parent;
+            $fake_tenant['db_name'] = $slot_db;
+            $this->connect_tenant($fake_tenant);
+
+            $this->messaging_settings_model->save_settings([
+                'whatsapp_mode' => 'unofficial',
+                'whatsapp_notifications_enabled' => 1,
+                'whatsapp_unofficial_status' => 'connected',
+                'whatsapp_unofficial_name' => 'BooKi Demo',
+                'whatsapp_business_phone_display' => '+90 501 592 5562',
+                'whatsapp_bridge_url' => 'http://wa-bridge:3000',
+                'whatsapp_bridge_secret' => 'f7318295bcbfa2505a0c61ea1dff1add19bd619136b77324',
+                'telegram_notifications_enabled' => 1,
+                'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                'default_notification_channels' => 'whatsapp,telegram,email',
+                'default_notification_channel' => 'whatsapp',
+                'email_notifications_enabled' => 1,
+                'reminder_notifications_enabled' => 1,
+                'ai_reply_whatsapp_enabled' => 1,
+                'ai_reply_telegram_enabled' => 1,
+            ]);
+
+            setting([
+                'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                'telegram_bot_username' => 'bookidemobot',
+                'telegram_notifications_enabled' => '1',
+                'telegram_webhook_secret' => 'f69a991d0d5171b3d2cd9533f0b760972a97d7653ac0c50c9e8b8aa91441b4dd',
+                'ai_reply_telegram_enabled' => '1',
+                'ai_reply_whatsapp_enabled' => '1',
+                'customer_notifications' => '1',
+            ]);
+
+            echo "  - Slot {$slot_db} updated." . PHP_EOL;
+        }
+
+        $this->connect_master();
+        echo "=== Demo messaging configuration completed! ===" . PHP_EOL . PHP_EOL;
+    }
+
+    /**
+     * Test sending a demo WhatsApp notification from a demo tenant context.
+     *
+     * Usage:
+     * php index.php console test_demo_notification demo-guzellik 05015925562
+     */
+    public function test_demo_notification(string $subdomain = 'demo-guzellik', string $test_phone = '05015925562'): void
+    {
+        echo "Testing demo notification for {$subdomain} to {$test_phone}..." . PHP_EOL;
+        $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+        if (!$tenant) {
+            echo "Tenant not found!" . PHP_EOL;
+            return;
+        }
+        $this->connect_tenant($tenant);
+        $this->load->library('notifications');
+        $user = [
+            'id' => 3,
+            'first_name' => 'Canlı',
+            'last_name' => 'Deneme',
+            'phone_number' => $test_phone,
+            'email' => 'test@kibusiness.co',
+        ];
+        $text = "🎉 BooKi Demo Bildirimi ({$subdomain}): Randevunuz onaylanmıştır! Tarih: " . date('d.m.Y H:i:s');
+        $this->notifications->send_whatsapp($user, $text);
+        echo "WhatsApp send executed!" . PHP_EOL;
+    }
 }
+
 
 
 

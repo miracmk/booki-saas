@@ -81,6 +81,21 @@
             </div>
 
             <div class="mb-3">
+                <label class="form-label" for="access-type">
+                    Hizmet Süre & Geçiş Modeli (Erişim Tipi)
+                </label>
+                <select id="access-type" class="form-select" disabled>
+                    <option value="duration">⏱️ Süreli Seans (Standart Randevu Süresi - örn: 60/90 dk)</option>
+                    <option value="open_ended">☕ Süresiz / Açık Adisyon (Restoran, Kafe, Bar, Ören Yeri)</option>
+                    <option value="daily_pass">🎟️ Günlük Giriş / Günlük Pass (Genel Hamam, Plaj, Açık Havuz)</option>
+                    <option value="multi_pass">🔢 Çok Girişli Paket / Seanslı Kart (Örn: 10 Girişlik Hamam/Spa Kartı)</option>
+                </select>
+                <div class="form-text small text-muted">
+                    İşletme modelinize göre müşteriye çıkış saati sormadan açık adisyon, günlük pass veya çok girişli paket uygulayabilirsiniz.
+                </div>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label" for="price">
                     <?= lang('price') ?>
                     <span class="text-danger" hidden>*</span>

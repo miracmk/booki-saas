@@ -316,10 +316,43 @@ class Telegram extends App_Controller
                         '✅ Telegram hesabınız BooKi ile bağlandı. Randevu bildirimlerini buradan da alacaksınız.',
                     );
                 } else {
-                    $this->telegram_client->send_message(
-                        $chat_id,
-                        'Bu bağlantı geçersiz veya süresi dolmuş. Lütfen yönetiminizden yeni bir bağlantı isteyin.',
-                    );
+                    $found_demo = false;
+                    if (is_multi_tenant_mode()) {
+                        $demo_dbs = [
+                            'ki_tenant_demo-guzellik', 'ki_tenant_demo-masaj', 'ki_tenant_demo-restoran',
+                            'ki_tenant_demo-otel', 'ki_tenant_demo-klinik', 'ki_tenant_demo-studyo'
+                        ];
+                        try {
+                            $active_slots = $this->db->query("SELECT slot_db_name FROM ki_reservation_master.ea_sandbox_slots WHERE status = 'active'")->result_array();
+                            foreach ($active_slots as $slot) {
+                                $demo_dbs[] = $slot['slot_db_name'];
+                            }
+                        } catch (Throwable $_) {}
+
+                        foreach (array_unique($demo_dbs) as $demo_db) {
+                            try {
+                                $row = $this->db->query("SELECT * FROM `{$demo_db}`.ea_users WHERE telegram_link_token = ?", [$token])->row_array();
+                                if ($row) {
+                                    $this->db->query("UPDATE `{$demo_db}`.ea_users SET telegram_chat_id = ?, telegram_username = ?, telegram_link_token = NULL WHERE id = ?", [
+                                        $chat_id, $username, $row['id']
+                                    ]);
+                                    $this->telegram_client->send_message(
+                                        $chat_id,
+                                        '✅ Telegram hesabınız BooKi Demo ile bağlandı! Randevu bildirimlerini ve hatırlatmalarını buradan canlı olarak alacaksınız.',
+                                    );
+                                    $found_demo = true;
+                                    break;
+                                }
+                            } catch (Throwable $_) {}
+                        }
+                    }
+
+                    if (!$found_demo) {
+                        $this->telegram_client->send_message(
+                            $chat_id,
+                            'Bu bağlantı geçersiz veya süresi dolmuş. Lütfen yönetiminizden yeni bir bağlantı isteyin.',
+                        );
+                    }
                 }
 
                 response();

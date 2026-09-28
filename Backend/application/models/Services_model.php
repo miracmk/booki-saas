@@ -46,6 +46,9 @@ class Services_model extends App_Model
         'attendantsNumber' => 'attendants_number',
         'isPrivate' => 'is_private',
         'serviceCategoryId' => 'id_service_categories',
+        'accessType' => 'access_type',
+        'passValidityDays' => 'pass_validity_days',
+        'totalPasses' => 'total_passes',
     ];
 
     /**
@@ -556,6 +559,18 @@ class Services_model extends App_Model
 
         if (array_key_exists('isPrivate', $service)) {
             $decoded_resource['is_private'] = (bool) $service['isPrivate'];
+        }
+
+        if (array_key_exists('accessType', $service)) {
+            $decoded_resource['access_type'] = $service['accessType'];
+        }
+
+        if (array_key_exists('passValidityDays', $service)) {
+            $decoded_resource['pass_validity_days'] = (int) $service['passValidityDays'];
+        }
+
+        if (array_key_exists('totalPasses', $service)) {
+            $decoded_resource['total_passes'] = (int) $service['totalPasses'];
         }
 
         $service = $decoded_resource;

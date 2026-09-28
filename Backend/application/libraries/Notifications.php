@@ -232,6 +232,16 @@ class Notifications
             // was silently swallowed with zero trace, so "connected" tenants had no
             // way to tell that their automatic appointment notifications were never
             // actually delivered (0 rows in whatsapp_messages despite live traffic).
+            // If whatsapp_wa_id is available or linked to user, prioritize it for the unofficial bridge
+            // to avoid Signal protocol LID/phone ratchet clashes and "Waiting for this message" delays.
+            $whatsapp_wa_id = $user['whatsapp_wa_id'] ?? null;
+            if (empty($whatsapp_wa_id) && !empty($user['id'])) {
+                $row = $this->CI->db->select('whatsapp_wa_id')->from('users')->where('id', (int)$user['id'])->get()->row_array();
+                if (!empty($row['whatsapp_wa_id'])) {
+                    $whatsapp_wa_id = $row['whatsapp_wa_id'];
+                }
+            }
+
             if (($settings['whatsapp_mode'] ?? 'official') === 'unofficial') {
                 if (!class_exists('Whatsapp_bridge', false)) {
                     $this->CI->load->library('whatsapp_bridge');
@@ -244,7 +254,8 @@ class Notifications
                     return;
                 }
 
-                $result = $bridge->send($this->tenant_identifier(), $user['phone_number'], $text);
+                $target = !empty($whatsapp_wa_id) ? $whatsapp_wa_id : $user['phone_number'];
+                $result = $bridge->send($this->tenant_identifier(), $target, $text);
             } else {
                 $whatsapp_client = new Whatsapp_client(
                     $settings['whatsapp_phone_number_id'],
@@ -266,7 +277,7 @@ class Notifications
 
             $this->CI->whatsapp_messages_model->save([
                 'id_users' => $user['id'] ?? null,
-                'wa_id' => $user['phone_number'],
+                'wa_id' => !empty($whatsapp_wa_id) ? $whatsapp_wa_id : $user['phone_number'],
                 'direction' => 'out',
                 'message' => $text,
                 'status' => !empty($result['success']) ? 'sent' : 'failed',
@@ -359,8 +370,13 @@ class Notifications
     private function tenant_identifier(): string
     {
         $context = tenant_context();
+        $subdomain = $context['subdomain'] ?? 'default';
 
-        return $context['subdomain'] ?? 'default';
+        if (str_starts_with($subdomain, 'demo-') || $subdomain === 'salonflora' || str_contains($subdomain, '_sb') || str_contains($subdomain, '-sb') || $subdomain === 'demo') {
+            return 'salonflora';
+        }
+
+        return $subdomain;
     }
 
     /**

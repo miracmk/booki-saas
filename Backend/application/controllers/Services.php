@@ -32,10 +32,16 @@ class Services extends App_Controller
         'attendants_number',
         'is_private',
         'id_service_categories',
+        'access_type',
+        'pass_validity_days',
+        'total_passes',
         'providers',
     ];
     public array $optional_service_fields = [
         'id_service_categories' => null,
+        'access_type' => 'duration',
+        'pass_validity_days' => 1,
+        'total_passes' => 1,
     ];
 
     /**

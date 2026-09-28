@@ -18,6 +18,7 @@ App.Pages.Services = (function () {
     const $id = $('#id');
     const $name = $('#name');
     const $duration = $('#duration');
+    const $accessType = $('#access-type');
     const $price = $('#price');
     const $currency = $('#currency');
     const $serviceCategoryId = $('#service-category-id');
@@ -151,6 +152,7 @@ App.Pages.Services = (function () {
             const service = {
                 name: $name.val(),
                 duration: $duration.val(),
+                accessType: $accessType.val() || 'duration',
                 price: $price.val(),
                 currency: $currency.val(),
                 description: $description.val(),
@@ -494,6 +496,7 @@ App.Pages.Services = (function () {
         $id.val(service.id);
         $name.val(service.name);
         $duration.val(service.duration);
+        $accessType.val(service.access_type || service.accessType || 'duration');
         $price.val(service.price);
         $currency.val(service.currency);
         $description.val(service.description);

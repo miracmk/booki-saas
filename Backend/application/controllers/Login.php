@@ -172,6 +172,14 @@ class Login extends App_Controller
 
             session($user_data); // Save data in the session.
 
+            // BooKi SaaS - Live Demo Sandbox Environment allocation
+            $current_tenant_subdomain = function_exists('tenant_context') ? (tenant_context()['subdomain'] ?? '') : '';
+            if (!empty($current_tenant_subdomain) && in_array($current_tenant_subdomain, ['demo-guzellik', 'demo-masaj', 'demo-restoran', 'demo-otel', 'demo-klinik', 'demo-studyo'], true)) {
+                $this->load->library('sandbox_manager');
+                $sandbox_db = $this->sandbox_manager->acquire_sandbox($current_tenant_subdomain, session_id());
+                log_message('info', "Allocated sandbox DB {$sandbox_db} for session in {$current_tenant_subdomain}");
+            }
+
             log_message('info', 'Successful login for user: ' . $username . ' from IP: ' . $this->input->ip_address());
 
             // BooKi customization - audit trail for successful authentication.

@@ -90,8 +90,8 @@ $header_company_logo = base_url('assets/img/logo.png');
                 <span class="badge bg-dark bg-opacity-50 text-white-50 font-monospace" style="font-size: 10px;">⌘K</span>
             </button>
             <div class="dropdown w-100">
-                <button class="btn btn-warning w-100 fw-bold btn-sm py-2 rounded-3 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-plus-circle me-1"></i> Hızlı İşlem
+                <button class="btn btn-primary w-100 fw-bold btn-sm py-2 rounded-3 dropdown-toggle shadow-sm text-white" type="button" data-bs-toggle="dropdown" style="background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important;">
+                    <i class="fas fa-bolt me-1"></i> Hızlı İşlem
                 </button>
                 <ul class="dropdown-menu shadow border-0 rounded-3">
                     <li><a class="dropdown-item py-2" href="<?= site_url('calendar') ?>"><i class="fas fa-calendar-plus text-primary me-2"></i>Yeni <?= e(industry_term('appointment_label', 'Randevu')) ?></a></li>
@@ -128,24 +128,9 @@ $header_company_logo = base_url('assets/img/logo.png');
             ? (function_exists('randevuburada_url') ? randevuburada_url('business/' . rawurlencode($tenant_sub)) : 'https://randevuburada.kibusiness.co/business/' . rawurlencode($tenant_sub))
             : (function_exists('randevuburada_url') ? randevuburada_url() : 'https://randevuburada.kibusiness.co');
         ?>
-        <!-- Marketplace Storefront Status Card -->
-        <div class="px-3 pt-1 pb-2">
-            <div class="p-2 rounded-3 text-white" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="badge bg-success bg-opacity-75 text-white" style="font-size: 10px;">
-                        <i class="fas fa-check-circle me-1"></i>RandevuBurada
-                    </span>
-                    <span class="text-white-50" style="font-size: 11px;">7/24 Açık</span>
-                </div>
-                <div class="small fw-semibold text-truncate mb-2" style="font-size: 12px;">Pazaryeri Vitrininiz</div>
-                <a href="<?= e($mp_url) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light w-100 py-1" style="font-size: 11px; border-color: rgba(255,255,255,0.3);">
-                    <i class="fas fa-store me-1 text-warning"></i> RandevuBurada Vitrinim
-                </a>
-            </div>
-        </div>
 
         <!-- Grouped Navigation Menu (Collapsible Accordion & Smooth Scroll) -->
-        <ul class="nav flex-column flex-grow-1 px-2 sidebar-nav mt-1">
+        <ul class="nav flex-column flex-grow-1 px-2 sidebar-nav mt-1" id="sidebar-accordion">
             <!-- Dashboard -->
             <li class="nav-item mb-1 <?= $active_menu == 'dashboard' ? 'active' : '' ?>">
                 <a href="<?= site_url('dashboard') ?>" class="nav-link text-white d-flex align-items-center">
@@ -168,7 +153,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $is_operations_active ? 'show' : '' ?>" id="sidebar-menu-operations">
+                <div class="collapse <?= $is_operations_active ? 'show' : '' ?>" id="sidebar-menu-operations" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == PRIV_APPOINTMENTS ? 'active' : '' ?>">
                             <a href="<?= site_url('calendar' . (vars('calendar_view') === CALENDAR_VIEW_TABLE ? '?view=table' : '')) ?>" class="nav-link text-white">
@@ -222,7 +207,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $is_customers_active ? 'show' : '' ?>" id="sidebar-menu-customers">
+                <div class="collapse <?= $is_customers_active ? 'show' : '' ?>" id="sidebar-menu-customers" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == PRIV_CUSTOMERS ? 'active' : '' ?>">
                             <a href="<?= site_url('customers') ?>" class="nav-link text-white">
@@ -264,7 +249,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $is_finance_active ? 'show' : '' ?>" id="sidebar-menu-finance">
+                <div class="collapse <?= $is_finance_active ? 'show' : '' ?>" id="sidebar-menu-finance" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <?php if (is_module_enabled('adisyon')): ?>
                         <li class="nav-item <?= $active_menu == 'adisyons' ? 'active' : '' ?>">
@@ -322,37 +307,73 @@ $header_company_logo = base_url('assets/img/logo.png');
 
             <?php if ($current_vert === 'restaurant' || is_module_enabled('restaurant_floor_plan') || is_module_enabled('restaurant_reservations')): ?>
             <li class="nav-item sidebar-group mb-1">
-                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= ($active_menu === 'restaurant_floor_plan' || $active_menu === 'restaurant_reservations' || $active_menu === 'verticals_kds') ? 'active-parent' : '' ?>"
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= in_array($active_menu, ['restaurant_floor_plan', 'restaurant_reservations', 'verticals_kds', 'restaurant_qr_menu', 'restaurant_staff_stations', 'restaurant_screens', 'restaurant_patronage']) ? 'active-parent' : '' ?>"
                    href="#sidebar-menu-restaurant" data-bs-toggle="collapse" role="button"
-                   aria-expanded="<?= ($active_menu === 'restaurant_floor_plan' || $active_menu === 'restaurant_reservations' || $active_menu === 'verticals_kds') ? 'true' : 'false' ?>" aria-controls="sidebar-menu-restaurant">
+                   aria-expanded="<?= in_array($active_menu, ['restaurant_floor_plan', 'restaurant_reservations', 'verticals_kds', 'restaurant_qr_menu', 'restaurant_staff_stations', 'restaurant_screens', 'restaurant_patronage']) ? 'true' : 'false' ?>" aria-controls="sidebar-menu-restaurant">
                     <span class="d-flex align-items-center">
                         <i class="fas fa-utensils me-2 text-danger" style="width: 20px;"></i>
                         <span class="fw-semibold">Restoran Operasyonu</span>
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= ($active_menu === 'restaurant_floor_plan' || $active_menu === 'restaurant_reservations' || $active_menu === 'verticals_kds') ? 'show' : '' ?>" id="sidebar-menu-restaurant">
+                <div class="collapse <?= in_array($active_menu, ['restaurant_floor_plan', 'restaurant_reservations', 'verticals_kds', 'restaurant_qr_menu', 'restaurant_staff_stations', 'restaurant_screens', 'restaurant_patronage']) ? 'show' : '' ?>" id="sidebar-menu-restaurant" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <?php if (is_module_enabled('restaurant_floor_plan')): ?>
                         <li class="nav-item <?= $active_menu == 'restaurant_floor_plan' ? 'active' : '' ?>">
                             <a href="<?= site_url('restaurant') ?>" class="nav-link text-white">
-                                <i class="fas fa-border-all me-2"></i>
-                                Canlı Masa Planı
+                                <i class="fas fa-border-all me-2 text-success"></i>
+                                Canlı Masa Planı (2D Kroki)
                             </a>
                         </li>
                         <?php endif; ?>
                         <?php if (is_module_enabled('restaurant_reservations')): ?>
                         <li class="nav-item <?= $active_menu == 'restaurant_reservations' ? 'active' : '' ?>">
                             <a href="<?= site_url('restaurant/reservations') ?>" class="nav-link text-white">
-                                <i class="fas fa-calendar-check me-2"></i>
+                                <i class="fas fa-calendar-check me-2 text-primary"></i>
                                 Masa Rezervasyonları
                             </a>
                         </li>
                         <?php endif; ?>
+                        <li class="nav-item <?= $active_menu == 'restaurant_qr_menu' ? 'active' : '' ?>">
+                            <a href="<?= site_url('restaurant/qr_menu_manager') ?>" class="nav-link text-white">
+                                <i class="fas fa-qrcode me-2 text-warning"></i>
+                                QR Menü & Tasarım Stüdyosu
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= site_url('restaurant/print_qr_stands') ?>" target="_blank" class="nav-link text-white">
+                                <i class="fas fa-print me-2 text-info"></i>
+                                Masa QR Stand Baskı Merkezi
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'restaurant_staff_stations' ? 'active' : '' ?>">
+                            <a href="<?= site_url('restaurant/staff_stations') ?>" class="nav-link text-white">
+                                <i class="fas fa-users-cog me-2 text-light"></i>
+                                Mutfak & Bar İstasyon Yönetimi
+                            </a>
+                        </li>
                         <li class="nav-item <?= $active_menu == 'verticals_kds' ? 'active' : '' ?>">
-                            <a href="<?= site_url('verticals/kds') ?>" class="nav-link text-white">
-                                <i class="fas fa-tv me-2 text-warning"></i>
-                                Mutfak & Bar (KDS)
+                            <a href="<?= site_url('restaurant/kitchen_screen') ?>" class="nav-link text-white">
+                                <i class="fas fa-tv me-2 text-danger"></i>
+                                Mutfak & Bar (KDS Ekranı)
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= site_url('restaurant/waitress_screen') ?>" class="nav-link text-white">
+                                <i class="fas fa-mobile-alt me-2 text-warning"></i>
+                                Garson Mobil POS Ekranı
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= site_url('restaurant/register_screen') ?>" class="nav-link text-white">
+                                <i class="fas fa-cash-register me-2 text-success"></i>
+                                Kasa & Adisyon Terminali
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'restaurant_patronage' ? 'active' : '' ?>">
+                            <a href="<?= site_url('restaurant/guest_patronage') ?>" class="nav-link text-white">
+                                <i class="fas fa-star me-2 text-warning"></i>
+                                Müdavim & Sadakat Masaları
                             </a>
                         </li>
                     </ul>
@@ -371,7 +392,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $active_menu === 'verticals_sports' ? 'show' : '' ?>" id="sidebar-menu-sports">
+                <div class="collapse <?= $active_menu === 'verticals_sports' ? 'show' : '' ?>" id="sidebar-menu-sports" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == 'verticals_sports' ? 'active' : '' ?>">
                             <a href="<?= site_url('verticals/sports') ?>" class="nav-link text-white">
@@ -401,7 +422,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $active_menu === 'verticals_clinic' ? 'show' : '' ?>" id="sidebar-menu-clinic">
+                <div class="collapse <?= $active_menu === 'verticals_clinic' ? 'show' : '' ?>" id="sidebar-menu-clinic" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == 'verticals_clinic' ? 'active' : '' ?>">
                             <a href="<?= site_url('verticals/clinic') ?>" class="nav-link text-white">
@@ -425,12 +446,66 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $active_menu === 'verticals_automotive' ? 'show' : '' ?>" id="sidebar-menu-auto">
+                <div class="collapse <?= $active_menu === 'verticals_automotive' ? 'show' : '' ?>" id="sidebar-menu-auto" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == 'verticals_automotive' ? 'active' : '' ?>">
                             <a href="<?= site_url('verticals/automotive') ?>" class="nav-link text-white">
                                 <i class="fas fa-tools me-2 text-warning"></i>
                                 Araç Sicili & DVI Ekspertiz
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= site_url('verticals/carwash_tv') ?>" target="_blank" class="nav-link text-white">
+                                <i class="fas fa-tv me-2 text-info"></i>
+                                Canlı Peron TV Panosu
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <?php endif; ?>
+
+            <?php if ($current_vert === 'legal' || is_module_enabled('legal_matters')): ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_legal' ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-legal" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $active_menu === 'verticals_legal' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-legal">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-balance-scale me-2 text-warning" style="width: 20px;"></i>
+                        <span class="fw-semibold">Hukuk & Dava Dosyası</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $active_menu === 'verticals_legal' ? 'show' : '' ?>" id="sidebar-menu-legal" data-bs-parent="#sidebar-accordion">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'verticals_legal' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/legal') ?>" class="nav-link text-white">
+                                <i class="fas fa-gavel me-2 text-info"></i>
+                                Dava, Duruşma & Kronometre
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <?php endif; ?>
+
+            <?php if ($current_vert === 'consulting' || is_module_enabled('consulting_projects')): ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_consulting' ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-consulting" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $active_menu === 'verticals_consulting' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-consulting">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-project-diagram me-2 text-primary" style="width: 20px;"></i>
+                        <span class="fw-semibold">Danışmanlık & Proje</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $active_menu === 'verticals_consulting' ? 'show' : '' ?>" id="sidebar-menu-consulting" data-bs-parent="#sidebar-accordion">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'verticals_consulting' ? 'active' : '' ?>">
+                            <a href="<?= site_url('verticals/consulting') ?>" class="nav-link text-white">
+                                <i class="fas fa-tasks me-2 text-success"></i>
+                                Projeler & Timesheets
                             </a>
                         </li>
                     </ul>
@@ -449,7 +524,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $active_menu === 'verticals_experience' ? 'show' : '' ?>" id="sidebar-menu-exp">
+                <div class="collapse <?= $active_menu === 'verticals_experience' ? 'show' : '' ?>" id="sidebar-menu-exp" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == 'verticals_experience' ? 'active' : '' ?>">
                             <a href="<?= site_url('verticals/experience') ?>" class="nav-link text-white">
@@ -473,7 +548,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $active_menu === 'verticals_gift_cards' ? 'show' : '' ?>" id="sidebar-menu-beauty">
+                <div class="collapse <?= $active_menu === 'verticals_gift_cards' ? 'show' : '' ?>" id="sidebar-menu-beauty" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == 'verticals_gift_cards' ? 'active' : '' ?>">
                             <a href="<?= site_url('verticals/gift_cards') ?>" class="nav-link text-white">
@@ -518,7 +593,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $is_marketing_active ? 'show' : '' ?>" id="sidebar-menu-marketing">
+                <div class="collapse <?= $is_marketing_active ? 'show' : '' ?>" id="sidebar-menu-marketing" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == PRIV_MARKETING ? 'active' : '' ?>">
                             <a href="<?= site_url('marketing') ?>" class="nav-link text-white">
@@ -530,12 +605,6 @@ $header_company_logo = base_url('assets/img/logo.png');
                             <a href="<?= site_url('reviews') ?>" class="nav-link text-white">
                                 <i class="fas fa-star me-2"></i>
                                 Müşteri Yorumları
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="<?= e($mp_url) ?>" target="_blank" rel="noopener" class="nav-link text-white d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-store me-2 text-warning"></i>RandevuBurada Profilim</span>
-                                <span class="badge bg-warning text-dark font-monospace" style="font-size: 10px;">CANLI</span>
                             </a>
                         </li>
                     </ul>
@@ -556,7 +625,7 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </span>
                     <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                 </a>
-                <div class="collapse <?= $is_reports_active ? 'show' : '' ?>" id="sidebar-menu-reports">
+                <div class="collapse <?= $is_reports_active ? 'show' : '' ?>" id="sidebar-menu-reports" data-bs-parent="#sidebar-accordion">
                     <ul class="nav flex-column sub-nav-list">
                         <li class="nav-item <?= $active_menu == PRIV_REPORTS ? 'active' : '' ?>">
                             <a href="<?= site_url('reports') ?>" class="nav-link text-white">
@@ -573,10 +642,54 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </ul>
                 </div>
             </li>
+
+            <!-- DEDICATED RANDUVUBURADA SECTION -->
+            <?php
+            $is_randevuburada_active = in_array($active_menu, ['randevuburada', 'randevuburada_profile', 'randevuburada_services', 'randevuburada_reviews', 'randevuburada_reservations']);
+            ?>
+            <li class="nav-item sidebar-group mb-1">
+                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $is_randevuburada_active ? 'active-parent' : '' ?>"
+                   href="#sidebar-menu-randevuburada" data-bs-toggle="collapse" role="button"
+                   aria-expanded="<?= $is_randevuburada_active ? 'true' : 'false' ?>" aria-controls="sidebar-menu-randevuburada">
+                    <span class="d-flex align-items-center">
+                        <i class="fas fa-store me-2 text-warning" style="width: 20px;"></i>
+                        <span class="fw-semibold">RandevuBurada</span>
+                    </span>
+                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
+                </a>
+                <div class="collapse <?= $is_randevuburada_active ? 'show' : '' ?>" id="sidebar-menu-randevuburada" data-bs-parent="#sidebar-accordion">
+                    <ul class="nav flex-column sub-nav-list">
+                        <li class="nav-item <?= $active_menu == 'randevuburada_profile' ? 'active' : '' ?>">
+                            <a href="<?= site_url('randevuburada/profile') ?>" class="nav-link text-white">
+                                <i class="fas fa-id-badge me-2 text-info"></i>
+                                Profil & Vitrin
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'randevuburada_services' ? 'active' : '' ?>">
+                            <a href="<?= site_url('randevuburada/services') ?>" class="nav-link text-white">
+                                <i class="fas fa-tags me-2 text-success"></i>
+                                Hizmetler ve Fiyatlar
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'randevuburada_reviews' ? 'active' : '' ?>">
+                            <a href="<?= site_url('randevuburada/reviews') ?>" class="nav-link text-white">
+                                <i class="fas fa-comments me-2 text-warning"></i>
+                                Yorum Yönetimi & Kaynaklar
+                            </a>
+                        </li>
+                        <li class="nav-item <?= $active_menu == 'randevuburada_reservations' ? 'active' : '' ?>">
+                            <a href="<?= site_url('randevuburada/reservations') ?>" class="nav-link text-white">
+                                <i class="fas fa-calendar-check me-2 text-primary"></i>
+                                Pazaryeri Rezervasyonları
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
         </ul>
 
         <!-- User & Settings Footer -->
-        <div class="border-top border-light border-opacity-25 p-2">
+        <div class="border-top border-light border-opacity-25 p-2 sidebar-footer-account">
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"

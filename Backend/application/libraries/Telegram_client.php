@@ -42,6 +42,14 @@ class Telegram_client
         $settings = $this->CI->messaging_settings_model->get_settings();
         $token = $settings['telegram_bot_token'] ?? setting('telegram_bot_token');
 
+        if (empty($token)) {
+            $context = tenant_context();
+            $sub = $context['subdomain'] ?? '';
+            if (str_starts_with($sub, 'demo-') || str_contains($sub, '_sb') || str_contains($sub, '-sb') || $sub === 'salonflora' || $sub === 'demo') {
+                return '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4';
+            }
+        }
+
         return !empty($token) ? $token : null;
     }
 

@@ -22,6 +22,10 @@ class Verticals extends App_Controller
         $this->load->model('event_tickets_model');
         $this->load->model('customers_model');
         $this->load->model('appointments_model');
+        $this->load->model('legal_model');
+        $this->load->model('consulting_model');
+        $this->load->model('carwash_queue_model');
+        $this->load->model('beauty_profiles_model');
     }
 
     private function require_auth(string $dest_url): int
@@ -197,8 +201,45 @@ class Verticals extends App_Controller
         $patients = $this->customers_model->get(null, 100, null, 'first_name ASC');
         $providers = $this->db->get_where('users', ['id_roles' => 2])->result_array();
 
+        $vitals = $this->db->select('v.*, c.first_name, c.last_name')
+            ->from('patient_vitals v')
+            ->join('users c', 'c.id = v.id_users_patient', 'left')
+            ->order_by('v.recorded_at DESC')
+            ->limit(50)
+            ->get()
+            ->result_array();
+
+        $prescriptions = $this->db->select('p.*, c.first_name as patient_first_name, c.last_name as patient_last_name, d.first_name as doc_first_name, d.last_name as doc_last_name')
+            ->from('patient_prescriptions p')
+            ->join('users c', 'c.id = p.id_users_patient', 'left')
+            ->join('users d', 'd.id = p.id_users_doctor', 'left')
+            ->order_by('p.prescribed_at DESC')
+            ->limit(50)
+            ->get()
+            ->result_array();
+
+        $allergies = $this->db->select('a.*, c.first_name, c.last_name')
+            ->from('patient_allergies a')
+            ->join('users c', 'c.id = a.id_users_patient', 'left')
+            ->order_by('a.severity DESC, a.created_at DESC')
+            ->limit(50)
+            ->get()
+            ->result_array();
+
+        $lab_orders = $this->db->select('l.*, c.first_name, c.last_name')
+            ->from('clinical_lab_orders l')
+            ->join('users c', 'c.id = l.id_users_patient', 'left')
+            ->order_by('l.created_at DESC')
+            ->limit(50)
+            ->get()
+            ->result_array();
+
         $this->load->view('pages/vertical_clinical_records', [
             'records' => $records,
+            'vitals' => $vitals,
+            'prescriptions' => $prescriptions,
+            'allergies' => $allergies,
+            'lab_orders' => $lab_orders,
             'patients' => $patients,
             'providers' => $providers,
         ]);
@@ -283,4 +324,271 @@ class Verticals extends App_Controller
             'tickets' => $tickets,
         ]);
     }
+
+    /* -------------------------------------------------------------------------
+     * 7. HUKUK & AVUKATLIK SUITE (LEGAL MATTERS, HEARINGS, BILLABLE TIMERS)
+     * ------------------------------------------------------------------------- */
+    public function legal(): void
+    {
+        $user_id = $this->require_auth('verticals/legal');
+
+        html_vars([
+            'page_title' => 'Hukuk Bürosu, Dava & Duruşma Yönetimi',
+            'active_menu' => 'verticals_legal',
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'privileges' => $this->roles_model->get_permissions_by_slug(session('role_slug')),
+        ]);
+
+        $matters = $this->legal_model->get_matters();
+        $hearings = $this->legal_model->get_hearings(null, false);
+        $time_entries = $this->legal_model->get_time_entries();
+        $clients = $this->customers_model->get(null, 200, null, 'first_name ASC');
+        $attorneys = $this->db->get_where('users', ['id_roles' => 2])->result_array();
+
+        $this->load->view('pages/vertical_legal', [
+            'matters' => $matters,
+            'hearings' => $hearings,
+            'time_entries' => $time_entries,
+            'clients' => $clients,
+            'attorneys' => $attorneys,
+        ]);
+    }
+
+    public function save_legal_matter(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->legal_model->save_matter($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Dava dosyası başarıyla kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_legal_hearing(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->legal_model->save_hearing($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Duruşma randevusu kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_legal_time_entry(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $raw['id_users_attorney'] = $raw['id_users_attorney'] ?? session('user_id');
+            $id = $this->legal_model->save_time_entry($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Zaman kaydı dosyaya işlendi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function check_legal_conflict(): void
+    {
+        try {
+            method('get');
+            $keyword = (string) $this->input->get('keyword');
+            $results = $this->legal_model->check_conflict($keyword);
+            json_response($results);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function delete_legal_matter(int $id): void
+    {
+        try {
+            method('post');
+            $this->legal_model->delete_matter($id);
+            json_response(['success' => true, 'message' => 'Dava dosyası silindi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /* -------------------------------------------------------------------------
+     * 8. DANIŞMANLIK & STRATEJİ SUITE (PROJECTS, MILESTONES, TIMESHEETS)
+     * ------------------------------------------------------------------------- */
+    public function consulting(): void
+    {
+        $user_id = $this->require_auth('verticals/consulting');
+
+        html_vars([
+            'page_title' => 'Danışmanlık & Stratejik Proje Yönetimi',
+            'active_menu' => 'verticals_consulting',
+            'user_display_name' => $this->accounts->get_user_display_name($user_id),
+            'privileges' => $this->roles_model->get_permissions_by_slug(session('role_slug')),
+        ]);
+
+        $projects = $this->consulting_model->get_projects();
+        $timesheets = $this->consulting_model->get_timesheets();
+        $clients = $this->customers_model->get(null, 200, null, 'first_name ASC');
+        $consultants = $this->db->get_where('users', ['id_roles' => 2])->result_array();
+
+        $this->load->view('pages/vertical_consulting', [
+            'projects' => $projects,
+            'timesheets' => $timesheets,
+            'clients' => $clients,
+            'consultants' => $consultants,
+        ]);
+    }
+
+    public function save_consulting_project(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->consulting_model->save_project($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Proje başarıyla oluşturuldu.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_consulting_milestone(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->consulting_model->save_milestone($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Kilometre taşı kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_consulting_timesheet(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $raw['id_users_consultant'] = $raw['id_users_consultant'] ?? session('user_id');
+            $id = $this->consulting_model->save_timesheet($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Efor kaydı işlendi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /* -------------------------------------------------------------------------
+     * 9. OTO YIKAMA TV BEKLEME EKRANI & KUYRUK (CAR WASH LIVE TV & READY NOTIFY)
+     * ------------------------------------------------------------------------- */
+    public function carwash_tv(): void
+    {
+        $queue = $this->carwash_queue_model->get_active_queue();
+        $this->load->view('pages/vertical_carwash_tv', [
+            'queue' => $queue,
+        ]);
+    }
+
+    public function save_carwash_queue(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->carwash_queue_model->add_to_queue($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Araç peron sırasına eklendi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function notify_carwash_ready(int $id): void
+    {
+        try {
+            method('post');
+            $result = $this->carwash_queue_model->notify_customer_ready($id);
+            json_response($result);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /* -------------------------------------------------------------------------
+     * 10. SAĞLIK & EMR KLİNİK AJAX HANDLERS (VITALS, PRESCRIPTIONS, LABS)
+     * ------------------------------------------------------------------------- */
+    public function save_patient_vitals(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->clinical_records_model->save_patient_vitals($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Hayati bulgu ölçümleri kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_patient_prescription(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->clinical_records_model->save_patient_prescription($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Reçete kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_patient_allergy(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->clinical_records_model->save_patient_allergy($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Alerji uyarısı kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_clinical_lab(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->clinical_records_model->save_clinical_lab_order($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Laboratuvar tetkik istemi kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /* -------------------------------------------------------------------------
+     * 11. GÜZELLİK FORMÜLLERİ & BAHŞİŞ (TIPS)
+     * ------------------------------------------------------------------------- */
+    public function save_beauty_profile(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $customerId = (int) ($raw['id_users_customer'] ?? 0);
+            $id = $this->beauty_profiles_model->save_profile($customerId, $raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Güzellik ve formül profili kaydedildi.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    public function save_appointment_tip(): void
+    {
+        try {
+            method('post');
+            $raw = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $id = $this->beauty_profiles_model->save_tip($raw);
+            json_response(['success' => true, 'id' => $id, 'message' => 'Bahşiş kaydedildi ve personele dağıtıldı.']);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }
+

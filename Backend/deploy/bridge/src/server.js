@@ -8,6 +8,7 @@ import {
     sendMessage,
     resumeExistingSessions,
     sessionSummary,
+    resolveSessionTenant,
 } from './bridge.js';
 
 /**
@@ -70,7 +71,8 @@ function authenticate(req, tenant) {
     }
 
     const { global, tenant: tenantMap } = resolveSecrets();
-    const candidates = [global, tenant ? tenantMap[tenant] : null].filter(Boolean);
+    const resolved = resolveSessionTenant(tenant);
+    const candidates = [global, tenant ? tenantMap[tenant] : null, resolved ? tenantMap[resolved] : null].filter(Boolean);
 
     for (const candidate of candidates) {
         if (safeEqual(received, candidate)) {

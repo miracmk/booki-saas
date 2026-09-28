@@ -416,8 +416,11 @@ $route['track/interaction'] = 'track/interaction';
 
 // BooKi (2026-09-18) - World-Class SaaS Transformation Routes
 $route['adisyons'] = 'adisyons/index';
+$route['adisyons/(:any)/(:any)'] = 'adisyons/$1/$2';
 $route['adisyons/(:any)'] = 'adisyons/$1';
 $route['restaurant'] = 'restaurant/index';
+$route['restaurant/api/(:any)'] = 'restaurant/api_$1';
+$route['restaurant/(:any)/(:any)'] = 'restaurant/$1/$2';
 $route['restaurant/(:any)'] = 'restaurant/$1';
 $route['checkin'] = 'checkin/index';
 $route['checkin/(:any)'] = 'checkin/$1';
@@ -445,6 +448,9 @@ $route['verticals/sports'] = 'verticals/sports';
 $route['verticals/clinic'] = 'verticals/clinic';
 $route['verticals/automotive'] = 'verticals/automotive';
 $route['verticals/experience'] = 'verticals/experience';
+$route['verticals/legal'] = 'verticals/legal';
+$route['verticals/consulting'] = 'verticals/consulting';
+$route['verticals/carwash_tv'] = 'verticals/carwash_tv';
 
 $route['kds'] = 'verticals/kds';
 $route['gift_cards'] = 'verticals/gift_cards';
@@ -452,6 +458,12 @@ $route['sports'] = 'verticals/sports';
 $route['clinic'] = 'verticals/clinic';
 $route['automotive'] = 'verticals/automotive';
 $route['experience'] = 'verticals/experience';
+$route['legal'] = 'verticals/legal';
+$route['consulting'] = 'verticals/consulting';
+$route['carwash_tv'] = 'verticals/carwash_tv';
+
+$route['verticals/(:any)'] = 'verticals/$1';
+$route['verticals/(:any)/(:any)'] = 'verticals/$1/$2';
 
 // Multi-Vertical Enterprise Suite API Routes
 $route['api/v1/verticals/gift_cards/issue']['post'] = 'api/v1/verticals_api_v1/issue_gift_card';
@@ -502,8 +514,19 @@ $route['payment/callback'] = 'payment_webhooks/callback';
 $route['payment/callback/(:any)'] = 'payment_webhooks/callback/$1';
 $route['payment/unified_callback'] = 'payment_webhooks/callback';
 $route['payment/unified_callback/(:any)'] = 'payment_webhooks/callback/$1';
-$route['payment_webhooks/callback'] = 'payment_webhooks/callback';
-$route['payment_webhooks/callback/(:any)'] = 'payment_webhooks/callback/$1';
+// RandevuBurada Tenant Hub Routes
+$route['randevuburada'] = 'randevuburada/profile';
+$route['randevuburada/profile'] = 'randevuburada/profile';
+$route['randevuburada/save_profile'] = 'randevuburada/save_profile';
+$route['randevuburada/services'] = 'randevuburada/services';
+$route['randevuburada/toggle_service'] = 'randevuburada/toggle_service';
+$route['randevuburada/save_service_price'] = 'randevuburada/save_service_price';
+$route['randevuburada/reviews'] = 'randevuburada/reviews';
+$route['randevuburada/save_sources'] = 'randevuburada/save_sources';
+$route['randevuburada/publish_review'] = 'randevuburada/publish_review';
+$route['randevuburada/reject_review'] = 'randevuburada/reject_review';
+$route['randevuburada/reservations'] = 'randevuburada/reservations';
+$route['randevuburada/update_reservation_status'] = 'randevuburada/update_reservation_status';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

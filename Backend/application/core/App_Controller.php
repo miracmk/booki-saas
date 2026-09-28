@@ -283,11 +283,23 @@ class App_Controller extends CI_Controller
             $tenant_hostname = Config::DB_HOST;
         }
 
+        // BooKi SaaS - Live Demo Sandbox Environment routing
+        $target_db = $tenant['db_name'];
+        $is_sandbox = false;
+        if (in_array($tenant['subdomain'], ['demo-guzellik', 'demo-masaj', 'demo-restoran', 'demo-otel', 'demo-klinik', 'demo-studyo'], true)) {
+            $this->load->library('sandbox_manager');
+            $active_sandbox = $this->sandbox_manager->get_active_sandbox($tenant['subdomain']);
+            if (!empty($active_sandbox)) {
+                $target_db = $active_sandbox;
+                $is_sandbox = true;
+            }
+        }
+
         $tenant_db_config = [
             'hostname' => $tenant_hostname,
             'username' => $tenant['db_username'],
             'password' => tenant_master_decrypt($tenant['db_password']),
-            'database' => $tenant['db_name'],
+            'database' => $target_db,
             'dbdriver' => 'mysqli',
             'dbprefix' => 'ea_',
             'pconnect' => false,
@@ -314,6 +326,8 @@ class App_Controller extends CI_Controller
             // see plan_helper.php::plan_allows(). Free-text on the master `tenants.plan` column
             // (unchanged schema) but now normalized to one of these 4 by the superadmin UI dropdown.
             'plan' => $tenant['plan'] ?? null,
+            'is_sandbox' => $is_sandbox,
+            'sandbox_db' => $target_db,
         ]);
     }
 

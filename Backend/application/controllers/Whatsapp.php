@@ -902,7 +902,12 @@ class Whatsapp extends App_Controller
     private function tenant_identifier(): string
     {
         $context = tenant_context();
+        $subdomain = $context['subdomain'] ?? 'default';
 
-        return $context['subdomain'] ?? 'default';
+        if (str_starts_with($subdomain, 'demo-') || $subdomain === 'salonflora' || str_contains($subdomain, '_sb') || str_contains($subdomain, '-sb') || $subdomain === 'demo') {
+            return 'salonflora';
+        }
+
+        return $subdomain;
     }
 }
