@@ -454,60 +454,6 @@ $header_company_logo = base_url('assets/img/logo.png');
                                 Araç Sicili & DVI Ekspertiz
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a href="<?= site_url('verticals/carwash_tv') ?>" target="_blank" class="nav-link text-white">
-                                <i class="fas fa-tv me-2 text-info"></i>
-                                Canlı Peron TV Panosu
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if ($current_vert === 'legal' || is_module_enabled('legal_matters')): ?>
-            <li class="nav-item sidebar-group mb-1">
-                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_legal' ? 'active-parent' : '' ?>"
-                   href="#sidebar-menu-legal" data-bs-toggle="collapse" role="button"
-                   aria-expanded="<?= $active_menu === 'verticals_legal' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-legal">
-                    <span class="d-flex align-items-center">
-                        <i class="fas fa-balance-scale me-2 text-warning" style="width: 20px;"></i>
-                        <span class="fw-semibold">Hukuk & Dava Dosyası</span>
-                    </span>
-                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
-                </a>
-                <div class="collapse <?= $active_menu === 'verticals_legal' ? 'show' : '' ?>" id="sidebar-menu-legal" data-bs-parent="#sidebar-accordion">
-                    <ul class="nav flex-column sub-nav-list">
-                        <li class="nav-item <?= $active_menu == 'verticals_legal' ? 'active' : '' ?>">
-                            <a href="<?= site_url('verticals/legal') ?>" class="nav-link text-white">
-                                <i class="fas fa-gavel me-2 text-info"></i>
-                                Dava, Duruşma & Kronometre
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <?php endif; ?>
-
-            <?php if ($current_vert === 'consulting' || is_module_enabled('consulting_projects')): ?>
-            <li class="nav-item sidebar-group mb-1">
-                <a class="nav-link text-white d-flex justify-content-between align-items-center sidebar-group-toggle <?= $active_menu === 'verticals_consulting' ? 'active-parent' : '' ?>"
-                   href="#sidebar-menu-consulting" data-bs-toggle="collapse" role="button"
-                   aria-expanded="<?= $active_menu === 'verticals_consulting' ? 'true' : 'false' ?>" aria-controls="sidebar-menu-consulting">
-                    <span class="d-flex align-items-center">
-                        <i class="fas fa-project-diagram me-2 text-primary" style="width: 20px;"></i>
-                        <span class="fw-semibold">Danışmanlık & Proje</span>
-                    </span>
-                    <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
-                </a>
-                <div class="collapse <?= $active_menu === 'verticals_consulting' ? 'show' : '' ?>" id="sidebar-menu-consulting" data-bs-parent="#sidebar-accordion">
-                    <ul class="nav flex-column sub-nav-list">
-                        <li class="nav-item <?= $active_menu == 'verticals_consulting' ? 'active' : '' ?>">
-                            <a href="<?= site_url('verticals/consulting') ?>" class="nav-link text-white">
-                                <i class="fas fa-tasks me-2 text-success"></i>
-                                Projeler & Timesheets
-                            </a>
-                        </li>
                     </ul>
                 </div>
             </li>

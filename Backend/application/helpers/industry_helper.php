@@ -63,8 +63,6 @@ if (!function_exists('current_vertical_group')) {
 
             'education' => 'education',
             'professional' => 'professional',
-            'law_firm' => 'legal',
-            'consulting_agency' => 'consulting',
         ];
 
         return $map[$code] ?? 'beauty';

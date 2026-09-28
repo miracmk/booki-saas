@@ -448,9 +448,6 @@ $route['verticals/sports'] = 'verticals/sports';
 $route['verticals/clinic'] = 'verticals/clinic';
 $route['verticals/automotive'] = 'verticals/automotive';
 $route['verticals/experience'] = 'verticals/experience';
-$route['verticals/legal'] = 'verticals/legal';
-$route['verticals/consulting'] = 'verticals/consulting';
-$route['verticals/carwash_tv'] = 'verticals/carwash_tv';
 
 $route['kds'] = 'verticals/kds';
 $route['gift_cards'] = 'verticals/gift_cards';
@@ -458,12 +455,6 @@ $route['sports'] = 'verticals/sports';
 $route['clinic'] = 'verticals/clinic';
 $route['automotive'] = 'verticals/automotive';
 $route['experience'] = 'verticals/experience';
-$route['legal'] = 'verticals/legal';
-$route['consulting'] = 'verticals/consulting';
-$route['carwash_tv'] = 'verticals/carwash_tv';
-
-$route['verticals/(:any)'] = 'verticals/$1';
-$route['verticals/(:any)/(:any)'] = 'verticals/$1/$2';
 
 // Multi-Vertical Enterprise Suite API Routes
 $route['api/v1/verticals/gift_cards/issue']['post'] = 'api/v1/verticals_api_v1/issue_gift_card';
