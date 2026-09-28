@@ -1,29 +1,29 @@
 {
     "industry": {
         "code": "car_wash",
-        "name": "Araç Yıkama & Detailing \/ Auto Spa",
+        "name": "Araç Yıkama & Detailing / Auto Spa",
         "icon": "🚗",
         "service_type": "hybrid",
         "description": "Oto yıkama, iç detaylı temizlik, seramik kaplama, pasta cila ve PPF boya koruma için peron ve istasyon yönetim sistemi."
     },
     "terminology": {
         "customer": "Araç Sahibi",
-        "provider": "Yıkama \/ Detailing Ustası",
+        "provider": "Yıkama / Detailing Ustası",
         "appointment": "Araç Kabul Randevusu",
-        "service": "Yıkama \/ Temizlik Hizmeti",
-        "station": "Yıkama Peronu \/ İstasyon",
-        "product": "Oto Kokusu \/ Bakım Ürünü",
-        "order": "İş Emri \/ Adisyon",
+        "service": "Yıkama / Temizlik Hizmeti",
+        "station": "Yıkama Peronu / İstasyon",
+        "product": "Oto Kokusu / Bakım Ürünü",
+        "order": "İş Emri / Adisyon",
         "reservation": "Araç Randevusu",
         "membership": "Aylık Yıkama Aboneliği",
         "package": "Çoklu Yıkama Paketi",
         "catalog": "Oto Bakım Kataloğu",
-        "branch": "İstasyon \/ Şube",
-        "customer_label": "Araç Sahibi \/ Müşteri",
+        "branch": "İstasyon / Şube",
+        "customer_label": "Araç Sahibi / Müşteri",
         "provider_label": "Detailing & Yıkama Uzmanı",
         "appointment_label": "Servis Randevusu",
-        "station_label": "Yıkama Peronu \/ Detailing Alanı",
-        "service_label": "Uygulama \/ Paket"
+        "station_label": "Yıkama Peronu / Detailing Alanı",
+        "service_label": "Uygulama / Paket"
     },
     "enabled_modules": [
         "appointments",
@@ -56,7 +56,7 @@
         },
         {
             "name": "Detaylı İç & Dış Temizlik",
-            "description": "Koltuk yıkama, tavan\/taban dezenfeksiyonu, buharlı klima temizliği"
+            "description": "Koltuk yıkama, tavan/taban dezenfeksiyonu, buharlı klima temizliği"
         },
         {
             "name": "Boya Koruma & Detailing",
@@ -92,7 +92,7 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#0ea5e9",
-            "description": "Sıcak sulu vakumlu ekstraksiyon makinesi ile kumaş\/deri koltuk leke arındırma."
+            "description": "Sıcak sulu vakumlu ekstraksiyon makinesi ile kumaş/deri koltuk leke arındırma."
         },
         {
             "name": "VIP Detaylı İç Sterilizasyon & Ozon",
@@ -112,7 +112,7 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#f59e0b",
-            "description": "Kil temizliği, kalın\/ince pasta ile hare ve çizik giderme, wax cila koruma."
+            "description": "Kil temizliği, kalın/ince pasta ile hare ve çizik giderme, wax cila koruma."
         },
         {
             "name": "9H Seramik Kaplama (2 Yıl Garantili)",
@@ -232,7 +232,7 @@
                 "email": "demo-car_wash-musteri2@kibusiness.co",
                 "phone_number": "05062505562",
                 "city": "Bursa",
-                "notes": "Mercedes C200 - Haftalık iç\/dış yıkama"
+                "notes": "Mercedes C200 - Haftalık iç/dış yıkama"
             },
             {
                 "first_name": "Kadir",
@@ -272,7 +272,7 @@
                 "email": "demo-car_wash-musteri7@kibusiness.co",
                 "phone_number": "05062505562",
                 "city": "Bursa",
-                "notes": "Tiguan - Motor yıkama & iç\/dış"
+                "notes": "Tiguan - Motor yıkama & iç/dış"
             },
             {
                 "first_name": "Serdar",
@@ -288,7 +288,7 @@
                 "email": "demo-car_wash-musteri9@kibusiness.co",
                 "phone_number": "05062505562",
                 "city": "Bursa",
-                "notes": "Megane - İç\/dış standart"
+                "notes": "Megane - İç/dış standart"
             },
             {
                 "first_name": "Tuncay",
@@ -481,18 +481,18 @@
     "family": "automotive",
     "business_type": "car_wash",
     "ai_policy": {
-        "brand_name": "Araç Yıkama & Detailing \/ Auto Spa",
+        "brand_name": "Araç Yıkama & Detailing / Auto Spa",
         "tone": "friendly_professional",
         "language": "tr",
-        "greeting_style": "Merhaba, Araç Yıkama & Detailing \/ Auto Spa asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "greeting_style": "Merhaba, Araç Yıkama & Detailing / Auto Spa asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Araç Sahibi",
-            "Yıkama \/ Detailing Ustası",
+            "Yıkama / Detailing Ustası",
             "Araç Kabul Randevusu",
-            "Yıkama \/ Temizlik Hizmeti",
-            "Yıkama Peronu \/ İstasyon",
-            "Oto Kokusu \/ Bakım Ürünü",
-            "İş Emri \/ Adisyon",
+            "Yıkama / Temizlik Hizmeti",
+            "Yıkama Peronu / İstasyon",
+            "Oto Kokusu / Bakım Ürünü",
+            "İş Emri / Adisyon",
             "Araç Randevusu"
         ],
         "forbidden_terms": [
@@ -502,7 +502,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Araç Sahibi' ve 'Yıkama \/ Temizlik Hizmeti' terminolojisini kullan.",
+            "Her zaman 'Araç Sahibi' ve 'Yıkama / Temizlik Hizmeti' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -601,7 +601,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Yıkama Peronu \/ İstasyon Doluluğu",
+                    "label": "Canlı Yıkama Peronu / İstasyon Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -655,7 +655,7 @@
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Yıkama Peronu \/ İstasyon Durumu",
+                    "label": "Yıkama Peronu / İstasyon Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -691,7 +691,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman \/ Estetisyen",
+            "name": "Uzman / Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -703,13 +703,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ POS",
+            "name": "Kasa / POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo \/ Envanter",
+            "name": "Depo / Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -734,7 +734,7 @@
             "last_name": "Demo",
             "email": "demo-car_wash-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman \/ Estetisyen"
+            "job_title": "Uzman / Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -748,14 +748,107 @@
             "last_name": "Demo",
             "email": "demo-car_wash-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ POS"
+            "job_title": "Kasa / POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-car_wash-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo \/ Envanter"
+            "job_title": "Depo / Envanter"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "auto_technician",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

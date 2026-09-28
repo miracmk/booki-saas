@@ -9,18 +9,18 @@
     "family": "professional",
     "business_type": "consulting_agency",
     "terminology": {
-        "customer": "Danışan Firma \/ Müşteri",
-        "provider": "Danışman \/ Stratejist",
+        "customer": "Danışan Firma / Müşteri",
+        "provider": "Danışman / Stratejist",
         "appointment": "Danışmanlık Seansı",
         "service": "Danışmanlık Modülü",
         "station": "Toplantı Odası",
-        "product": "Rapor \/ Strateji Dokümanı",
+        "product": "Rapor / Strateji Dokümanı",
         "order": "Danışmanlık Sözleşmesi",
         "reservation": "Randevu",
         "membership": "Aylık Danışmanlık Paketi",
         "package": "Seans Paketi",
         "catalog": "Danışmanlık Kataloğu",
-        "branch": "Ofis \/ Lokasyon",
+        "branch": "Ofis / Lokasyon",
         "customer_label": "Müşteri",
         "provider_label": "Danışman",
         "appointment_label": "Seans",
@@ -139,12 +139,12 @@
         "language": "tr",
         "greeting_style": "Merhaba, Danışmanlık & Ajans asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
-            "Danışan Firma \/ Müşteri",
-            "Danışman \/ Stratejist",
+            "Danışan Firma / Müşteri",
+            "Danışman / Stratejist",
             "Danışmanlık Seansı",
             "Danışmanlık Modülü",
             "Toplantı Odası",
-            "Rapor \/ Strateji Dokümanı",
+            "Rapor / Strateji Dokümanı",
             "Danışmanlık Sözleşmesi",
             "Randevu"
         ],
@@ -155,7 +155,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Danışan Firma \/ Müşteri' ve 'Danışmanlık Modülü' terminolojisini kullan.",
+            "Her zaman 'Danışan Firma / Müşteri' ve 'Danışmanlık Modülü' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -260,7 +260,7 @@
                 },
                 {
                     "key": "customer_growth",
-                    "label": "Yeni Danışan Firma \/ Müşterilar",
+                    "label": "Yeni Danışan Firma / Müşterilar",
                     "icon": "user-plus",
                     "color": "warning"
                 }
@@ -273,7 +273,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Yeni Danışan Firma \/ Müşteri",
+                    "label": "+ Yeni Danışan Firma / Müşteri",
                     "route": "customers",
                     "icon": "user-plus",
                     "class": "btn-success"
@@ -321,7 +321,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Danışan Firma \/ Müşteri Notu Ekle",
+                    "label": "+ Danışan Firma / Müşteri Notu Ekle",
                     "route": "customers",
                     "icon": "file-alt",
                     "class": "btn-outline-primary"
@@ -344,7 +344,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman \/ Estetisyen",
+            "name": "Uzman / Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -356,13 +356,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ POS",
+            "name": "Kasa / POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo \/ Envanter",
+            "name": "Depo / Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -387,7 +387,7 @@
             "last_name": "Demo",
             "email": "demo-consulting_agency-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman \/ Estetisyen"
+            "job_title": "Uzman / Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -401,14 +401,108 @@
             "last_name": "Demo",
             "email": "demo-consulting_agency-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ POS"
+            "job_title": "Kasa / POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-consulting_agency-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo \/ Envanter"
+            "job_title": "Depo / Envanter"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "managing_partner",
+        "consultant",
+        "lawyer",
+        "paralegal",
+        "secretary"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

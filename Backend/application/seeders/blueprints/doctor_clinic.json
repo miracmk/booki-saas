@@ -8,22 +8,22 @@
     },
     "terminology": {
         "customer": "Hasta",
-        "provider": "Hekim \/ Doktor",
-        "appointment": "Muayene \/ Tedavi",
+        "provider": "Hekim / Doktor",
+        "appointment": "Muayene / Tedavi",
         "service": "Muayene & Tıbbi İşlem",
-        "station": "Muayene Odası \/ Poliklinik",
+        "station": "Muayene Odası / Poliklinik",
         "product": "Medikal Destek Ürünü",
         "order": "Sağlık Hizmet Protokolü",
         "reservation": "Hasta Randevusu",
         "membership": "Sağlık Takip Programı",
         "package": "Tedavi Paketi",
         "catalog": "Klinik İşlemleri & Tedaviler",
-        "branch": "Klinik \/ Şube",
-        "customer_label": "Hasta \/ Danışan",
-        "provider_label": "Hekim \/ Doktor",
-        "appointment_label": "Muayene \/ Randevu",
-        "station_label": "Muayene Odası \/ Müdahale",
-        "service_label": "Muayene \/ İşlem"
+        "branch": "Klinik / Şube",
+        "customer_label": "Hasta / Danışan",
+        "provider_label": "Hekim / Doktor",
+        "appointment_label": "Muayene / Randevu",
+        "station_label": "Muayene Odası / Müdahale",
+        "service_label": "Muayene / İşlem"
     },
     "enabled_modules": [
         "appointments",
@@ -138,7 +138,7 @@
             "description": "Alın, kaş arası ve göz çevresi (kaz ayakları) kırışıklık tedavisi."
         },
         {
-            "name": "Dudak \/ Nazolabial Dolgu",
+            "name": "Dudak / Nazolabial Dolgu",
             "category": "Medikal Estetik & Mezoterapi",
             "duration": 40,
             "price": 3500,
@@ -160,7 +160,7 @@
     ],
     "stations": [
         {
-            "name": "Muayene Odası 1 (Dahiliye \/ Genel)",
+            "name": "Muayene Odası 1 (Dahiliye / Genel)",
             "notes": "Muayene masası, tansiyon aleti, otoskop, oftalmoskop"
         },
         {
@@ -172,7 +172,7 @@
             "notes": "Sterilizasyon otoklavı, cerrahi lambader, elektro koter, oksijen tüpü"
         },
         {
-            "name": "Hemşirelik & EKG \/ Kan Alma Odası",
+            "name": "Hemşirelik & EKG / Kan Alma Odası",
             "notes": "Santrifüj cihazı, EKG monitörü, kan alma koltuğu"
         }
     ],
@@ -214,7 +214,7 @@
             "unit": "adet"
         },
         {
-            "name": "Steril Gaz Kompres \/ Bez & Flaster Pedi",
+            "name": "Steril Gaz Kompres / Bez & Flaster Pedi",
             "sku": "SARF-DOC-05",
             "cost_price": 1.2,
             "sale_price": 0,
@@ -223,7 +223,7 @@
             "unit": "paket"
         },
         {
-            "name": "Tek Kullanımlık İnsülin \/ Botoks Enjektörü (30G)",
+            "name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)",
             "sku": "SARF-DOC-06",
             "cost_price": 4.5,
             "sale_price": 0,
@@ -309,7 +309,7 @@
         },
         {
             "service_name": "Küçük Cerrahi Müdahale & Dikiş",
-            "product_name": "Steril Gaz Kompres \/ Bez & Flaster Pedi",
+            "product_name": "Steril Gaz Kompres / Bez & Flaster Pedi",
             "quantity_used": 2,
             "unit": "paket",
             "notes": "Pansuman kapama pedi"
@@ -330,14 +330,14 @@
         },
         {
             "service_name": "Üst Yüz Botoks Uygulaması",
-            "product_name": "Tek Kullanımlık İnsülin \/ Botoks Enjektörü (30G)",
+            "product_name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)",
             "quantity_used": 3,
             "unit": "adet",
             "notes": "Mikro enjeksiyon uçları"
         },
         {
             "service_name": "Üst Yüz Botoks Uygulaması",
-            "product_name": "Steril Gaz Kompres \/ Bez & Flaster Pedi",
+            "product_name": "Steril Gaz Kompres / Bez & Flaster Pedi",
             "quantity_used": 1,
             "unit": "paket",
             "notes": "Buz kompres ve temizleme"
@@ -365,7 +365,7 @@
         },
         {
             "service_name": "Saç & Yüz PRP Tedavisi",
-            "product_name": "Tek Kullanımlık İnsülin \/ Botoks Enjektörü (30G)",
+            "product_name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)",
             "quantity_used": 2,
             "unit": "adet",
             "notes": "Mezoterapi enjektörü"
@@ -395,7 +395,7 @@
                     "Kapsamlı VIP Check-Up Paketi"
                 ],
                 "stations": [
-                    "Muayene Odası 1 (Dahiliye \/ Genel)"
+                    "Muayene Odası 1 (Dahiliye / Genel)"
                 ]
             },
             {
@@ -410,7 +410,7 @@
                     "Uzman Doktor İlk Muayenesi",
                     "Kontrol Muayenesi (10 Gün İçi)",
                     "Üst Yüz Botoks Uygulaması",
-                    "Dudak \/ Nazolabial Dolgu",
+                    "Dudak / Nazolabial Dolgu",
                     "Saç & Yüz PRP Tedavisi",
                     "Küçük Cerrahi Müdahale & Dikiş"
                 ],
@@ -432,7 +432,7 @@
                     "Kapsamlı VIP Check-Up Paketi"
                 ],
                 "stations": [
-                    "Hemşirelik & EKG \/ Kan Alma Odası"
+                    "Hemşirelik & EKG / Kan Alma Odası"
                 ]
             }
         ],
@@ -568,7 +568,7 @@
                 "time": "13:30",
                 "provider_idx": 1,
                 "customer_idx": 3,
-                "service_name": "Dudak \/ Nazolabial Dolgu",
+                "service_name": "Dudak / Nazolabial Dolgu",
                 "station_idx": 1,
                 "status": "completed",
                 "payment_status": "collected",
@@ -706,10 +706,10 @@
         "greeting_style": "Merhaba, Doktor Özel Klinik & Poliklinik asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Hasta",
-            "Hekim \/ Doktor",
-            "Muayene \/ Tedavi",
+            "Hekim / Doktor",
+            "Muayene / Tedavi",
             "Muayene & Tıbbi İşlem",
-            "Muayene Odası \/ Poliklinik",
+            "Muayene Odası / Poliklinik",
             "Medikal Destek Ürünü",
             "Sağlık Hizmet Protokolü",
             "Hasta Randevusu"
@@ -808,7 +808,7 @@
             "kpis": [
                 {
                     "key": "today_appointments",
-                    "label": "Bugünkü Muayene \/ Tedavilar",
+                    "label": "Bugünkü Muayene / Tedavilar",
                     "icon": "calendar-check",
                     "color": "primary"
                 },
@@ -820,7 +820,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Muayene Odası \/ Poliklinik Doluluğu",
+                    "label": "Canlı Muayene Odası / Poliklinik Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -833,7 +833,7 @@
             ],
             "quick_actions": [
                 {
-                    "label": "+ Yeni Muayene \/ Tedavi",
+                    "label": "+ Yeni Muayene / Tedavi",
                     "route": "calendar",
                     "icon": "calendar-plus",
                     "class": "btn-primary"
@@ -868,13 +868,13 @@
                 },
                 {
                     "key": "my_completed_tasks",
-                    "label": "Tamamlanan Muayene \/ Tedavilar",
+                    "label": "Tamamlanan Muayene / Tedavilar",
                     "icon": "check-circle",
                     "color": "success"
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Muayene Odası \/ Poliklinik Durumu",
+                    "label": "Muayene Odası / Poliklinik Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -910,7 +910,7 @@
         },
         {
             "slug": "doctor",
-            "name": "Hekim \/ Doktor",
+            "name": "Hekim / Doktor",
             "icon": "user-md",
             "description": "Hasta muayenesi, SOAP ve reçete"
         },
@@ -928,7 +928,7 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ Tahsilat",
+            "name": "Kasa / Tahsilat",
             "icon": "cash-register",
             "description": "Fatura ve ödeme işlemleri"
         }
@@ -953,7 +953,7 @@
             "last_name": "Demo",
             "email": "demo-doctor_clinic-doctor@kibusiness.co",
             "role_slug": "doctor",
-            "job_title": "Hekim \/ Doktor"
+            "job_title": "Hekim / Doktor"
         },
         "nurse": {
             "first_name": "Hemşire",
@@ -974,7 +974,101 @@
             "last_name": "Demo",
             "email": "demo-doctor_clinic-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ Tahsilat"
+            "job_title": "Kasa / Tahsilat"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "clinic_manager",
+        "doctor",
+        "nurse",
+        "reception",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

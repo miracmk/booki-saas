@@ -1,7 +1,7 @@
 {
     "industry": {
         "code": "massage_spa",
-        "name": "Masaj Salonu \/ SPA & Wellness",
+        "name": "Masaj Salonu / SPA & Wellness",
         "icon": "🧖",
         "service_type": "hybrid",
         "description": "Geleneksel masajlar, SPA ritüelleri, Türk hamamı, sauna ve medikal masaj odaları için kapsamlı oda ve terapist yönetim sistemi."
@@ -11,19 +11,19 @@
         "provider": "Terapist",
         "appointment": "Masaj Seansı",
         "service": "Masaj & Terapi",
-        "station": "Masaj Odası \/ Hamam",
+        "station": "Masaj Odası / Hamam",
         "product": "Aromaterapi & Bakım Yağı",
         "order": "Adisyon & Sipariş",
         "reservation": "Spa Rezervasyonu",
         "membership": "Spa & Hamam Üyeliği",
         "package": "Terapi Paketi",
         "catalog": "Spa & Masaj Menüsü",
-        "branch": "Spa Merkezi \/ Şube",
+        "branch": "Spa Merkezi / Şube",
         "customer_label": "Misafir",
         "provider_label": "Masaj Terapisti",
-        "appointment_label": "Seans \/ Rezervasyon",
-        "station_label": "Masaj Odası \/ Hamam",
-        "service_label": "Masaj \/ Ritüel"
+        "appointment_label": "Seans / Rezervasyon",
+        "station_label": "Masaj Odası / Hamam",
+        "service_label": "Masaj / Ritüel"
     },
     "enabled_modules": [
         "appointments",
@@ -647,16 +647,16 @@
     "family": "beauty_wellness",
     "business_type": "massage_spa",
     "ai_policy": {
-        "brand_name": "Masaj Salonu \/ SPA & Wellness",
+        "brand_name": "Masaj Salonu / SPA & Wellness",
         "tone": "friendly_professional",
         "language": "tr",
-        "greeting_style": "Merhaba, Masaj Salonu \/ SPA & Wellness asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "greeting_style": "Merhaba, Masaj Salonu / SPA & Wellness asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Misafir",
             "Terapist",
             "Masaj Seansı",
             "Masaj & Terapi",
-            "Masaj Odası \/ Hamam",
+            "Masaj Odası / Hamam",
             "Aromaterapi & Bakım Yağı",
             "Adisyon & Sipariş",
             "Spa Rezervasyonu"
@@ -767,7 +767,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Masaj Odası \/ Hamam Doluluğu",
+                    "label": "Canlı Masaj Odası / Hamam Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -821,7 +821,7 @@
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Masaj Odası \/ Hamam Durumu",
+                    "label": "Masaj Odası / Hamam Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -923,5 +923,100 @@
             "role_slug": "cashier",
             "job_title": "Kasa"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "professional",
+        "therapist",
+        "cashier",
+        "inventory"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

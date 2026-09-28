@@ -9,21 +9,21 @@
     "terminology": {
         "customer": "Danışan",
         "provider": "Uzman Estetisyen",
-        "appointment": "Seans \/ Randevu",
-        "service": "Bakım \/ İşlem",
-        "station": "Kabin \/ Cihaz",
+        "appointment": "Seans / Randevu",
+        "service": "Bakım / İşlem",
+        "station": "Kabin / Cihaz",
         "product": "Kozmetik Ürünü",
         "order": "Adisyon",
         "reservation": "Randevu",
         "membership": "Güzellik Kulübü",
         "package": "Seans Paketi",
         "catalog": "Hizmetler & Bakım Kataloğu",
-        "branch": "Şube \/ Salon",
+        "branch": "Şube / Salon",
         "customer_label": "Danışan",
         "provider_label": "Uzman Estetisyen",
-        "appointment_label": "Seans \/ Randevu",
-        "station_label": "Kabin \/ Cihaz",
-        "service_label": "Bakım \/ İşlem"
+        "appointment_label": "Seans / Randevu",
+        "station_label": "Kabin / Cihaz",
+        "service_label": "Bakım / İşlem"
     },
     "enabled_modules": [
         "appointments",
@@ -60,7 +60,7 @@
             "description": "Buz lazer, diode ve iğneli epilasyon seansları"
         },
         {
-            "name": "Makyaj & Kaş \/ Kirpik",
+            "name": "Makyaj & Kaş / Kirpik",
             "description": "Kalıcı makyaj, microblading, ipek kirpik ve laminasyon"
         },
         {
@@ -120,8 +120,8 @@
             "description": "Hızlı ve konforlu bölgesel epilasyon seansı."
         },
         {
-            "name": "İpek Kirpik (Volume \/ Mega)",
-            "category": "Makyaj & Kaş \/ Kirpik",
+            "name": "İpek Kirpik (Volume / Mega)",
+            "category": "Makyaj & Kaş / Kirpik",
             "duration": 90,
             "price": 1300,
             "slot_interval": 15,
@@ -131,7 +131,7 @@
         },
         {
             "name": "Kaş Laminasyonu & Vitamin",
-            "category": "Makyaj & Kaş \/ Kirpik",
+            "category": "Makyaj & Kaş / Kirpik",
             "duration": 45,
             "price": 650,
             "slot_interval": 15,
@@ -141,7 +141,7 @@
         },
         {
             "name": "Microblading 3D Kıl Tekniği",
-            "category": "Makyaj & Kaş \/ Kirpik",
+            "category": "Makyaj & Kaş / Kirpik",
             "duration": 120,
             "price": 3200,
             "slot_interval": 30,
@@ -184,7 +184,7 @@
             "notes": "G5 masaj cihazı, lenf drenaj tulumu ve kavitasyon"
         },
         {
-            "name": "Kabin 4 - Kalıcı Makyaj & Kaş\/Kirpik",
+            "name": "Kabin 4 - Kalıcı Makyaj & Kaş/Kirpik",
             "notes": "Özel aydınlatmalı ergonomik sedye, sterilizasyon ünitesi"
         }
     ],
@@ -208,7 +208,7 @@
             "unit": "adet"
         },
         {
-            "name": "Nitril Estetisyen Eldiveni (Pembe\/Beyaz)",
+            "name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)",
             "sku": "SARF-BS-03",
             "cost_price": 1.4,
             "sale_price": 0,
@@ -235,7 +235,7 @@
             "unit": "adet"
         },
         {
-            "name": "Hydrafacial Solüsyon Seti (S1\/S2\/S3)",
+            "name": "Hydrafacial Solüsyon Seti (S1/S2/S3)",
             "sku": "SARF-BS-06",
             "cost_price": 1.2,
             "sale_price": 0,
@@ -279,14 +279,14 @@
         },
         {
             "service_name": "Hydrafacial Medikal Cilt Bakımı",
-            "product_name": "Nitril Estetisyen Eldiveni (Pembe\/Beyaz)",
+            "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)",
             "quantity_used": 1,
             "unit": "çift",
             "notes": "Estetisyen eldiveni"
         },
         {
             "service_name": "Hydrafacial Medikal Cilt Bakımı",
-            "product_name": "Hydrafacial Solüsyon Seti (S1\/S2\/S3)",
+            "product_name": "Hydrafacial Solüsyon Seti (S1/S2/S3)",
             "quantity_used": 40,
             "unit": "ml",
             "notes": "40ml solüsyon tüketimi"
@@ -307,7 +307,7 @@
         },
         {
             "service_name": "Klasik Derin Cilt Temizliği",
-            "product_name": "Nitril Estetisyen Eldiveni (Pembe\/Beyaz)",
+            "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)",
             "quantity_used": 1,
             "unit": "çift",
             "notes": "Estetisyen eldiveni"
@@ -321,7 +321,7 @@
         },
         {
             "service_name": "Tüm Vücut Buz Lazer Epilasyon (Kadın)",
-            "product_name": "Nitril Estetisyen Eldiveni (Pembe\/Beyaz)",
+            "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)",
             "quantity_used": 1,
             "unit": "çift",
             "notes": "Uygulama eldiveni"
@@ -356,7 +356,7 @@
         },
         {
             "service_name": "G5 Masajı & Selülit Protokolü",
-            "product_name": "Nitril Estetisyen Eldiveni (Pembe\/Beyaz)",
+            "product_name": "Nitril Estetisyen Eldiveni (Pembe/Beyaz)",
             "quantity_used": 1,
             "unit": "çift",
             "notes": "Uygulayıcı eldiveni"
@@ -423,12 +423,12 @@
                 "commission_type": "percentage",
                 "commission_value": 30,
                 "services": [
-                    "İpek Kirpik (Volume \/ Mega)",
+                    "İpek Kirpik (Volume / Mega)",
                     "Kaş Laminasyonu & Vitamin",
                     "Microblading 3D Kıl Tekniği"
                 ],
                 "stations": [
-                    "Kabin 4 - Kalıcı Makyaj & Kaş\/Kirpik"
+                    "Kabin 4 - Kalıcı Makyaj & Kaş/Kirpik"
                 ]
             },
             {
@@ -605,7 +605,7 @@
                 "time": "16:30",
                 "provider_idx": 2,
                 "customer_idx": 5,
-                "service_name": "İpek Kirpik (Volume \/ Mega)",
+                "service_name": "İpek Kirpik (Volume / Mega)",
                 "station_idx": 3,
                 "status": "completed",
                 "payment_status": "collected",
@@ -682,7 +682,7 @@
                 "time": "15:00",
                 "provider_idx": 2,
                 "customer_idx": 5,
-                "service_name": "İpek Kirpik (Volume \/ Mega)",
+                "service_name": "İpek Kirpik (Volume / Mega)",
                 "station_idx": 3,
                 "status": "confirmed",
                 "payment_status": "pending",
@@ -744,9 +744,9 @@
         "allowed_terms": [
             "Danışan",
             "Uzman Estetisyen",
-            "Seans \/ Randevu",
-            "Bakım \/ İşlem",
-            "Kabin \/ Cihaz",
+            "Seans / Randevu",
+            "Bakım / İşlem",
+            "Kabin / Cihaz",
             "Kozmetik Ürünü",
             "Adisyon",
             "Randevu"
@@ -758,7 +758,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Danışan' ve 'Bakım \/ İşlem' terminolojisini kullan.",
+            "Her zaman 'Danışan' ve 'Bakım / İşlem' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -845,7 +845,7 @@
             "kpis": [
                 {
                     "key": "today_appointments",
-                    "label": "Bugünkü Seans \/ Randevular",
+                    "label": "Bugünkü Seans / Randevular",
                     "icon": "calendar-check",
                     "color": "primary"
                 },
@@ -857,7 +857,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Kabin \/ Cihaz Doluluğu",
+                    "label": "Canlı Kabin / Cihaz Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -870,7 +870,7 @@
             ],
             "quick_actions": [
                 {
-                    "label": "+ Yeni Seans \/ Randevu",
+                    "label": "+ Yeni Seans / Randevu",
                     "route": "calendar",
                     "icon": "calendar-plus",
                     "class": "btn-primary"
@@ -905,13 +905,13 @@
                 },
                 {
                     "key": "my_completed_tasks",
-                    "label": "Tamamlanan Seans \/ Randevular",
+                    "label": "Tamamlanan Seans / Randevular",
                     "icon": "check-circle",
                     "color": "success"
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Kabin \/ Cihaz Durumu",
+                    "label": "Kabin / Cihaz Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -947,7 +947,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman \/ Estetisyen",
+            "name": "Uzman / Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -959,13 +959,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ POS",
+            "name": "Kasa / POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo \/ Envanter",
+            "name": "Depo / Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -990,7 +990,7 @@
             "last_name": "Demo",
             "email": "demo-beauty_salon-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman \/ Estetisyen"
+            "job_title": "Uzman / Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -1004,14 +1004,109 @@
             "last_name": "Demo",
             "email": "demo-beauty_salon-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ POS"
+            "job_title": "Kasa / POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-beauty_salon-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo \/ Envanter"
+            "job_title": "Depo / Envanter"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "professional",
+        "therapist",
+        "cashier",
+        "inventory"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

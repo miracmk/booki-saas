@@ -4,26 +4,26 @@
         "name": "Tırnak Stüdyosu & Nail Bar",
         "icon": "💅",
         "service_type": "procedure",
-        "description": "Protez tırnak, kalıcı oje, medikal manikür\/pedikür, nail art varyasyonları ve teknisyen masaları için işlem & eklenti yönetim sistemi."
+        "description": "Protez tırnak, kalıcı oje, medikal manikür/pedikür, nail art varyasyonları ve teknisyen masaları için işlem & eklenti yönetim sistemi."
     },
     "terminology": {
         "customer": "Danışan",
         "provider": "Nail Artist",
         "appointment": "Seans",
         "service": "Tırnak & Bakım",
-        "station": "Tırnak Masası \/ Koltuk",
+        "station": "Tırnak Masası / Koltuk",
         "product": "Tırnak & El Bakım Ürünü",
         "order": "Adisyon",
         "reservation": "Randevu",
         "membership": "Nail Club",
         "package": "Seans Paketi",
         "catalog": "Tırnak Tasarım Kataloğu",
-        "branch": "Stüdyo \/ Şube",
-        "customer_label": "Müşteri \/ Danışan",
-        "provider_label": "Nail Artist \/ Teknisyen",
+        "branch": "Stüdyo / Şube",
+        "customer_label": "Müşteri / Danışan",
+        "provider_label": "Nail Artist / Teknisyen",
         "appointment_label": "Randevu",
-        "station_label": "Manikür Masası \/ Pedikür Koltuğu",
-        "service_label": "İşlem \/ Tasarım"
+        "station_label": "Manikür Masası / Pedikür Koltuğu",
+        "service_label": "İşlem / Tasarım"
     },
     "enabled_modules": [
         "appointments",
@@ -60,7 +60,7 @@
         },
         {
             "name": "Pedikür & Ayak Bakımı",
-            "description": "Islak\/kuru pedikür, batık tırnak bakımı ve topuk çatlak onarımı"
+            "description": "Islak/kuru pedikür, batık tırnak bakımı ve topuk çatlak onarımı"
         },
         {
             "name": "Nail Art & Özel Tasarım",
@@ -89,7 +89,7 @@
             "description": "Şablon ile tırnak uzatma, mimari jel oluşturma ve tek renk kalıcı oje."
         },
         {
-            "name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+            "name": "Protez Tırnak Bakımı (Refill / Dolgu)",
             "category": "Protez Tırnak & Jel Sistemler",
             "duration": 75,
             "price": 800,
@@ -129,17 +129,17 @@
             "description": "Zarar vermeden freze ile tırnak temizleme ve keratin vitamin maskesi."
         },
         {
-            "name": "Nail Art - Seviye 1 (French \/ Baby Boomer)",
+            "name": "Nail Art - Seviye 1 (French / Baby Boomer)",
             "category": "Nail Art & Özel Tasarım",
             "duration": 20,
             "price": 200,
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#f43f5e",
-            "description": "Tüm tırnaklara klasik\/renkli french veya degrade ombré tasarımı."
+            "description": "Tüm tırnaklara klasik/renkli french veya degrade ombré tasarımı."
         },
         {
-            "name": "Nail Art - Seviye 2 (Serbest El Çizimi \/ 3D)",
+            "name": "Nail Art - Seviye 2 (Serbest El Çizimi / 3D)",
             "category": "Nail Art & Özel Tasarım",
             "duration": 40,
             "price": 400,
@@ -190,9 +190,9 @@
                 "commission_value": 35,
                 "services": [
                     "Jel Protez Tırnak (Sıfır Set)",
-                    "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                    "Protez Tırnak Bakımı (Refill / Dolgu)",
                     "Kombine (Rus) Manikür & Kalıcı Oje",
-                    "Nail Art - Seviye 2 (Serbest El Çizimi \/ 3D)"
+                    "Nail Art - Seviye 2 (Serbest El Çizimi / 3D)"
                 ],
                 "stations": [
                     "Manikür Masası 1 (Master)",
@@ -210,8 +210,8 @@
                 "services": [
                     "Kombine (Rus) Manikür & Kalıcı Oje",
                     "Tırnak Çıkarma & Güçlendirici Bakım",
-                    "Nail Art - Seviye 1 (French \/ Baby Boomer)",
-                    "Protez Tırnak Bakımı (Refill \/ Dolgu)"
+                    "Nail Art - Seviye 1 (French / Baby Boomer)",
+                    "Protez Tırnak Bakımı (Refill / Dolgu)"
                 ],
                 "stations": [
                     "Manikür Masası 2",
@@ -358,7 +358,7 @@
                 "time": "14:30",
                 "provider_idx": 0,
                 "customer_idx": 2,
-                "service_name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                "service_name": "Protez Tırnak Bakımı (Refill / Dolgu)",
                 "station_idx": 0,
                 "status": "completed",
                 "payment_status": "collected",
@@ -435,7 +435,7 @@
                 "time": "16:00",
                 "provider_idx": 1,
                 "customer_idx": 3,
-                "service_name": "Nail Art - Seviye 2 (Serbest El Çizimi \/ 3D)",
+                "service_name": "Nail Art - Seviye 2 (Serbest El Çizimi / 3D)",
                 "station_idx": 2,
                 "status": "confirmed",
                 "payment_status": "pending",
@@ -457,7 +457,7 @@
                 "time": "13:30",
                 "provider_idx": 0,
                 "customer_idx": 2,
-                "service_name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                "service_name": "Protez Tırnak Bakımı (Refill / Dolgu)",
                 "station_idx": 0,
                 "status": "confirmed",
                 "payment_status": "pending",
@@ -479,7 +479,7 @@
                 "time": "11:00",
                 "provider_idx": 0,
                 "customer_idx": 0,
-                "service_name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                "service_name": "Protez Tırnak Bakımı (Refill / Dolgu)",
                 "station_idx": 0,
                 "status": "reserved",
                 "payment_status": "pending",
@@ -521,7 +521,7 @@
             "Nail Artist",
             "Seans",
             "Tırnak & Bakım",
-            "Tırnak Masası \/ Koltuk",
+            "Tırnak Masası / Koltuk",
             "Tırnak & El Bakım Ürünü",
             "Adisyon",
             "Randevu"
@@ -632,7 +632,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Tırnak Masası \/ Koltuk Doluluğu",
+                    "label": "Canlı Tırnak Masası / Koltuk Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -686,7 +686,7 @@
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Tırnak Masası \/ Koltuk Durumu",
+                    "label": "Tırnak Masası / Koltuk Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -722,7 +722,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman \/ Estetisyen",
+            "name": "Uzman / Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -734,13 +734,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ POS",
+            "name": "Kasa / POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo \/ Envanter",
+            "name": "Depo / Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -765,7 +765,7 @@
             "last_name": "Demo",
             "email": "demo-nail_studio-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman \/ Estetisyen"
+            "job_title": "Uzman / Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -779,14 +779,109 @@
             "last_name": "Demo",
             "email": "demo-nail_studio-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ POS"
+            "job_title": "Kasa / POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-nail_studio-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo \/ Envanter"
+            "job_title": "Depo / Envanter"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "professional",
+        "therapist",
+        "cashier",
+        "inventory"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

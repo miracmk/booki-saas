@@ -1,29 +1,29 @@
 {
     "industry": {
         "code": "experience_escape_room",
-        "name": "Kaçış Oyunu \/ VR & Atölye Deneyimleri",
+        "name": "Kaçış Oyunu / VR & Atölye Deneyimleri",
         "icon": "🗝️",
         "service_type": "station",
-        "description": "Kaçış evleri, VR simülasyon salonları, seramik\/resim atölyeleri için grup seans rezervasyonu, dijital feragatname (waiver) imzalama, ek paket upsell ve QR biletleme paketi."
+        "description": "Kaçış evleri, VR simülasyon salonları, seramik/resim atölyeleri için grup seans rezervasyonu, dijital feragatname (waiver) imzalama, ek paket upsell ve QR biletleme paketi."
     },
     "terminology": {
-        "customer": "Oyuncu \/ Misafir",
+        "customer": "Oyuncu / Misafir",
         "provider": "Oyun Yöneticisi (Game Master)",
         "appointment": "Oyun Seansı",
-        "service": "Kaçış Oyunu \/ Deneyim",
-        "station": "Oyun Odası \/ Parkur",
-        "product": "Hatıra Ürünü \/ Fotoğraf",
+        "service": "Kaçış Oyunu / Deneyim",
+        "station": "Oyun Odası / Parkur",
+        "product": "Hatıra Ürünü / Fotoğraf",
         "order": "Bilet & İçecek Siparişi",
         "reservation": "Oyun Rezervasyonu",
         "membership": "Deneyim Kulübü",
-        "package": "Grup \/ Sezon Paketi",
+        "package": "Grup / Sezon Paketi",
         "catalog": "Oyunlar & Deneyim Kataloğu",
-        "branch": "Şube \/ Kaçış Evi",
-        "customer_label": "Misafir \/ Katılımcı",
-        "provider_label": "Oyun Yöneticisi \/ Eğitmen",
-        "appointment_label": "Oyun \/ Atölye Seansı",
-        "station_label": "Oyun Odası \/ Deneyim İstasyonu",
-        "service_label": "Deneyim \/ Tema"
+        "branch": "Şube / Kaçış Evi",
+        "customer_label": "Misafir / Katılımcı",
+        "provider_label": "Oyun Yöneticisi / Eğitmen",
+        "appointment_label": "Oyun / Atölye Seansı",
+        "station_label": "Oyun Odası / Deneyim İstasyonu",
+        "service_label": "Deneyim / Tema"
     },
     "enabled_modules": [
         "appointments",
@@ -110,17 +110,17 @@
     "family": "experience",
     "business_type": "experience_escape_room",
     "ai_policy": {
-        "brand_name": "Kaçış Oyunu \/ VR & Atölye Deneyimleri",
+        "brand_name": "Kaçış Oyunu / VR & Atölye Deneyimleri",
         "tone": "friendly_professional",
         "language": "tr",
-        "greeting_style": "Merhaba, Kaçış Oyunu \/ VR & Atölye Deneyimleri asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "greeting_style": "Merhaba, Kaçış Oyunu / VR & Atölye Deneyimleri asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
-            "Oyuncu \/ Misafir",
+            "Oyuncu / Misafir",
             "Oyun Yöneticisi (Game Master)",
             "Oyun Seansı",
-            "Kaçış Oyunu \/ Deneyim",
-            "Oyun Odası \/ Parkur",
-            "Hatıra Ürünü \/ Fotoğraf",
+            "Kaçış Oyunu / Deneyim",
+            "Oyun Odası / Parkur",
+            "Hatıra Ürünü / Fotoğraf",
             "Bilet & İçecek Siparişi",
             "Oyun Rezervasyonu"
         ],
@@ -131,7 +131,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Oyuncu \/ Misafir' ve 'Kaçış Oyunu \/ Deneyim' terminolojisini kullan.",
+            "Her zaman 'Oyuncu / Misafir' ve 'Kaçış Oyunu / Deneyim' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -230,13 +230,13 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Oyun Odası \/ Parkur Doluluğu",
+                    "label": "Canlı Oyun Odası / Parkur Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
                 {
                     "key": "customer_growth",
-                    "label": "Yeni Oyuncu \/ Misafirlar",
+                    "label": "Yeni Oyuncu / Misafirlar",
                     "icon": "user-plus",
                     "color": "warning"
                 }
@@ -249,7 +249,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Yeni Oyuncu \/ Misafir",
+                    "label": "+ Yeni Oyuncu / Misafir",
                     "route": "customers",
                     "icon": "user-plus",
                     "class": "btn-success"
@@ -284,7 +284,7 @@
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Oyun Odası \/ Parkur Durumu",
+                    "label": "Oyun Odası / Parkur Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -297,7 +297,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Oyuncu \/ Misafir Notu Ekle",
+                    "label": "+ Oyuncu / Misafir Notu Ekle",
                     "route": "customers",
                     "icon": "file-alt",
                     "class": "btn-outline-primary"
@@ -320,7 +320,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman \/ Estetisyen",
+            "name": "Uzman / Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -332,13 +332,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ POS",
+            "name": "Kasa / POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo \/ Envanter",
+            "name": "Depo / Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -363,7 +363,7 @@
             "last_name": "Demo",
             "email": "demo-experience_escape_room-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman \/ Estetisyen"
+            "job_title": "Uzman / Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -377,14 +377,107 @@
             "last_name": "Demo",
             "email": "demo-experience_escape_room-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ POS"
+            "job_title": "Kasa / POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-experience_escape_room-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo \/ Envanter"
+            "job_title": "Depo / Envanter"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "game_master",
+        "reception",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

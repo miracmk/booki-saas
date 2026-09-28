@@ -16,14 +16,14 @@
         "order": "Tedavi Sözleşmesi",
         "reservation": "Hasta Randevusu",
         "membership": "Yıllık Diş Bakım Planı",
-        "package": "Ortodonti \/ İmplant Paketi",
+        "package": "Ortodonti / İmplant Paketi",
         "catalog": "Tedavi & İşlem Kataloğu",
-        "branch": "Klinik \/ Şube",
+        "branch": "Klinik / Şube",
         "customer_label": "Hasta",
         "provider_label": "Diş Hekimi (Dt.)",
-        "appointment_label": "Randevu \/ Tedavi",
-        "station_label": "Diş Üniti \/ Röntgen",
-        "service_label": "Tedavi \/ İşlem"
+        "appointment_label": "Randevu / Tedavi",
+        "station_label": "Diş Üniti / Röntgen",
+        "service_label": "Tedavi / İşlem"
     },
     "enabled_modules": [
         "appointments",
@@ -99,7 +99,7 @@
             "description": "Çürük temizliği, nano-hibrit kompozit dolgu ve anatomik cila."
         },
         {
-            "name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
             "category": "Restoratif & Endodonti",
             "duration": 60,
             "price": 2800,
@@ -136,7 +136,7 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Lazer\/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma."
+            "description": "Lazer/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma."
         },
         {
             "name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
@@ -214,7 +214,7 @@
             "unit": "ampul"
         },
         {
-            "name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2\/A3)",
+            "name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)",
             "sku": "SARF-DNT-06",
             "cost_price": 120,
             "sale_price": 0,
@@ -342,7 +342,7 @@
         },
         {
             "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
-            "product_name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2\/A3)",
+            "product_name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)",
             "quantity_used": 0.2,
             "unit": "tüp",
             "notes": "0.2 tüp dolgu materyali"
@@ -355,35 +355,35 @@
             "notes": "El aletleri poşeti"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
             "product_name": "Nitril Muayene Eldiveni (Mavisi)",
             "quantity_used": 2,
             "unit": "çift",
             "notes": "Hekim ve asistan eldiveni"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
             "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş",
             "quantity_used": 1,
             "unit": "adet",
             "notes": "Hasta önlüğü"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
             "product_name": "Dental Lokal Anestezi Ampulü (Artikain)",
             "quantity_used": 2,
             "unit": "ampul",
             "notes": "Çift doz anestezi"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
             "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)",
             "quantity_used": 2,
             "unit": "adet",
             "notes": "Kök kanalı ve cerrahi aspiratör"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
             "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör",
             "quantity_used": 2,
             "unit": "adet",
@@ -404,7 +404,7 @@
                 "last_name": "Yılmaz",
                 "email": "demo-dentist-uzman1@kibusiness.co",
                 "phone_number": "05432137000",
-                "notes": "Ağız, Diş ve Çene Cerrahisi \/ İmplantoloji",
+                "notes": "Ağız, Diş ve Çene Cerrahisi / İmplantoloji",
                 "commission_type": "percentage",
                 "commission_value": 45,
                 "services": [
@@ -428,7 +428,7 @@
                     "Detaylı Diş Muayenesi & Teşhis",
                     "Ultrasonik Diş Taşı Temizliği & Polisaj",
                     "Estetik Kompozit Dolgu (Tek Diş)",
-                    "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+                    "Kanal Tedavisi (Tek Kök / Çok Kök)",
                     "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)"
                 ],
                 "stations": [
@@ -551,7 +551,7 @@
                 "time": "14:00",
                 "provider_idx": 1,
                 "customer_idx": 1,
-                "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+                "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
                 "station_idx": 1,
                 "status": "completed",
                 "payment_status": "collected",
@@ -628,7 +628,7 @@
                 "time": "14:00",
                 "provider_idx": 1,
                 "customer_idx": 8,
-                "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+                "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
                 "station_idx": 1,
                 "status": "confirmed",
                 "payment_status": "pending",
@@ -926,7 +926,7 @@
         },
         {
             "slug": "doctor",
-            "name": "Hekim \/ Doktor",
+            "name": "Hekim / Doktor",
             "icon": "user-md",
             "description": "Hasta muayenesi, SOAP ve reçete"
         },
@@ -944,7 +944,7 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ Tahsilat",
+            "name": "Kasa / Tahsilat",
             "icon": "cash-register",
             "description": "Fatura ve ödeme işlemleri"
         }
@@ -969,7 +969,7 @@
             "last_name": "Demo",
             "email": "demo-dentist-doctor@kibusiness.co",
             "role_slug": "doctor",
-            "job_title": "Hekim \/ Doktor"
+            "job_title": "Hekim / Doktor"
         },
         "nurse": {
             "first_name": "Hemşire",
@@ -990,7 +990,101 @@
             "last_name": "Demo",
             "email": "demo-dentist-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ Tahsilat"
+            "job_title": "Kasa / Tahsilat"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "clinic_manager",
+        "doctor",
+        "nurse",
+        "reception",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

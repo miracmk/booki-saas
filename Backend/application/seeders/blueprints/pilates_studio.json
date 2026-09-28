@@ -7,22 +7,22 @@
         "description": "Reformer aletli pilates, Cadillac, Tower, hamile pilatesi ve mat grup dersleri için istasyon, kontenjan ve paket yönetim sistemi."
     },
     "terminology": {
-        "customer": "Danışan \/ Üye",
+        "customer": "Danışan / Üye",
         "provider": "Pilates Eğitmeni",
         "appointment": "Pilates Seansı",
-        "service": "Reformer \/ Mat Seansı",
-        "station": "Reformer Cihazı \/ Stüdyo",
-        "product": "Pilates Çorabı \/ Ekipman",
+        "service": "Reformer / Mat Seansı",
+        "station": "Reformer Cihazı / Stüdyo",
+        "product": "Pilates Çorabı / Ekipman",
         "order": "Seans Satışı",
         "reservation": "Ders Rezervasyonu",
         "membership": "Stüdyo Üyeliği",
-        "package": "10lu \/ 20li Seans Paketi",
+        "package": "10lu / 20li Seans Paketi",
         "catalog": "Dersler & Seans Kataloğu",
-        "branch": "Stüdyo \/ Şube",
-        "customer_label": "Üye \/ Danışan",
+        "branch": "Stüdyo / Şube",
+        "customer_label": "Üye / Danışan",
         "provider_label": "Pilates Eğitmeni",
-        "appointment_label": "Ders \/ Seans",
-        "station_label": "Reformer Cihazı \/ Salon",
+        "appointment_label": "Ders / Seans",
+        "station_label": "Reformer Cihazı / Salon",
         "service_label": "Ders Tipi"
     },
     "enabled_modules": [
@@ -102,7 +102,7 @@
             "slot_interval": 50,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Fizik tedavi onaylı, skolyoz ve bel\/boyun fıtığı için medikal protokol."
+            "description": "Fizik tedavi onaylı, skolyoz ve bel/boyun fıtığı için medikal protokol."
         },
         {
             "name": "Hamile (Prenatal) Pilatesi",
@@ -493,12 +493,12 @@
         "language": "tr",
         "greeting_style": "Merhaba, Pilates & Reformer Stüdyosu asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
-            "Danışan \/ Üye",
+            "Danışan / Üye",
             "Pilates Eğitmeni",
             "Pilates Seansı",
-            "Reformer \/ Mat Seansı",
-            "Reformer Cihazı \/ Stüdyo",
-            "Pilates Çorabı \/ Ekipman",
+            "Reformer / Mat Seansı",
+            "Reformer Cihazı / Stüdyo",
+            "Pilates Çorabı / Ekipman",
             "Seans Satışı",
             "Ders Rezervasyonu"
         ],
@@ -509,7 +509,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Danışan \/ Üye' ve 'Reformer \/ Mat Seansı' terminolojisini kullan.",
+            "Her zaman 'Danışan / Üye' ve 'Reformer / Mat Seansı' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -608,13 +608,13 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Reformer Cihazı \/ Stüdyo Doluluğu",
+                    "label": "Canlı Reformer Cihazı / Stüdyo Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
                 {
                     "key": "customer_growth",
-                    "label": "Yeni Danışan \/ Üyelar",
+                    "label": "Yeni Danışan / Üyelar",
                     "icon": "user-plus",
                     "color": "warning"
                 }
@@ -627,7 +627,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Yeni Danışan \/ Üye",
+                    "label": "+ Yeni Danışan / Üye",
                     "route": "customers",
                     "icon": "user-plus",
                     "class": "btn-success"
@@ -662,7 +662,7 @@
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Reformer Cihazı \/ Stüdyo Durumu",
+                    "label": "Reformer Cihazı / Stüdyo Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -675,7 +675,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Danışan \/ Üye Notu Ekle",
+                    "label": "+ Danışan / Üye Notu Ekle",
                     "route": "customers",
                     "icon": "file-alt",
                     "class": "btn-outline-primary"
@@ -710,7 +710,7 @@
         },
         {
             "slug": "reception",
-            "name": "Danışma \/ Turnike",
+            "name": "Danışma / Turnike",
             "icon": "id-card",
             "description": "Üye girişi ve check-in"
         },
@@ -755,7 +755,7 @@
             "last_name": "Demo",
             "email": "demo-pilates_studio-reception@kibusiness.co",
             "role_slug": "reception",
-            "job_title": "Danışma \/ Turnike"
+            "job_title": "Danışma / Turnike"
         },
         "cashier": {
             "first_name": "Kasiyer",
@@ -764,5 +764,99 @@
             "role_slug": "cashier",
             "job_title": "Kasiyer"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "trainer",
+        "group_instructor",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

@@ -1,29 +1,29 @@
 {
     "industry": {
         "code": "auto_service_detailing",
-        "name": "Oto Servis \/ Detailing & Ekspertiz",
+        "name": "Oto Servis / Detailing & Ekspertiz",
         "icon": "🚗",
         "service_type": "station",
-        "description": "Oto servisler, seramik kaplama\/detailing merkezleri ve ekspertiz noktaları için araç plakası\/VIN kaydı, DVI dijital ekspertiz raporu ve iş emri (work order) akış paketi."
+        "description": "Oto servisler, seramik kaplama/detailing merkezleri ve ekspertiz noktaları için araç plakası/VIN kaydı, DVI dijital ekspertiz raporu ve iş emri (work order) akış paketi."
     },
     "terminology": {
         "customer": "Araç Sahibi",
-        "provider": "Detailing \/ Servis Teknisyeni",
-        "appointment": "Ekspertiz \/ Servis Randevusu",
-        "service": "Seramik Kaplama \/ Detailing",
-        "station": "Servis Lifti \/ Detailing Alanı",
-        "product": "Oto Kimyasalı \/ Yedek Parça",
+        "provider": "Detailing / Servis Teknisyeni",
+        "appointment": "Ekspertiz / Servis Randevusu",
+        "service": "Seramik Kaplama / Detailing",
+        "station": "Servis Lifti / Detailing Alanı",
+        "product": "Oto Kimyasalı / Yedek Parça",
         "order": "Servis İş Emri",
         "reservation": "Servis Randevusu",
-        "membership": "Filo \/ VIP Bakım Kulübü",
+        "membership": "Filo / VIP Bakım Kulübü",
         "package": "Periyodik Bakım Paketi",
         "catalog": "Servis & İşlem Kataloğu",
-        "branch": "Servis \/ Şube",
-        "customer_label": "Araç Sahibi \/ Müşteri",
-        "provider_label": "Usta \/ Teknisyen",
+        "branch": "Servis / Şube",
+        "customer_label": "Araç Sahibi / Müşteri",
+        "provider_label": "Usta / Teknisyen",
         "appointment_label": "Servis Randevusu",
-        "station_label": "Lift \/ Peron \/ Çalışma Alanı",
-        "service_label": "Servis \/ İşlem"
+        "station_label": "Lift / Peron / Çalışma Alanı",
+        "service_label": "Servis / İşlem"
     },
     "enabled_modules": [
         "appointments",
@@ -111,17 +111,17 @@
     "family": "automotive",
     "business_type": "auto_service_detailing",
     "ai_policy": {
-        "brand_name": "Oto Servis \/ Detailing & Ekspertiz",
+        "brand_name": "Oto Servis / Detailing & Ekspertiz",
         "tone": "friendly_professional",
         "language": "tr",
-        "greeting_style": "Merhaba, Oto Servis \/ Detailing & Ekspertiz asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "greeting_style": "Merhaba, Oto Servis / Detailing & Ekspertiz asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Araç Sahibi",
-            "Detailing \/ Servis Teknisyeni",
-            "Ekspertiz \/ Servis Randevusu",
-            "Seramik Kaplama \/ Detailing",
-            "Servis Lifti \/ Detailing Alanı",
-            "Oto Kimyasalı \/ Yedek Parça",
+            "Detailing / Servis Teknisyeni",
+            "Ekspertiz / Servis Randevusu",
+            "Seramik Kaplama / Detailing",
+            "Servis Lifti / Detailing Alanı",
+            "Oto Kimyasalı / Yedek Parça",
             "Servis İş Emri",
             "Servis Randevusu"
         ],
@@ -132,7 +132,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Araç Sahibi' ve 'Seramik Kaplama \/ Detailing' terminolojisini kullan.",
+            "Her zaman 'Araç Sahibi' ve 'Seramik Kaplama / Detailing' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -219,7 +219,7 @@
             "kpis": [
                 {
                     "key": "today_appointments",
-                    "label": "Bugünkü Ekspertiz \/ Servis Randevusular",
+                    "label": "Bugünkü Ekspertiz / Servis Randevusular",
                     "icon": "calendar-check",
                     "color": "primary"
                 },
@@ -231,7 +231,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Servis Lifti \/ Detailing Alanı Doluluğu",
+                    "label": "Canlı Servis Lifti / Detailing Alanı Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -244,7 +244,7 @@
             ],
             "quick_actions": [
                 {
-                    "label": "+ Yeni Ekspertiz \/ Servis Randevusu",
+                    "label": "+ Yeni Ekspertiz / Servis Randevusu",
                     "route": "calendar",
                     "icon": "calendar-plus",
                     "class": "btn-primary"
@@ -279,13 +279,13 @@
                 },
                 {
                     "key": "my_completed_tasks",
-                    "label": "Tamamlanan Ekspertiz \/ Servis Randevusular",
+                    "label": "Tamamlanan Ekspertiz / Servis Randevusular",
                     "icon": "check-circle",
                     "color": "success"
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Servis Lifti \/ Detailing Alanı Durumu",
+                    "label": "Servis Lifti / Detailing Alanı Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -321,7 +321,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman \/ Estetisyen",
+            "name": "Uzman / Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -333,13 +333,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ POS",
+            "name": "Kasa / POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo \/ Envanter",
+            "name": "Depo / Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -364,7 +364,7 @@
             "last_name": "Demo",
             "email": "demo-auto_service_detailing-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman \/ Estetisyen"
+            "job_title": "Uzman / Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -378,14 +378,107 @@
             "last_name": "Demo",
             "email": "demo-auto_service_detailing-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ POS"
+            "job_title": "Kasa / POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-auto_service_detailing-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo \/ Envanter"
+            "job_title": "Depo / Envanter"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "auto_technician",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

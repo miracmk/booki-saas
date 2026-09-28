@@ -1,28 +1,28 @@
 {
     "industry": {
         "code": "sports_court",
-        "name": "Kort & Halı Saha \/ Padel \/ Tenis",
+        "name": "Kort & Halı Saha / Padel / Tenis",
         "icon": "🎾",
         "service_type": "station",
         "description": "Padel, tenis kortları, halı saha, basketbol sahaları için slot rezervasyonu, açık maç oyuncu eşleştirme (matchmaking) ve turnike geçiş paketi."
     },
     "terminology": {
-        "customer": "Sporcu \/ Takım",
-        "provider": "Saha Hakemi \/ Görevli",
-        "appointment": "Saha \/ Maç Saati",
-        "service": "Kort \/ Saha Kiralama",
-        "station": "Kort \/ Halı Saha",
-        "product": "Top \/ Raket \/ İçecek",
+        "customer": "Sporcu / Takım",
+        "provider": "Saha Hakemi / Görevli",
+        "appointment": "Saha / Maç Saati",
+        "service": "Kort / Saha Kiralama",
+        "station": "Kort / Halı Saha",
+        "product": "Top / Raket / İçecek",
         "order": "Kira & Satış Adisyonu",
         "reservation": "Saha Rezervasyonu",
         "membership": "Kort Aboneliği",
         "package": "Aylık Maç Paketi",
         "catalog": "Kort & Hizmet Kataloğu",
-        "branch": "Tesis \/ Kort Alanı",
+        "branch": "Tesis / Kort Alanı",
         "customer_label": "Oyuncu",
-        "provider_label": "Kort \/ Tesis Sorumlusu",
-        "appointment_label": "Kort Rezervasyonu \/ Maç",
-        "station_label": "Kort \/ Saha",
+        "provider_label": "Kort / Tesis Sorumlusu",
+        "appointment_label": "Kort Rezervasyonu / Maç",
+        "station_label": "Kort / Saha",
         "service_label": "Saha & Kort Kiralama"
     },
     "enabled_modules": [
@@ -114,17 +114,17 @@
     "family": "sports_fitness",
     "business_type": "sports_court",
     "ai_policy": {
-        "brand_name": "Kort & Halı Saha \/ Padel \/ Tenis",
+        "brand_name": "Kort & Halı Saha / Padel / Tenis",
         "tone": "friendly_professional",
         "language": "tr",
-        "greeting_style": "Merhaba, Kort & Halı Saha \/ Padel \/ Tenis asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "greeting_style": "Merhaba, Kort & Halı Saha / Padel / Tenis asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
-            "Sporcu \/ Takım",
-            "Saha Hakemi \/ Görevli",
-            "Saha \/ Maç Saati",
-            "Kort \/ Saha Kiralama",
-            "Kort \/ Halı Saha",
-            "Top \/ Raket \/ İçecek",
+            "Sporcu / Takım",
+            "Saha Hakemi / Görevli",
+            "Saha / Maç Saati",
+            "Kort / Saha Kiralama",
+            "Kort / Halı Saha",
+            "Top / Raket / İçecek",
             "Kira & Satış Adisyonu",
             "Saha Rezervasyonu"
         ],
@@ -135,7 +135,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Sporcu \/ Takım' ve 'Kort \/ Saha Kiralama' terminolojisini kullan.",
+            "Her zaman 'Sporcu / Takım' ve 'Kort / Saha Kiralama' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -222,7 +222,7 @@
             "kpis": [
                 {
                     "key": "today_appointments",
-                    "label": "Bugünkü Saha \/ Maç Saatilar",
+                    "label": "Bugünkü Saha / Maç Saatilar",
                     "icon": "calendar-check",
                     "color": "primary"
                 },
@@ -234,26 +234,26 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Kort \/ Halı Saha Doluluğu",
+                    "label": "Canlı Kort / Halı Saha Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
                 {
                     "key": "customer_growth",
-                    "label": "Yeni Sporcu \/ Takımlar",
+                    "label": "Yeni Sporcu / Takımlar",
                     "icon": "user-plus",
                     "color": "warning"
                 }
             ],
             "quick_actions": [
                 {
-                    "label": "+ Yeni Saha \/ Maç Saati",
+                    "label": "+ Yeni Saha / Maç Saati",
                     "route": "calendar",
                     "icon": "calendar-plus",
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Yeni Sporcu \/ Takım",
+                    "label": "+ Yeni Sporcu / Takım",
                     "route": "customers",
                     "icon": "user-plus",
                     "class": "btn-success"
@@ -282,13 +282,13 @@
                 },
                 {
                     "key": "my_completed_tasks",
-                    "label": "Tamamlanan Saha \/ Maç Saatilar",
+                    "label": "Tamamlanan Saha / Maç Saatilar",
                     "icon": "check-circle",
                     "color": "success"
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Kort \/ Halı Saha Durumu",
+                    "label": "Kort / Halı Saha Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -301,7 +301,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Sporcu \/ Takım Notu Ekle",
+                    "label": "+ Sporcu / Takım Notu Ekle",
                     "route": "customers",
                     "icon": "file-alt",
                     "class": "btn-outline-primary"
@@ -336,7 +336,7 @@
         },
         {
             "slug": "reception",
-            "name": "Danışma \/ Turnike",
+            "name": "Danışma / Turnike",
             "icon": "id-card",
             "description": "Üye girişi ve check-in"
         },
@@ -381,7 +381,7 @@
             "last_name": "Demo",
             "email": "demo-sports_court-reception@kibusiness.co",
             "role_slug": "reception",
-            "job_title": "Danışma \/ Turnike"
+            "job_title": "Danışma / Turnike"
         },
         "cashier": {
             "first_name": "Kasiyer",
@@ -390,5 +390,99 @@
             "role_slug": "cashier",
             "job_title": "Kasiyer"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "trainer",
+        "group_instructor",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

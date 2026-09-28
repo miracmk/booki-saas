@@ -10,17 +10,17 @@
     "business_type": "law_firm",
     "terminology": {
         "customer": "Müvekkil",
-        "provider": "Avukat \/ Hukukçu",
-        "appointment": "Danışmanlık \/ Duruşma",
+        "provider": "Avukat / Hukukçu",
+        "appointment": "Danışmanlık / Duruşma",
         "service": "Hukuki Hizmet",
         "station": "Görüşme Odası",
-        "product": "Dosya \/ Matbu Evrak",
+        "product": "Dosya / Matbu Evrak",
         "order": "Hizmet Sözleşmesi",
         "reservation": "Randevu",
         "membership": "Hukuki Danışmanlık Paketi",
-        "package": "Dava \/ Danışmanlık Paketi",
+        "package": "Dava / Danışmanlık Paketi",
         "catalog": "Hukuki Hizmetler",
-        "branch": "Büro \/ Ofis",
+        "branch": "Büro / Ofis",
         "customer_label": "Müvekkil",
         "provider_label": "Avukat",
         "appointment_label": "Randevu",
@@ -198,11 +198,11 @@
         "greeting_style": "Merhaba, Hukuk Bürosu & Avukatlık asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Müvekkil",
-            "Avukat \/ Hukukçu",
-            "Danışmanlık \/ Duruşma",
+            "Avukat / Hukukçu",
+            "Danışmanlık / Duruşma",
             "Hukuki Hizmet",
             "Görüşme Odası",
-            "Dosya \/ Matbu Evrak",
+            "Dosya / Matbu Evrak",
             "Hizmet Sözleşmesi",
             "Randevu"
         ],
@@ -300,7 +300,7 @@
             "kpis": [
                 {
                     "key": "today_appointments",
-                    "label": "Bugünkü Danışmanlık \/ Duruşmalar",
+                    "label": "Bugünkü Danışmanlık / Duruşmalar",
                     "icon": "calendar-check",
                     "color": "primary"
                 },
@@ -325,7 +325,7 @@
             ],
             "quick_actions": [
                 {
-                    "label": "+ Yeni Danışmanlık \/ Duruşma",
+                    "label": "+ Yeni Danışmanlık / Duruşma",
                     "route": "calendar",
                     "icon": "calendar-plus",
                     "class": "btn-primary"
@@ -360,7 +360,7 @@
                 },
                 {
                     "key": "my_completed_tasks",
-                    "label": "Tamamlanan Danışmanlık \/ Duruşmalar",
+                    "label": "Tamamlanan Danışmanlık / Duruşmalar",
                     "icon": "check-circle",
                     "color": "success"
                 },
@@ -402,7 +402,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman \/ Estetisyen",
+            "name": "Uzman / Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -414,13 +414,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa \/ POS",
+            "name": "Kasa / POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo \/ Envanter",
+            "name": "Depo / Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -445,7 +445,7 @@
             "last_name": "Demo",
             "email": "demo-law_firm-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman \/ Estetisyen"
+            "job_title": "Uzman / Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -459,14 +459,108 @@
             "last_name": "Demo",
             "email": "demo-law_firm-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa \/ POS"
+            "job_title": "Kasa / POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-law_firm-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo \/ Envanter"
+            "job_title": "Depo / Envanter"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "managing_partner",
+        "consultant",
+        "lawyer",
+        "paralegal",
+        "secretary"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }

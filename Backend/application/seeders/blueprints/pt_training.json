@@ -7,7 +7,7 @@
         "description": "Birebir personal trainer, fonksiyonel antrenman, vücut geliştirme, postür analizi ve sporcu beslenmesi takip sistemi."
     },
     "terminology": {
-        "customer": "Sporcu \/ Danışan",
+        "customer": "Sporcu / Danışan",
         "provider": "Personal Trainer",
         "appointment": "Birebir Antrenman",
         "service": "Özel PT Seansı",
@@ -18,12 +18,12 @@
         "membership": "Aylık PT Üyeliği",
         "package": "Birebir Seans Paketi",
         "catalog": "Antrenman & Program Kataloğu",
-        "branch": "Stüdyo \/ Tesis",
-        "customer_label": "Sporcu \/ Danışan",
+        "branch": "Stüdyo / Tesis",
+        "customer_label": "Sporcu / Danışan",
         "provider_label": "Personal Trainer (PT)",
-        "appointment_label": "Antrenman \/ Seans",
-        "station_label": "Antrenman Alanı \/ Stüdyo",
-        "service_label": "Ders \/ Program"
+        "appointment_label": "Antrenman / Seans",
+        "station_label": "Antrenman Alanı / Stüdyo",
+        "service_label": "Ders / Program"
     },
     "enabled_modules": [
         "appointments",
@@ -489,7 +489,7 @@
         "language": "tr",
         "greeting_style": "Merhaba, PT Antrenman & Kişisel Koçluk asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
-            "Sporcu \/ Danışan",
+            "Sporcu / Danışan",
             "Personal Trainer",
             "Birebir Antrenman",
             "Özel PT Seansı",
@@ -505,7 +505,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Sporcu \/ Danışan' ve 'Özel PT Seansı' terminolojisini kullan.",
+            "Her zaman 'Sporcu / Danışan' ve 'Özel PT Seansı' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -610,7 +610,7 @@
                 },
                 {
                     "key": "customer_growth",
-                    "label": "Yeni Sporcu \/ Danışanlar",
+                    "label": "Yeni Sporcu / Danışanlar",
                     "icon": "user-plus",
                     "color": "warning"
                 }
@@ -623,7 +623,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Yeni Sporcu \/ Danışan",
+                    "label": "+ Yeni Sporcu / Danışan",
                     "route": "customers",
                     "icon": "user-plus",
                     "class": "btn-success"
@@ -671,7 +671,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Sporcu \/ Danışan Notu Ekle",
+                    "label": "+ Sporcu / Danışan Notu Ekle",
                     "route": "customers",
                     "icon": "file-alt",
                     "class": "btn-outline-primary"
@@ -706,7 +706,7 @@
         },
         {
             "slug": "reception",
-            "name": "Danışma \/ Turnike",
+            "name": "Danışma / Turnike",
             "icon": "id-card",
             "description": "Üye girişi ve check-in"
         },
@@ -751,7 +751,7 @@
             "last_name": "Demo",
             "email": "demo-pt_training-reception@kibusiness.co",
             "role_slug": "reception",
-            "job_title": "Danışma \/ Turnike"
+            "job_title": "Danışma / Turnike"
         },
         "cashier": {
             "first_name": "Kasiyer",
@@ -760,5 +760,99 @@
             "role_slug": "cashier",
             "job_title": "Kasiyer"
         }
-    }
+    },
+    "roles": [
+        "owner",
+        "manager",
+        "reception",
+        "trainer",
+        "group_instructor",
+        "cashier"
+    ],
+    "navigation": [
+        {
+            "group": "dashboard",
+            "id": "nav_dashboard",
+            "label": "Dashboard",
+            "route": "dashboard",
+            "enabled": true
+        },
+        {
+            "group": "operations",
+            "id": "nav_operations",
+            "label": "Operasyon",
+            "route": "calendar",
+            "enabled": true
+        },
+        {
+            "group": "crm",
+            "id": "nav_crm",
+            "label": "CRM & Müşteriler",
+            "route": "customers",
+            "enabled": true
+        },
+        {
+            "group": "catalog",
+            "id": "nav_catalog",
+            "label": "Katalog",
+            "route": "catalog",
+            "enabled": true
+        },
+        {
+            "group": "resources",
+            "id": "nav_resources",
+            "label": "Kaynaklar",
+            "route": "stations",
+            "enabled": true
+        },
+        {
+            "group": "team",
+            "id": "nav_team",
+            "label": "Ekip",
+            "route": "users",
+            "enabled": true
+        },
+        {
+            "group": "finance",
+            "id": "nav_finance",
+            "label": "Satış & Finans",
+            "route": "finance",
+            "enabled": true
+        },
+        {
+            "group": "marketing",
+            "id": "nav_marketing",
+            "label": "Pazarlama",
+            "route": "marketing",
+            "enabled": true
+        },
+        {
+            "group": "vertical",
+            "id": "nav_vertical",
+            "label": "Sektörel Modüller",
+            "route": "verticals",
+            "enabled": true
+        },
+        {
+            "group": "reports",
+            "id": "nav_reports",
+            "label": "Raporlar",
+            "route": "reports",
+            "enabled": true
+        },
+        {
+            "group": "ai",
+            "id": "nav_ai",
+            "label": "AI Copilot",
+            "route": "ai_agent",
+            "enabled": true
+        },
+        {
+            "group": "settings",
+            "id": "nav_settings",
+            "label": "Ayarlar",
+            "route": "general_settings",
+            "enabled": true
+        }
+    ]
 }
