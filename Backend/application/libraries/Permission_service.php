@@ -278,6 +278,38 @@ class Permission_service
 
         return !empty($session_role) ? (string) $session_role : null;
     }
+
+    /**
+     * Resolve the first route accessible to the user based on navigation schema.
+     * Used after role switching or login redirection.
+     */
+    public function first_accessible_route(int $user_id): string
+    {
+        if ($this->can('view', PRIV_DASHBOARD, null, $user_id)) {
+            return 'dashboard';
+        }
+
+        if (!isset($this->CI->navigation_service)) {
+            $this->CI->load->library('navigation_service');
+        }
+
+        $nav_groups = $this->CI->navigation_service->forCurrentUser();
+
+        foreach ($nav_groups as $group) {
+            foreach ($group['items'] ?? [] as $item) {
+                if (!empty($item['route']) && $item['route'] !== '#') {
+                    return $item['route'];
+                }
+                foreach ($item['children'] ?? [] as $child) {
+                    if (!empty($child['route']) && $child['route'] !== '#') {
+                        return $child['route'];
+                    }
+                }
+            }
+        }
+
+        return 'account';
+    }
 }
 
 

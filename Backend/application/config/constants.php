@@ -64,6 +64,7 @@ const PRIV_ADD = 2;
 const PRIV_EDIT = 4;
 const PRIV_DELETE = 8;
 
+const PRIV_DASHBOARD = 'dashboard';
 const PRIV_APPOINTMENTS = 'appointments';
 const PRIV_CUSTOMERS = 'customers';
 const PRIV_SERVICES = 'services';

@@ -63,6 +63,11 @@ Aile (Family)
   - **Kontrollü Öğrenme Hattı:** `Observed → Suggested → Owner Approval → Business Rule → Active`.
   - **Otomatik Eskalasyon:** Medikal, hukuki, finansal ve kızgın müşteri durumlarında tespitle `ea_ai_escalation_handoffs` kaydı açılır ve insan personeline devredilir.
 
+- **⚙️ Modernize Edilmiş Birleşik Ayarlar Merkezi (`Settings`):**
+  - Eski dağınık ayar sayfaları yerine 6 ana bölüm (*İşletme, Rezervasyon, İletişim, Entegrasyonlar, Hukuk, Güvenlik*) ve 25 sekmeden oluşan tek çatı UI mimarisi.
+  - Geriye dönük uyumlu rota yönlendirmeleri (`/general_settings`, `/booking_settings` vb.) otomatik olarak doğru sekmeyi açar.
+  - %100 çok dilli (`application/language/`) altyapı ile hem demo hem de canlı üretim kiracılarında tutarlı, güvenli ve sezgisel yönetim.
+
 - **📊 Sektörel & Role Duyarlı Dashboard & Empty States:**
   - `industry_dashboard_config`: Owner ile Staff için sektörün KPI'ları ve hızlı butonları ayrışır.
   - `render_empty_state`: Boş tablolarda sektörel terminolojiye ve kullanıcının yetkisine uygun CTA butonları gösterilir.
@@ -114,7 +119,8 @@ booki-saas/
 | `booki.kibusiness.co` | **WebApp** | 8091 &rarr; `booki-website` | React 19 vitrin, fiyatlandırma ve demo talepleri |
 | `bookiapp.kibusiness.co` | **Backend (SaaS)** | 80 &rarr; `booki-app` | Çok kiracılı SaaS randevu karşılama ve ana platform |
 | `admin-bookiapp.kibusiness.co` | **Backend (Admin)** | 80 &rarr; `booki-app` | SaaS süperadmin yönetim, lisans ve kiracı paneli |
-| `{tenant}-bookiapp.kibusiness.co` | **Backend (Kiracı)** | 80 &rarr; `booki-app` | Kiracıya özel personel paneli, takvim, POS ve katalog |
+| `{tenant}-bookiapp.kibusiness.co` | **Backend (Kiracı)** | 80 &rarr; `booki-app` | Kiracıya özel personel paneli, takvim, POS ve Ayarlar Merkezi |
+| `{demoismi}-bookiapp.kibusiness.co` | **Backend (Demo)** | 80 &rarr; `booki-app` | Sektörel interaktif canlı demolar (Kullanıcı: `{demoismi}-{rol}`, Şifre: `{demoismi}.BooKi`) |
 | `randevuburada.kibusiness.co` | **RandevuBurada** | 80 &rarr; `booki-app` | Tüketici keşif pazaryeri (Marketplace) & pSEO |
 | `127.0.0.1:3039` | **WhatsApp Bridge** | 3000 &rarr; `booki-wa` | Baileys izole WhatsApp Web oturum köprüsü |
 | Port `8765` | **MCP Server** | 8765 &rarr; `booki-mcp` | LLM Ajanları için Streamable HTTP MCP sunucusu |
@@ -125,7 +131,8 @@ booki-saas/
 
 Sistem, kapsamlı PHPUnit test otomasyonu ile korunmaktadır:
 - **`VerticalRolePermissionIntegrationTest`:** 9 test senaryosu, 137 assertion (%100 başarıyla geçmektedir).
-- **Genel Test Paketi:** 460 test, 7036 assertion, 0 hata ile çalışır.
+- **`SettingsCenterIntegrationTest`:** 6 test senaryosu, 38 assertion (%100 başarıyla geçmektedir).
+- **Genel Test Paketi:** 466 test, 7074 assertion, 0 hata ile çalışır.
 - Test Edilen 5 Ana Arketip:
   - **Restoran:** Owner, General Manager, Waiter, Cashier, Kitchen KDS
   - **Klinik:** Owner, Clinic Manager, Doctor, Nurse, Reception, Cashier

@@ -851,7 +851,7 @@
             "group": "settings",
             "id": "nav_settings",
             "label": "Ayarlar",
-            "route": "general_settings",
+            "route": "settings",
             "enabled": true
         }
     ]

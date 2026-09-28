@@ -15,12 +15,32 @@ class Sandbox_manager
     protected ?mysqli $master_mysqli = null;
 
     public const DEMO_SECTORS = [
-        'demo-guzellik' => 'guzellik',
-        'demo-masaj'    => 'masaj',
-        'demo-restoran' => 'restoran',
-        'demo-otel'     => 'otel',
-        'demo-klinik'   => 'klinik',
-        'demo-studyo'   => 'studyo',
+        'guzellik-bookiapp' => 'guzellik',
+        'demo-guzellik'     => 'guzellik',
+        'guzellik'          => 'guzellik',
+
+        'masaj-bookiapp'    => 'masaj',
+        'demo-masaj'        => 'masaj',
+        'masaj'             => 'masaj',
+
+        'restorant-bookiapp'=> 'restoran',
+        'restoran-bookiapp' => 'restoran',
+        'demo-restoran'     => 'restoran',
+        'demo-restorant'    => 'restoran',
+        'restorant'         => 'restoran',
+        'restoran'          => 'restoran',
+
+        'otel-bookiapp'     => 'otel',
+        'demo-otel'         => 'otel',
+        'otel'              => 'otel',
+
+        'klinik-bookiapp'   => 'klinik',
+        'demo-klinik'       => 'klinik',
+        'klinik'            => 'klinik',
+
+        'studyo-bookiapp'   => 'studyo',
+        'demo-studyo'       => 'studyo',
+        'studyo'            => 'studyo',
     ];
 
     public function __construct()
@@ -251,13 +271,30 @@ class Sandbox_manager
      */
     public function reset_slot_db(string $subdomain, string $target_db): bool
     {
-        $template_file = '/var/www/html/storage/sandbox_templates/' . $subdomain . '.sql';
-        if (!file_exists($template_file)) {
-            $template_file = '/opt/ki-ecosystem/booki/files/sandbox_templates/' . $subdomain . '.sql';
+        $sector = $this->get_sector($subdomain) ?? 'guzellik';
+        $candidates = [
+            $subdomain,
+            'demo-' . $subdomain,
+            'demo-' . $sector,
+            $sector . '-bookiapp',
+            $sector,
+        ];
+        $template_file = null;
+        foreach ($candidates as $cand) {
+            $p1 = '/var/www/html/storage/sandbox_templates/' . $cand . '.sql';
+            $p2 = '/opt/ki-ecosystem/booki/files/sandbox_templates/' . $cand . '.sql';
+            if (file_exists($p1) && filesize($p1) > 0) {
+                $template_file = $p1;
+                break;
+            }
+            if (file_exists($p2) && filesize($p2) > 0) {
+                $template_file = $p2;
+                break;
+            }
         }
 
-        if (!file_exists($template_file)) {
-            log_message('error', "Sandbox template file not found: {$template_file}");
+        if (!$template_file || !file_exists($template_file)) {
+            log_message('error', "Sandbox template file not found for subdomain: {$subdomain}");
             return false;
         }
 

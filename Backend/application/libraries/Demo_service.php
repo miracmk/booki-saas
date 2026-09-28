@@ -109,6 +109,33 @@ class Demo_service
             ], ['id' => $user_id]);
         }
 
+        // Ensure user credentials in user_settings match the {demoismi}-{rol} and {demoismi}.BooKi standard
+        $demoismi = match ($business_type) {
+            'restaurant' => 'restorant',
+            'beauty_salon' => 'guzellik',
+            'massage_spa' => 'masaj',
+            'doctor_clinic' => 'klinik',
+            'hotel' => 'otel',
+            'pilates_studio' => 'studyo',
+            default => $business_type,
+        };
+        $demo_username = "{$demoismi}-{$role_slug}";
+        $demo_pwd_hash = password_hash("{$demoismi}.BooKi", PASSWORD_BCRYPT, ['cost' => 12]);
+
+        $us_row = $this->CI->db->get_where('user_settings', ['id_users' => $user_id])->row_array();
+        if ($us_row) {
+            $this->CI->db->update('user_settings', [
+                'username' => $demo_username,
+                'password' => $demo_pwd_hash,
+            ], ['id_users' => $user_id]);
+        } else {
+            $this->CI->db->insert('user_settings', [
+                'id_users' => $user_id,
+                'username' => $demo_username,
+                'password' => $demo_pwd_hash,
+            ]);
+        }
+
         // Establish full session state
         $display_name = trim($profile['first_name'] . ' ' . $profile['last_name']) . ' (' . ($profile['job_title'] ?? $role_slug) . ')';
         session([

@@ -519,5 +519,23 @@ $route['randevuburada/reject_review'] = 'randevuburada/reject_review';
 $route['randevuburada/reservations'] = 'randevuburada/reservations';
 $route['randevuburada/update_reservation_status'] = 'randevuburada/update_reservation_status';
 
+// Unified Settings Center & Legacy Route Aliases
+$route['general_settings'] = 'settings/general';
+$route['booking_settings'] = 'settings/booking';
+$route['business_settings'] = 'settings/business';
+$route['legal_settings'] = 'settings/legal';
+$route['messaging_settings'] = 'settings/communication';
+$route['integrations'] = 'settings/integrations';
+$route['api_settings'] = 'settings/security';
+
+$route['settings/api/reveal_secret']['post'] = 'settings/reveal_secret';
+$route['settings/api/rotate_agent_key']['post'] = 'settings/rotate_agent_key';
+$route['settings/api/test_ping']['post'] = 'settings/test_ping';
+$route['settings/api/(:any)']['get'] = 'settings/api_get/$1';
+$route['settings/api/(:any)']['post'] = 'settings/api_save/$1';
+$route['settings/api/(:any)']['put'] = 'settings/api_save/$1';
+$route['settings/(:any)'] = 'settings/$1';
+$route['settings'] = 'settings/index';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

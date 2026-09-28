@@ -55,6 +55,29 @@ class Settings_model extends App_Model
     }
 
     /**
+     * Set or update a setting by name.
+     *
+     * @param string $name Setting name.
+     * @param mixed $value Setting value.
+     *
+     * @return int Returns the setting ID.
+     */
+    public function set_setting(string $name, mixed $value): int
+    {
+        $existing = $this->query()->where('name', $name)->get()->row_array();
+        $setting = [
+            'name' => $name,
+            'value' => (string) $value,
+        ];
+
+        if (!empty($existing['id'])) {
+            $setting['id'] = $existing['id'];
+        }
+
+        return $this->save($setting);
+    }
+
+    /**
      * Validate the setting data.
      *
      * @param array $setting Associative array with the setting data.

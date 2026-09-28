@@ -141,6 +141,27 @@ Görünüm: [Backend/application/views/components/backend_header.php](file:///op
 
 ---
 
+## ⚙️ 4.1. Birleşik Ayarlar Merkezi (`Settings_registry` & `Settings.php`)
+
+Konum: [Backend/application/controllers/Settings.php](file:///opt/ki-ecosystem/ki-reservation-src/Backend/application/controllers/Settings.php)  
+Kayıt Servisi: [Backend/application/libraries/Settings_registry.php](file:///opt/ki-ecosystem/ki-reservation-src/Backend/application/libraries/Settings_registry.php)  
+Görünüm: [Backend/application/views/pages/settings.php](file:///opt/ki-ecosystem/ki-reservation-src/Backend/application/views/pages/settings.php)
+
+Eski dağınık ayar sayfaları (`general_settings`, `booking_settings`, `business_settings`, `legal_settings`, `messaging_settings`, `integrations`, `api_settings`) tek bir çatı altında toplanmış; hem demo kiracılarında hem de canlı üretim kiracılarında tam tutarlılık sağlanmıştır:
+- **6 Ana Bölüm & 25 Sekme:**
+  1. `business`: İşletme Profili, Şubeler & Konumlar, Çalışma Saatleri & İstisnalar
+  2. `booking`: Rezervasyon Kuralları, Alanlar & Adımlar, Görsel Tasarım, Kısıtlamalar
+  3. `communication`: E-posta Şablonları, WhatsApp & SMS Köprüsü, Hatırlatma & Bildirimler
+  4. `integrations`: Ödeme Sistemleri, Google Calendar & Meet, Webhook'lar, Jitsi & LDAP
+  5. `legal`: KVKK & Aydınlatma Metinleri, Çerez Politikası, İptal & İade Koşulları
+  6. `security`: API Anahtarları & İzinleri, Güvenlik Duvarı & Rate Limit, Denetim İzi (Audit Log)
+- **Geriye Dönük Uyumluluk (Legacy Route Aliases):**
+  Eski ayar URL'lerine (`/general_settings`, `/booking_settings`, vb.) gelen istekler `routes.php` üzerinden `/settings` controller'ına yönlendirilir ve ilgili bölüm sekmesi doğrudan aktif edilir.
+- **Tam Çok Dilli Altyapı:**
+  Tüm bölüm, sekme, alan ve UI etiketleri `application/language/turkish/translations_lang.php` ve `english/translations_lang.php` üzerinden `lang()` fonksiyonuyla dinamik yüklenir. Sabit/gömülü metin bulunmaz.
+
+---
+
 ## 📦 5. Birleşik Ortak Katalog Sistemi (`Catalog`)
 
 Konum: [Backend/application/controllers/Catalog.php](file:///opt/ki-ecosystem/ki-reservation-src/Backend/application/controllers/Catalog.php)  
@@ -241,6 +262,11 @@ Kütüphane: [Backend/application/libraries/Demo_service.php](file:///opt/ki-eco
 
 Müşterilere veya test kullanıcılarına farklı rollerin sistemdeki deneyimini anında göstermek için geliştirilmiştir:
 - Blueprint'teki `demo_roles` ve `demo_users` verisini kullanır.
+- **Standart Demo Subdomain Şablonu:** `{demoismi}-bookiapp.kibusiness.co`  
+  - Örnekler: `restorant-bookiapp.kibusiness.co`, `guzellik-bookiapp.kibusiness.co`, `masaj-bookiapp.kibusiness.co`, `klinik-bookiapp.kibusiness.co`, `otel-bookiapp.kibusiness.co`, `studyo-bookiapp.kibusiness.co`
+- **Standart Demo Giriş Bilgileri:**
+  - Kullanıcı Adı: `{demoismi}-{rol}` (Örn: `restorant-owner`, `restorant-waiter`, `guzellik-reception`)
+  - Şifre: `{demoismi}.BooKi` (Örn: `restorant.BooKi`, `guzellik.BooKi`, `klinik.BooKi`)
 - `demo_service->switch_role('waiter')` çağrıldığında:
   - Oturum `role_slug`, `job_title` ve `is_admin` parametreleriyle güncellenir.
   - Sidebar ve mobil menü anında Garson menüsüne dönüşür.
@@ -256,7 +282,8 @@ Müşterilere veya test kullanıcılarına farklı rollerin sistemdeki deneyimin
 | `booki.kibusiness.co` | `127.0.0.1:8091` &rarr; `booki-website` | [WebApp/server/index.ts](file:///opt/ki-ecosystem/ki-reservation-src/WebApp/server/index.ts) | React 19 vitrin, özellikler, fiyatlandırma, demo & deneme talepleri |
 | `bookiapp.kibusiness.co` | `80` &rarr; `booki-app` | `Booking.php` / `Landing.php` | SaaS genel müşteri randevu karşılama ve ana platform |
 | `admin-bookiapp.kibusiness.co` | `80` &rarr; `booki-app` | `Superadmin_auth.php`, `Superadmin_tenants.php` | Çok kiracılı SaaS lisans, kiracı oluşturma ve sistem ayarları |
-| `{tenant}-bookiapp.kibusiness.co` | `80` &rarr; `booki-app` | `Calendar.php`, `Appointments.php`, `Catalog.php` | Kiracıya özel personel ajandası, müşteri listesi ve POS ekranı |
+| `{tenant}-bookiapp.kibusiness.co` | `80` &rarr; `booki-app` | `Calendar.php`, `Appointments.php`, `Catalog.php`, `Settings.php` | Kiracıya özel ajanda, katalog, POS ve Ayarlar Merkezi |
+| `{demoismi}-bookiapp.kibusiness.co` | `80` &rarr; `booki-app` | `Demo.php`, `Dashboard.php`, `Settings.php` | Sektörel canlı interaktif demo ortamları |
 | `randevuburada.kibusiness.co` | `80` &rarr; `booki-app` | `Marketplace.php`, `Places_photo.php` | Tüketici keşif pazaryeri, pSEO kategorileri ve Google Places profilleri |
 | `127.0.0.1:3039` | `3000` &rarr; `booki-wa` | [Backend/deploy/bridge](file:///opt/ki-ecosystem/ki-reservation-src/Backend/deploy/bridge) | Baileys izole WhatsApp oturum köprüsü |
 | Port `8765` | `8765` &rarr; `booki-mcp` | [Backend/deploy/mcp](file:///opt/ki-ecosystem/ki-reservation-src/Backend/deploy/mcp) | LLM Ajanları için HTTP Streamable MCP Sunucusu |
@@ -377,7 +404,7 @@ Port: `8765` | Transport: `StreamableHTTPServerTransport` | Base Path: `/mcp`
 
 ## 🧪 15. Test Kapsamı & Doğrulama Matrisi
 
-Sistem, [Backend/tests/Integration/VerticalRolePermissionIntegrationTest.php](file:///opt/ki-ecosystem/ki-reservation-src/Backend/tests/Integration/VerticalRolePermissionIntegrationTest.php) entegrasyon paketi ve ana PHPUnit test süiti ile korunmaktadır:
+Sistem, [Backend/tests/Integration/VerticalRolePermissionIntegrationTest.php](file:///opt/ki-ecosystem/ki-reservation-src/Backend/tests/Integration/VerticalRolePermissionIntegrationTest.php) ve [Backend/tests/Integration/SettingsCenterIntegrationTest.php](file:///opt/ki-ecosystem/ki-reservation-src/Backend/tests/Integration/SettingsCenterIntegrationTest.php) entegrasyon paketleri ile tam güvence altındadır:
 
 | Test Senaryosu | Kapsam & Kontroller | Durum |
 | :--- | :--- | :--- |
@@ -390,10 +417,16 @@ Sistem, [Backend/tests/Integration/VerticalRolePermissionIntegrationTest.php](fi
 | `testMultiBranchScopeEnforcement` | Yetkili şube erişimi, yetkisiz şube reddi | ✅ GEÇTİ |
 | `testAiGovernanceSuite` | Yetki tavanı, 4 alanlı eskalasyon (medical, legal, payment, angry), öğrenme hattı | ✅ GEÇTİ |
 | `testDemoRoleSwitcher` | Canlı rol değiştirme, oturum durumu, yetki izolasyonu | ✅ GEÇTİ |
+| `testSettingsRegistryInitialization` | 6 bölüm, 25 sekme, 40+ alanın Settings_registry tarafından doğrulanması | ✅ GEÇTİ |
+| `testSettingsRoutesAndAliases` | /settings, /general_settings, /booking_settings vb. alias eşleşmesi | ✅ GEÇTİ |
+| `testPermissionIsolation` | Admin olmayan personelin (Garson, Kasiyer) Ayarlar Merkezi kilitlenmesi | ✅ GEÇTİ |
+| `testLocalizationTurkishAndEnglish` | Türkçe ve İngilizce dil çeviri anahtarlarının eksiksizliği | ✅ GEÇTİ |
+| `testSettingsSaveLifecycle` | Ayar kaydetme, validasyon, yetki denetimi ve veri saklama | ✅ GEÇTİ |
+| `testSettingsViewRendersModernUI` | Modern responsive UI, tab yapısı, CSRF koruması | ✅ GEÇTİ |
 
 **Genel Test Paketi Özeti:**  
-`OK (9 tests, 137 assertions)` — Entegrasyon Süiti  
-`Tests: 460, Assertions: 7036, Errors: 0` — Tüm Sistem Süiti
+`OK (15 tests, 175 assertions)` — Entegrasyon Test Süitleri (%100 Başarı)  
+`Tests: 466, Assertions: 7074, Errors: 0` — Tüm Sistem Süiti
 
 ---
 

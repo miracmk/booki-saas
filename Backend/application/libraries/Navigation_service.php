@@ -679,23 +679,23 @@ class Navigation_service
         // 12. AYARLAR
         $settings_children = [
             [
-                'id' => 'nav_set_industry',
-                'label' => 'Sektör & Modüller',
-                'icon' => 'fas fa-shapes',
-                'route' => 'industry_settings',
+                'id' => 'nav_settings_center',
+                'label' => lang('settings_center'),
+                'icon' => 'fas fa-sliders-h',
+                'route' => 'settings',
                 'group' => 'settings',
                 'order' => 1,
                 'module' => null,
                 'permission' => ['view', 'system_settings'],
                 'children' => [],
                 'badge' => null,
-                'mobile_visibility' => false,
+                'mobile_visibility' => true,
             ],
             [
-                'id' => 'nav_set_general',
-                'label' => 'Genel Ayarlar',
-                'icon' => 'fas fa-cogs',
-                'route' => 'general_settings',
+                'id' => 'nav_set_industry',
+                'label' => lang('industry_and_modules'),
+                'icon' => 'fas fa-shapes',
+                'route' => 'industry_settings',
                 'group' => 'settings',
                 'order' => 2,
                 'module' => null,
@@ -706,7 +706,7 @@ class Navigation_service
             ],
             [
                 'id' => 'nav_set_branches',
-                'label' => 'Şubeler',
+                'label' => lang('branches'),
                 'icon' => 'fas fa-code-branch',
                 'route' => 'branches',
                 'group' => 'settings',
@@ -719,7 +719,7 @@ class Navigation_service
             ],
             [
                 'id' => 'nav_set_audit',
-                'label' => 'Denetim Kayıtları',
+                'label' => lang('audit_log'),
                 'icon' => 'fas fa-clipboard-list',
                 'route' => 'audit_log',
                 'group' => 'settings',
@@ -734,9 +734,9 @@ class Navigation_service
 
         $items[] = [
             'id' => 'nav_settings',
-            'label' => 'Ayarlar',
+            'label' => lang('settings'),
             'icon' => 'fas fa-cogs',
-            'route' => 'general_settings',
+            'route' => 'settings',
             'group' => 'settings',
             'order' => 1,
             'module' => null,
