@@ -469,6 +469,7 @@ class Ai_channel_responder
         $company_name = setting('company_name') ?: 'İşletmemiz';
         $company_phone = setting('company_phone') ?: '';
         $company_address = setting('company_address') ?: 'İşletme Adresi';
+        $booking_url = setting('company_link') ?: site_url();
         $tz_string = setting('default_timezone') ?: 'Europe/Istanbul';
         try {
             $tz = new DateTimeZone($tz_string);

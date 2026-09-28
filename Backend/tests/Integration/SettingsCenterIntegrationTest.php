@@ -204,4 +204,62 @@ class SettingsCenterIntegrationTest extends TenantTestCase
         $this->assertTrue(str_contains($html, 'Ayarlar Merkezi') || str_contains($html, 'Settings Center'), 'Page must contain Settings Center title.');
         $this->assertStringContainsString('Model Context Protocol', $html);
     }
+
+    /**
+     * 7. Test Working Plan and Blocked Periods (Holidays) Persistence Lifecycle.
+     */
+    public function testWorkingPlanAndBlockedPeriodsPersistence(): void
+    {
+        $ci = self::ci();
+        $ci->load->model('settings_model');
+        $ci->load->model('blocked_periods_model');
+        $ci->load->model('providers_model');
+
+        $tenant = self::db()->get_where('tenants', ['subdomain' => 'demo-restoran'])->row_array();
+        self::connect_tenant($tenant);
+
+        // 1. Save company_working_plan
+        $custom_plan = [
+            'monday' => ['start' => '08:30', 'end' => '23:00', 'breaks' => [['start' => '15:00', 'end' => '16:00']]],
+            'tuesday' => ['start' => '08:30', 'end' => '23:00', 'breaks' => []],
+            'wednesday' => ['start' => '08:30', 'end' => '23:00', 'breaks' => []],
+            'thursday' => ['start' => '08:30', 'end' => '23:00', 'breaks' => []],
+            'friday' => ['start' => '08:30', 'end' => '01:00', 'breaks' => []],
+            'saturday' => ['start' => '09:00', 'end' => '01:00', 'breaks' => []],
+            'sunday' => null, // Closed on Sundays
+        ];
+        $ci->settings_model->set_setting('company_working_plan', json_encode($custom_plan));
+
+        $retrieved = json_decode(setting('company_working_plan'), true);
+        $this->assertEquals('08:30', $retrieved['monday']['start']);
+        $this->assertNull($retrieved['sunday']);
+
+        // 2. Add blocked period / holiday
+        $bp_id = $ci->blocked_periods_model->save([
+            'name' => 'Yılbaşı Özel Tatili ' . time(),
+            'start_datetime' => '2027-01-01 00:00:00',
+            'end_datetime' => '2027-01-01 23:59:59',
+            'notes' => 'Yeni yıl resmi tatili',
+        ]);
+        $this->assertGreaterThan(0, $bp_id);
+
+        $saved_bp = $ci->blocked_periods_model->find($bp_id);
+        $this->assertEquals('Yeni yıl resmi tatili', $saved_bp['notes']);
+
+        // 3. Delete blocked period
+        $ci->blocked_periods_model->delete($bp_id);
+        $deleted = $ci->db->get_where('blocked_periods', ['id' => $bp_id])->row_array();
+        $this->assertEmpty($deleted);
+
+        // 4. Apply plan to all providers
+        $providers = $ci->providers_model->get();
+        if (!empty($providers)) {
+            foreach ($providers as $pr) {
+                $ci->providers_model->set_setting($pr['id'], 'working_plan', json_encode($custom_plan));
+                $pr_plan = json_decode($ci->providers_model->get_setting((int)$pr['id'], 'working_plan'), true);
+                $this->assertEquals('08:30', $pr_plan['monday']['start']);
+            }
+        }
+    }
 }
+

@@ -16,6 +16,9 @@ class Settings extends App_Controller
 
         $this->load->model('settings_model');
         $this->load->model('users_model');
+        $this->load->model('providers_model');
+        $this->load->model('blocked_periods_model');
+        $this->load->model('working_plan_exceptions_model');
         $this->load->library('settings_registry');
         $this->load->library('permission_service');
         $this->load->library('accounts');
@@ -70,6 +73,32 @@ class Settings extends App_Controller
             $section_values[$sec] = $this->settings_registry->get_section_values($sec, true);
         }
 
+        // Fetch working plan and exceptions data
+        $raw_plan = setting('company_working_plan');
+        $working_plan = [];
+        if (!empty($raw_plan)) {
+            $working_plan = is_string($raw_plan) ? json_decode($raw_plan, true) : (array)$raw_plan;
+        }
+        if (empty($working_plan) || !is_array($working_plan)) {
+            $default_day = ['start' => '09:00', 'end' => '18:00', 'breaks' => [['start' => '13:00', 'end' => '14:00']]];
+            $working_plan = [
+                'monday' => $default_day,
+                'tuesday' => $default_day,
+                'wednesday' => $default_day,
+                'thursday' => $default_day,
+                'friday' => $default_day,
+                'saturday' => ['start' => '10:00', 'end' => '16:00', 'breaks' => []],
+                'sunday' => null,
+            ];
+        }
+
+        // Fetch blocked periods (company-wide holidays/closed days)
+        $blocked_periods = $this->blocked_periods_model->get(null, 100, 0, 'start_datetime ASC') ?: [];
+
+        // Fetch staff providers and working plan exceptions
+        $providers = $this->providers_model->get() ?: [];
+        $working_plan_exceptions = $this->working_plan_exceptions_model->get(null, 100, 0, 'start_date ASC') ?: [];
+
         $can_edit = can('edit', PRIV_SYSTEM_SETTINGS);
 
         $i18n = [
@@ -92,6 +121,10 @@ class Settings extends App_Controller
             'secret_revealed' => 'Gizli anahtar gösterildi. Sayfadan ayrıldığınızda tekrar gizlenecektir.',
             'copied_to_clipboard' => 'Panoya kopyalandı!',
             'rotate_success' => 'Yeni Agent API anahtarı başarıyla üretildi!',
+            'delete_confirm' => 'Bu kaydı silmek istediğinize emin misiniz?',
+            'holiday_added' => 'Tatil / Kapalı dönem başarıyla eklendi!',
+            'holiday_deleted' => 'Kayıt başarıyla silindi!',
+            'plan_applied' => 'Çalışma planı tüm personele uygulandı!',
         ];
 
         script_vars([
@@ -104,6 +137,10 @@ class Settings extends App_Controller
             'mcp_url' => $mcp_url,
             'agent_api_key_masked' => $this->settings_registry->mask_secret($agent_api_key),
             'api_base_url' => site_url('settings/api'),
+            'working_plan' => $working_plan,
+            'blocked_periods' => $blocked_periods,
+            'working_plan_exceptions' => $working_plan_exceptions,
+            'csrf_token' => config_item('csrf_protection') ? $this->security->get_csrf_hash() : '',
             'i18n' => $i18n,
         ]);
 
@@ -119,6 +156,11 @@ class Settings extends App_Controller
             'mcp_url' => $mcp_url,
             'agent_api_key' => $agent_api_key,
             'agent_api_key_masked' => $this->settings_registry->mask_secret($agent_api_key),
+            'working_plan' => $working_plan,
+            'blocked_periods' => $blocked_periods,
+            'working_plan_exceptions' => $working_plan_exceptions,
+            'providers' => $providers,
+            'csrf_token' => config_item('csrf_protection') ? $this->security->get_csrf_hash() : '',
             'i18n' => $i18n,
         ];
 
@@ -203,15 +245,37 @@ class Settings extends App_Controller
                 abort(403, 'Ayarları değiştirme yetkiniz bulunmamaktadır.');
             }
 
-            $payload = request('settings', []);
+            $payload = request('settings', null);
+            if ($payload === null) {
+                $raw_json = json_decode($this->input->raw_input_stream, true);
+                if (is_array($raw_json)) {
+                    $payload = $raw_json['settings'] ?? $raw_json;
+                }
+            }
             if (!is_array($payload)) {
-                throw new InvalidArgumentException('Geçersiz veri biçimi.');
+                $payload = request() ?: [];
+                if (isset($payload['settings']) && is_array($payload['settings'])) {
+                    $payload = $payload['settings'];
+                }
+            }
+
+            // If business section and company_working_plan is provided, persist it
+            $saved_working_plan = false;
+            if ($section === 'business' && isset($payload['company_working_plan'])) {
+                $plan_data = $payload['company_working_plan'];
+                $plan_str = is_array($plan_data) ? json_encode($plan_data) : (string)$plan_data;
+                $this->settings_model->set_setting('company_working_plan', $plan_str);
+                $saved_working_plan = true;
+                unset($payload['company_working_plan']);
             }
 
             $sanitized = $this->settings_registry->validate_and_sanitize($section, $payload);
             $user_id = (int) session('user_id');
 
             $diff = $this->settings_registry->save_section_values($section, $sanitized, $user_id);
+            if ($saved_working_plan) {
+                $diff['company_working_plan'] = ['old' => '...', 'new' => 'updated'];
+            }
 
             if (!empty($diff)) {
                 audit_log('settings.updated', 'system_settings', null, [
@@ -222,10 +286,136 @@ class Settings extends App_Controller
 
             json_response([
                 'success' => true,
-                'message' => 'Ayarlar başarıyla kaydedildi.',
+                'message' => lang('settings_saved_success') ?: 'Ayarlar başarıyla kaydedildi.',
                 'updated_count' => count($diff),
                 'updated_keys' => array_keys($diff),
                 'values' => $this->settings_registry->get_section_values($section, true),
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * REST API: Add a company-wide holiday or blocked period.
+     */
+    public function add_blocked_period(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS) && cannot('add', PRIV_BLOCKED_PERIODS)) {
+                abort(403, 'Tatil ekleme yetkiniz bulunmamaktadır.');
+            }
+
+            $name = trim((string) request('name'));
+            $start = trim((string) request('start_datetime'));
+            $end = trim((string) request('end_datetime'));
+            $notes = trim((string) request('notes', ''));
+
+            if (empty($name) || empty($start) || empty($end)) {
+                throw new InvalidArgumentException('Lütfen tüm zorunlu alanları (başlık, başlangıç ve bitiş) doldurunuz.');
+            }
+
+            $start_dt = date('Y-m-d H:i:s', strtotime($start));
+            $end_dt = date('Y-m-d H:i:s', strtotime($end));
+
+            if (strtotime($start_dt) >= strtotime($end_dt)) {
+                throw new InvalidArgumentException('Başlangıç tarihi bitiş tarihinden önce olmalıdır.');
+            }
+
+            $id = $this->blocked_periods_model->save([
+                'name' => $name,
+                'start_datetime' => $start_dt,
+                'end_datetime' => $end_dt,
+                'notes' => $notes,
+            ]);
+
+            audit_log('blocked_period.created', 'system_settings', $id, ['name' => $name]);
+
+            json_response([
+                'success' => true,
+                'message' => 'Tatil / Kapalı dönem başarıyla eklendi.',
+                'id' => $id,
+                'item' => [
+                    'id' => $id,
+                    'name' => $name,
+                    'start_datetime' => $start_dt,
+                    'end_datetime' => $end_dt,
+                    'notes' => $notes,
+                ],
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * REST API: Delete a company-wide holiday or blocked period.
+     */
+    public function delete_blocked_period(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS) && cannot('delete', PRIV_BLOCKED_PERIODS)) {
+                abort(403, 'Tatil silme yetkiniz bulunmamaktadır.');
+            }
+
+            $id = (int) request('id');
+            if ($id <= 0) {
+                throw new InvalidArgumentException('Geçersiz kayıt ID.');
+            }
+
+            $this->blocked_periods_model->delete($id);
+            audit_log('blocked_period.deleted', 'system_settings', $id, []);
+
+            json_response([
+                'success' => true,
+                'message' => 'Kayıt başarıyla silindi.',
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * REST API: Apply company working plan to all providers.
+     */
+    public function apply_global_working_plan(): void
+    {
+        try {
+            method('post');
+
+            if (cannot('edit', PRIV_SYSTEM_SETTINGS)) {
+                abort(403, 'Bu işlem için yetkiniz bulunmamaktadır.');
+            }
+
+            $plan = request('working_plan');
+            if (empty($plan)) {
+                $plan = setting('company_working_plan');
+            }
+            if (is_array($plan)) {
+                $plan = json_encode($plan);
+            }
+
+            if (empty($plan)) {
+                throw new InvalidArgumentException('Geçerli bir çalışma planı bulunamadı.');
+            }
+
+            $providers = $this->providers_model->get();
+            $count = 0;
+            foreach ($providers as $provider) {
+                $this->providers_model->set_setting($provider['id'], 'working_plan', $plan);
+                $count++;
+            }
+
+            audit_log('working_plan.applied_to_all', 'system_settings', null, ['count' => $count]);
+
+            json_response([
+                'success' => true,
+                'message' => "Çalışma planı {$count} personelin tamamına başarıyla uygulandı.",
+                'applied_count' => $count,
             ]);
         } catch (Throwable $e) {
             json_exception($e);

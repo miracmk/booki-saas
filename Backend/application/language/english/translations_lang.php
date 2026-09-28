@@ -905,3 +905,24 @@ $lang['settings_field_ldap_user_desc'] = 'Authorized search account.';
 $lang['settings_field_ldap_password'] = 'LDAP Password';
 $lang['settings_field_ldap_password_desc'] = 'Service account password.';
 
+$lang['settings_weekly_working_plan'] = 'Weekly Working Hours';
+$lang['settings_weekly_working_plan_desc'] = 'Standard open and closed business hours for each day of the week.';
+$lang['settings_apply_plan_to_all_providers'] = 'Sync Schedule to All Staff';
+$lang['settings_apply_plan_confirm'] = 'This working plan will be copied to all service providers. Are you sure?';
+$lang['settings_breaks_title'] = 'Daily Breaks';
+$lang['settings_breaks_desc'] = 'Company-wide lunch and rest breaks when bookings are blocked.';
+$lang['settings_add_break'] = '+ Add Break';
+$lang['settings_holidays_and_blocked_title'] = 'Company Holidays & Closed Periods';
+$lang['settings_holidays_and_blocked_desc'] = 'Official holidays or maintenance periods when the entire business is closed.';
+$lang['settings_add_holiday_btn'] = '+ Add Holiday / Closed Period';
+$lang['settings_no_holidays_defined'] = 'No holidays or closed periods scheduled yet.';
+$lang['settings_holiday_name'] = 'Holiday / Reason';
+$lang['settings_holiday_name_placeholder'] = 'e.g. National Holiday, Winter Break, Renovation';
+$lang['settings_modal_add_holiday_title'] = 'Define Holiday or Closed Period';
+$lang['settings_staff_exceptions_title'] = 'Staff Leaves & Working Exceptions';
+$lang['settings_staff_exceptions_desc'] = 'Individual staff member leaves, sick days, or temporary hour adjustments.';
+$lang['settings_go_to_team'] = 'Go to Team Management';
+$lang['settings_go_to_calendar'] = 'Go to Calendar';
+$lang['settings_staff_exceptions_empty'] = 'No staff leave or exception records currently defined.';
+
+

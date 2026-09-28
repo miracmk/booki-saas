@@ -923,3 +923,24 @@ $lang['settings_field_ldap_user_desc'] = 'Arama yapacak yetkili LDAP kullanıcı
 $lang['settings_field_ldap_password'] = 'LDAP Parolası';
 $lang['settings_field_ldap_password_desc'] = 'Yetkili servis hesabı parolası.';
 
+$lang['settings_weekly_working_plan'] = 'Haftalık Çalışma Saatleri';
+$lang['settings_weekly_working_plan_desc'] = 'İşletmenizin haftalık standart açık ve kapalı olduğu gün ve saat aralıkları.';
+$lang['settings_apply_plan_to_all_providers'] = 'Bu Planı Tüm Personele Senkronize Et';
+$lang['settings_apply_plan_confirm'] = 'Bu çalışma planı tüm personelin takvimine kopyalanacaktır. Emin misiniz?';
+$lang['settings_breaks_title'] = 'Günlük Mola & Dinlenme Saatleri';
+$lang['settings_breaks_desc'] = 'İşletme genelinde randevu kabul edilmeyecek öğle ve dinlenme aralıkları.';
+$lang['settings_add_break'] = '+ Mola Ekle';
+$lang['settings_holidays_and_blocked_title'] = 'İşletme Tatilleri & Kapalı Günler';
+$lang['settings_holidays_and_blocked_desc'] = 'Resmi tatiller, bayramlar veya tadilat nedeniyle tüm işletmenin kapalı olacağı tarih aralıkları.';
+$lang['settings_add_holiday_btn'] = '+ Yeni Tatil / Kapalı Dönem Ekle';
+$lang['settings_no_holidays_defined'] = 'Henüz planlanmış tatil veya kapalı dönem bulunmuyor.';
+$lang['settings_holiday_name'] = 'Tatil / Kapanış Nedeni';
+$lang['settings_holiday_name_placeholder'] = 'Örn: Ramazan Bayramı, Yılbaşı Tatili, Tadilat';
+$lang['settings_modal_add_holiday_title'] = 'Yeni Tatil veya Kapalı Dönem Tanımla';
+$lang['settings_staff_exceptions_title'] = 'Personel Özel İzin & Mesai İstisnaları';
+$lang['settings_staff_exceptions_desc'] = 'Belirli uzmanların yıllık izin, hastalık veya geçici çalışma saati değişiklikleri.';
+$lang['settings_go_to_team'] = 'Ekip Yönetimine Git';
+$lang['settings_go_to_calendar'] = 'Ajandaya Git';
+$lang['settings_staff_exceptions_empty'] = 'Şu anda tanımlı personel izin/istisna kaydı bulunmuyor.';
+
+
