@@ -109,10 +109,6 @@ class Whatsapp_bridge
     public function session_logout(string $tenant): ?array
     {
         $resolved = self::resolve_tenant_key($tenant);
-        if ($resolved === 'salonflora' && $tenant !== 'salonflora') {
-            return ['status' => 'connected'];
-        }
-
         return $this->request('POST', '/v1/session/' . rawurlencode($resolved) . '/logout');
     }
 

@@ -1173,14 +1173,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.innerHTML = origHtml;
                 this.disabled = false;
                 if (d.success) {
+                    if (d.status === 'connected') {
+                        if (waBridgeBadge) {
+                            waBridgeBadge.className = 'badge px-3 py-2 rounded-pill bg-success';
+                            waBridgeBadge.textContent = 'Bağlı ✓';
+                        }
+                        waQrResult.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-1"></i><strong>Bağlantı Aktif!</strong> WhatsApp QR eşleştirmesi zaten bağlı ve aktif. Farklı bir cihaz bağlamak için önce "Bağlantıyı Kapat" butonuna basın.</div>';
+                        showToast('WhatsApp cihazı zaten bağlı!', 'bg-success');
+                        return;
+                    }
                     showToast('QR eşleştirme başlatıldı.', 'bg-info');
-                    if (d.qr) {
-                        renderQrImage(d.qr);
+                    const qrCode = d.qr || (d.response && d.response.qr);
+                    if (qrCode) {
+                        renderQrImage(qrCode);
                     }
                     if (waBridgeBadge) {
                         waBridgeBadge.className = 'badge px-3 py-2 rounded-pill bg-warning text-dark';
                         waBridgeBadge.textContent = 'Eşleşiyor...';
                     }
+                    setTimeout(checkBridgeStatus, 1000);
                     if (qrPollingInterval) clearInterval(qrPollingInterval);
                     qrPollingInterval = setInterval(checkBridgeStatus, 3000);
                 } else {

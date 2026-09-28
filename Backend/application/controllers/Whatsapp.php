@@ -534,10 +534,23 @@ class Whatsapp extends App_Controller
             $settings = $this->messaging_settings_model->get_settings();
 
             if (($settings['whatsapp_mode'] ?? 'official') !== 'unofficial') {
-                throw new InvalidArgumentException('Resmi olmayan mod aktif değil.');
+                $this->messaging_settings_model->save_settings([
+                    'whatsapp_mode' => 'unofficial',
+                    'whatsapp_unofficial_consent_at' => date('Y-m-d H:i:s'),
+                ]);
+                $this->load->model('settings_model');
+                $this->settings_model->set_setting('whatsapp_mode', 'unofficial');
+                $settings['whatsapp_mode'] = 'unofficial';
             }
 
-            $bridge = new Whatsapp_bridge($settings['whatsapp_bridge_url'], $settings['whatsapp_bridge_secret']);
+            $bridge_url = !empty($settings['whatsapp_bridge_url'])
+                ? $settings['whatsapp_bridge_url']
+                : (getenv('WA_BRIDGE_URL') ?: 'http://wa-bridge:3000');
+            $bridge_secret = !empty($settings['whatsapp_bridge_secret'])
+                ? $settings['whatsapp_bridge_secret']
+                : (getenv('WA_BRIDGE_SECRET') ?: null);
+
+            $bridge = new Whatsapp_bridge($bridge_url, $bridge_secret);
             if (!$bridge->is_configured()) {
                 throw new InvalidArgumentException('Köprü adresi tanımlı değil.');
             }
@@ -554,9 +567,15 @@ class Whatsapp extends App_Controller
                 throw new RuntimeException('Köprüye ulaşılamadı.');
             }
 
-            $this->messaging_settings_model->save_settings(['whatsapp_unofficial_status' => 'connecting']);
+            $status = (string) ($result['status'] ?? 'connecting');
+            $this->messaging_settings_model->save_settings(['whatsapp_unofficial_status' => $status]);
 
-            json_response(['success' => true, 'response' => $result]);
+            json_response([
+                'success' => true,
+                'status' => $status,
+                'qr' => $result['qr'] ?? null,
+                'response' => $result,
+            ]);
         } catch (Throwable $e) {
             json_exception($e);
         }
@@ -578,7 +597,14 @@ class Whatsapp extends App_Controller
 
             $settings = $this->messaging_settings_model->get_settings();
 
-            $bridge = new Whatsapp_bridge($settings['whatsapp_bridge_url'], $settings['whatsapp_bridge_secret']);
+            $bridge_url = !empty($settings['whatsapp_bridge_url'])
+                ? $settings['whatsapp_bridge_url']
+                : (getenv('WA_BRIDGE_URL') ?: 'http://wa-bridge:3000');
+            $bridge_secret = !empty($settings['whatsapp_bridge_secret'])
+                ? $settings['whatsapp_bridge_secret']
+                : (getenv('WA_BRIDGE_SECRET') ?: null);
+
+            $bridge = new Whatsapp_bridge($bridge_url, $bridge_secret);
 
             if (!$bridge->is_configured()) {
                 json_response(['success' => false, 'reason' => 'bridge_not_configured']);

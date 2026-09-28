@@ -435,10 +435,9 @@ $config['csrf_exclude_uris'] = [
     'payment_webhooks/.*',
     'payment/callback.*',
     'payment/unified_callback.*',
-    // WhatsApp webhook - Meta POSTs updates here with no CSRF token; verify_token validation replaces it
+    // WhatsApp endpoints (webhooks and authenticated QR pairing / mode AJAX calls)
+    'whatsapp/.*',
     'whatsapp/webhook',
-    // WhatsApp unofficial bridge - ki-wa-bridge POSTs inbound messages here with no CSRF token;
-    // the X-Bridge-Secret header validation replaces it (see Whatsapp::bridge_inbound and Superadmin_tenants::platform_bridge_inbound)
     'whatsapp/bridge_inbound',
     'superadmin_tenants/platform_bridge_inbound',
     // AI Assistant widget - public booking-page endpoint (anonymous visitors, same trust level as
