@@ -466,7 +466,7 @@ class Ai_channel_responder
         $CI->load->model('services_model');
         $CI->load->model('appointments_model');
 
-        $company_name = setting('company_name') ?: 'İşletmemiz';
+        $company_name = setting('ai_brand_name') ?: (setting('company_name') ?: 'İşletmemiz');
         $company_phone = setting('company_phone') ?: '';
         $company_address = setting('company_address') ?: 'İşletme Adresi';
         $booking_url = setting('company_link') ?: site_url();
@@ -675,6 +675,42 @@ MÜŞTERİ BU KANALDAN ({$channel_name}) HENÜZ EŞLEŞMEMİŞTİR:
 REC;
         }
 
+        $custom_rules = [];
+        $ai_tone = setting('ai_tone') ?: 'friendly_professional';
+        $tone_text = match($ai_tone) {
+            'formal' => 'Resmi, kurumsal ve mesafeli bir dille yanıt ver.',
+            'casual_friendly' => 'Rahat, samimi, arkadaşça ve esprili bir dille yanıt ver.',
+            'warm_empathetic' => 'Son derece sıcak, anlayışlı ve empatik bir dille yanıt ver.',
+            default => 'Saygılı, nazik, samimi ve profesyonel bir dille yanıt ver.',
+        };
+        $custom_rules[] = "- İletişim Üslubu: " . $tone_text;
+
+        $greeting_style = setting('ai_greeting_style');
+        if (!empty($greeting_style)) {
+            $custom_rules[] = "- İlk Karşılama Şablonu: " . trim($greeting_style);
+        }
+        $do_rules = setting('ai_do_rules');
+        if (!empty($do_rules)) {
+            $custom_rules[] = "- İŞLETME ZORUNLU KURALLARI:\n" . trim($do_rules);
+        }
+        $dont_rules = setting('ai_dont_rules');
+        if (!empty($dont_rules)) {
+            $custom_rules[] = "- KESİNLİKLE YAPILMAYACAKLAR (YASAKLAR):\n" . trim($dont_rules);
+        }
+        $cancellation_policy = setting('ai_cancellation_policy');
+        if (!empty($cancellation_policy)) {
+            $custom_rules[] = "- İPTAL VE DEĞİŞİKLİK POLİTİKASI:\n" . trim($cancellation_policy);
+        }
+        $discount_policy = setting('ai_discount_policy');
+        if (!empty($discount_policy)) {
+            $custom_rules[] = "- İNDİRİM VE KAMPANYA POLİTİKASI:\n" . trim($discount_policy);
+        }
+        $forbidden_terms = setting('ai_forbidden_terms');
+        if (!empty($forbidden_terms)) {
+            $custom_rules[] = "- KULLANILMASI YASAK KELİMELER: " . trim($forbidden_terms);
+        }
+        $ai_rules_block = implode("\n", $custom_rules);
+
         return <<<PROMPT
 Sen "{$company_name}" işletmesinin {$channel_name} üzerindeki resmi, nazik ve akıllı yapay zeka asistanısın.
 
@@ -686,6 +722,9 @@ GÜNCEL ZAMAN:
 - Telefon: {$company_phone}
 - Adres: {$company_address}
 - Online Randevu Bağlantısı: {$booking_url}
+
+İŞLETME ÖZEL ASİSTAN POLİTİKASI & KURALLARI:
+{$ai_rules_block}
 
 MEVCUT HİZMETLER:
 {$services_text}

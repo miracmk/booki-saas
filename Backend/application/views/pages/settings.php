@@ -392,6 +392,57 @@ $active_section = $active_section ?? vars('active_section') ?? 'business';
                             <?php endforeach; ?>
 
                             <!-- Section Specific Interactive Cards -->
+                            <?php if ($section_key === 'communication'): ?>
+                                <!-- WhatsApp Baileys Bridge QR Panel -->
+                                <div id="wa-bridge-panel" class="card border-warning border-2 shadow-sm rounded-4 mb-4" style="display: none;">
+                                    <div class="card-header bg-warning bg-opacity-10 border-0 py-3 px-4 rounded-top-4">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fas fa-qrcode text-warning fa-lg"></i>
+                                                <div>
+                                                    <h5 class="fw-bold mb-0 text-dark"><?= lang('settings_wa_bridge_title') ?: 'QR Köprü Eşleştirme (Baileys)' ?></h5>
+                                                    <small class="text-muted"><?= lang('settings_wa_bridge_desc') ?: 'Cihazınızı QR kod okutarak bağlayın' ?></small>
+                                                </div>
+                                            </div>
+                                            <span id="wa-bridge-badge" class="badge bg-secondary px-3 py-2 rounded-pill"><?= lang('disconnected') ?: 'Bağlı Değil' ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="alert alert-warning d-flex gap-2 mb-3">
+                                            <i class="fas fa-exclamation-triangle mt-1"></i>
+                                            <div>
+                                                <strong><?= lang('settings_wa_bridge_warning_title') ?: 'Resmi Olmayan Yöntem' ?></strong><br>
+                                                <small><?= lang('settings_wa_bridge_warning_desc') ?: 'Bu yöntem Meta tarafından desteklenmez. Hesabınızın kısıtlanma riski taşır. Yalnızca bilgilendirilmiş onay ile etkinleştirin.' ?></small>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="wa-bridge-consent">
+                                            <label class="form-check-label" for="wa-bridge-consent">
+                                                <?= lang('settings_wa_bridge_consent') ?: 'WhatsApp kullanım koşullarını bilerek, resmi olmayan yöntemle (QR/cihaz eşleştirme) bağlantı yapmayı kabul ediyorum.' ?>
+                                            </label>
+                                        </div>
+
+                                        <div class="d-flex gap-2 mb-3">
+                                            <button type="button" id="wa-qr-start-btn" class="btn btn-primary btn-sm" disabled>
+                                                <i class="fas fa-qrcode me-1"></i> <?= lang('settings_wa_qr_start') ?: 'QR Başlat' ?>
+                                            </button>
+                                            <button type="button" id="wa-qr-status-btn" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-sync-alt me-1"></i> <?= lang('settings_wa_qr_status') ?: 'Durumu Yenile' ?>
+                                            </button>
+                                            <button type="button" id="wa-qr-logout-btn" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-sign-out-alt me-1"></i> <?= lang('settings_wa_qr_logout') ?: 'Bağlantıyı Kapat' ?>
+                                            </button>
+                                        </div>
+
+                                        <div id="wa-qr-result" class="text-center p-4 border rounded-3 bg-light">
+                                            <i class="fas fa-qrcode fa-2x text-muted mb-2 d-block"></i>
+                                            <span class="text-muted"><?= lang('settings_wa_qr_placeholder') ?: 'QR kodunu görüntülemek için "QR Başlat" butonuna basın.' ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
                             <?php if ($section_key === 'integrations'): ?>
                                 <!-- MCP AI Developer Hub Card -->
                                 <div class="card border-primary border-2 shadow-sm rounded-4 mb-4">
@@ -1011,6 +1062,174 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // 6. WhatsApp Dual-Mode & Baileys Bridge Handlers
+    const waModeSelect = document.querySelector('[name="whatsapp_mode"]') || document.querySelector('[data-field="whatsapp_mode"]');
+    const waBridgePanel = document.getElementById('wa-bridge-panel');
+    const waConsentCheckbox = document.getElementById('wa-bridge-consent');
+    const waQrStartBtn = document.getElementById('wa-qr-start-btn');
+    const waQrStatusBtn = document.getElementById('wa-qr-status-btn');
+    const waQrLogoutBtn = document.getElementById('wa-qr-logout-btn');
+    const waQrResult = document.getElementById('wa-qr-result');
+    const waBridgeBadge = document.getElementById('wa-bridge-badge');
+    const waRoutes = window.vars('whatsapp_routes') || {
+        qr_start: window.vars('base_url') + '/index.php/whatsapp/qr_start',
+        qr_status: window.vars('base_url') + '/index.php/whatsapp/qr_status',
+        qr_logout: window.vars('base_url') + '/index.php/whatsapp/qr_logout',
+        save_mode: window.vars('base_url') + '/index.php/whatsapp/save_mode'
+    };
+
+    function updateBridgePanelVisibility() {
+        if (!waBridgePanel) return;
+        const currentMode = waModeSelect ? waModeSelect.value : 'official';
+        if (currentMode === 'unofficial') {
+            waBridgePanel.style.display = 'block';
+            checkBridgeStatus();
+        } else {
+            waBridgePanel.style.display = 'none';
+        }
+    }
+
+    if (waModeSelect) {
+        waModeSelect.addEventListener('change', updateBridgePanelVisibility);
+        updateBridgePanelVisibility();
+    }
+
+    if (waConsentCheckbox && waQrStartBtn) {
+        const consentAt = window.vars('whatsapp_unofficial_consent_at');
+        if (consentAt) {
+            waConsentCheckbox.checked = true;
+            waQrStartBtn.disabled = false;
+        }
+        waConsentCheckbox.addEventListener('change', function() {
+            waQrStartBtn.disabled = !this.checked;
+        });
+    }
+
+    let qrPollingInterval = null;
+
+    function renderQrImage(qrData) {
+        if (!waQrResult) return;
+        if (!qrData) {
+            waQrResult.innerHTML = '<span class="text-muted">QR kodu henüz hazır değil.</span>';
+            return;
+        }
+        const qr = String(qrData);
+        if (qr.startsWith('data:image')) {
+            waQrResult.innerHTML = `<img src="${qr}" alt="WhatsApp QR" class="img-fluid rounded border shadow-sm" style="max-width:280px">`;
+        } else if (!qr.startsWith('{') && !qr.startsWith('http')) {
+            waQrResult.innerHTML = `<img src="data:image/png;base64,${qr}" alt="WhatsApp QR" class="img-fluid rounded border shadow-sm" style="max-width:280px">`;
+        } else {
+            waQrResult.innerHTML = '<span class="text-muted">QR çıktısı desteklenmiyor.</span>';
+        }
+    }
+
+    function checkBridgeStatus() {
+        if (!waRoutes || !waRoutes.qr_status) return;
+        fetch(waRoutes.qr_status, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d && d.success) {
+                const st = d.status || 'disconnected';
+                if (waBridgeBadge) {
+                    waBridgeBadge.className = 'badge px-3 py-2 rounded-pill ' + 
+                        (st === 'connected' ? 'bg-success' : (st === 'error' ? 'bg-danger' : (st === 'connecting' ? 'bg-warning text-dark' : 'bg-secondary')));
+                    waBridgeBadge.textContent = st === 'connected' ? 'Bağlı ✓' : (st === 'connecting' ? 'Eşleşiyor...' : (st === 'error' ? 'Hata' : 'Bağlı Değil'));
+                }
+                if (st === 'connected') {
+                    if (qrPollingInterval) { clearInterval(qrPollingInterval); qrPollingInterval = null; }
+                    waQrResult.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-1"></i><strong>Bağlantı Kuruldu!</strong> WhatsApp QR eşleştirmesi aktif ve hazır.</div>';
+                } else if (st === 'connecting' && d.qr) {
+                    renderQrImage(d.qr);
+                }
+            }
+        })
+        .catch(() => {});
+    }
+
+    if (waQrStartBtn) {
+        waQrStartBtn.addEventListener('click', function() {
+            const csrfToken = window.vars('csrf_token') || '';
+            const origHtml = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Başlatılıyor...';
+
+            const formData = new URLSearchParams();
+            formData.append('csrf_token', csrfToken);
+
+            fetch(waRoutes.qr_start, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrfToken
+                },
+                body: formData.toString()
+            })
+            .then(r => r.json())
+            .then(d => {
+                this.innerHTML = origHtml;
+                this.disabled = false;
+                if (d.success) {
+                    showToast('QR eşleştirme başlatıldı.', 'bg-info');
+                    if (d.qr) {
+                        renderQrImage(d.qr);
+                    }
+                    if (waBridgeBadge) {
+                        waBridgeBadge.className = 'badge px-3 py-2 rounded-pill bg-warning text-dark';
+                        waBridgeBadge.textContent = 'Eşleşiyor...';
+                    }
+                    if (qrPollingInterval) clearInterval(qrPollingInterval);
+                    qrPollingInterval = setInterval(checkBridgeStatus, 3000);
+                } else {
+                    showToast(d.message || 'QR başlatılamadı.', 'bg-danger');
+                }
+            })
+            .catch(err => {
+                this.innerHTML = origHtml;
+                this.disabled = false;
+                showToast('İstek hatası: ' + err.message, 'bg-danger');
+            });
+        });
+    }
+
+    if (waQrStatusBtn) {
+        waQrStatusBtn.addEventListener('click', function() {
+            checkBridgeStatus();
+            showToast('Bağlantı durumu kontrol edildi.', 'bg-secondary');
+        });
+    }
+
+    if (waQrLogoutBtn) {
+        waQrLogoutBtn.addEventListener('click', function() {
+            if (!confirm('WhatsApp cihaz bağlantısını kesmek istediğinize emin misiniz?')) return;
+            const csrfToken = window.vars('csrf_token') || '';
+            const formData = new URLSearchParams();
+            formData.append('csrf_token', csrfToken);
+
+            fetch(waRoutes.qr_logout, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': csrfToken
+                },
+                body: formData.toString()
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (qrPollingInterval) { clearInterval(qrPollingInterval); qrPollingInterval = null; }
+                if (waBridgeBadge) {
+                    waBridgeBadge.className = 'badge px-3 py-2 rounded-pill bg-secondary';
+                    waBridgeBadge.textContent = 'Bağlı Değil';
+                }
+                waQrResult.innerHTML = '<span class="text-muted"><i class="fas fa-qrcode fa-2x mb-2 d-block"></i> Bağlantı kapatıldı. Yeniden bağlanmak için "QR Başlat"a basın.</span>';
+                showToast('WhatsApp bağlantısı kapatıldı.', 'bg-warning');
+            });
+        });
+    }
 });
 
 function escapeHtml(text) {

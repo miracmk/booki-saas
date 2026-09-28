@@ -925,4 +925,45 @@ $lang['settings_go_to_team'] = 'Go to Team Management';
 $lang['settings_go_to_calendar'] = 'Go to Calendar';
 $lang['settings_staff_exceptions_empty'] = 'No staff leave or exception records currently defined.';
 
+// WhatsApp Dual-Mode & Baileys Bridge
+$lang['settings_tab_whatsapp'] = 'WhatsApp Integration';
+$lang['settings_field_whatsapp_mode'] = 'WhatsApp Delivery Mode';
+$lang['settings_field_whatsapp_mode_desc'] = 'Choose between Official Meta Cloud API or Unofficial QR Bridge (Baileys).';
+$lang['settings_field_whatsapp_bridge_url'] = 'Baileys Bridge Server URL';
+$lang['settings_field_whatsapp_bridge_url_desc'] = 'Address of the QR pairing bridge (default: http://wa-bridge:3000).';
+$lang['settings_field_whatsapp_bridge_secret'] = 'Baileys Bridge Secret Key';
+$lang['settings_field_whatsapp_bridge_secret_desc'] = 'Shared secret key used to authenticate with the bridge server.';
+$lang['settings_wa_bridge_title'] = 'QR Bridge Pairing (Baileys)';
+$lang['settings_wa_bridge_desc'] = 'Connect your device by scanning a WhatsApp QR code';
+$lang['settings_wa_bridge_warning_title'] = 'Unofficial Transport';
+$lang['settings_wa_bridge_warning_desc'] = 'This method is not endorsed by Meta and carries risks of account restrictions. Only enable with informed consent.';
+$lang['settings_wa_bridge_consent'] = 'I acknowledge the WhatsApp terms of service and consent to connect via unofficial QR device pairing.';
+$lang['settings_wa_qr_start'] = 'Start QR Pairing';
+$lang['settings_wa_qr_status'] = 'Refresh Status';
+$lang['settings_wa_qr_logout'] = 'Disconnect Device';
+$lang['settings_wa_qr_placeholder'] = 'Click "Start QR Pairing" to generate and display the QR code.';
+
+// AI Assistant Settings
+$lang['settings_tab_ai_assistant'] = 'AI Assistant Settings';
+$lang['settings_field_ai_assistant_enabled'] = 'Enable AI Assistant';
+$lang['settings_field_ai_assistant_enabled_desc'] = 'Automated AI-powered customer replies across WhatsApp, Telegram, and other channels.';
+$lang['settings_field_ai_brand_name'] = 'Assistant Brand Name';
+$lang['settings_field_ai_brand_name_desc'] = 'Business brand name the AI uses when addressing customers.';
+$lang['settings_field_ai_tone'] = 'Conversation Tone';
+$lang['settings_field_ai_tone_desc'] = 'Personality and tone of voice the AI assistant uses.';
+$lang['settings_field_ai_language'] = 'Assistant Primary Language';
+$lang['settings_field_ai_language_desc'] = 'Primary language the AI assistant communicates in.';
+$lang['settings_field_ai_greeting_style'] = 'Greeting Message Template';
+$lang['settings_field_ai_greeting_style_desc'] = 'Opening greeting style used when a customer initiates contact.';
+$lang['settings_field_ai_do_rules'] = 'Do Rules (Mandatory Directives)';
+$lang['settings_field_ai_do_rules_desc'] = 'Guidelines the AI assistant must always follow (one rule per line).';
+$lang['settings_field_ai_dont_rules'] = "Don't Rules (Forbidden Behaviors)";
+$lang['settings_field_ai_dont_rules_desc'] = 'Behaviors the AI assistant must strictly avoid (one rule per line).';
+$lang['settings_field_ai_cancellation_policy'] = 'Cancellation Policy';
+$lang['settings_field_ai_cancellation_policy_desc'] = 'Terms and policies explained when a customer asks to cancel.';
+$lang['settings_field_ai_discount_policy'] = 'Discount & Promo Policy';
+$lang['settings_field_ai_discount_policy_desc'] = 'Guidance on discounts or promotional offers.';
+$lang['settings_field_ai_forbidden_terms'] = 'Forbidden Terms';
+$lang['settings_field_ai_forbidden_terms_desc'] = 'Comma-separated terms or words the AI assistant should never mention.';
+
 

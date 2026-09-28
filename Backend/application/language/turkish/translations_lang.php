@@ -943,4 +943,45 @@ $lang['settings_go_to_team'] = 'Ekip Yönetimine Git';
 $lang['settings_go_to_calendar'] = 'Ajandaya Git';
 $lang['settings_staff_exceptions_empty'] = 'Şu anda tanımlı personel izin/istisna kaydı bulunmuyor.';
 
+// WhatsApp Dual-Mode & Baileys Bridge
+$lang['settings_tab_whatsapp'] = 'WhatsApp Entegrasyonu';
+$lang['settings_field_whatsapp_mode'] = 'WhatsApp Gönderim Modu';
+$lang['settings_field_whatsapp_mode_desc'] = 'Resmi Meta Cloud API veya resmi olmayan QR köprü (Baileys) arasında seçim yapın.';
+$lang['settings_field_whatsapp_bridge_url'] = 'Baileys Köprü Sunucu URL';
+$lang['settings_field_whatsapp_bridge_url_desc'] = 'QR eşleştirme köprüsünün adresi (varsayılan: http://wa-bridge:3000).';
+$lang['settings_field_whatsapp_bridge_secret'] = 'Baileys Köprü Gizli Anahtarı';
+$lang['settings_field_whatsapp_bridge_secret_desc'] = 'Köprü sunucusuyla kimlik doğrulaması için kullanılan gizli anahtar.';
+$lang['settings_wa_bridge_title'] = 'QR Köprü Eşleştirme (Baileys)';
+$lang['settings_wa_bridge_desc'] = 'Cihazınızı QR kod okutarak bağlayın';
+$lang['settings_wa_bridge_warning_title'] = 'Resmi Olmayan Yöntem';
+$lang['settings_wa_bridge_warning_desc'] = 'Bu yöntem Meta tarafından desteklenmez. Hesabınızın kısıtlanma riski taşır. Yalnızca bilgilendirilmiş onay ile etkinleştirin.';
+$lang['settings_wa_bridge_consent'] = 'WhatsApp kullanım koşullarını bilerek, resmi olmayan yöntemle (QR/cihaz eşleştirme) bağlantı yapmayı kabul ediyorum.';
+$lang['settings_wa_qr_start'] = 'QR Başlat';
+$lang['settings_wa_qr_status'] = 'Durumu Yenile';
+$lang['settings_wa_qr_logout'] = 'Bağlantıyı Kapat';
+$lang['settings_wa_qr_placeholder'] = 'QR kodunu görüntülemek için "QR Başlat" butonuna basın.';
+
+// AI Assistant Settings
+$lang['settings_tab_ai_assistant'] = 'AI Asistan Ayarları';
+$lang['settings_field_ai_assistant_enabled'] = 'AI Asistan Aktif';
+$lang['settings_field_ai_assistant_enabled_desc'] = 'WhatsApp, Telegram ve diğer kanallarda yapay zeka ile otomatik müşteri yanıtlama.';
+$lang['settings_field_ai_brand_name'] = 'Asistan Marka Adı';
+$lang['settings_field_ai_brand_name_desc'] = 'AI asistanın müşterilere hitap ederken kullanacağı işletme adı.';
+$lang['settings_field_ai_tone'] = 'İletişim Tonu';
+$lang['settings_field_ai_tone_desc'] = 'AI asistanın müşterilerle konuşma üslubu.';
+$lang['settings_field_ai_language'] = 'Asistan Dili';
+$lang['settings_field_ai_language_desc'] = 'AI asistanın müşterilerle iletişim kuracağı ana dil.';
+$lang['settings_field_ai_greeting_style'] = 'Karşılama Mesajı';
+$lang['settings_field_ai_greeting_style_desc'] = 'Müşteri ilk mesaj yazdığında asistanın kullanacağı karşılama şablonu.';
+$lang['settings_field_ai_do_rules'] = 'Yapılacaklar Kuralları (Do Rules)';
+$lang['settings_field_ai_do_rules_desc'] = 'AI asistanın her zaman uyması gereken kurallar (her satıra bir kural).';
+$lang['settings_field_ai_dont_rules'] = "Yapılmayacaklar Kuralları (Don't Rules)";
+$lang['settings_field_ai_dont_rules_desc'] = 'AI asistanın kesinlikle yapmaması gereken şeyler (her satıra bir kural).';
+$lang['settings_field_ai_cancellation_policy'] = 'İptal Politikası';
+$lang['settings_field_ai_cancellation_policy_desc'] = 'Müşteri iptali sorduğunda asistanın aktaracağı iptal koşulları.';
+$lang['settings_field_ai_discount_policy'] = 'İndirim / Kampanya Politikası';
+$lang['settings_field_ai_discount_policy_desc'] = 'İndirim sorulduğunda asistanın ne söyleyeceği.';
+$lang['settings_field_ai_forbidden_terms'] = 'Yasaklı Kelimeler';
+$lang['settings_field_ai_forbidden_terms_desc'] = 'AI asistanın yanıtlarında kullanmaması gereken kelimeler (virgülle ayırın).';
+
 

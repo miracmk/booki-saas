@@ -19,6 +19,7 @@ class Settings extends App_Controller
         $this->load->model('providers_model');
         $this->load->model('blocked_periods_model');
         $this->load->model('working_plan_exceptions_model');
+        $this->load->model('messaging_settings_model');
         $this->load->library('settings_registry');
         $this->load->library('permission_service');
         $this->load->library('accounts');
@@ -71,6 +72,52 @@ class Settings extends App_Controller
         $section_values = [];
         foreach (array_keys($schemas) as $sec) {
             $section_values[$sec] = $this->settings_registry->get_section_values($sec, true);
+        }
+
+        // Preload messaging settings (WhatsApp dual-mode, Baileys bridge, etc.)
+        $messaging_settings = $this->messaging_settings_model->get_settings();
+        if (empty($section_values['communication']['whatsapp_mode'])) {
+            $section_values['communication']['whatsapp_mode'] = $messaging_settings['whatsapp_mode'] ?? 'official';
+        }
+        if (empty($section_values['communication']['whatsapp_bridge_url'])) {
+            $section_values['communication']['whatsapp_bridge_url'] = $messaging_settings['whatsapp_bridge_url'] ?? 'http://wa-bridge:3000';
+        }
+        if (empty($section_values['communication']['whatsapp_phone_number_id']) && !empty($messaging_settings['whatsapp_phone_number_id'])) {
+            $section_values['communication']['whatsapp_phone_number_id'] = $messaging_settings['whatsapp_phone_number_id'];
+        }
+
+        // Preload tenant AI policies into integrations section if table exists
+        if ($this->db->table_exists('tenant_ai_policies')) {
+            $ai_policy_row = $this->db->get('tenant_ai_policies')->row_array();
+            if ($ai_policy_row) {
+                if (empty($section_values['integrations']['ai_brand_name'])) {
+                    $section_values['integrations']['ai_brand_name'] = $ai_policy_row['brand_name'] ?? '';
+                }
+                if (empty($section_values['integrations']['ai_tone'])) {
+                    $section_values['integrations']['ai_tone'] = $ai_policy_row['tone'] ?? 'friendly_professional';
+                }
+                if (empty($section_values['integrations']['ai_language'])) {
+                    $section_values['integrations']['ai_language'] = $ai_policy_row['language'] ?? 'tr';
+                }
+                if (empty($section_values['integrations']['ai_greeting_style'])) {
+                    $section_values['integrations']['ai_greeting_style'] = $ai_policy_row['greeting_style'] ?? '';
+                }
+                if (empty($section_values['integrations']['ai_do_rules'])) {
+                    $section_values['integrations']['ai_do_rules'] = $ai_policy_row['do_rules'] ?? '';
+                }
+                if (empty($section_values['integrations']['ai_dont_rules'])) {
+                    $section_values['integrations']['ai_dont_rules'] = $ai_policy_row['dont_rules'] ?? '';
+                }
+                if (empty($section_values['integrations']['ai_cancellation_policy'])) {
+                    $section_values['integrations']['ai_cancellation_policy'] = $ai_policy_row['cancellation_policy'] ?? '';
+                }
+                if (empty($section_values['integrations']['ai_discount_policy'])) {
+                    $section_values['integrations']['ai_discount_policy'] = $ai_policy_row['discount_policy'] ?? '';
+                }
+                if (empty($section_values['integrations']['ai_forbidden_terms'])) {
+                    $section_values['integrations']['ai_forbidden_terms'] = $ai_policy_row['forbidden_terms'] ?? '';
+                }
+            }
         }
 
         // Fetch working plan and exceptions data
@@ -142,6 +189,15 @@ class Settings extends App_Controller
             'working_plan_exceptions' => $working_plan_exceptions,
             'csrf_token' => config_item('csrf_protection') ? $this->security->get_csrf_hash() : '',
             'i18n' => $i18n,
+            'whatsapp_unofficial_status' => $messaging_settings['whatsapp_unofficial_status'] ?? 'disconnected',
+            'whatsapp_unofficial_consent_at' => $messaging_settings['whatsapp_unofficial_consent_at'] ?? null,
+            'whatsapp_routes' => [
+                'save_mode' => site_url('whatsapp/save_mode'),
+                'qr_start' => site_url('whatsapp/qr_start'),
+                'qr_status' => site_url('whatsapp/qr_status'),
+                'qr_logout' => site_url('whatsapp/qr_logout'),
+                'check_connection' => site_url('whatsapp/check_connection'),
+            ],
         ]);
 
         $view_data = [
@@ -160,6 +216,8 @@ class Settings extends App_Controller
             'blocked_periods' => $blocked_periods,
             'working_plan_exceptions' => $working_plan_exceptions,
             'providers' => $providers,
+            'whatsapp_unofficial_status' => $messaging_settings['whatsapp_unofficial_status'] ?? 'disconnected',
+            'whatsapp_unofficial_consent_at' => $messaging_settings['whatsapp_unofficial_consent_at'] ?? null,
             'csrf_token' => config_item('csrf_protection') ? $this->security->get_csrf_hash() : '',
             'i18n' => $i18n,
         ];
@@ -275,6 +333,52 @@ class Settings extends App_Controller
             $diff = $this->settings_registry->save_section_values($section, $sanitized, $user_id);
             if ($saved_working_plan) {
                 $diff['company_working_plan'] = ['old' => '...', 'new' => 'updated'];
+            }
+
+            // Sync communication settings to messaging_settings table
+            if ($section === 'communication') {
+                $ms_data = [];
+                if (isset($sanitized['whatsapp_mode'])) {
+                    $ms_data['whatsapp_mode'] = $sanitized['whatsapp_mode'];
+                }
+                if (isset($sanitized['whatsapp_bridge_url'])) {
+                    $ms_data['whatsapp_bridge_url'] = $sanitized['whatsapp_bridge_url'];
+                }
+                if (!empty($sanitized['whatsapp_bridge_secret']) && !str_contains((string)$sanitized['whatsapp_bridge_secret'], '••••')) {
+                    $ms_data['whatsapp_bridge_secret'] = $sanitized['whatsapp_bridge_secret'];
+                }
+                if (isset($sanitized['whatsapp_phone_number_id'])) {
+                    $ms_data['whatsapp_phone_number_id'] = $sanitized['whatsapp_phone_number_id'];
+                }
+                if (!empty($sanitized['whatsapp_access_token']) && !str_contains((string)$sanitized['whatsapp_access_token'], '••••')) {
+                    $ms_data['whatsapp_access_token'] = $sanitized['whatsapp_access_token'];
+                }
+                if (!empty($ms_data)) {
+                    $this->messaging_settings_model->save_settings($ms_data);
+                }
+            }
+
+            // Sync AI assistant policy settings to tenant_ai_policies table
+            if ($section === 'integrations' && $this->db->table_exists('tenant_ai_policies')) {
+                $ai_fields = [
+                    'brand_name' => $sanitized['ai_brand_name'] ?? null,
+                    'tone' => $sanitized['ai_tone'] ?? 'friendly_professional',
+                    'language' => $sanitized['ai_language'] ?? 'tr',
+                    'greeting_style' => $sanitized['ai_greeting_style'] ?? null,
+                    'do_rules' => $sanitized['ai_do_rules'] ?? null,
+                    'dont_rules' => $sanitized['ai_dont_rules'] ?? null,
+                    'cancellation_policy' => $sanitized['ai_cancellation_policy'] ?? null,
+                    'discount_policy' => $sanitized['ai_discount_policy'] ?? null,
+                    'forbidden_terms' => $sanitized['ai_forbidden_terms'] ?? null,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
+                $existing_policy = $this->db->get('tenant_ai_policies')->row_array();
+                if ($existing_policy) {
+                    $this->db->update('tenant_ai_policies', $ai_fields, ['id' => $existing_policy['id']]);
+                } else {
+                    $ai_fields['created_at'] = date('Y-m-d H:i:s');
+                    $this->db->insert('tenant_ai_policies', $ai_fields);
+                }
             }
 
             if (!empty($diff)) {

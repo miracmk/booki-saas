@@ -261,5 +261,73 @@ class SettingsCenterIntegrationTest extends TenantTestCase
             }
         }
     }
+
+    /**
+     * Test WhatsApp dual-mode (Baileys bridge) and company AI assistant settings schema and persistence.
+     */
+    public function testWhatsAppDualModeAndAiAssistantSettings(): void
+    {
+        $ci = &get_instance();
+        $ci->load->library('settings_registry');
+        $ci->load->model('messaging_settings_model');
+
+        // 1. Verify schema definitions
+        $comm_schema = $ci->settings_registry->get_schema(\Settings_registry::SECTION_COMMUNICATION);
+        $this->assertArrayHasKey('whatsapp_mode', $comm_schema['settings']);
+        $this->assertArrayHasKey('whatsapp_bridge_url', $comm_schema['settings']);
+        $this->assertArrayHasKey('whatsapp_bridge_secret', $comm_schema['settings']);
+        $this->assertTrue($comm_schema['settings']['whatsapp_bridge_secret']['is_secret']);
+
+        $integ_schema = $ci->settings_registry->get_schema(\Settings_registry::SECTION_INTEGRATIONS);
+        $this->assertArrayHasKey('ai_assistant', $integ_schema['tabs']);
+        $this->assertArrayHasKey('ai_assistant_enabled', $integ_schema['settings']);
+        $this->assertArrayHasKey('ai_brand_name', $integ_schema['settings']);
+        $this->assertArrayHasKey('ai_tone', $integ_schema['settings']);
+        $this->assertArrayHasKey('ai_do_rules', $integ_schema['settings']);
+        $this->assertArrayHasKey('ai_dont_rules', $integ_schema['settings']);
+        $this->assertArrayHasKey('ai_cancellation_policy', $integ_schema['settings']);
+
+        // 2. Test saving WhatsApp dual-mode values
+        $comm_payload = [
+            'whatsapp_mode' => 'unofficial',
+            'whatsapp_bridge_url' => 'http://wa-bridge:3000',
+            'whatsapp_bridge_secret' => 'super-secret-test-bridge-token',
+        ];
+        $sanitized_comm = $ci->settings_registry->validate_and_sanitize(\Settings_registry::SECTION_COMMUNICATION, $comm_payload);
+        $ci->settings_registry->save_section_values(\Settings_registry::SECTION_COMMUNICATION, $sanitized_comm, 1);
+
+        $this->assertEquals('unofficial', setting('whatsapp_mode'));
+        $this->assertEquals('http://wa-bridge:3000', setting('whatsapp_bridge_url'));
+
+        // 3. Test saving AI Assistant settings and sync to tenant_ai_policies
+        $ai_payload = [
+            'ai_assistant_enabled' => true,
+            'ai_brand_name' => 'Elit Kuaför & Güzellik',
+            'ai_tone' => 'warm_empathetic',
+            'ai_greeting_style' => 'Merhaba! Size nasıl yardımcı olabiliriz?',
+            'ai_do_rules' => "Müşteriye her zaman randevu saatinden 15 dakika önce gelmesini hatırlat.\nHer randevuda sıcak içecek ikramı teklif et.",
+            'ai_dont_rules' => "Asla fiyat indirimi sözü verme.\nYetkisiz işlem yapma.",
+            'ai_cancellation_policy' => 'Randevudan en geç 2 saat önce haber verilmelidir.',
+            'ai_forbidden_terms' => 'ucuz, dandik, indirim yok',
+        ];
+        $sanitized_ai = $ci->settings_registry->validate_and_sanitize(\Settings_registry::SECTION_INTEGRATIONS, $ai_payload);
+        $ci->settings_registry->save_section_values(\Settings_registry::SECTION_INTEGRATIONS, $sanitized_ai, 1);
+
+        $this->assertEquals('Elit Kuaför & Güzellik', setting('ai_brand_name'));
+        $this->assertEquals('warm_empathetic', setting('ai_tone'));
+
+        // 4. Verify AI Assistant prompt generation incorporates the business's policy
+        $ci->load->library('ai_channel_responder');
+        $reflector = new \ReflectionClass($ci->ai_channel_responder);
+        if ($reflector->hasMethod('build_system_prompt')) {
+            $method = $reflector->getMethod('build_system_prompt');
+            $method->setAccessible(true);
+            $prompt = $method->invoke($ci->ai_channel_responder, 'whatsapp', '+905551234567', null);
+            $this->assertStringContainsString('Elit Kuaför & Güzellik', $prompt);
+            $this->assertStringContainsString('İŞLETME ÖZEL ASİSTAN POLİTİKASI', $prompt);
+            $this->assertStringContainsString('sıcak içecek ikramı', $prompt);
+            $this->assertStringContainsString('en geç 2 saat önce', $prompt);
+        }
+    }
 }
 
