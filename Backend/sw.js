@@ -1,4 +1,4 @@
-const CACHE_NAME = 'booki-v2';
+const CACHE_NAME = 'booki-v4';
 const STATIC_ASSETS = [
     '/manifest.json',
     '/assets/css/general.min.css',

@@ -54,10 +54,11 @@ class Superadmin_settings extends App_Controller
             'platform_imap_user' => master_setting('platform_imap_user') ?? '',
             'platform_imap_pass_set' => !empty(master_setting('platform_imap_pass')),
 
-            // AI / LLM Gateway Master Settings
+            // AI Engine Mode & Dynamic Hybrid Router
+            'ai_engine_version' => master_setting('ai_engine_version') ?? 'hybrid',
             'ai_provider' => master_setting('ai_provider') ?? 'auto',
             'google_ai_key_set' => !empty(master_setting('google_ai_key')) || !empty(getenv('GEMINI_API_KEY')),
-            'ai_model_google' => master_setting('ai_model_google') ?? 'gemini-1.5-flash',
+            'ai_model_google' => master_setting('ai_model_google') ?? 'gemini-3.8-flash',
             'groq_api_key_set' => !empty(master_setting('groq_api_key')) || !empty(getenv('GROQ_API_KEY')),
             'ai_model_groq' => master_setting('ai_model_groq') ?? 'llama-3.3-70b-versatile',
             'openrouter_api_key_set' => !empty(master_setting('openrouter_api_key')) || !empty(getenv('OPENROUTER_API_KEY')),
@@ -66,6 +67,18 @@ class Superadmin_settings extends App_Controller
             'ai_model_openai' => master_setting('ai_model_openai') ?? 'gpt-4o-mini',
             'anthropic_api_key_set' => !empty(master_setting('anthropic_api_key')) || !empty(getenv('ANTHROPIC_API_KEY')),
             'ai_model_anthropic' => master_setting('ai_model_anthropic') ?? 'claude-3-5-haiku-20241022',
+
+            // Voice & Bridge Integrations
+            'elevenlabs_api_key_set' => !empty(master_setting('elevenlabs_api_key')) || !empty(getenv('ELEVENLABS_API_KEY')),
+            'elevenlabs_agent_id' => master_setting('elevenlabs_agent_id') ?? '',
+            'elevenlabs_voice_id' => master_setting('elevenlabs_voice_id') ?? '21m00Tcm4TlvDq8ikWAM',
+            'elevenlabs_model_id' => master_setting('elevenlabs_model_id') ?? 'eleven_multilingual_v2',
+            'wa_bridge_url' => master_setting('wa_bridge_url') ?? (getenv('WA_BRIDGE_URL') ?: 'http://ki-wa-bridge:3000'),
+            'wa_bridge_secret_set' => !empty(master_setting('wa_bridge_secret')) || !empty(getenv('WA_BRIDGE_SECRET')),
+
+            // Dynamic Router Live Metrics & Rankings
+            'ai_router_metrics' => $this->get_router_metrics_safe(),
+            'ai_sample_rankings' => $this->get_sample_rankings_safe(),
 
             // BooKi Marketplace & Sectoral Commissions
             'marketplace_commission_rate' => master_setting('marketplace_commission_rate') ?? '5.00',
@@ -132,7 +145,8 @@ class Superadmin_settings extends App_Controller
             check('platform_imap_user', 'string|null');
             check('platform_imap_pass', 'string|null');
 
-            // AI / LLM Fields
+            // AI / LLM Fields & Engine Version
+            check('ai_engine_version', 'string|null');
             check('ai_provider', 'string|null');
             check('google_ai_key', 'string|null');
             check('ai_model_google', 'string|null');
@@ -144,6 +158,14 @@ class Superadmin_settings extends App_Controller
             check('ai_model_openai', 'string|null');
             check('anthropic_api_key', 'string|null');
             check('ai_model_anthropic', 'string|null');
+
+            // Voice & Bridge Fields
+            check('elevenlabs_api_key', 'string|null');
+            check('elevenlabs_agent_id', 'string|null');
+            check('elevenlabs_voice_id', 'string|null');
+            check('elevenlabs_model_id', 'string|null');
+            check('wa_bridge_url', 'string|null');
+            check('wa_bridge_secret', 'string|null');
 
             if (request('google_client_id') !== null) {
                 master_setting('google_client_id', trim((string) request('google_client_id')));
@@ -171,8 +193,9 @@ class Superadmin_settings extends App_Controller
                 'platform_smtp_host', 'platform_smtp_port', 'platform_smtp_crypto',
                 'platform_smtp_user', 'platform_smtp_from_name', 'platform_smtp_from_address',
                 'platform_imap_host', 'platform_imap_port', 'platform_imap_crypto', 'platform_imap_user',
-                'ai_provider', 'ai_model_google', 'ai_model_groq', 'ai_model_openrouter',
-                'ai_model_openai', 'ai_model_anthropic'
+                'ai_engine_version', 'ai_provider', 'ai_model_google', 'ai_model_groq', 'ai_model_openrouter',
+                'ai_model_openai', 'ai_model_anthropic',
+                'elevenlabs_agent_id', 'elevenlabs_voice_id', 'elevenlabs_model_id', 'wa_bridge_url'
             ];
 
             foreach ($plaintext_fields as $field) {
@@ -198,6 +221,8 @@ class Superadmin_settings extends App_Controller
                 'openrouter_api_key',
                 'openai_api_key',
                 'anthropic_api_key',
+                'elevenlabs_api_key',
+                'wa_bridge_secret',
             ];
 
             foreach ($api_key_fields as $key_field) {
@@ -294,6 +319,144 @@ class Superadmin_settings extends App_Controller
                 'batch_ref' => $batch_ref,
             ]);
         } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Retrieve live metrics for all models safely.
+     */
+    protected function get_router_metrics_safe(): array
+    {
+        try {
+            $this->load->library('ai_hybrid_router');
+            return $this->ai_hybrid_router->get_all_metrics();
+        } catch (\Throwable $e) {
+            return ['models' => [], 'summary' => []];
+        }
+    }
+
+    /**
+     * Compute sample dynamic model rankings for primary task types.
+     */
+    protected function get_sample_rankings_safe(): array
+    {
+        try {
+            $this->load->library('ai_llm_gateway');
+            $this->load->library('ai_hybrid_router');
+
+            $all_providers = ['google', 'openai', 'anthropic', 'groq', 'openrouter'];
+            $available = [];
+            foreach ($all_providers as $p) {
+                if ($this->ai_llm_gateway->get_api_key($p) !== null) {
+                    $available[] = $p;
+                }
+            }
+
+            return [
+                'appointment_booking' => $this->ai_hybrid_router->rank_models([
+                    'task_type' => 'appointment_booking',
+                    'tools' => [['type' => 'function', 'function' => ['name' => 'check_slots']]],
+                    'available_providers' => $available,
+                ]),
+                'chat' => $this->ai_hybrid_router->rank_models([
+                    'task_type' => 'chat',
+                    'available_providers' => $available,
+                ]),
+                'fast_response' => $this->ai_hybrid_router->rank_models([
+                    'task_type' => 'fast_response',
+                    'available_providers' => $available,
+                ]),
+                'complex_reasoning' => $this->ai_hybrid_router->rank_models([
+                    'task_type' => 'complex_reasoning',
+                    'available_providers' => $available,
+                ]),
+            ];
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Interactive AI Router Test / Simulation API endpoint.
+     */
+    public function test_ai_router(): void
+    {
+        try {
+            method('post');
+            $task_type = trim((string) request('task_type', 'appointment_booking'));
+            $prompt = trim((string) request('prompt', 'Merhaba, yarın saat 14:00 için müsaitlik var mı?'));
+            $execute = (bool) request('execute', false);
+
+            $this->load->library('ai_llm_gateway');
+            $this->load->library('ai_hybrid_router');
+
+            $all_providers = ['google', 'openai', 'anthropic', 'groq', 'openrouter'];
+            $available_providers = [];
+            foreach ($all_providers as $p) {
+                if ($this->ai_llm_gateway->get_api_key($p) !== null) {
+                    $available_providers[] = $p;
+                }
+            }
+
+            $context = [
+                'task_type' => $task_type,
+                'tools' => ($task_type === 'appointment_booking' || $task_type === 'tool_execution')
+                    ? [['type' => 'function', 'function' => ['name' => 'check_slots', 'description' => 'Randevu müsaitliğini sorgular', 'parameters' => ['type' => 'object', 'properties' => ['date' => ['type' => 'string']]]]]]
+                    : null,
+                'structured_output' => false,
+                'estimated_tokens' => (int) ceil(mb_strlen($prompt) / 3.5),
+                'available_providers' => $available_providers,
+                'preferred_provider' => $this->ai_llm_gateway->get_active_provider(),
+            ];
+
+            $rankings = $this->ai_hybrid_router->rank_models($context);
+            $selected = !empty($rankings) ? $rankings[0] : null;
+
+            $execution_result = null;
+            if ($execute && $selected !== null) {
+                $start = microtime(true);
+                $res = $this->ai_llm_gateway->chat([
+                    ['role' => 'user', 'content' => $prompt],
+                ], [
+                    'task_type' => $task_type,
+                    'max_tokens' => 200,
+                ]);
+                $latency_ms = round((microtime(true) - $start) * 1000, 1);
+                $execution_result = [
+                    'success' => $res !== null && !empty($res['success']),
+                    'reply' => $res['reply'] ?? ($res !== null ? 'Araç çağrısı veya boş yanıt' : 'Tüm modeller başarısız oldu'),
+                    'used_provider' => $res['provider'] ?? $selected['provider'],
+                    'used_model' => $res['model'] ?? $selected['model'],
+                    'latency_ms' => $latency_ms,
+                    'engine' => $res['engine'] ?? 'hybrid',
+                ];
+            }
+
+            json_response([
+                'success' => true,
+                'task_type' => $task_type,
+                'prompt' => $prompt,
+                'selected_model' => $selected,
+                'rankings' => $rankings,
+                'execution' => $execution_result,
+            ]);
+        } catch (\Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Reset AI Router health metrics cache.
+     */
+    public function reset_ai_metrics(): void
+    {
+        try {
+            method('post');
+            $this->load->library('ai_hybrid_router');
+            $this->ai_hybrid_router->reset_metrics();
+            json_response(['success' => true, 'message' => 'AI Router metrikleri başarıyla sıfırlandı.']);
+        } catch (\Throwable $e) {
             json_exception($e);
         }
     }

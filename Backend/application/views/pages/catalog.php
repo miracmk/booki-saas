@@ -1,3 +1,6 @@
+<?php extend('layouts/backend_layout'); ?>
+
+<?php section('content'); ?>
 <?php
 /**
  * Unified Catalog View (Vertical-First UI Abstraction).
@@ -13,111 +16,97 @@
  * @var int $total_memberships
  */
 ?>
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= e($terms['catalog'] ?? 'Katalog') ?> - <?= e(vars('company_name') ?: 'BooKi') ?></title>
-    <link rel="stylesheet" type="text/css" href="<?= base_url('assets/ext/bootstrap/css/bootstrap.min.css') ?>">
-    <link rel="stylesheet" type="text/css" href="<?= base_url('assets/ext/fontawesome/css/all.min.css') ?>">
-    <link rel="stylesheet" type="text/css" href="<?= asset_url('assets/css/backend.css') ?>">
-    <link rel="icon" type="image/x-icon" href="<?= base_url('assets/img/favicon.ico') ?>">
-</head>
-<body class="d-flex flex-column min-vh-100 bg-light">
-    <?php $this->load->view('components/backend_header'); ?>
+<div class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item"><a href="<?= site_url('dashboard') ?>" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page"><?= e($terms['catalog'] ?? 'Katalog') ?></li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-1 text-dark d-flex align-items-center">
+                <span class="me-2"><?= e(current_industry_info()['icon'] ?? '📁') ?></span>
+                <?= e($terms['catalog'] ?? 'Katalog Yönetimi') ?>
+            </h3>
+            <p class="text-muted small mb-0">İşletmenizin sunduğu <?= mb_strtolower(e($terms['service'] ?? 'hizmet')) ?>, ürün, paket ve üyelik modellerini tek ekrandan yönetin.</p>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex gap-2">
+            <?php if (can('add', 'services')): ?>
+                <a href="<?= site_url('services') ?>" class="btn btn-primary btn-sm rounded-3 shadow-sm px-3 py-2 fw-semibold">
+                    <i class="fas fa-plus me-1"></i> Yeni <?= e($terms['service'] ?? 'Hizmet') ?>
+                </a>
+            <?php endif; ?>
+            <?php if (module_enabled('inventory') && can('add', 'products')): ?>
+                <a href="<?= site_url('products') ?>" class="btn btn-outline-secondary btn-sm rounded-3 px-3 py-2 fw-semibold">
+                    <i class="fas fa-box me-1"></i> Yeni <?= e($terms['product'] ?? 'Ürün') ?>
+                </a>
+            <?php endif; ?>
+        </div>
+    </div>
 
-    <main class="container-fluid px-3 px-md-4 py-4 flex-grow-1">
-        <!-- Breadcrumb & Header -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 pb-2 border-bottom">
-            <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-1 small">
-                        <li class="breadcrumb-item"><a href="<?= site_url('dashboard') ?>" class="text-decoration-none">Dashboard</a></li>
-                        <li class="breadcrumb-item active" aria-current="page"><?= e($terms['catalog'] ?? 'Katalog') ?></li>
-                    </ol>
-                </nav>
-                <h3 class="fw-bold mb-1 text-dark d-flex align-items-center">
-                    <span class="me-2"><?= e(current_industry_info()['icon'] ?? '📁') ?></span>
-                    <?= e($terms['catalog'] ?? 'Katalog Yönetimi') ?>
-                </h3>
-                <p class="text-muted small mb-0">İşletmenizin sunduğu <?= mb_strtolower(e($terms['service'] ?? 'hizmet')) ?>, ürün, paket ve üyelik modellerini tek ekrandan yönetin.</p>
+    <?php if (empty($total_services)): ?>
+        <?= function_exists('render_empty_state') ? render_empty_state('services', 'Henüz katalogda ' . mb_strtolower(e($terms['service'] ?? 'hizmet')) . ' bulunmuyor.') : '' ?>
+    <?php else: ?>
+        <!-- Catalog Overview Summary Grid -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;"><?= e($terms['service'] ?? 'Hizmet') ?></small>
+                            <h4 class="fw-bold mb-0 text-primary mt-1"><?= (int) ($total_services ?? 0) ?></h4>
+                        </div>
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
+                            <i class="fas fa-concierge-bell fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="mt-3 mt-md-0 d-flex gap-2">
-                <?php if (can('add', 'services')): ?>
-                    <a href="<?= site_url('services') ?>" class="btn btn-primary btn-sm rounded-3 shadow-sm px-3 py-2 fw-semibold">
-                        <i class="fas fa-plus me-1"></i> Yeni <?= e($terms['service'] ?? 'Hizmet') ?>
-                    </a>
-                <?php endif; ?>
-                <?php if (module_enabled('inventory') && can('add', 'products')): ?>
-                    <a href="<?= site_url('products') ?>" class="btn btn-outline-secondary btn-sm rounded-3 px-3 py-2 fw-semibold">
-                        <i class="fas fa-box me-1"></i> Yeni <?= e($terms['product'] ?? 'Ürün') ?>
-                    </a>
-                <?php endif; ?>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;">Kategoriler</small>
+                            <h4 class="fw-bold mb-0 text-success mt-1"><?= (int) ($total_categories ?? 0) ?></h4>
+                        </div>
+                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-3">
+                            <i class="fas fa-folder fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;"><?= e($terms['product'] ?? 'Ürün') ?></small>
+                            <h4 class="fw-bold mb-0 text-warning mt-1"><?= (int) ($total_products ?? 0) ?></h4>
+                        </div>
+                        <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3">
+                            <i class="fas fa-boxes fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;"><?= e($terms['package'] ?? 'Paket') ?> & Üyelik</small>
+                            <h4 class="fw-bold mb-0 text-info mt-1"><?= (int) (($total_packages ?? 0) + ($total_memberships ?? 0)) ?></h4>
+                        </div>
+                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-3">
+                            <i class="fas fa-tags fa-lg"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <?php if ($total_services === 0): ?>
-            <?= render_empty_state('services', 'Henüz katalogda ' . mb_strtolower(e($terms['service'] ?? 'hizmet')) . ' bulunmuyor.') ?>
-        <?php else: ?>
-            <!-- Catalog Overview Summary Grid -->
-            <div class="row g-3 mb-4">
-                <div class="col-6 col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;"><?= e($terms['service'] ?? 'Hizmet') ?></small>
-                                <h4 class="fw-bold mb-0 text-primary mt-1"><?= $total_services ?></h4>
-                            </div>
-                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
-                                <i class="fas fa-concierge-bell fa-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;">Kategoriler</small>
-                                <h4 class="fw-bold mb-0 text-success mt-1"><?= $total_categories ?></h4>
-                            </div>
-                            <div class="rounded-circle bg-success bg-opacity-10 text-success p-3">
-                                <i class="fas fa-folder fa-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;"><?= e($terms['product'] ?? 'Ürün') ?></small>
-                                <h4 class="fw-bold mb-0 text-warning mt-1"><?= $total_products ?></h4>
-                            </div>
-                            <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3">
-                                <i class="fas fa-boxes fa-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <small class="text-muted text-uppercase fw-semibold" style="font-size: 11px;"><?= e($terms['package'] ?? 'Paket') ?> & Üyelik</small>
-                                <h4 class="fw-bold mb-0 text-info mt-1"><?= ($total_packages + $total_memberships) ?></h4>
-                            </div>
-                            <div class="rounded-circle bg-info bg-opacity-10 text-info p-3">
-                                <i class="fas fa-tags fa-lg"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Vertical Sections -->
+        <!-- Vertical Sections -->
+        <?php if (!empty($sections)): ?>
             <div class="row g-4">
                 <?php foreach ($sections as $section): ?>
                     <div class="col-md-6 col-xl-3">
@@ -145,8 +134,6 @@
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-    </main>
-
-    <script src="<?= base_url('assets/ext/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
-</body>
-</html>
+    <?php endif; ?>
+</div>
+<?php end_section(); ?>

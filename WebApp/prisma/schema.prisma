@@ -1,0 +1,135 @@
+// BooKi SaaS - Ceza-Geçirmez Dijital Sözleşme, E-İmza & Otomatik Müşteri Dağıtım Motoru
+// Türk Hukuku Tam Uyumluluk: HMK 199/202/205, TBK 20-25 (GİK), TKHK 5 (Haksız Şart), 5070 E-İmza, 6698 KVKK (Torba Rıza Yasağı)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SectorFamily {
+  beauty_wellness
+  restaurant_food
+  health_clinical
+  sports_fitness
+  automotive
+  hospitality
+  experience
+  education
+  professional
+  real_estate
+}
+
+enum DocumentType {
+  KVKK_AYDINLATMA
+  KVKK_OZEL_NITELIKLI_RIZA
+  MESAFELI_SATIS_SOZLESMESI
+  ON_BILGILENDIRME_FORMU
+  AYDINLATILMIS_ONAM_FORMU
+  SAGLIK_BEYANI_WAIVER
+  TESLIM_TESELLUM_HASAR_TUTANAGI
+  TASINMAZ_GOSTERME_BELGESI
+  GIZLILIK_VE_NDA
+  HIZMET_VE_IPTAL_SOZLESMESI
+}
+
+enum SignatureType {
+  CANVAS_BIOMETRIC
+  SMS_OTP_VERIFIED
+  QUALIFIED_E_SIGNATURE
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model LegalTemplate {
+  id                   String           @id @default(uuid())
+  tenantId             String?          // Global şablonlar için null, işletmeye özel ise dolu
+  sectorFamily         SectorFamily
+  blueprintType        String           // örn: "beauty_salon", "doctor_clinic", "real_estate_agency"
+  docType              DocumentType
+  version              Int              @default(1)
+  title                String
+  bodyTemplateMarkdown String           @db.Text
+  requiresSignature    Boolean          @default(false)
+  requiresOtp          Boolean          @default(false)
+  requiresGps          Boolean          @default(false)
+  isRequired           Boolean          @default(true)
+  isActive             Boolean          @default(true)
+  contracts            SignedContract[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  @@unique([sectorFamily, blueprintType, docType, version])
+  @@index([sectorFamily, isActive])
+  @@map("legal_templates")
+}
+
+model SignedContract {
+  id                 String              @id @default(uuid())
+  tenantId           String
+  bookingId          String
+  customerId         String
+  templateId         String
+  templateVersion    Int
+  documentType       DocumentType
+  renderedMarkdown   String              @db.Text
+  pdfStorageUrl      String
+  sha256Hash         String              @unique
+  signatureType      SignatureType
+  signatureCanvasSvg String?             @db.Text
+  ipAddress          String
+  userAgent          String
+  gpsLatitude        Float?
+  gpsLongitude       Float?
+  otpMobileNumber    String?
+  otpVerifiedAt      DateTime?
+  auditLog           SignatureAuditLog?
+  deliveries         ContractDelivery[]
+  createdAt          DateTime            @default(now())
+
+  template           LegalTemplate       @relation(fields: [templateId], references: [id])
+
+  @@index([tenantId, bookingId])
+  @@index([customerId, documentType])
+  @@index([sha256Hash])
+  @@map("signed_contracts")
+}
+
+model SignatureAuditLog {
+  id                String         @id @default(uuid())
+  contractId        String         @unique
+  timestampToken    String         @db.Text // RFC 3161 Zaman Damgası Token'ı
+  rawHeadersJson    Json
+  securityChainHash String         // Önceki log kaydı ile hash zinciri (Blockchain tarzı tamper-proof yapı)
+  createdAt         DateTime       @default(now())
+
+  contract          SignedContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([securityChainHash])
+  @@map("signature_audit_logs")
+}
+
+model ContractDelivery {
+  id          String         @id @default(uuid())
+  contractId  String
+  channel     String         // "EMAIL", "SMS", "WHATSAPP"
+  destination String         // e-posta adresi veya telefon numarası
+  status      DeliveryStatus @default(PENDING)
+  trackingId  String?
+  deliveredAt DateTime?
+  createdAt   DateTime       @default(now())
+
+  contract    SignedContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([status])
+  @@map("contract_deliveries")
+}

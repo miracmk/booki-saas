@@ -566,7 +566,7 @@ class App_Controller extends CI_Controller
             'reports' => ['module' => 'reports', 'action' => 'view', 'resource' => 'reports'],
             'ai_agent' => ['module' => 'ai_agent', 'action' => 'view', 'resource' => 'ai_agent'],
             'ai_assistant' => ['module' => 'ai_assistant', 'action' => 'view', 'resource' => 'ai_assistant'],
-            'randevuburada' => ['module' => 'randevuburada_sync', 'action' => 'view', 'resource' => 'randevuburada'],
+            'randevuburada' => ['module' => null, 'action' => 'view', 'resource' => 'marketing'],
             'branches' => ['module' => null, 'action' => 'view', 'resource' => 'branches'],
             'stations' => ['module' => 'stations', 'action' => 'view', 'resource' => 'stations'],
             'products' => ['module' => 'inventory', 'action' => 'view', 'resource' => 'products'],

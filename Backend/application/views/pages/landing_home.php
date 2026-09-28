@@ -917,8 +917,8 @@
                                 <i class="fas fa-sparkles"></i>
                             </div>
                             <div>
-                                <strong style="color:#fde68a; font-size:0.95rem;">Ücretsiz Hariç Tüm Paketlerde Açık:</strong>
-                                <p style="color:rgba(255,255,255,0.75); font-size:0.88rem; margin:0;">Başlangıç, Orta, Premium ve Özel paketlerin tamamında AI Asistanı sınırsız olarak dahil edilmiştir.</p>
+                                <strong style="color:#fde68a; font-size:0.95rem;">Ücretli Paketlerde 1.000 Görüşme Dahil:</strong>
+                                <p style="color:rgba(255,255,255,0.75); font-size:0.88rem; margin:0;">Başlangıç, Orta ve Premium paketlerimizin tamamında AI Asistanı aylık 1.000 görüşmeye kadar dahil edilmiştir.</p>
                             </div>
                         </div>
                     </div>
@@ -1400,7 +1400,7 @@
                     </div>
 
                     <ul style="list-style: none; padding: 0; margin: 0 0 1.25rem; font-size: 0.84rem; color: var(--text); flex-grow: 1; display: flex; flex-direction: column; gap: 0.45rem;">
-                        <li style="color:#059669; font-weight:700;">✓ 🤖 Çok Kanallı AI Asistan DAHİL</li>
+                        <li style="color:#059669; font-weight:700;">✓ 🤖 1.000 Görüşmeye Kadar AI Asistan DAHİL</li>
                         <li>✓ Tüm Özellikler & Modüller Açık</li>
                         <li>✓ WhatsApp Hatırlatma & Bildirimler</li>
                         <li>✓ Raporlar & Detaylı KPI Analizi</li>
@@ -1428,7 +1428,7 @@
                     </div>
 
                     <ul style="list-style: none; padding: 0; margin: 0 0 1.25rem; font-size: 0.84rem; color: var(--text); flex-grow: 1; display: flex; flex-direction: column; gap: 0.45rem;">
-                        <li style="color:#059669; font-weight:700;">✓ 🤖 Çok Kanallı AI Asistan DAHİL</li>
+                        <li style="color:#059669; font-weight:700;">✓ 🤖 1.000 Görüşmeye Kadar AI Asistan DAHİL</li>
                         <li>✓ Tüm Özellikler & Modüller Açık</li>
                         <li>✓ e-Fatura & Ön Muhasebe Entegrasyonu</li>
                         <li>✓ Gelişmiş Pazarlama & Kampanyalar</li>
@@ -1457,7 +1457,7 @@
                     </div>
 
                     <ul style="list-style: none; padding: 0; margin: 0 0 1.25rem; font-size: 0.84rem; color: var(--text); flex-grow: 1; display: flex; flex-direction: column; gap: 0.45rem;">
-                        <li style="color:#059669; font-weight:700;">✓ 🤖 Çok Kanallı AI Asistan DAHİL</li>
+                        <li style="color:#059669; font-weight:700;">✓ 🤖 1.000 Görüşmeye Kadar AI Asistan DAHİL</li>
                         <li>✓ Çoklu Şube (Branches) Desteği</li>
                         <li>✓ Özel Alan Adı (Custom Domain)</li>
                         <li>✓ Markasız Arayüz (White-Label)</li>
@@ -1493,6 +1493,127 @@
                     <a class="btn btn--outline btn--sm" style="width: 100%; text-align: center;" href="#iletisim">İletişime Geçin</a>
                 </div>
             </div>
+
+            <!-- AI ASİSTAN EK GÖRÜŞME PAKETLERİ -->
+            <div style="margin-top: 3.5rem; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #cbd5e1; border-radius: 16px; padding: 2.25rem 2rem;">
+                <div style="margin-bottom: 1.75rem;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: #e0f2fe; color: #0369a1; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        <span>🤖 Yapay Zeka Kapasitesi</span>
+                    </div>
+                    <h3 style="margin: 0; font-size: 1.45rem; color: #0f172a; font-weight: 800;">AI Asistan Ek Görüşme Paketleri</h3>
+                    <p style="margin: 0.35rem 0 0; font-size: 0.9rem; color: #64748b;">
+                        Tüm ücretli paketlerimizde aylık <strong>1.000 Görüşmeye kadar AI Asistan DAHİLDİR</strong>. Daha yoğun randevu ve mesaj hacmine sahip işletmeler için ek görüşme paketlerimiz:
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+                    <!-- 1.000 Görüşme -->
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">Başlangıç Seviyesi</div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0.25rem 0 0.5rem;">+1.000 Görüşme</div>
+                            <div style="display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.75rem;">
+                                <span style="font-size: 1.85rem; font-weight: 800; color: var(--navy);">300 ₺</span>
+                                <span style="font-size: 0.8rem; color: #64748b;">/ paket</span>
+                            </div>
+                            <p style="font-size: 0.82rem; color: #64748b; line-height: 1.4; margin: 0 0 1rem;">
+                                WhatsApp, Web ve Instagram üzerinden gelen müşteri randevu konuşmaları için görüşme başı sadece <strong>0,30 ₺</strong>.
+                            </p>
+                        </div>
+                        <div style="font-size: 0.75rem; font-weight: 600; color: #059669; background: #ecfdf5; padding: 0.4rem 0.6rem; border-radius: 6px; text-align: center;">
+                            ✓ Süre Sınırı Yok • Kullanıldıkça Düşer
+                        </div>
+                    </div>
+
+                    <!-- 5.000 Görüşme -->
+                    <div style="background: #ffffff; border: 2px solid #0d9488; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 14px rgba(13,148,136,0.12); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                        <div style="position: absolute; top: -10px; right: 1rem; background: #0d9488; color: #ffffff; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700;">
+                            EN ÇOK TERCİH EDİLEN
+                        </div>
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: #0d9488; text-transform: uppercase; letter-spacing: 0.5px;">Büyüyen Merkezler</div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0.25rem 0 0.5rem;">+5.000 Görüşme</div>
+                            <div style="display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.75rem;">
+                                <span style="font-size: 1.85rem; font-weight: 800; color: var(--navy);">1.400 ₺</span>
+                                <span style="font-size: 0.8rem; color: #64748b;">/ paket</span>
+                            </div>
+                            <p style="font-size: 0.82rem; color: #64748b; line-height: 1.4; margin: 0 0 1rem;">
+                                Yoğun randevu alan salonlar ve klinikler için görüşme başı <strong>0,28 ₺</strong> avantajlı birim maliyet.
+                            </p>
+                        </div>
+                        <div style="font-size: 0.75rem; font-weight: 600; color: #0d9488; background: #f0fdfa; padding: 0.4rem 0.6rem; border-radius: 6px; text-align: center;">
+                            ✓ %7 Birim Fiyat Tasarrufu
+                        </div>
+                    </div>
+
+                    <!-- 10.000 Görüşme -->
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.5px;">Zincir & Büyük İşletmeler</div>
+                            <div style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0.25rem 0 0.5rem;">+10.000 Görüşme</div>
+                            <div style="display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.75rem;">
+                                <span style="font-size: 1.85rem; font-weight: 800; color: var(--navy);">2.500 ₺</span>
+                                <span style="font-size: 0.8rem; color: #64748b;">/ paket</span>
+                            </div>
+                            <p style="font-size: 0.82rem; color: #64748b; line-height: 1.4; margin: 0 0 1rem;">
+                                Çok şubeli ve yüksek çağrı/mesaj hacmine sahip işletmeler için en avantajlı görüşme başı <strong>0,25 ₺</strong> maliyet.
+                            </p>
+                        </div>
+                        <div style="font-size: 0.75rem; font-weight: 600; color: #7c3aed; background: #faf5ff; padding: 0.4rem 0.6rem; border-radius: 6px; text-align: center;">
+                            ✓ En Yüksek Hacim Avantajı
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SANAL POS, KAPORA VE ÖDEME ALTYAPISI KOMİSYON VE GÜVENCE PLANI -->
+            <div style="margin-top: 2rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 2.25rem 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+                <div style="max-width: 800px; margin-bottom: 1.75rem;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: #fef3c7; color: #92400e; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        <span>🛡️ Gelmeme (No-Show) Koruması & Yasal Kapora</span>
+                    </div>
+                    <h3 style="margin: 0; font-size: 1.45rem; color: #0f172a; font-weight: 800;">Sanal POS, Kapora ve Tahsilat Altyapısı</h3>
+                    <p style="margin: 0.35rem 0 0; font-size: 0.9rem; color: #64748b; line-height: 1.5;">
+                        Tosla İşim güvencesiyle entegre sanal POS altyapımız, randevu iptallerinde ve gelmeyen müşterilerde (No-Show) işletmenizi korur. 6098 sayılı Türk Borçlar Kanunu Madde 178 güvencesiyle yasal cayma tazminatı tahsilatı sağlar.
+                    </p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                    <!-- Model A: Ödeme Altyapısı + Kapora -->
+                    <div style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #f8fafc;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <h4 style="margin: 0; font-size: 1.15rem; color: #0f172a; font-weight: 700;">Ödeme Altyapısı + Kapora Sistemi</h4>
+                            <span style="background: #e0f2fe; color: #0369a1; font-size: 0.85rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 6px;">Toplam %25</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #475569; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px dashed #cbd5e1;">
+                            <strong>%20</strong> Ödeme Altyapısı Komisyonu + <strong>%5</strong> Kapora Altyapısı Hizmet Bedeli
+                        </div>
+                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.84rem; color: #334155; display: flex; flex-direction: column; gap: 0.55rem;">
+                            <li>✓ <strong>Ödeme Altyapısı Şartı:</strong> Ödeme altyapısı kullanımında kapora sistemi zorunludur.</li>
+                            <li>✓ <strong>No-Show Durumu:</strong> Müşteri randevuya gelmediğinde, bloke edilen kaporadan <strong>%25 kesilir</strong>, kalan %75 net kazanç olarak salonunuza aktarılır.</li>
+                            <li>✓ <strong>Müşteri Geldiğinde:</strong> Müşteri geldiğinde salona gidecek meblağdan <strong>%25 kesilir</strong>.</li>
+                            <li>✓ Randevu Buraya pazaryeri ve doğrudan online rezervasyon tahsilatını kapsar.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Model B: Yalnızca Kapora Altyapısı -->
+                    <div style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; background: #ffffff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <h4 style="margin: 0; font-size: 1.15rem; color: #0f172a; font-weight: 700;">Yalnızca Kapora Altyapısı</h4>
+                            <span style="background: #f1f5f9; color: #334155; font-size: 0.85rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 6px;">Sabit %20</span>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #475569; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px dashed #cbd5e1;">
+                            Yalnızca randevu güvencesi ve ön provizyon bloke tutma hizmeti
+                        </div>
+                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.84rem; color: #334155; display: flex; flex-direction: column; gap: 0.55rem;">
+                            <li>✓ <strong>Eşit Komisyon Kuralı:</strong> No-Show veya Müşteri Geldi fark etmeksizin kaporadan net <strong>%20</strong> kesilir.</li>
+                            <li>✓ Müşteri salona gelirse kartındaki provizyon serbest bırakılır, işletme cari bakiyesinden %20 kapora hizmet bedeli tahakkuk eder.</li>
+                            <li>✓ Müşteri gelmezse kaporadan %20 platforma, %80 salon hesabına aktarılır.</li>
+                            <li>✓ TBK m. 178 gereği toplam hizmet bedelinin %25'ine kadar ön provizyon kilitlenebilir.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -1518,21 +1639,21 @@
 
                 <div class="faq-item">
                     <button type="button" class="faq-question" onclick="toggleFaq(this)">
-                        <span>Ücretsiz paketin farkı nedir, hangi özellik hariçtir?</span>
+                        <span>Ücretsiz paketin farkı nedir, AI Asistan kotası nasıl işler?</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="faq-answer">
-                        Ücretsiz paketimiz tek kişilik stüdyolar ve işe yeni başlayan girişimciler için ömür boyu ücretsizdir. Tek istisna: <strong>Yapay Zeka (AI) Asistanı Ücretsiz pakette yer almaz</strong>. Başlangıç, Orta, Premium ve Özel paketlerimizde ise Çok Kanallı AI Asistanı sınırsız ve tam entegre olarak sunulur.
+                        Ücretsiz paketimiz tek kişilik stüdyolar ve işe yeni başlayan girişimciler için ömür boyu ücretsizdir. Tek istisna: <strong>Yapay Zeka (AI) Asistanı Ücretsiz pakette yer almaz</strong>. Başlangıç, Orta ve Premium paketlerimizde ise Çok Kanallı AI Asistanı <strong>aylık 1.000 görüşmeye kadar dahil</strong> olarak sunulur. Kotanızı aştığınızda işiniz aksamaz; 1.000 Görüşme (300 TL), 5.000 Görüşme (1.400 TL) veya 10.000 Görüşme (2.500 TL) ek paketlerini panelinizden anında tanımlayabilirsiniz.
                     </div>
                 </div>
 
                 <div class="faq-item">
                     <button type="button" class="faq-question" onclick="toggleFaq(this)">
-                        <span>Randevu başına veya cirodan komisyon kesiyor musunuz?</span>
+                        <span>Sanal POS, Kapora ve No-Show (gelmeme) güvencesi nasıl çalışır?</span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="faq-answer">
-                        Kesinlikle hayır! BooKi %0 komisyon güvencesiyle çalışır. İster ayda 50 randevu alın, ister 5.000; aldığınız randevular üzerinden hiçbir komisyon veya gizli masraf ödemezsiniz. Müşterileriniz doğrudan sizin markanızla randevu oluşturur.
+                        Tosla İşim güvencesiyle sunduğumuz sanal POS altyapımız, randevu iptallerinde ve gelmeyen müşterilerde (No-Show) işletmenizi korur. <strong>Ödeme Altyapısı + Kapora</strong> kullanımında %20 ödeme altyapısı + %5 kapora altyapısı olmak üzere toplam %25 komisyon kesilir ve ödeme altyapısında kapora şarttır (No-Show durumunda kaporadan %25 kesilerek kalan %75 net kazanç olarak salonunuza aktarılır). <strong>Yalnızca Kapora Altyapısı</strong> kullanıldığında ise gelme veya No-Show fark etmeksizin sabit %20 kapora hizmet komisyonu uygulanır.
                     </div>
                 </div>
 

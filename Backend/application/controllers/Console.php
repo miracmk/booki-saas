@@ -5630,6 +5630,77 @@ class Console extends App_Controller
         $this->notifications->send_whatsapp($user, $text);
         echo "WhatsApp send executed!" . PHP_EOL;
     }
+
+    /**
+     * Process due post-service follow-up dispatches.
+     *
+     * Usage:
+     * php index.php console follow_up_process
+     */
+    public function follow_up_process(int $limit = 50): void
+    {
+        echo "Processing due follow-up dispatches (limit: {$limit})..." . PHP_EOL;
+        $this->load->model('follow_up_dispatches_model');
+        $this->load->library('follow_up_engine');
+
+        $due = $this->follow_up_dispatches_model->get_due_dispatches($limit);
+        echo "Found " . count($due) . " due dispatches." . PHP_EOL;
+
+        $processed = 0;
+        foreach ($due as $disp) {
+            echo " - Processing dispatch #{$disp['id']} (booking #{$disp['booking_id']}, rule: {$disp['rule_type']})... ";
+            $res = $this->follow_up_engine->process_dispatch($disp['id']);
+            echo ($res ? "OK" : "FAILED") . PHP_EOL;
+            $processed++;
+        }
+
+        echo "Completed processing {$processed} dispatches." . PHP_EOL;
+    }
+
+    /**
+     * Seed default follow-up rules for a tenant or across all tenants.
+     *
+     * Usage:
+     * php index.php console follow_up_seed [subdomain]
+     */
+    public function follow_up_seed(string $subdomain = ''): void
+    {
+        $this->load->model('follow_up_rules_model');
+        $this->load->library('follow_up_engine');
+        $this->load->helper('industry');
+
+        if ($subdomain !== '') {
+            $tenant = $this->db->get_where('tenants', ['subdomain' => $subdomain])->row_array();
+            if (!$tenant) {
+                echo "Tenant not found: {$subdomain}" . PHP_EOL;
+                return;
+            }
+            $this->connect_tenant($tenant);
+            $bp = current_industry_code();
+            $fam = $this->follow_up_engine->resolve_industry_family($bp);
+            $count = $this->follow_up_rules_model->seed_tenant_defaults((string)$tenant['id'], $bp, $fam);
+            echo "Seeded {$count} rules for tenant {$subdomain} ({$bp} / {$fam})." . PHP_EOL;
+            return;
+        }
+
+        // Single-tenant or all active tenants
+        if (!is_multi_tenant_mode()) {
+            $bp = current_industry_code();
+            $fam = $this->follow_up_engine->resolve_industry_family($bp);
+            $count = $this->follow_up_rules_model->seed_tenant_defaults('default', $bp, $fam);
+            echo "Seeded {$count} rules for default tenant ({$bp} / {$fam})." . PHP_EOL;
+            return;
+        }
+
+        $tenants = $this->db->get_where('tenants', ['status' => 'active'])->result_array();
+        foreach ($tenants as $t) {
+            $this->connect_tenant($t);
+            $bp = current_industry_code();
+            $fam = $this->follow_up_engine->resolve_industry_family($bp);
+            $count = $this->follow_up_rules_model->seed_tenant_defaults((string)$t['id'], $bp, $fam);
+            echo "Seeded {$count} rules for {$t['subdomain']} ({$bp} / {$fam})." . PHP_EOL;
+        }
+    }
 }
 
 

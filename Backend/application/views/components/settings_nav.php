@@ -34,6 +34,12 @@
     </li>
 
     <li class="nav-item mb-2">
+        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('follow_up') ?>">
+            <i class="fas fa-route me-2 text-success"></i>Takip Motoru (Follow-Up)
+        </a>
+    </li>
+
+    <li class="nav-item mb-2">
         <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('settings#integrations') ?>">
             <i class="fas fa-plug me-2"></i><?= lang('settings_section_integrations_title') ?>
         </a>

@@ -294,7 +294,13 @@ class Ai_agent_client
 
                 $tool_call_log[] = ['name' => $name, 'args' => $args];
 
-                $result = $this->execute_tool($name, $args);
+                // Prevent duplicate tool execution across failovers and retries
+                if ($this->CI->ai_hybrid_router->is_tool_executed($name, $args)) {
+                    $result = ['status' => 'already_executed', 'message' => 'Bu işlem zaten gerçekleştirildi. Tekrar çalıştırılmadı.'];
+                } else {
+                    $result = $this->execute_tool($name, $args);
+                    $this->CI->ai_hybrid_router->mark_tool_executed($name, $args);
+                }
 
                 $conversation[] = [
                     'role' => 'tool',

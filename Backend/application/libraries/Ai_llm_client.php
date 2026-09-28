@@ -45,23 +45,49 @@ class Ai_llm_client
             $CI = &get_instance();
             $CI->load->library('ai_llm_gateway');
 
-            // Try Gemini first
-            $gemini_api_key = $CI->ai_llm_gateway->get_api_key('google');
+            // 1. First attempt via Universal Multi-Provider Gateway & Dynamic Hybrid Router
+            $system_prompt = $this->build_system_prompt($context);
+            $conversation = [
+                ['role' => 'system', 'content' => $system_prompt],
+            ];
+            foreach ($messages as $m) {
+                $conversation[] = [
+                    'role' => $m['role'] ?? 'user',
+                    'content' => (string) ($m['content'] ?? ''),
+                ];
+            }
 
-            if (!empty($gemini_api_key)) {
-                $result = $this->call_gemini($messages, $context, $gemini_api_key);
+            $gateway_response = $CI->ai_llm_gateway->chat($conversation, [
+                'task_type' => 'appointment_booking',
+                'response_format' => 'json_object',
+                'temperature' => 0.2,
+                'max_tokens' => 1024,
+            ]);
 
+            if ($gateway_response !== null && !empty($gateway_response['reply'])) {
+                $reply_str = trim($gateway_response['reply']);
+                // Extract JSON if wrapped in markdown code fence
+                if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $reply_str, $matches)) {
+                    $reply_str = $matches[1];
+                }
+                $parsed = json_decode($reply_str, true);
+                if (is_array($parsed) && !empty($parsed['type'])) {
+                    return $parsed;
+                }
+            }
+
+            // 2. Direct Provider Fallback if gateway returned unparsed text
+            $google_key = $CI->ai_llm_gateway->get_api_key('google');
+            if (!empty($google_key)) {
+                $result = $this->call_gemini($messages, $context, $google_key);
                 if ($result !== null) {
                     return $result;
                 }
             }
 
-            // Fallback to Groq
-            $groq_api_key = $CI->ai_llm_gateway->get_api_key('groq');
-
-            if (!empty($groq_api_key)) {
-                $result = $this->call_groq($messages, $context, $groq_api_key);
-
+            $groq_key = $CI->ai_llm_gateway->get_api_key('groq');
+            if (!empty($groq_key)) {
+                $result = $this->call_groq($messages, $context, $groq_key);
                 if ($result !== null) {
                     return $result;
                 }

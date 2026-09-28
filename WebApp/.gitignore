@@ -6,6 +6,7 @@
 dist/
 build/
 *.dist
+storage/legal_contracts/
 
 # Environment variables
 .env

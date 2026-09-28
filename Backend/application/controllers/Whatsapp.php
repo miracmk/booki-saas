@@ -280,9 +280,18 @@ class Whatsapp extends App_Controller
                 $this->db->update('users', ['last_contact_channel' => 'whatsapp'], ['id' => $matched_user['id']]);
             }
 
-            // Auto-reply via AI Assistant if enabled
-            $ai_enabled = !empty($settings['ai_reply_whatsapp_enabled']) 
-                || (setting('ai_reply_whatsapp_enabled') !== '0');
+            // Post-Service Follow-Up Inbound Listener (RED/DUR opt-out, reaction check, NPS rating)
+            $follow_up_handled = false;
+            try {
+                $this->load->library('follow_up_engine');
+                $follow_up_handled = $this->follow_up_engine->handle_inbound_reply($wa_id, $body, $matched_user);
+            } catch (Throwable $e) {
+                log_message('error', 'Whatsapp::webhook_receive - Follow_up_engine error: ' . $e->getMessage());
+            }
+
+            // Auto-reply via AI Assistant if enabled and not already handled by follow-up flow
+            $ai_enabled = !$follow_up_handled && (!empty($settings['ai_reply_whatsapp_enabled']) 
+                || (setting('ai_reply_whatsapp_enabled') !== '0'));
             if ($ai_enabled) {
                 $this->load->library('ai_channel_responder');
                 $ai_reply = $this->ai_channel_responder->respond('whatsapp', $wa_id, $body, $matched_user);
@@ -735,9 +744,18 @@ class Whatsapp extends App_Controller
                 $this->db->update('users', ['last_contact_channel' => 'whatsapp'], ['id' => $matched_user['id']]);
             }
 
-            // Auto-reply via AI Assistant if enabled
-            $ai_enabled = !empty($settings['ai_reply_whatsapp_enabled']) 
-                || (setting('ai_reply_whatsapp_enabled') !== '0');
+            // Post-Service Follow-Up Inbound Listener (RED/DUR opt-out, reaction check, NPS rating)
+            $follow_up_handled = false;
+            try {
+                $this->load->library('follow_up_engine');
+                $follow_up_handled = $this->follow_up_engine->handle_inbound_reply($from, $body, $matched_user);
+            } catch (Throwable $e) {
+                log_message('error', 'Whatsapp::bridge_inbound - Follow_up_engine error: ' . $e->getMessage());
+            }
+
+            // Auto-reply via AI Assistant if enabled and not already handled by follow-up flow
+            $ai_enabled = !$follow_up_handled && (!empty($settings['ai_reply_whatsapp_enabled']) 
+                || (setting('ai_reply_whatsapp_enabled') !== '0'));
             if ($ai_enabled) {
                 $this->load->library('ai_channel_responder');
                 $ai_reply = $this->ai_channel_responder->respond('whatsapp', $from, $body, $matched_user);

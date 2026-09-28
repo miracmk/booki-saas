@@ -1147,13 +1147,21 @@ TEMEL KİMLİK VE TON:
 
 --------------------------------------------------
 BOOKI FİYATLANDIRMASI (ŞEFFAF & SABİT TL):
-- Ücretsiz Paket (Free Tier / Süresiz 0 TL): 1 kişi (personel/uzman), 1 istasyon/cihaz/oda/alan/saha/kort/masa vb. ve aylık 40 randevu kotası tamamen ÜCRETSİZDİR (0 TL). Kredi kartı veya taahhüt gerekmez. Tek çalışanlı mikro işletmeler veya sistemi riske girmeden kullanmak isteyen bağımsız uzmanlar için idealdir.
+- Ücretsiz Paket (Free Tier / Süresiz 0 TL): 1 kişi (personel/uzman), 1 istasyon/cihaz/oda/alan/saha/kort/masa vb. ve aylık 40 randevu kotası tamamen ÜCRETSİZDİR (0 TL). Kredi kartı veya taahhüt gerekmez.
 - 10 Günlük Ücretsiz Deneme (Full Pro Demo): Kredi kartsız, taahhütsüz, tüm modüller ve yapay zeka açık 30 saniyede başlar (https://bookiapp.kibusiness.co).
-- Başlangıç (Starter): 1.250 TL / ay (Yıllık peşin ödemede 1.000 TL/ay - Yıllık 12.000 TL). Tek şubeli butik işletmeler için tam çözüm.
-- Büyüme (Growth/Pro): 2.450 TL / ay (Yıllıkta 1.950 TL/ay). Çok personelli, paket/seans takipli, POS adisyonlu işletmeler.
-- Kurumsal / Premium (Enterprise): 4.750 TL / ay (Yıllıkta 3.800 TL/ay). Zincirler, çoklu şubeler, özel domain ve MCP/API entegrasyonu.
-- Özel Kurumsal Teklif (Premium / Enterprise Yetersiz Gelirse): Çok şubeli zincirler, dev spor ve sağlık kompleksleri, franchise ağları, sınırsız istasyon veya özel API/SLA ihtiyacı olan ve Enterprise/Premium paketi yetmeyen işletmeler için: "İhtiyaçlarınız için kurumsal ekibimiz size özel bir teklif hazırlayacaktır. Bilgilerinizi alıyorum, ekibimiz size özel teklif iletecektir" de ve `create_demo_lead` aracını `crm_tag: SPECIAL_OFFER_REQUEST` veya `CUSTOM_ENTERPRISE_OFFER` ile çağırarak lead'lere ekle!
-* Gizli maliyet, kurulum ücreti, randevu başı komisyon YOKTUR!
+- Başlangıç (Starter): 1.250 TL / ay (Yıllık peşin ödemede 1.000 TL x 12 ay = 12.000 TL / yıl).
+- Profesyonel Paket / Büyüme (Growth/Pro / Orta Paket): 2.450 TL / ay (Yıllık peşin ödemede 1.950 TL x 12 ay = 23.400 TL / yıl).
+- Premium Paket / Kurumsal (Enterprise): 4.750 TL / ay (Yıllık peşin ödemede 3.800 TL x 12 ay = 45.600 TL / yıl).
+- YAPAY ZEKA (AI) ASİSTAN KOTASI VE EK PAKETLER:
+  * Tüm paketlerde 1.000 Görüşmeye kadar AI Asistan DAHİLDİR.
+  * 1.000 Görüşme sonrasında ek kullanım paketleri:
+    + 1.000 Görüşme: 300 TL
+    + 5.000 Görüşme: 1.400 TL
+    + 10.000 Görüşme: 2.500 TL
+- ÖDEME VE KAPORA KOMİSYON YAPISI:
+  * Ödeme Altyapısı Komisyonu: %20 + %5 Kapora Altyapısı = Toplam %25 (Ödeme altyapısı kullanımında kapora sistemi şarttır. No-Show durumunda %25 kaporadan kesilir; müşteri geldiğinde ise müşteriye/işletmeye gidecek meblağdan %25 kesilir).
+  * Yalnızca Kapora Altyapısı Komisyonu: %20 (No-Show veya Geldi fark etmeksizin kaporadan %20 kesilir).
+- Özel Kurumsal Teklif (Premium / Enterprise Yetersiz Gelirse): Çok şubeli zincirler, dev spor ve sağlık kompleksleri, franchise ağları, sınırsız istasyon veya özel API/SLA ihtiyacı olan işletmeler için kurumsal satış ekibimiz özel teklif hazırlar.
 
 --------------------------------------------------
 BOOKI'NİN 21 TEMEL ÜSTÜNLÜĞÜ:

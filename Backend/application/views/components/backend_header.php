@@ -1,7 +1,7 @@
 <link rel="manifest" href="<?= base_url('manifest.json') ?>">
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
+  navigator.serviceWorker.register('/sw.js?v=4');
 }
 </script>
 <?php
@@ -33,6 +33,9 @@ $header_company_logo = base_url('assets/img/logo.png');
         <i class="fas fa-bars fa-lg"></i>
     </button>
     <span class="text-white fw-bold ms-2 flex-grow-1" style="font-size: 15px;"><?= e($header_company_name) ?></span>
+    <a href="<?= site_url('booking') ?>" target="_blank" rel="noopener" class="btn btn-link text-white p-1 me-1" title="Müşteri Randevu Sayfası" aria-label="Randevu Sayfası">
+        <i class="fas fa-external-link-alt"></i>
+    </a>
     <button type="button" class="btn btn-link text-white p-1 me-1" onclick="openOmnisearch()" aria-label="Arama">
         <i class="fas fa-search"></i>
     </button>
@@ -131,6 +134,18 @@ $header_company_logo = base_url('assets/img/logo.png');
                     </ul>
                     <?php endif; ?>
                 </div>
+            </div>
+
+            <!-- Public Booking & Showcase Links (Open in New Tab) -->
+            <div class="d-flex gap-2 mb-2">
+                <a href="<?= site_url('booking') ?>" target="_blank" rel="noopener" class="btn btn-sm btn-light bg-opacity-10 text-white border-0 flex-fill py-1 px-2 text-truncate d-flex align-items-center justify-content-center text-decoration-none" style="background: rgba(255,255,255,0.12); font-size: 11px;" title="Müşteri Randevu Sayfası (Yeni Sekme)">
+                    <i class="fas fa-external-link-alt text-info me-1"></i> Randevu Al
+                </a>
+                <?php if (!empty($mp_url)): ?>
+                    <a href="<?= e($mp_url) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-light bg-opacity-10 text-white border-0 flex-fill py-1 px-2 text-truncate d-flex align-items-center justify-content-center text-decoration-none" style="background: rgba(255,255,255,0.12); font-size: 11px;" title="RandevuBurada Vitrin Sayfam (Yeni Sekme)">
+                        <i class="fas fa-store text-warning me-1"></i> Vitrinim
+                    </a>
+                <?php endif; ?>
             </div>
 
             <!-- Command Palette trigger -->
@@ -282,32 +297,60 @@ $header_company_logo = base_url('assets/img/logo.png');
             <?php endforeach; ?>
         </ul>
 
-        <!-- User & Settings Footer -->
-        <div class="border-top border-light border-opacity-25 p-2 sidebar-footer-account">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link text-white d-flex justify-content-between align-items-center" href="#"
-                       data-bs-toggle="collapse" data-bs-target="#sidebar-account-collapse">
-                        <span><i class="fas fa-user-circle me-2"></i><?= e(vars('user_display_name') ?: session('job_title') ?: 'Hesabım') ?></span>
-                        <i class="fas fa-chevron-down small"></i>
+        <!-- User Footer Card & Quick Actions Dropup -->
+        <div class="p-2 border-top border-light border-opacity-25 sidebar-footer-account mt-auto">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="dropup flex-grow-1 min-w-0 me-1">
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none p-1 rounded-2 sidebar-user-btn text-truncate" id="sidebarUserDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="<?= e(vars('user_display_name') ?: 'Hesabım') ?>">
+                        <div class="avatar-circle flex-shrink-0 bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm me-2" style="width: 32px; height: 32px; border-radius: 50%; font-size: 13px;">
+                            <?= strtoupper(mb_substr(trim(vars('user_display_name') ?: session('job_title') ?: 'U'), 0, 1, 'UTF-8')) ?>
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden text-start" style="line-height: 1.2;">
+                            <div class="fw-semibold text-truncate small text-white"><?= e(vars('user_display_name') ?: 'Hesabım') ?></div>
+                            <div class="text-white-50 text-truncate" style="font-size: 11px;">
+                                <?= e(session('job_title') ?: (session('role_slug') === 'admin' ? 'Yönetici' : 'Kullanıcı')) ?>
+                            </div>
+                        </div>
+                        <i class="fas fa-ellipsis-v text-white-50 ms-1 small"></i>
                     </a>
-                    <div class="collapse" id="sidebar-account-collapse">
-                        <ul class="nav flex-column ps-4">
-                            <?php if (can('view', PRIV_SYSTEM_SETTINGS)): ?>
-                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('industry_settings') ?>"><i class="fas fa-shapes me-2 text-warning"></i><?= lang('industry_and_modules') ?></a></li>
-                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('settings') ?>"><i class="fas fa-sliders-h me-2"></i><?= lang('settings_center') ?></a></li>
-                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('onboarding') ?>"><i class="fas fa-magic me-2"></i>Sektör Sihirbazı</a></li>
-                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('audit_log') ?>"><i class="fas fa-clipboard-list me-2"></i><?= lang('audit_log') ?></a></li>
-                                <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('data_requests') ?>"><i class="fas fa-shield-alt me-2"></i>Veri Talepleri (KVKK)</a></li>
-                            <?php endif; ?>
-                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('account') ?>"><i class="fas fa-user me-2"></i><?= lang('account') ?></a></li>
-                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('booking') ?>" target="_blank"><i class="fas fa-external-link-alt me-2"></i>Müşteri Randevu Sayfası</a></li>
-                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= e($mp_url) ?>" target="_blank" rel="noopener"><i class="fas fa-store me-2 text-warning"></i>RandevuBurada Vitrinim</a></li>
-                            <li class="nav-item"><a class="nav-link text-white-50" href="<?= site_url('logout') ?>"><i class="fas fa-sign-out-alt me-2"></i><?= lang('log_out') ?></a></li>
-                        </ul>
-                    </div>
-                </li>
-            </ul>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-lg border border-secondary border-opacity-25 rounded-3 py-2" aria-labelledby="sidebarUserDropdown" style="font-size: 13px; min-width: 220px; z-index: 1050;">
+                        <li class="px-3 py-1 mb-1 border-bottom border-secondary border-opacity-25">
+                            <div class="fw-semibold text-white small text-truncate"><?= e(vars('user_display_name') ?: 'Hesabım') ?></div>
+                            <div class="text-white-50 text-truncate" style="font-size: 11px;"><?= e(session('user_email') ?: '') ?></div>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" href="<?= site_url('account') ?>">
+                                <i class="fas fa-user-cog text-secondary me-2" style="width: 16px;"></i>
+                                <span><?= lang('account') ?: 'Profil & Hesap Ayarları' ?></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" href="<?= site_url('booking') ?>" target="_blank" rel="noopener">
+                                <i class="fas fa-external-link-alt text-info me-2" style="width: 16px;"></i>
+                                <span>Müşteri Randevu Sayfası</span>
+                            </a>
+                        </li>
+                        <?php if (!empty($mp_url)): ?>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center" href="<?= e($mp_url) ?>" target="_blank" rel="noopener">
+                                <i class="fas fa-store text-warning me-2" style="width: 16px;"></i>
+                                <span>RandevuBurada Vitrinim</span>
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
+                        <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center text-danger" href="<?= site_url('logout') ?>">
+                                <i class="fas fa-sign-out-alt me-2" style="width: 16px;"></i>
+                                <span><?= lang('log_out') ?: 'Çıkış Yap' ?></span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <a href="<?= site_url('logout') ?>" class="btn btn-sm text-white-50 hover-text-danger p-1 flex-shrink-0" title="<?= lang('log_out') ?: 'Çıkış Yap' ?>" style="line-height: 1;">
+                    <i class="fas fa-sign-out-alt fa-lg"></i>
+                </a>
+            </div>
         </div>
     </div>
 </nav>

@@ -178,6 +178,7 @@ class Ai_channel_responder
     {
         $this->CI = &get_instance();
         $this->CI->load->library('ai_llm_gateway');
+        $this->CI->load->library('ai_hybrid_router');
         $this->CI->load->library('channel_templates');
     }
 
@@ -272,7 +273,13 @@ class Ai_channel_responder
                 $name = $call['function']['name'] ?? '';
                 $args = json_decode($call['function']['arguments'] ?? '{}', true) ?: [];
 
-                $result = $this->execute_tool($name, $args, $channel, $sender_id, $matched_user);
+                // Prevent duplicate tool execution across retries
+                if ($this->CI->ai_hybrid_router->is_tool_executed($name, $args)) {
+                    $result = ['status' => 'already_executed', 'message' => 'Bu işlem zaten gerçekleştirildi.'];
+                } else {
+                    $result = $this->execute_tool($name, $args, $channel, $sender_id, $matched_user);
+                    $this->CI->ai_hybrid_router->mark_tool_executed($name, $args);
+                }
 
                 // If customer requested handoff via tool, immediately return confirmation message
                 if ($name === 'request_human_handoff' || !empty($result['handoff_triggered'])) {

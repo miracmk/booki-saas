@@ -258,10 +258,8 @@ class Navigation_service
         ];
 
         // 4. KATALOG (Unifying Services, Products, Packages, Memberships)
-        $catalog_children = [];
-
         // Services / Procedures / Menus
-        $catalog_children[] = [
+        $items[] = [
             'id' => 'nav_cat_services',
             'label' => $terms['service'],
             'icon' => 'fas fa-concierge-bell',
@@ -276,7 +274,7 @@ class Navigation_service
         ];
 
         // Products / Inventory
-        $catalog_children[] = [
+        $items[] = [
             'id' => 'nav_cat_products',
             'label' => $terms['product'],
             'icon' => 'fas fa-boxes',
@@ -291,7 +289,7 @@ class Navigation_service
         ];
 
         // Packages
-        $catalog_children[] = [
+        $items[] = [
             'id' => 'nav_cat_packages',
             'label' => $terms['package'],
             'icon' => 'fas fa-box-open',
@@ -306,7 +304,7 @@ class Navigation_service
         ];
 
         // Memberships
-        $catalog_children[] = [
+        $items[] = [
             'id' => 'nav_cat_memberships',
             'label' => $terms['membership'],
             'icon' => 'fas fa-id-card',
@@ -316,20 +314,6 @@ class Navigation_service
             'module' => 'memberships',
             'permission' => ['view', 'memberships'],
             'children' => [],
-            'badge' => null,
-            'mobile_visibility' => true,
-        ];
-
-        $items[] = [
-            'id' => 'nav_catalog',
-            'label' => $terms['catalog'],
-            'icon' => 'fas fa-layer-group',
-            'route' => 'catalog',
-            'group' => 'catalog',
-            'order' => 1,
-            'module' => 'services',
-            'permission' => ['view', 'services'],
-            'children' => $catalog_children,
             'badge' => null,
             'mobile_visibility' => true,
         ];
@@ -479,55 +463,43 @@ class Navigation_service
         ];
 
         $items[] = [
-            'id' => 'nav_randevuburada',
+            'id' => 'nav_rb_profile',
             'label' => 'RandevuBurada Pazaryeri',
             'icon' => 'fas fa-store',
             'route' => 'randevuburada/profile',
             'group' => 'marketing',
             'order' => 3,
-            'module' => 'randevuburada_sync',
-            'permission' => ['view', 'randevuburada'],
-            'children' => [
-                [
-                    'id' => 'nav_rb_profile',
-                    'label' => 'Profil & Vitrin',
-                    'icon' => 'fas fa-id-badge',
-                    'route' => 'randevuburada/profile',
-                    'group' => 'marketing',
-                    'order' => 1,
-                    'module' => 'randevuburada_sync',
-                    'permission' => ['view', 'randevuburada'],
-                    'children' => [],
-                    'badge' => null,
-                    'mobile_visibility' => true,
-                ],
-                [
-                    'id' => 'nav_rb_services',
-                    'label' => 'Hizmetler ve Fiyatlar',
-                    'icon' => 'fas fa-tags',
-                    'route' => 'randevuburada/services',
-                    'group' => 'marketing',
-                    'order' => 2,
-                    'module' => 'randevuburada_sync',
-                    'permission' => ['view', 'randevuburada'],
-                    'children' => [],
-                    'badge' => null,
-                    'mobile_visibility' => true,
-                ],
-                [
-                    'id' => 'nav_rb_reservations',
-                    'label' => 'Pazaryeri Rezervasyonları',
-                    'icon' => 'fas fa-calendar-check',
-                    'route' => 'randevuburada/reservations',
-                    'group' => 'marketing',
-                    'order' => 3,
-                    'module' => 'randevuburada_sync',
-                    'permission' => ['view', 'randevuburada'],
-                    'children' => [],
-                    'badge' => null,
-                    'mobile_visibility' => true,
-                ],
-            ],
+            'module' => null,
+            'permission' => ['view', 'marketing'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_rb_services',
+            'label' => 'Pazaryeri Hizmet & Fiyatları',
+            'icon' => 'fas fa-tags',
+            'route' => 'randevuburada/services',
+            'group' => 'marketing',
+            'order' => 4,
+            'module' => null,
+            'permission' => ['view', 'marketing'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_rb_reservations',
+            'label' => 'Pazaryeri Rezervasyonları',
+            'icon' => 'fas fa-calendar-check',
+            'route' => 'randevuburada/reservations',
+            'group' => 'marketing',
+            'order' => 5,
+            'module' => null,
+            'permission' => ['view', 'marketing'],
+            'children' => [],
             'badge' => null,
             'mobile_visibility' => true,
         ];
@@ -677,71 +649,100 @@ class Navigation_service
         ];
 
         // 12. AYARLAR
-        $settings_children = [
-            [
-                'id' => 'nav_settings_center',
-                'label' => lang('settings_center'),
-                'icon' => 'fas fa-sliders-h',
-                'route' => 'settings',
-                'group' => 'settings',
-                'order' => 1,
-                'module' => null,
-                'permission' => ['view', 'system_settings'],
-                'children' => [],
-                'badge' => null,
-                'mobile_visibility' => true,
-            ],
-            [
-                'id' => 'nav_set_industry',
-                'label' => lang('industry_and_modules'),
-                'icon' => 'fas fa-shapes',
-                'route' => 'industry_settings',
-                'group' => 'settings',
-                'order' => 2,
-                'module' => null,
-                'permission' => ['view', 'system_settings'],
-                'children' => [],
-                'badge' => null,
-                'mobile_visibility' => false,
-            ],
-            [
-                'id' => 'nav_set_branches',
-                'label' => lang('branches'),
-                'icon' => 'fas fa-code-branch',
-                'route' => 'branches',
-                'group' => 'settings',
-                'order' => 3,
-                'module' => null,
-                'permission' => ['view', 'branches'],
-                'children' => [],
-                'badge' => null,
-                'mobile_visibility' => false,
-            ],
-            [
-                'id' => 'nav_set_audit',
-                'label' => lang('audit_log'),
-                'icon' => 'fas fa-clipboard-list',
-                'route' => 'audit_log',
-                'group' => 'settings',
-                'order' => 4,
-                'module' => null,
-                'permission' => ['view', 'system_settings'],
-                'children' => [],
-                'badge' => null,
-                'mobile_visibility' => false,
-            ],
-        ];
-
         $items[] = [
-            'id' => 'nav_settings',
-            'label' => lang('settings'),
-            'icon' => 'fas fa-cogs',
+            'id' => 'nav_settings_center',
+            'label' => lang('settings_center') ?: 'Ayar Merkezi',
+            'icon' => 'fas fa-sliders-h',
             'route' => 'settings',
             'group' => 'settings',
             'order' => 1,
             'module' => null,
             'permission' => ['view', 'system_settings'],
-            'children' => $settings_children,
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_account',
+            'label' => 'Profil & Hesap Ayarları',
+            'icon' => 'fas fa-user-cog',
+            'route' => 'account',
+            'group' => 'settings',
+            'order' => 2,
+            'module' => null,
+            'permission' => null,
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_set_industry',
+            'label' => lang('industry_and_modules') ?: 'Sektör & Modüller',
+            'icon' => 'fas fa-shapes',
+            'route' => 'industry_settings',
+            'group' => 'settings',
+            'order' => 3,
+            'module' => null,
+            'permission' => ['view', 'system_settings'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => false,
+        ];
+
+        $items[] = [
+            'id' => 'nav_set_branches',
+            'label' => lang('branches') ?: 'Şubeler',
+            'icon' => 'fas fa-code-branch',
+            'route' => 'branches',
+            'group' => 'settings',
+            'order' => 4,
+            'module' => null,
+            'permission' => ['view', 'branches'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => false,
+        ];
+
+        $items[] = [
+            'id' => 'nav_set_audit',
+            'label' => lang('audit_log') ?: 'Denetim Günlüğü',
+            'icon' => 'fas fa-clipboard-list',
+            'route' => 'audit_log',
+            'group' => 'settings',
+            'order' => 5,
+            'module' => null,
+            'permission' => ['view', 'system_settings'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => false,
+        ];
+
+        $items[] = [
+            'id' => 'nav_data_requests',
+            'label' => 'KVKK & Veri Talepleri',
+            'icon' => 'fas fa-shield-alt',
+            'route' => 'data_requests',
+            'group' => 'settings',
+            'order' => 6,
+            'module' => null,
+            'permission' => ['view', 'system_settings'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => false,
+        ];
+
+        $items[] = [
+            'id' => 'nav_onboarding',
+            'label' => 'Sektör Sihirbazı',
+            'icon' => 'fas fa-magic',
+            'route' => 'onboarding',
+            'group' => 'settings',
+            'order' => 7,
+            'module' => null,
+            'permission' => ['view', 'system_settings'],
+            'children' => [],
             'badge' => null,
             'mobile_visibility' => false,
         ];

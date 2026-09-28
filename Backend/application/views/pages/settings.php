@@ -33,39 +33,41 @@ $active_section = $active_section ?? vars('active_section') ?? 'business';
         </div>
     </div>
 
-    <!-- Main Navigation Tabs -->
-    <ul class="nav nav-pills nav-fill bg-light p-2 rounded-4 mb-4 shadow-sm flex-nowrap overflow-auto" id="settings-main-tabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'business' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-business" data-bs-toggle="pill" href="#section-business" role="tab">
-                <i class="fas fa-building me-2"></i><?= lang('settings_section_business_title') ?>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'booking' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-booking" data-bs-toggle="pill" href="#section-booking" role="tab">
-                <i class="fas fa-calendar-check me-2"></i><?= lang('settings_section_booking_title') ?>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'communication' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-communication" data-bs-toggle="pill" href="#section-communication" role="tab">
-                <i class="fas fa-paper-plane me-2"></i><?= lang('settings_section_communication_title') ?>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'integrations' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-integrations" data-bs-toggle="pill" href="#section-integrations" role="tab">
-                <i class="fas fa-plug me-2"></i><?= lang('settings_section_integrations_title') ?>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'legal' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-legal" data-bs-toggle="pill" href="#section-legal" role="tab">
-                <i class="fas fa-balance-scale me-2"></i><?= lang('settings_section_legal_title') ?>
-            </a>
-        </li>
-        <li class="nav-item" role="presentation">
-            <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'security' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-security" data-bs-toggle="pill" href="#section-security" role="tab">
-                <i class="fas fa-shield-alt me-2"></i><?= lang('settings_section_security_title') ?>
-            </a>
-        </li>
-    </ul>
+    <!-- Main Navigation Tabs (Sticky Top) -->
+    <div class="sticky-top bg-body pt-2 pb-2 mb-4" style="top: 0; z-index: 1020; backdrop-filter: blur(8px);">
+        <ul class="nav nav-pills nav-fill bg-light p-2 rounded-4 shadow-sm flex-nowrap overflow-auto border mb-0" id="settings-main-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'business' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-business" data-bs-toggle="pill" href="#section-business" role="tab">
+                    <i class="fas fa-building me-2"></i><?= lang('settings_section_business_title') ?>
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'booking' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-booking" data-bs-toggle="pill" href="#section-booking" role="tab">
+                    <i class="fas fa-calendar-check me-2"></i><?= lang('settings_section_booking_title') ?>
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'communication' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-communication" data-bs-toggle="pill" href="#section-communication" role="tab">
+                    <i class="fas fa-paper-plane me-2"></i><?= lang('settings_section_communication_title') ?>
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'integrations' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-integrations" data-bs-toggle="pill" href="#section-integrations" role="tab">
+                    <i class="fas fa-plug me-2"></i><?= lang('settings_section_integrations_title') ?>
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'legal' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-legal" data-bs-toggle="pill" href="#section-legal" role="tab">
+                    <i class="fas fa-balance-scale me-2"></i><?= lang('settings_section_legal_title') ?>
+                </a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link rounded-3 fw-semibold <?= $active_section === 'security' ? 'active' : '' ?> text-nowrap py-2 px-3" id="tab-security" data-bs-toggle="pill" href="#section-security" role="tab">
+                    <i class="fas fa-shield-alt me-2"></i><?= lang('settings_section_security_title') ?>
+                </a>
+            </li>
+        </ul>
+    </div>
 
     <!-- Tab Contents -->
     <div class="tab-content" id="settings-tab-content">

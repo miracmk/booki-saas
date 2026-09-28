@@ -327,7 +327,7 @@ if (!function_exists('module_enabled')) {
             return (bool) $features_cache[$module];
         }
 
-        $core_modules = ['dashboard', 'appointments', 'calendar', 'customers', 'services', 'reports', 'settings', 'users'];
+        $core_modules = ['dashboard', 'appointments', 'calendar', 'customers', 'services', 'reports', 'settings', 'users', 'randevuburada_sync'];
         if (in_array($module, $core_modules, true)) {
             return true;
         }

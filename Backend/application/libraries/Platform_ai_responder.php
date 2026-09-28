@@ -170,6 +170,7 @@ class Platform_ai_responder
     {
         $this->CI = &get_instance();
         $this->CI->load->library('ai_llm_gateway');
+        $this->CI->load->library('ai_hybrid_router');
         $this->CI->load->library('platform_knowledge_base');
         $this->CI->load->helper('setting');
     }
@@ -248,7 +249,13 @@ class Platform_ai_responder
                 $raw_args = $call['function']['arguments'] ?? '{}';
                 $args = is_string($raw_args) ? (json_decode($raw_args, true) ?: []) : (array) $raw_args;
 
-                $tool_result = $this->execute_platform_tool($tool_name, $args, $clean_from);
+                // Prevent duplicate tool execution across failovers/retries
+                if ($this->CI->ai_hybrid_router->is_tool_executed($tool_name, $args)) {
+                    $tool_result = ['status' => 'already_executed', 'message' => 'Bu işlem zaten gerçekleştirildi.'];
+                } else {
+                    $tool_result = $this->execute_platform_tool($tool_name, $args, $clean_from);
+                    $this->CI->ai_hybrid_router->mark_tool_executed($tool_name, $args);
+                }
 
                 $conversation[] = [
                     'role' => 'tool',
@@ -362,7 +369,13 @@ class Platform_ai_responder
                 $raw_args = $call['function']['arguments'] ?? '{}';
                 $args = is_string($raw_args) ? (json_decode($raw_args, true) ?: []) : (array) $raw_args;
 
-                $tool_result = $this->execute_platform_tool($tool_name, $args, '');
+                // Prevent duplicate tool execution across failovers/retries
+                if ($this->CI->ai_hybrid_router->is_tool_executed($tool_name, $args)) {
+                    $tool_result = ['status' => 'already_executed', 'message' => 'Bu işlem zaten gerçekleştirildi.'];
+                } else {
+                    $tool_result = $this->execute_platform_tool($tool_name, $args, '');
+                    $this->CI->ai_hybrid_router->mark_tool_executed($tool_name, $args);
+                }
 
                 $conversation[] = [
                     'role' => 'tool',

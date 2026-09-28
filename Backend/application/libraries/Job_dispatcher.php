@@ -41,6 +41,7 @@ class Job_dispatcher
         'notifications.generic_email' => [Notifications::class, 'handle_queued_generic_email'],
         'webhooks.deliver' => [Webhooks_client::class, 'handle_queued_delivery'],
         'data_requests.export' => [Data_export::class, 'handle_queued_export'],
+        'follow_up.process_dispatch' => [Follow_up_engine::class, 'handle_queued_dispatch'],
     ];
 
     /**

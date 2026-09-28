@@ -11,15 +11,30 @@
         header { background: #1b1f24; color: #fff; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
         header h1 { font-size: 1.1rem; margin: 0; }
         header a { color: #ccc; text-decoration: none; font-size: .85rem; margin-left: 1rem; }
-        main { padding: 1.5rem; max-width: 680px; margin: 0 auto; }
+        main { padding: 1.5rem; max-width: 980px; margin: 0 auto; }
         .card { background: #fff; border-radius: 10px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 1.5rem; }
         label { display: block; font-size: .85rem; font-weight: 600; margin: 1rem 0 .3rem; }
-        input, select { width: 100%; padding: .55rem .7rem; border: 1px solid #d7d9dd; border-radius: 6px; font-size: .9rem; background: #fff; }
+        input, select, textarea { width: 100%; padding: .55rem .7rem; border: 1px solid #d7d9dd; border-radius: 6px; font-size: .9rem; background: #fff; box-sizing: border-box; }
         button { background: #1b1f24; color: #fff; border: none; border-radius: 6px; padding: .6rem 1.2rem; font-weight: 600; cursor: pointer; margin-top: 1.2rem; }
         button:hover { background: #333; }
         .hint { color: #666; font-size: .8rem; line-height: 1.4; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
         .badge-free { background: #e6f4ea; color: #137333; }
+        .badge-hybrid { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-legacy { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-healthy { background: #dcfce7; color: #15803d; }
+        .badge-degraded { background: #fef9c3; color: #854d0e; }
+        .badge-cooldown { background: #fee2e2; color: #b91c1c; }
+        .provider-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .provider-box { border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; background: #fafafa; }
+        .provider-box h3 { margin: 0 0 .5rem; font-size: .95rem; display: flex; justify-content: space-between; align-items: center; }
+        .env-code { font-family: monospace; font-size: .75rem; background: #f1f5f9; padding: 2px 4px; border-radius: 3px; color: #475569; }
+        .toggle-group { display: flex; gap: 1rem; margin: .8rem 0; flex-wrap: wrap; }
+        .toggle-card { flex: 1; min-width: 260px; border: 2px solid #e2e8f0; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all .2s; }
+        .toggle-card.active { border-color: #2563eb; background: #f0f7ff; }
+        .metrics-table { width: 100%; border-collapse: collapse; margin-top: .8rem; font-size: .85rem; }
+        .metrics-table th, .metrics-table td { padding: 8px 10px; border: 1px solid #e2e8f0; text-align: left; }
+        .metrics-table th { background: #f8fafc; font-weight: 600; color: #475569; }
         .msg { font-size: .85rem; margin-top: .8rem; display: none; }
         .msg.ok { color: #1e8a4c; }
         .msg.err { color: #c0392b; }
@@ -35,119 +50,330 @@
     </header>
 
     <main>
-        <!-- AI ASİSTAN & LLM SAĞLAYICILARI KARTI -->
-        <div class="card" style="border-top: 4px solid #1a73e8;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <h2 style="font-size:1.15rem;margin-top:0;color:#1a73e8;">🤖 AI Asistan & LLM API Anahtarları</h2>
-                <span class="badge badge-free">Free Tier Uyumlu</span>
+        <!-- UNIFIED AI & LLM HUB (HİBRİT MODEL ROUTER & ENTEGRASYONLAR) -->
+        <div class="card" style="border-top: 4px solid #2563eb;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <h2 style="font-size:1.25rem;margin:0;color:#1e293b;">🤖 Merkezi AI & LLM Yönetim Hub</h2>
+                    <span class="hint">Eşit Sağlayıcılar: OpenAI, Anthropic, Google | Dinamik 12 Kriter Hibrit Model Router</span>
+                </div>
+                <div>
+                    <?php if (vars('ai_engine_version') === 'hybrid'): ?>
+                        <span class="badge badge-hybrid">⚡ Yeni Hibrit Router Aktif</span>
+                    <?php else: ?>
+                        <span class="badge badge-legacy">🔄 Eski AI Asistan Sistemi Aktif</span>
+                    <?php endif; ?>
+                    <span class="badge badge-free">🌿 Ücretsiz Yapı Korundu</span>
+                </div>
             </div>
-            <p class="hint">
-                WhatsApp, Telegram, Instagram ve panel içi AI Asistan yanıtları için ortak LLM sağlayıcı API anahtarları.
-                Platform genelinde tanımlanan bu anahtarlar, tüm kiracılarda otomatik fallback sırasıyla kullanılır.
-            </p>
+
+            <!-- Free Tier Architecture Status Notice -->
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:.85rem;margin-top:1rem;font-size:.85rem;line-height:1.5;color:#166534;">
+                <strong>🌿 Mevcut Ücretsiz Yapı Kurgusu Devam Ediyor:</strong>
+                Platform genelinde Google AI Studio (1500 RPD), Groq ve OpenRouter ücretsiz kotaları korunmuştur.
+                Hibrit Model Router'ın 9. kriteri ("Kalan Ücretsiz Kota"), ücretsiz kotalar bitene kadar sıfır maliyetli modelleri önceliklendirerek işletme maliyetini minimumda tutar.
+            </div>
+
             <form id="ai-settings-form">
-                <label>Aktif AI Sağlayıcı Tercihi</label>
+                <!-- 1. AI ENGINE MODE SELECTION (ESKİ vs YENİ TOGGLE) -->
+                <label style="margin-top:1.2rem;font-size:.95rem;">1. AI Asistan Motoru Seçimi (Geçiş Toggle'ı)</label>
+                <div class="toggle-group">
+                    <label class="toggle-card <?= vars('ai_engine_version') !== 'legacy' ? 'active' : '' ?>" style="margin:0;">
+                        <input type="radio" name="ai_engine_version" value="hybrid" <?= vars('ai_engine_version') !== 'legacy' ? 'checked' : '' ?> style="width:auto;margin-right:6px;" onchange="updateEngineCards()">
+                        <strong>⚡ Yeni Nesil Hibrit Model Router (Önerilen)</strong>
+                        <p class="hint" style="margin:6px 0 0;">
+                            <strong>Eşit Birinci Sınıf Sağlayıcılar:</strong> OpenAI, Anthropic Claude ve Google Gemini birbirine eşit tutulur.
+                            Her istekte 12 kritere göre (Görev tipi, model yeteneği, tool calling desteği, structured output, token limiti, anlık sağlık, gecikme, hata oranı, kalan ücretsiz kota, API maliyeti, kiracı politikası ve başarı oranı) en uygun model dinamik seçilir. Hata durumunda aynı router devreye girerek sonraki en iyi modele geçer.
+                        </p>
+                    </label>
+
+                    <label class="toggle-card <?= vars('ai_engine_version') === 'legacy' ? 'active' : '' ?>" style="margin:0;">
+                        <input type="radio" name="ai_engine_version" value="legacy" <?= vars('ai_engine_version') === 'legacy' ? 'checked' : '' ?> style="width:auto;margin-right:6px;" onchange="updateEngineCards()">
+                        <strong>🔄 Eski AI Asistan Sistemi (Geçici Fallback)</strong>
+                        <p class="hint" style="margin:6px 0 0;">
+                            Geriye dönük uyumluluk için geçici statik sıralı fallback zinciri (Google -> Groq -> OpenRouter -> OpenAI -> Anthropic).
+                        </p>
+                    </label>
+                </div>
+
+                <label style="margin-top:1rem;">Sağlayıcı Tercihi (İsteğe Bağlı Sabitleme)</label>
                 <select id="ai_provider">
-                    <option value="auto" <?= vars('ai_provider') === 'auto' ? 'selected' : '' ?>>Otomatik Fallback (Önce Google -> Groq -> OpenRouter -> OpenAI -> Anthropic)</option>
-                    <option value="google" <?= vars('ai_provider') === 'google' ? 'selected' : '' ?>>Google AI Studio (Gemini - Free Tier)</option>
-                    <option value="groq" <?= vars('ai_provider') === 'groq' ? 'selected' : '' ?>>Groq (Llama 3.3 - Free Tier Hızlı)</option>
-                    <option value="openrouter" <?= vars('ai_provider') === 'openrouter' ? 'selected' : '' ?>>OpenRouter (Çoklu Model & Free Modeller)</option>
-                    <option value="openai" <?= vars('ai_provider') === 'openai' ? 'selected' : '' ?>>OpenAI (GPT-4o Mini / GPT-4o)</option>
-                    <option value="anthropic" <?= vars('ai_provider') === 'anthropic' ? 'selected' : '' ?>>Anthropic (Claude 3.5 Sonnet / Haiku)</option>
+                    <option value="auto" <?= vars('ai_provider') === 'auto' ? 'selected' : '' ?>>Otomatik / Dinamik Karar (Router 12 kritere göre en uygun modeli seçer)</option>
+                    <option value="google" <?= vars('ai_provider') === 'google' ? 'selected' : '' ?>>Google AI Studio / Gemini Tercih Et</option>
+                    <option value="openai" <?= vars('ai_provider') === 'openai' ? 'selected' : '' ?>>OpenAI (GPT-4o Mini / GPT-4o) Tercih Et</option>
+                    <option value="anthropic" <?= vars('ai_provider') === 'anthropic' ? 'selected' : '' ?>>Anthropic Claude 3.5 Tercih Et</option>
+                    <option value="groq" <?= vars('ai_provider') === 'groq' ? 'selected' : '' ?>>Groq (Ultra Hızlı / Llama 3.3) Tercih Et</option>
+                    <option value="openrouter" <?= vars('ai_provider') === 'openrouter' ? 'selected' : '' ?>>OpenRouter (Çoklu Model) Tercih Et</option>
                 </select>
 
-                <hr style="margin:1.2rem 0;border:none;border-top:1px solid #eee;">
+                <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e2e8f0;">
 
-                <!-- Google Gemini / AI Studio -->
-                <label>
-                    Google AI Studio / Gemini API Key
-                    <?= vars('google_ai_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(aistudio.google.com ücretsiz API)</span>' ?>
-                </label>
-                <input type="password" id="google_ai_key" placeholder="<?= vars('google_ai_key_set') ? '••••••••' : 'AIzaSy...' ?>">
-                <label>Google Model</label>
-                <input type="text" id="ai_model_google" placeholder="gemini-1.5-flash" value="<?= e(vars('ai_model_google')) ?>">
+                <!-- 2. TÜM AI SAĞLAYICILARI VE ENV ENTEGRASYONLARI (TEK SAYFADA) -->
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <label style="margin:0;font-size:.95rem;">2. Birinci Sınıf Eşit AI Sağlayıcıları & API Anahtarları</label>
+                    <span class="hint">Tüm ENV değişkenleri doğrudan buradan yönetilebilir</span>
+                </div>
 
-                <!-- Groq -->
-                <label style="margin-top:1.2rem;">
-                    Groq API Key
-                    <?= vars('groq_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(console.groq.com ücretsiz ultra hızlı API)</span>' ?>
-                </label>
-                <input type="password" id="groq_api_key" placeholder="<?= vars('groq_api_key_set') ? '••••••••' : 'gsk_...' ?>">
-                <label>Groq Model</label>
-                <input type="text" id="ai_model_groq" placeholder="llama-3.3-70b-versatile" value="<?= e(vars('ai_model_groq')) ?>">
+                <div class="provider-grid">
+                    <!-- Google Gemini -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>Google AI Studio / Gemini</span>
+                            <span class="badge badge-free">Free 1500 RPD</span>
+                        </h3>
+                        <div class="hint" style="margin-bottom:8px;">
+                            <span class="env-code">GEMINI_API_KEY</span> / <span class="env-code">GOOGLE_AI_KEY</span>
+                        </div>
+                        <label style="margin-top:.4rem;">
+                            API Key <?= vars('google_ai_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(aistudio.google.com)</span>' ?>
+                        </label>
+                        <input type="password" id="google_ai_key" placeholder="<?= vars('google_ai_key_set') ? '••••••••' : 'AIzaSy...' ?>">
+                        <label>Model (<span class="env-code">GEMINI_MODEL</span>)</label>
+                        <input type="text" id="ai_model_google" placeholder="gemini-3.8-flash" value="<?= e(vars('ai_model_google')) ?>">
+                        <div class="hint" style="margin-top:6px;font-size:0.75rem;">
+                            ✓ Tool Calling &nbsp;|&nbsp; ✓ Structured Output &nbsp;|&nbsp; 1M+ Context
+                        </div>
+                    </div>
 
-                <!-- OpenRouter -->
-                <label style="margin-top:1.2rem;">
-                    OpenRouter API Key
-                    <?= vars('openrouter_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(openrouter.ai API Key)</span>' ?>
-                </label>
-                <input type="password" id="openrouter_api_key" placeholder="<?= vars('openrouter_api_key_set') ? '••••••••' : 'sk-or-v1-...' ?>">
-                <label>OpenRouter Model</label>
-                <input type="text" id="ai_model_openrouter" placeholder="google/gemini-2.0-flash-exp:free" value="<?= e(vars('ai_model_openrouter')) ?>">
+                    <!-- OpenAI -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>OpenAI</span>
+                            <span class="badge" style="background:#e0f2fe;color:#0369a1;">Eşit 1. Sınıf</span>
+                        </h3>
+                        <div class="hint" style="margin-bottom:8px;">
+                            <span class="env-code">OPENAI_API_KEY</span> / <span class="env-code">OPENAI_MODEL</span>
+                        </div>
+                        <label style="margin-top:.4rem;">
+                            API Key <?= vars('openai_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(platform.openai.com)</span>' ?>
+                        </label>
+                        <input type="password" id="openai_api_key" placeholder="<?= vars('openai_api_key_set') ? '••••••••' : 'sk-proj-...' ?>">
+                        <label>Model (<span class="env-code">OPENAI_MODEL</span>)</label>
+                        <input type="text" id="ai_model_openai" placeholder="gpt-4o-mini" value="<?= e(vars('ai_model_openai')) ?>">
+                        <div class="hint" style="margin-top:6px;font-size:0.75rem;">
+                            ✓ Function Calling &nbsp;|&nbsp; ✓ JSON Mode &nbsp;|&nbsp; 128k Context
+                        </div>
+                    </div>
 
-                <!-- OpenAI -->
-                <label style="margin-top:1.2rem;">
-                    OpenAI API Key
-                    <?= vars('openai_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(platform.openai.com)</span>' ?>
-                </label>
-                <input type="password" id="openai_api_key" placeholder="<?= vars('openai_api_key_set') ? '••••••••' : 'sk-proj-...' ?>">
-                <label>OpenAI Model</label>
-                <input type="text" id="ai_model_openai" placeholder="gpt-4o-mini" value="<?= e(vars('ai_model_openai')) ?>">
+                    <!-- Anthropic Claude -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>Anthropic Claude</span>
+                            <span class="badge" style="background:#fce7f3;color:#9d174d;">Eşit 1. Sınıf</span>
+                        </h3>
+                        <div class="hint" style="margin-bottom:8px;">
+                            <span class="env-code">ANTHROPIC_API_KEY</span> / <span class="env-code">ANTHROPIC_MODEL</span>
+                        </div>
+                        <label style="margin-top:.4rem;">
+                            API Key <?= vars('anthropic_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(console.anthropic.com)</span>' ?>
+                        </label>
+                        <input type="password" id="anthropic_api_key" placeholder="<?= vars('anthropic_api_key_set') ? '••••••••' : 'sk-ant-...' ?>">
+                        <label>Model (<span class="env-code">ANTHROPIC_MODEL</span>)</label>
+                        <input type="text" id="ai_model_anthropic" placeholder="claude-3-5-haiku-20241022" value="<?= e(vars('ai_model_anthropic')) ?>">
+                        <div class="hint" style="margin-top:6px;font-size:0.75rem;">
+                            ✓ Native Tool Use &nbsp;|&nbsp; ✓ JSON Schema &nbsp;|&nbsp; 200k Context
+                        </div>
+                    </div>
 
-                <!-- Anthropic -->
-                <label style="margin-top:1.2rem;">
-                    Anthropic Claude API Key
-                    <?= vars('anthropic_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(console.anthropic.com)</span>' ?>
-                </label>
-                <input type="password" id="anthropic_api_key" placeholder="<?= vars('anthropic_api_key_set') ? '••••••••' : 'sk-ant-...' ?>">
-                <label>Anthropic Model</label>
-                <input type="text" id="ai_model_anthropic" placeholder="claude-3-5-haiku-20241022" value="<?= e(vars('ai_model_anthropic')) ?>">
+                    <!-- Groq -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>Groq (Ultra-Hızlı)</span>
+                            <span class="badge badge-free">Free Tier</span>
+                        </h3>
+                        <div class="hint" style="margin-bottom:8px;">
+                            <span class="env-code">GROQ_API_KEY</span> / <span class="env-code">GROQ_MODEL</span>
+                        </div>
+                        <label style="margin-top:.4rem;">
+                            API Key <?= vars('groq_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(console.groq.com)</span>' ?>
+                        </label>
+                        <input type="password" id="groq_api_key" placeholder="<?= vars('groq_api_key_set') ? '••••••••' : 'gsk_...' ?>">
+                        <label>Model</label>
+                        <input type="text" id="ai_model_groq" placeholder="llama-3.3-70b-versatile" value="<?= e(vars('ai_model_groq')) ?>">
+                        <div class="hint" style="margin-top:6px;font-size:0.75rem;">
+                            ✓ ~220ms Gecikme &nbsp;|&nbsp; ✓ Llama 3.3 70B
+                        </div>
+                    </div>
+
+                    <!-- OpenRouter -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>OpenRouter</span>
+                            <span class="badge" style="background:#f1f5f9;color:#334155;">Açık Kaynak</span>
+                        </h3>
+                        <div class="hint" style="margin-bottom:8px;">
+                            <span class="env-code">OPENROUTER_API_KEY</span>
+                        </div>
+                        <label style="margin-top:.4rem;">
+                            API Key <?= vars('openrouter_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '<span class="hint">(openrouter.ai)</span>' ?>
+                        </label>
+                        <input type="password" id="openrouter_api_key" placeholder="<?= vars('openrouter_api_key_set') ? '••••••••' : 'sk-or-v1-...' ?>">
+                        <label>Model</label>
+                        <input type="text" id="ai_model_openrouter" placeholder="qwen/qwen-2.5-72b-instruct" value="<?= e(vars('ai_model_openrouter')) ?>">
+                        <div class="hint" style="margin-top:6px;font-size:0.75rem;">
+                            ✓ 100+ Model Desteği &nbsp;|&nbsp; Free modeller
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="margin:1.5rem 0;border:none;border-top:1px solid #e2e8f0;">
+
+                <!-- 3. EK AI SES VE KANAL ENTEGRASYONLARI -->
+                <label style="font-size:.95rem;">3. Entegre Sesli Asistan, WhatsApp Bridge & MCP Ajan Entegrasyonları</label>
+                <div class="provider-grid">
+                    <!-- ElevenLabs AI Voice -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>ElevenLabs AI Voice</span>
+                            <span class="badge" style="background:#ede9fe;color:#6d28d9;">Sesli Asistan</span>
+                        </h3>
+                        <div class="hint"><span class="env-code">ELEVENLABS_API_KEY</span></div>
+                        <label style="margin-top:.4rem;">
+                            API Key <?= vars('elevenlabs_api_key_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '' ?>
+                        </label>
+                        <input type="password" id="elevenlabs_api_key" placeholder="<?= vars('elevenlabs_api_key_set') ? '••••••••' : 'xi-api-key...' ?>">
+                        <label>Agent ID</label>
+                        <input type="text" id="elevenlabs_agent_id" value="<?= e(vars('elevenlabs_agent_id')) ?>" placeholder="agent_...">
+                        <label>Voice ID</label>
+                        <input type="text" id="elevenlabs_voice_id" value="<?= e(vars('elevenlabs_voice_id')) ?>" placeholder="21m00Tcm4TlvDq8ikWAM">
+                        <label>Model ID</label>
+                        <input type="text" id="elevenlabs_model_id" value="<?= e(vars('elevenlabs_model_id')) ?>" placeholder="eleven_multilingual_v2">
+                    </div>
+
+                    <!-- WhatsApp AI Bridge -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>WhatsApp AI Bridge</span>
+                            <span class="badge" style="background:#dcfce7;color:#15803d;">Köprü Servisi</span>
+                        </h3>
+                        <div class="hint"><span class="env-code">WA_BRIDGE_URL</span></div>
+                        <label style="margin-top:.4rem;">Bridge Service URL</label>
+                        <input type="text" id="wa_bridge_url" value="<?= e(vars('wa_bridge_url')) ?>" placeholder="http://ki-wa-bridge:3000">
+                        <label>Bridge Secret Key <?= vars('wa_bridge_secret_set') ? '<span class="hint" style="color:#137333;">(Kayıtlı ✓)</span>' : '' ?></label>
+                        <input type="password" id="wa_bridge_secret" placeholder="<?= vars('wa_bridge_secret_set') ? '••••••••' : 'Gizli anahtar...' ?>">
+                    </div>
+
+                    <!-- BooKi MCP Server -->
+                    <div class="provider-box">
+                        <h3>
+                            <span>BooKi MCP Sunucusu</span>
+                            <span class="badge" style="background:#e0e7ff;color:#4338ca;">Model Context Protocol</span>
+                        </h3>
+                        <label style="margin-top:.4rem;">Public Streamable Endpoint</label>
+                        <input type="text" id="mcp_url_input" value="<?= e(vars('mcp_server_url')) ?>" readonly style="background:#f8fafc;font-family:monospace;font-size:0.8rem;">
+                        <label>Internal Container URL</label>
+                        <input type="text" value="<?= e(vars('mcp_internal_url')) ?>" readonly style="background:#f8fafc;font-family:monospace;font-size:0.8rem;">
+                        <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('mcp_url_input').value); alert('Kopyalandı!');" style="margin-top:.5rem;padding:.4rem .8rem;font-size:.8rem;background:#475569;">
+                            📋 MCP URL Kopyala
+                        </button>
+                    </div>
+                </div>
 
                 <div class="msg" id="ai-settings-msg"></div>
-                <button type="submit" style="background:#1a73e8;">AI Ayarlarını Kaydet</button>
+                <div style="display:flex;gap:10px;align-items:center;margin-top:1.2rem;">
+                    <button type="submit" style="background:#2563eb;margin-top:0;">💾 Tüm AI & Entegrasyon Ayarlarını Kaydet</button>
+                </div>
             </form>
-        </div>
 
-        <!-- BOOTSTRAP MCP (MODEL CONTEXT PROTOCOL) AI SUNUCUSU KARTI -->
-        <div class="card" style="border-top: 4px solid #10b981;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <h2 style="font-size:1.15rem;margin-top:0;color:#10b981;">🔌 BooKi MCP (Model Context Protocol) AI Sunucusu</h2>
-                <span class="badge" style="background:#d1fae5;color:#065f46;">Aktif / HTTP Streamable</span>
+            <hr style="margin:1.8rem 0;border:none;border-top:1px solid #e2e8f0;">
+
+            <!-- 4. CANLI MODEL METRİKLERİ VE SAĞLIK TABLOSU -->
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                <label style="margin:0;font-size:.95rem;">4. Canlı Model Sağlık, Gecikme & Başarı Oranları (Router Metrikleri)</label>
+                <button type="button" id="btn-reset-ai-metrics" style="margin-top:0;padding:.35rem .75rem;font-size:.8rem;background:#64748b;">
+                    🔄 Metrikleri Sıfırla
+                </button>
             </div>
-            <p class="hint">
-                Claude Desktop, Cursor, Windsurf, ElevenLabs AI Voice Agent ve harici ajanların tüm platform kiracılarına (tenant) güvenle bağlanmasını sağlayan merkezi Model Context Protocol sunucusu.
+            <p class="hint" style="margin-top:4px;">
+                Router, her modelin son isteklerdeki gecikme (EMA), hata oranı ve circuit breaker durumunu izler.
             </p>
 
-            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;margin-top:1rem;">
-                <label style="margin-top:0;">Merkezi MCP Sunucu Ucu (Public HTTP Streamable)</label>
-                <div style="display:flex;gap:8px;margin-top:4px;">
-                    <input type="text" id="mcp_url_input" value="<?= e(vars('mcp_server_url')) ?>" readonly style="background:#fff;font-family:monospace;font-size:0.85rem;">
-                    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('mcp_url_input').value); alert('Kopyalandı!');" style="margin-top:0;padding:.5rem 1rem;white-space:nowrap;background:#10b981;">Kopyala</button>
-                </div>
-
-                <label style="margin-top:0.8rem;">İç Docker Ağı Bağlantı Ucu (Internal Service)</label>
-                <input type="text" value="<?= e(vars('mcp_internal_url')) ?>" readonly style="background:#f1f5f9;font-family:monospace;font-size:0.85rem;color:#64748b;">
-
-                <label style="margin-top:0.8rem;">Dinamik Kiracı Yönlendirme Formatı</label>
-                <p class="hint" style="margin:4px 0 8px;">
-                    Harici istemciler herhangi bir kiracıya şu şekillerde bağlanabilir:
-                </p>
-                <div style="background:#1e293b;color:#f8fafc;padding:.75rem;border-radius:6px;font-family:monospace;font-size:0.8rem;line-height:1.6;">
-                    • <strong>URL ile:</strong> <code><?= e(vars('mcp_server_url')) ?>?tenant={subdomain}</code><br>
-                    • <strong>Header ile:</strong> <code>X-Tenant: {subdomain}</code><br>
-                    • <strong>Yetkilendirme:</strong> <code>Authorization: Bearer {tenant_agent_api_key}</code>
-                </div>
+            <?php $metrics = vars('ai_router_metrics')['models'] ?? []; ?>
+            <div style="overflow-x:auto;">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Sağlayıcı</th>
+                            <th>Yetenek</th>
+                            <th>Araç Desteği</th>
+                            <th>Durum</th>
+                            <th>Gecikme</th>
+                            <th>Başarı %</th>
+                            <th>Kalan Ücretsiz Kota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($metrics)): ?>
+                            <tr><td colspan="8" style="text-align:center;color:#64748b;">Kayıtlı metrik henüz yok. İlk AI isteğinde otomatik dolacaktır.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($metrics as $m): ?>
+                                <tr>
+                                    <td><strong><?= e($m['display_name']) ?></strong></td>
+                                    <td><span class="badge" style="background:#f1f5f9;color:#334155;"><?= strtoupper(e($m['provider'])) ?></span></td>
+                                    <td><?= (int)$m['capability'] ?> / 100</td>
+                                    <td><?= !empty($m['tool_support']) ? '<span style="color:#16a34a;">✓ Destekli</span>' : '<span style="color:#94a3b8;">-</span>' ?></td>
+                                    <td>
+                                        <span class="badge badge-<?= e($m['state']) ?>">
+                                            <?= e(ucfirst($m['state'])) ?>
+                                        </span>
+                                    </td>
+                                    <td><?= number_format($m['latency_ms'], 0) ?> ms</td>
+                                    <td><?= number_format($m['success_rate'], 1) ?>%</td>
+                                    <td>
+                                        <?php if (!empty($m['has_free_tier'])): ?>
+                                            <span style="color:#15803d;font-weight:600;"><?= (int)$m['remaining_free_quota'] ?> istek/gün</span>
+                                        <?php else: ?>
+                                            <span style="color:#64748b;">Ücretli / Kredi</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
 
-            <div style="margin-top:1rem;display:flex;gap:10px;">
-                <a href="<?= e(vars('mcp_server_url')) ?>" target="_blank" style="display:inline-block;background:#0f172a;color:#fff;text-decoration:none;padding:.5rem 1rem;border-radius:6px;font-size:.85rem;font-weight:600;">
-                    🔍 MCP Sağlık Kontrolü (JSON Test)
-                </a>
-                <a href="<?= site_url('superadmin_tenants') ?>" style="display:inline-block;background:#e2e8f0;color:#1e293b;text-decoration:none;padding:.5rem 1rem;border-radius:6px;font-size:.85rem;font-weight:600;">
-                    👥 Kiracı Bazlı MCP Kodlarını Gör
-                </a>
+            <hr style="margin:1.8rem 0;border:none;border-top:1px solid #e2e8f0;">
+
+            <!-- 5. İNTERAKTİF HİBRİT ROUTER TEST & SİMÜLASYON PANELİ -->
+            <label style="font-size:.95rem;margin-top:0;">5. İnteraktif Hibrit Model Router Karar Simülasyonu & Canlı Test</label>
+            <p class="hint" style="margin-top:4px;">
+                Belirli bir görev türü ve kullanıcı mesajı için 12 kriterlik algoritmanın hangi modeli neden seçtiğini canlı olarak test edin.
+            </p>
+
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:1rem;">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:10px;">
+                    <div>
+                        <label style="margin-top:0;">Görev Türü (Task Type)</label>
+                        <select id="sim_task_type">
+                            <option value="appointment_booking">Randevu Alma & Takvim (Tool Calling & Function Execution)</option>
+                            <option value="fast_response">Hızlı Yanıt & Karşılama (Düşük Gecikme / WhatsApp)</option>
+                            <option value="complex_reasoning">Karmaşık Muhakeme (Şikayet / İtiraz / Kural Değerlendirme)</option>
+                            <option value="summary">Konuşma Özeti (Uzun Bağlam / Memory)</option>
+                            <option value="chat">Genel Sohbet (Dengeli Karar)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="margin-top:0;">Test Mesajı / Prompt</label>
+                        <input type="text" id="sim_prompt" value="Merhaba, yarın saat 14:00 için saç kesimi randevusu alabilir miyim?">
+                    </div>
+                </div>
+
+                <div style="margin-top:10px;display:flex;align-items:center;gap:12px;">
+                    <label style="margin:0;display:inline-flex;align-items:center;gap:6px;font-weight:normal;cursor:pointer;">
+                        <input type="checkbox" id="sim_execute" checked style="width:auto;">
+                        <span>Gerçek LLM API Çağrısını da Çalıştır (Canlı Yanıt Al)</span>
+                    </label>
+                    <button type="button" id="btn-test-router" style="margin-top:0;background:#0f172a;padding:.5rem 1rem;">
+                        🚀 Dinamik Model Seçimini Test Et
+                    </button>
+                </div>
+
+                <div id="router-test-result" style="display:none;margin-top:1rem;background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:1rem;"></div>
             </div>
         </div>
+
 
         <div class="card">
             <h2 style="font-size:1.05rem;margin-top:0;">Ki Business Google OAuth</h2>
@@ -333,6 +559,18 @@
     </main>
 
     <script>
+        function updateEngineCards() {
+            const selected = document.querySelector('input[name="ai_engine_version"]:checked')?.value || 'hybrid';
+            document.querySelectorAll('.toggle-card').forEach(card => {
+                const radio = card.querySelector('input[type="radio"]');
+                if (radio && radio.value === selected) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+
         // AI Settings Form
         document.getElementById('ai-settings-form').addEventListener('submit', function (event) {
             event.preventDefault();
@@ -344,13 +582,19 @@
                 'groq_api_key', 'ai_model_groq',
                 'openrouter_api_key', 'ai_model_openrouter',
                 'openai_api_key', 'ai_model_openai',
-                'anthropic_api_key', 'ai_model_anthropic'
+                'anthropic_api_key', 'ai_model_anthropic',
+                'elevenlabs_api_key', 'elevenlabs_agent_id', 'elevenlabs_voice_id', 'elevenlabs_model_id',
+                'wa_bridge_url', 'wa_bridge_secret'
             ];
 
-            const data = { csrf_token: '<?= e(vars('csrf_token')) ?>' };
+            const data = {
+                csrf_token: '<?= e(vars('csrf_token')) ?>',
+                ai_engine_version: document.querySelector('input[name="ai_engine_version"]:checked')?.value || 'hybrid'
+            };
+
             fieldIds.forEach((id) => {
                 const el = document.getElementById(id);
-                if (el) data[id] = el.value;
+                if (el && el.value !== '') data[id] = el.value;
             });
 
             fetch('<?= site_url('superadmin_settings/save') ?>', {
@@ -362,12 +606,150 @@
                 .then((data) => {
                     msg.style.display = 'block';
                     msg.className = 'msg ' + (data.success ? 'ok' : 'err');
-                    msg.textContent = data.success ? 'AI ayarları başarıyla kaydedildi.' : (data.message || 'Hata oluştu.');
+                    msg.textContent = data.success ? 'Tüm AI & Entegrasyon ayarları başarıyla kaydedildi.' : (data.message || 'Hata oluştu.');
                     if (data.success) {
                         setTimeout(() => window.location.reload(), 1000);
                     }
+                })
+                .catch((e) => {
+                    msg.style.display = 'block';
+                    msg.className = 'msg err';
+                    msg.textContent = 'Bağlantı hatası: ' + e.message;
                 });
         });
+
+        // Reset AI Metrics Cache
+        const btnResetMetrics = document.getElementById('btn-reset-ai-metrics');
+        if (btnResetMetrics) {
+            btnResetMetrics.addEventListener('click', function () {
+                if (!confirm('Tüm modellerin anlık gecikme, hata ve sağlık istatistikleri sıfırlanacaktır. Emin misiniz?')) {
+                    return;
+                }
+                const btn = this;
+                btn.disabled = true;
+                fetch('<?= site_url('superadmin_settings/reset_ai_metrics') ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ csrf_token: '<?= e(vars('csrf_token')) ?>' }).toString(),
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        alert(data.message || 'Metrikler sıfırlandı.');
+                        window.location.reload();
+                    })
+                    .catch(e => {
+                        alert('Hata: ' + e.message);
+                        btn.disabled = false;
+                    });
+            });
+        }
+
+        // Interactive AI Hybrid Router Test & Simulation
+        const btnTestRouter = document.getElementById('btn-test-router');
+        if (btnTestRouter) {
+            btnTestRouter.addEventListener('click', function () {
+                const taskType = document.getElementById('sim_task_type').value;
+                const prompt = document.getElementById('sim_prompt').value;
+                const execute = document.getElementById('sim_execute').checked ? '1' : '0';
+                const resultBox = document.getElementById('router-test-result');
+
+                btnTestRouter.disabled = true;
+                btnTestRouter.textContent = '⏳ Analiz Ediliyor...';
+                resultBox.style.display = 'block';
+                resultBox.innerHTML = '<div style="color:#64748b;font-size:0.9rem;">12 kriter dinamik hesaplanıyor ve modeller puanlanıyor...</div>';
+
+                const params = new URLSearchParams({
+                    csrf_token: '<?= e(vars('csrf_token')) ?>',
+                    task_type: taskType,
+                    prompt: prompt,
+                    execute: execute
+                });
+
+                fetch('<?= site_url('superadmin_settings/test_ai_router') ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        btnTestRouter.disabled = false;
+                        btnTestRouter.textContent = '🚀 Dinamik Model Seçimini Test Et';
+
+                        if (!data.success) {
+                            resultBox.innerHTML = `<div style="color:#c0392b;">Hata: ${data.message || 'Router çalıştırılamadı'}</div>`;
+                            return;
+                        }
+
+                        const sel = data.selected_model;
+                        if (!sel) {
+                            resultBox.innerHTML = '<div style="color:#c0392b;">Hiçbir uygun model bulunamadı. Lütfen API anahtarlarını kontrol edin.</div>';
+                            return;
+                        }
+
+                        let html = `
+                            <div style="border-bottom:1px solid #e2e8f0;padding-bottom:10px;margin-bottom:10px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <h4 style="margin:0;font-size:1rem;color:#1e293b;">
+                                        🏆 Seçilen Model: <strong style="color:#2563eb;">${sel.display_name}</strong>
+                                    </h4>
+                                    <span class="badge" style="background:#dcfce7;color:#15803d;font-size:12px;">Puan: ${sel.total_score} / 100</span>
+                                </div>
+                                <div style="font-size:0.8rem;color:#64748b;margin-top:4px;">
+                                    Sağlayıcı: <strong>${sel.provider.toUpperCase()}</strong> | Model: <code>${sel.model}</code> | Durum: <strong>${sel.health.state}</strong>
+                                </div>
+                            </div>
+                        `;
+
+                        // 12 criteria breakdown table
+                        if (sel.breakdown) {
+                            html += `
+                                <div style="font-size:0.82rem;font-weight:600;color:#475569;margin-bottom:4px;">12 Kriter Puanlama Dökümü:</div>
+                                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:6px;font-size:0.78rem;background:#f8fafc;padding:8px;border-radius:6px;border:1px solid #e2e8f0;">
+                                    <div>🎯 Görev Uyumu: <strong>${sel.breakdown.task_type_fit || 0}</strong></div>
+                                    <div>🧠 Model Yeteneği: <strong>${sel.breakdown.model_capability || 0}</strong></div>
+                                    <div>🛠️ Tool Desteği: <strong>${sel.breakdown.tool_support || 0}</strong></div>
+                                    <div>📋 Structured Output: <strong>${sel.breakdown.structured_output || 0}</strong></div>
+                                    <div>📏 Bağlam/Token: <strong>${sel.breakdown.context_fit || 0}</strong></div>
+                                    <div>🩺 Sağlayıcı Sağlığı: <strong>${sel.breakdown.provider_health || 0}</strong></div>
+                                    <div>⚡ Anlık Gecikme: <strong>${sel.breakdown.current_latency || 0}</strong></div>
+                                    <div>🛡️ Hata Oranı: <strong>${sel.breakdown.error_rate || 0}</strong></div>
+                                    <div>🌿 Kalan Free Kota: <strong>${sel.breakdown.remaining_free_quota || 0}</strong></div>
+                                    <div>💰 API Maliyeti: <strong>${sel.breakdown.paid_api_cost || 0}</strong></div>
+                                    <div>🏢 Kiracı Politikası: <strong>${sel.breakdown.tenant_ai_policy || 0}</strong></div>
+                                    <div>📊 Geçmiş Başarı: <strong>${sel.breakdown.historical_success_rate || 0}</strong></div>
+                                </div>
+                            `;
+                        }
+
+                        // Execution output
+                        if (data.execution) {
+                            const ex = data.execution;
+                            html += `
+                                <div style="margin-top:12px;padding:10px;background:${ex.success ? '#f0fdf4' : '#fef2f2'};border:1px solid ${ex.success ? '#bbf7d0' : '#fecaca'};border-radius:6px;">
+                                    <div style="display:flex;justify-content:space-between;font-size:0.82rem;font-weight:600;color:${ex.success ? '#166534' : '#991b1b'};">
+                                        <span>Canlı LLM Çağrı Sonucu (${ex.latency_ms} ms):</span>
+                                        <span>Motor: ${ex.engine}</span>
+                                    </div>
+                                    <div style="margin-top:6px;font-size:0.88rem;color:#1e293b;white-space:pre-wrap;background:#fff;padding:8px;border-radius:4px;border:1px solid #e2e8f0;">${escapeHtml(ex.reply)}</div>
+                                </div>
+                            `;
+                        }
+
+                        resultBox.innerHTML = html;
+                    })
+                    .catch(e => {
+                        btnTestRouter.disabled = false;
+                        btnTestRouter.textContent = '🚀 Dinamik Model Seçimini Test Et';
+                        resultBox.innerHTML = `<div style="color:#c0392b;">Bağlantı hatası: ${e.message}</div>`;
+                    });
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // Google OAuth Form
         document.getElementById('settings-form').addEventListener('submit', function (event) {

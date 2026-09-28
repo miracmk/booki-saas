@@ -416,6 +416,15 @@ class Appointments_model extends App_Model
         $is_new_completed = in_array(mb_strtolower($new_status, 'UTF-8'), $completed_statuses, true);
         $is_new_cancelled = in_array(mb_strtolower($new_status, 'UTF-8'), $cancelled_statuses, true);
 
+        if (!$is_old_completed && $is_new_completed) {
+            try {
+                $this->load->library('follow_up_engine');
+                $this->follow_up_engine->on_booking_completed((int) $appointment['id']);
+            } catch (Throwable $e) {
+                log_message('error', 'Appointments_model - Follow_up_engine error: ' . $e->getMessage());
+            }
+        }
+
         if (!$is_old_completed && $is_new_completed && empty($old['consumables_deducted'])) {
             try {
                 $this->load->model('inventory_consumables_model');

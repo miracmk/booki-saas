@@ -6,42 +6,25 @@
  */
 $hide_brand = plan_allows('white_label') && setting('white_label_enabled') == 1;
 ?>
-<footer id="footer" role="contentinfo" class="d-lg-flex justify-content-lg-start align-items-lg-center p-2 text-center text-lg-left mt-auto bg-body border-top" style="font-size: 11px;">
-    <div class="mb-3 me-lg-5 mb-lg-0">
-        &copy; <?= date('Y') ?> <?= e(setting('company_name', 'BooKi') ?: 'BooKi') ?>
+<footer id="footer" role="contentinfo" class="d-flex flex-column flex-sm-row justify-content-between align-items-center py-2 px-3 px-lg-4 mt-auto bg-body border-top text-muted" style="font-size: 12px; min-height: 42px;">
+    <div class="d-flex align-items-center gap-2 mb-1 mb-sm-0">
+        <span>&copy; <?= date('Y') ?> <strong class="text-body"><?= e(setting('company_name', 'BooKi') ?: 'BooKi') ?></strong></span>
+        <span class="d-none d-md-inline opacity-50">&bull;</span>
+        <span class="d-none d-md-inline"><?= lang('all_rights_reserved') ?: 'Tüm hakları saklıdır.' ?></span>
     </div>
 
-    <?php if (!$hide_brand): ?>
-    <div class="mb-3 me-lg-5 mb-lg-0">
-        <?= lang('licensed_under') ?>
-        <a href="https://kisoftware.com/license" target="_blank">
-            Ki Software License
-        </a>
-    </div>
-    <?php endif; ?>
-
-    <div class="mb-3 me-lg-5 mb-lg-0">
-        <span id="select-language" class="badge bg-dark">
-            <i class="fas fa-language me-2"></i>
-        	<?= ucfirst(config('language')) ?>
+    <div class="d-flex align-items-center gap-3">
+        <span id="select-language" class="badge bg-body-secondary text-body border px-2 py-1 user-select-none" style="cursor: pointer;" title="Dil Değiştir">
+            <i class="fas fa-globe me-1 text-primary"></i> <?= ucfirst(config('language')) ?>
         </span>
-    </div>
 
-    <div class="mb-3 me-lg-5 mb-lg-0">
-        <a href="<?= site_url('appointments') ?>">
-            <?= lang('go_to_booking_page') ?>
-        </a>
-    </div>
+        <?php if (!$hide_brand): ?>
+        <span class="small" style="font-size: 11px;">
+            Powered by <a href="https://kisoftware.com" target="_blank" rel="noopener" class="text-muted text-decoration-none fw-semibold">BooKi</a>
+        </span>
+        <?php endif; ?>
 
-    <div class="ms-lg-auto">
-        <strong id="footer-user-display-name">
-            <?= lang('hello') . ', ' . e($user_display_name) ?>!
-        </strong>
+        <!-- Hidden anchor for JS compatibility (Account.js update) -->
+        <span id="footer-user-display-name" class="d-none"><?= lang('hello') . ', ' . e($user_display_name) ?>!</span>
     </div>
-
-    <?php if (!$hide_brand): ?>
-    <div class="text-muted small ms-lg-3">
-        <a href="https://kisoftware.com" target="_blank" class="text-muted">Powered by BooKi (Ki Software License)</a>
-    </div>
-    <?php endif; ?>
 </footer>

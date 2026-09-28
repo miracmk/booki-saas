@@ -50,11 +50,14 @@ class Branches extends App_Controller
 
         $role_slug = session('role_slug');
 
+        $branches = $this->branches_model->get(null, null, null, 'is_default DESC, name ASC');
+
         html_vars([
-            'page_title' => 'Branches',
+            'page_title' => lang('branches') ?: 'Şubeler & Lokasyonlar',
             'active_menu' => PRIV_BRANCHES,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
+            'branches' => $branches,
         ]);
 
         script_vars([

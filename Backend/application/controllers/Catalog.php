@@ -25,60 +25,23 @@ class Catalog extends App_Controller
 
     public function index(): void
     {
-        session(['dest_url' => site_url('catalog')]);
-
         $user_id = (int) session('user_id');
         if (!$user_id) {
             redirect('login');
             return;
         }
 
-        if (cannot('view', 'services') && cannot('view', 'products')) {
-            abort(403, 'Forbidden: Katalog erişim yetkiniz bulunmuyor.');
+        if (can('view', 'services')) {
+            redirect('services');
+            return;
         }
 
-        $business_type = $this->vertical_service->current_business_type();
-        $family = $this->vertical_service->resolve_family($business_type);
-        $terms = $this->vertical_service->get_terminology($business_type);
+        if (can('view', 'products')) {
+            redirect('products');
+            return;
+        }
 
-        // Fetch counts & preview data
-        $services = $this->db->get('services')->result_array() ?: [];
-        $categories = $this->db->get('service_categories')->result_array() ?: [];
-        $products = $this->db->table_exists('products') ? ($this->db->get('products')->result_array() ?: []) : [];
-        $packages = $this->db->table_exists('customer_packages') || $this->db->table_exists('packages')
-            ? ($this->db->get($this->db->table_exists('customer_packages') ? 'customer_packages' : 'packages')->result_array() ?: [])
-            : [];
-        $memberships = $this->db->table_exists('membership_plans')
-            ? ($this->db->get('membership_plans')->result_array() ?: [])
-            : [];
-
-        // Build vertical-specific catalog sections
-        $sections = $this->build_vertical_sections($family, $terms, [
-            'services' => $services,
-            'categories' => $categories,
-            'products' => $products,
-            'packages' => $packages,
-            'memberships' => $memberships,
-        ]);
-
-        html_vars([
-            'page_title' => $terms['catalog'] ?? 'Katalog',
-            'active_menu' => 'services',
-            'user_display_name' => $this->accounts->get_user_display_name($user_id),
-            'privileges' => $this->roles_model->get_permissions_by_slug(session('role_slug')),
-        ]);
-
-        $this->load->view('pages/catalog', [
-            'family' => $family,
-            'business_type' => $business_type,
-            'terms' => $terms,
-            'sections' => $sections,
-            'total_services' => count($services),
-            'total_categories' => count($categories),
-            'total_products' => count($products),
-            'total_packages' => count($packages),
-            'total_memberships' => count($memberships),
-        ]);
+        redirect('dashboard');
     }
 
     /**
