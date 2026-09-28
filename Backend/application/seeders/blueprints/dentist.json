@@ -1,269 +1,996 @@
 {
-  "industry": {
-    "code": "dentist",
-    "name": "Diş Hekimi & Ağız Diş Sağlığı",
-    "icon": "🦷",
-    "service_type": "hybrid",
-    "description": "Diş poliklinikleri, implantoloji, ortodonti, estetik diş hekimliği ve panoramik röntgen odaları için ünit ve hekim randevu sistemi."
-  },
-  "terminology": {
-    "customer_label": "Hasta",
-    "provider_label": "Diş Hekimi (Dt.)",
-    "appointment_label": "Randevu / Tedavi",
-    "station_label": "Diş Üniti / Röntgen",
-    "service_label": "Tedavi / İşlem"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "packages",
-    "invoices",
-    "adisyon",
-    "finance",
-    "expenses",
-    "checkin",
-    "inventory",
-    "reviews",
-    "marketing",
-    "staff_commissions"
-  ],
-  "default_settings": {
-    "business_type": "clinic",
-    "slot_interval": 30,
-    "future_booking_limit": 60,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 10,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Genel Muayene & Koruyucu Diş",
-      "description": "Detaylı ağız içi muayene, diş taşı temizliği ve panoramik röntgen"
+    "industry": {
+        "code": "dentist",
+        "name": "Diş Hekimi & Ağız Diş Sağlığı",
+        "icon": "🦷",
+        "service_type": "hybrid",
+        "description": "Diş poliklinikleri, implantoloji, ortodonti, estetik diş hekimliği ve panoramik röntgen odaları için ünit ve hekim randevu sistemi."
     },
-    {
-      "name": "Restoratif & Endodonti",
-      "description": "Kompozit dolgu, estetik ön diş dolgusu ve kanal tedavisi"
+    "terminology": {
+        "customer": "Hasta",
+        "provider": "Diş Hekimi",
+        "appointment": "Diş Randevusu",
+        "service": "Diş Tedavisi & İmplant",
+        "station": "Diş Üniti",
+        "product": "Ağız & Diş Sağlığı Ürünü",
+        "order": "Tedavi Sözleşmesi",
+        "reservation": "Hasta Randevusu",
+        "membership": "Yıllık Diş Bakım Planı",
+        "package": "Ortodonti \/ İmplant Paketi",
+        "catalog": "Tedavi & İşlem Kataloğu",
+        "branch": "Klinik \/ Şube",
+        "customer_label": "Hasta",
+        "provider_label": "Diş Hekimi (Dt.)",
+        "appointment_label": "Randevu \/ Tedavi",
+        "station_label": "Diş Üniti \/ Röntgen",
+        "service_label": "Tedavi \/ İşlem"
     },
-    {
-      "name": "Cerrahi & İmplantoloji",
-      "description": "Diş çekimi, 20'lik diş cerrahisi ve dental implant uygulaması"
-    },
-    {
-      "name": "Estetik Diş & Ortodonti",
-      "description": "Lazerle diş beyazlatma, zirkonyum kaplama ve şeffaf plak kontrolü"
-    }
-  ],
-  "services": [
-    {
-      "name": "Detaylı Diş Muayenesi & Teşhis",
-      "category": "Genel Muayene & Koruyucu Diş",
-      "duration": 30,
-      "price": 500.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#0ea5e9",
-      "description": "Ağız içi kamera ile muayene, diş eti ölçümü ve tedavi planlaması."
-    },
-    {
-      "name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
-      "category": "Genel Muayene & Koruyucu Diş",
-      "duration": 40,
-      "price": 900.00,
-      "slot_interval": 20,
-      "attendants_number": 1,
-      "color": "#0284c7",
-      "description": "Diş taşlarının temizlenmesi, leke arındırma ve florürlü cila uygulaması."
-    },
-    {
-      "name": "Estetik Kompozit Dolgu (Tek Diş)",
-      "category": "Restoratif & Endodonti",
-      "duration": 45,
-      "price": 1200.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#3b82f6",
-      "description": "Çürük temizliği, nano-hibrit kompozit dolgu ve anatomik cila."
-    },
-    {
-      "name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
-      "category": "Restoratif & Endodonti",
-      "duration": 60,
-      "price": 2800.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#1d4ed8",
-      "description": "Döner aletlerle kök kanalı şekillendirme, dezenfeksiyon ve dolum."
-    },
-    {
-      "name": "Dental İmplant Cerrahisi (Tek Üye)",
-      "category": "Cerrahi & İmplantoloji",
-      "duration": 60,
-      "price": 14000.00,
-      "slot_interval": 60,
-      "attendants_number": 1,
-      "color": "#8b5cf6",
-      "description": "Titanyum implant yerleşimi ve primer stabilizasyon dikişi."
-    },
-    {
-      "name": "Cerrahi 20'lik Yaş Diş Çekimi",
-      "category": "Cerrahi & İmplantoloji",
-      "duration": 45,
-      "price": 2500.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#7c3aed",
-      "description": "Gömülü veya yarı gömülü 20 yaş dişinin kemik cerrahisiyle çekimi."
-    },
-    {
-      "name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)",
-      "category": "Estetik Diş & Ortodonti",
-      "duration": 60,
-      "price": 3800.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#ec4899",
-      "description": "Lazer/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma."
-    },
-    {
-      "name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
-      "category": "Estetik Diş & Ortodonti",
-      "duration": 25,
-      "price": 750.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#10b981",
-      "description": "Dijital ortodonti plak uyumu kontrolü ve yeni plak setlerinin teslimi."
-    }
-  ],
-  "stations": [
-    {
-      "name": "Diş Üniti 1 (Genel & Cerrahi)",
-      "notes": "Adec 500 ünit, cerrahi mikromotor, kavitron, LED reflektör"
-    },
-    {
-      "name": "Diş Üniti 2 (Estetik & Endodonti)",
-      "notes": "Endomotor, apeks bulucu, polimerizasyon cihazı, RVG sensör"
-    },
-    {
-      "name": "Diş Üniti 3 (Ortodonti & Muayene)",
-      "notes": "Ortodontik el aletleri kiti, ağız içi tarayıcı (3Shape Trios)"
-    },
-    {
-      "name": "Dijital Röntgen & Tomografi Odası",
-      "notes": "Kurşun kaplı oda, 3D dental tomografi ve panoramik röntgen"
-    }
-  ],
-  "consumables": [
-    { "name": "Nitril Muayene Eldiveni (Mavisi)", "sku": "SARF-DNT-01", "cost_price": 1.50, "sale_price": 0.00, "stock_quantity": 500, "low_stock_threshold": 50, "unit": "çift" },
-    { "name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "sku": "SARF-DNT-02", "cost_price": 0.80, "sale_price": 0.00, "stock_quantity": 400, "low_stock_threshold": 40, "unit": "adet" },
-    { "name": "Tek Kullanımlık Plastik Bardak", "sku": "SARF-DNT-03", "cost_price": 0.25, "sale_price": 0.00, "stock_quantity": 1000, "low_stock_threshold": 100, "unit": "adet" },
-    { "name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "sku": "SARF-DNT-04", "cost_price": 0.60, "sale_price": 0.00, "stock_quantity": 600, "low_stock_threshold": 60, "unit": "adet" },
-    { "name": "Dental Lokal Anestezi Ampulü (Artikain)", "sku": "SARF-DNT-05", "cost_price": 15.00, "sale_price": 0.00, "stock_quantity": 150, "low_stock_threshold": 20, "unit": "ampul" },
-    { "name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)", "sku": "SARF-DNT-06", "cost_price": 120.00, "sale_price": 0.00, "stock_quantity": 30, "low_stock_threshold": 5, "unit": "tüp" },
-    { "name": "Otoklav Sterilizasyon Poşeti & İndikatör", "sku": "SARF-DNT-07", "cost_price": 2.00, "sale_price": 0.00, "stock_quantity": 350, "low_stock_threshold": 40, "unit": "adet" },
-    { "name": "Polisaj Pastası & Florürlü Cila Pedi", "sku": "SARF-DNT-08", "cost_price": 8.00, "sale_price": 0.00, "stock_quantity": 100, "low_stock_threshold": 15, "unit": "adet" }
-  ],
-  "service_consumable_recipes": [
-    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim muayene eldiveni" },
-    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta koruma önlüğü" },
-    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Tek Kullanımlık Plastik Bardak", "quantity_used": 1.0, "unit": "adet", "notes": "Ağız çalkalama bardağı" },
-    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 1.0, "unit": "adet", "notes": "Tükürük emici aspiratör ucu" },
-    { "service_name": "Detaylı Diş Muayenesi & Teşhis", "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör", "quantity_used": 1.0, "unit": "adet", "notes": "Ayna-sond steril seti" },
-
-    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim eldiveni" },
-    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta önlüğü" },
-    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Tek Kullanımlık Plastik Bardak", "quantity_used": 2.0, "unit": "adet", "notes": "Çalkalama bardağı" },
-    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 1.0, "unit": "adet", "notes": "Aspiratör ucu" },
-    { "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "product_name": "Polisaj Pastası & Florürlü Cila Pedi", "quantity_used": 1.0, "unit": "adet", "notes": "Polisaj cila kiti" },
-
-    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim eldiveni" },
-    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta önlüğü" },
-    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Dental Lokal Anestezi Ampulü (Artikain)", "quantity_used": 1.0, "unit": "ampul", "notes": "Lokal anestezi" },
-    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 1.0, "unit": "adet", "notes": "Aspiratör ucu" },
-    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)", "quantity_used": 0.2, "unit": "tüp", "notes": "0.2 tüp dolgu materyali" },
-    { "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör", "quantity_used": 1.0, "unit": "adet", "notes": "El aletleri poşeti" },
-
-    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Nitril Muayene Eldiveni (Mavisi)", "quantity_used": 2.0, "unit": "çift", "notes": "Hekim ve asistan eldiveni" },
-    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş", "quantity_used": 1.0, "unit": "adet", "notes": "Hasta önlüğü" },
-    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Dental Lokal Anestezi Ampulü (Artikain)", "quantity_used": 2.0, "unit": "ampul", "notes": "Çift doz anestezi" },
-    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)", "quantity_used": 2.0, "unit": "adet", "notes": "Kök kanalı ve cerrahi aspiratör" },
-    { "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör", "quantity_used": 2.0, "unit": "adet", "notes": "Kanal aletleri poşeti" }
-  ],
-  "demo": {
-    "admin": {
-      "first_name": "Dt. Ali Serdar",
-      "last_name": "Yılmaz",
-      "email": "demo-dentist-admin@kibusiness.co",
-      "phone_number": "05432137000",
-      "notes": "Poliklinik Kurucu Başhekimi"
-    },
-    "providers": [
-      {
-        "first_name": "Dt. Ali Serdar",
-        "last_name": "Yılmaz",
-        "email": "demo-dentist-uzman1@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Ağız, Diş ve Çene Cerrahisi / İmplantoloji",
-        "commission_type": "percentage",
-        "commission_value": 45.0,
-        "services": ["Detaylı Diş Muayenesi & Teşhis", "Dental İmplant Cerrahisi (Tek Üye)", "Cerrahi 20'lik Yaş Diş Çekimi"],
-        "stations": ["Diş Üniti 1 (Genel & Cerrahi)"]
-      },
-      {
-        "first_name": "Dt. Sema",
-        "last_name": "Karaca",
-        "email": "demo-dentist-uzman2@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Estetik Diş Hekimliği & Endodonti",
-        "commission_type": "percentage",
-        "commission_value": 45.0,
-        "services": ["Detaylı Diş Muayenesi & Teşhis", "Ultrasonik Diş Taşı Temizliği & Polisaj", "Estetik Kompozit Dolgu (Tek Diş)", "Kanal Tedavisi (Tek Kök / Çok Kök)", "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)"],
-        "stations": ["Diş Üniti 2 (Estetik & Endodonti)"]
-      },
-      {
-        "first_name": "Dt. Burak",
-        "last_name": "Özdemir",
-        "email": "demo-dentist-uzman3@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Ortodonti & Şeffaf Plak Uzmanı",
-        "commission_type": "percentage",
-        "commission_value": 45.0,
-        "services": ["Detaylı Diş Muayenesi & Teşhis", "Şeffaf Plak (Invisalign) Kontrol Seansı"],
-        "stations": ["Diş Üniti 3 (Ortodonti & Muayene)"]
-      }
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "invoices",
+        "adisyon",
+        "finance",
+        "expenses",
+        "checkin",
+        "inventory",
+        "reviews",
+        "marketing",
+        "staff_commissions"
     ],
-    "customers": [
-      { "first_name": "Cengiz", "last_name": "Başaran", "email": "demo-dentist-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "İmplant cerrahisi planlaması yapıldı" },
-      { "first_name": "Melek", "last_name": "Duman", "email": "demo-dentist-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kanal tedavisi ve dolgu hastası" },
-      { "first_name": "Haydar", "last_name": "Tekin", "email": "demo-dentist-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "20'lik diş ağrısı var" },
-      { "first_name": "Züleyha", "last_name": "Koçak", "email": "demo-dentist-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Diş beyazlatma randevusu" },
-      { "first_name": "Necati", "last_name": "Güler", "email": "demo-dentist-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Yıllık diş taşı temizliği" },
-      { "first_name": "Sabiha", "last_name": "Erdoğan", "email": "demo-dentist-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Şeffaf plak 4. set kontrolü" },
-      { "first_name": "Turgut", "last_name": "Aksoy", "email": "demo-dentist-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Ön diş kırık estetik dolgu" },
-      { "first_name": "Vildan", "last_name": "Çevik", "email": "demo-dentist-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "İmplant dikiş alma ve kontrol" },
-      { "first_name": "Engin", "last_name": "Bayram", "email": "demo-dentist-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kanal tedavisi 2. seans" },
-      { "first_name": "Nesrin", "last_name": "Uysal", "email": "demo-dentist-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Genel kontrol & panoramik röntgen" }
+    "default_settings": {
+        "business_type": "clinic",
+        "slot_interval": 30,
+        "future_booking_limit": 60,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 10,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Genel Muayene & Koruyucu Diş",
+            "description": "Detaylı ağız içi muayene, diş taşı temizliği ve panoramik röntgen"
+        },
+        {
+            "name": "Restoratif & Endodonti",
+            "description": "Kompozit dolgu, estetik ön diş dolgusu ve kanal tedavisi"
+        },
+        {
+            "name": "Cerrahi & İmplantoloji",
+            "description": "Diş çekimi, 20'lik diş cerrahisi ve dental implant uygulaması"
+        },
+        {
+            "name": "Estetik Diş & Ortodonti",
+            "description": "Lazerle diş beyazlatma, zirkonyum kaplama ve şeffaf plak kontrolü"
+        }
     ],
-    "appointments": [
-      { "day_offset": -3, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Dental İmplant Cerrahisi (Tek Üye)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -3, "time": "14:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -2, "time": "11:00", "provider_idx": 2, "customer_idx": 5, "service_name": "Şeffaf Plak (Invisalign) Kontrol Seansı", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -2, "time": "15:00", "provider_idx": 1, "customer_idx": 4, "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -1, "time": "10:30", "provider_idx": 0, "customer_idx": 2, "service_name": "Cerrahi 20'lik Yaş Diş Çekimi", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
-      { "day_offset": -1, "time": "14:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "09:30", "provider_idx": 1, "customer_idx": 6, "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "station_idx": 1, "status": "confirmed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "11:30", "provider_idx": 0, "customer_idx": 7, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 0, "time": "14:00", "provider_idx": 1, "customer_idx": 8, "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "16:00", "provider_idx": 2, "customer_idx": 9, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 2, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 1, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 1, "time": "13:30", "provider_idx": 1, "customer_idx": 4, "service_name": "Estetik Kompozit Dolgu (Tek Diş)", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 1, "time": "15:00", "provider_idx": 2, "customer_idx": 5, "service_name": "Şeffaf Plak (Invisalign) Kontrol Seansı", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 2, "time": "11:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 2, "time": "14:30", "provider_idx": 0, "customer_idx": 2, "service_name": "Detaylı Diş Muayenesi & Teşhis", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "iban" },
-      { "day_offset": 3, "time": "10:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
-    ]
-  }
+    "services": [
+        {
+            "name": "Detaylı Diş Muayenesi & Teşhis",
+            "category": "Genel Muayene & Koruyucu Diş",
+            "duration": 30,
+            "price": 500,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#0ea5e9",
+            "description": "Ağız içi kamera ile muayene, diş eti ölçümü ve tedavi planlaması."
+        },
+        {
+            "name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+            "category": "Genel Muayene & Koruyucu Diş",
+            "duration": 40,
+            "price": 900,
+            "slot_interval": 20,
+            "attendants_number": 1,
+            "color": "#0284c7",
+            "description": "Diş taşlarının temizlenmesi, leke arındırma ve florürlü cila uygulaması."
+        },
+        {
+            "name": "Estetik Kompozit Dolgu (Tek Diş)",
+            "category": "Restoratif & Endodonti",
+            "duration": 45,
+            "price": 1200,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#3b82f6",
+            "description": "Çürük temizliği, nano-hibrit kompozit dolgu ve anatomik cila."
+        },
+        {
+            "name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "category": "Restoratif & Endodonti",
+            "duration": 60,
+            "price": 2800,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#1d4ed8",
+            "description": "Döner aletlerle kök kanalı şekillendirme, dezenfeksiyon ve dolum."
+        },
+        {
+            "name": "Dental İmplant Cerrahisi (Tek Üye)",
+            "category": "Cerrahi & İmplantoloji",
+            "duration": 60,
+            "price": 14000,
+            "slot_interval": 60,
+            "attendants_number": 1,
+            "color": "#8b5cf6",
+            "description": "Titanyum implant yerleşimi ve primer stabilizasyon dikişi."
+        },
+        {
+            "name": "Cerrahi 20'lik Yaş Diş Çekimi",
+            "category": "Cerrahi & İmplantoloji",
+            "duration": 45,
+            "price": 2500,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#7c3aed",
+            "description": "Gömülü veya yarı gömülü 20 yaş dişinin kemik cerrahisiyle çekimi."
+        },
+        {
+            "name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)",
+            "category": "Estetik Diş & Ortodonti",
+            "duration": 60,
+            "price": 3800,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#ec4899",
+            "description": "Lazer\/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma."
+        },
+        {
+            "name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
+            "category": "Estetik Diş & Ortodonti",
+            "duration": 25,
+            "price": 750,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#10b981",
+            "description": "Dijital ortodonti plak uyumu kontrolü ve yeni plak setlerinin teslimi."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Diş Üniti 1 (Genel & Cerrahi)",
+            "notes": "Adec 500 ünit, cerrahi mikromotor, kavitron, LED reflektör"
+        },
+        {
+            "name": "Diş Üniti 2 (Estetik & Endodonti)",
+            "notes": "Endomotor, apeks bulucu, polimerizasyon cihazı, RVG sensör"
+        },
+        {
+            "name": "Diş Üniti 3 (Ortodonti & Muayene)",
+            "notes": "Ortodontik el aletleri kiti, ağız içi tarayıcı (3Shape Trios)"
+        },
+        {
+            "name": "Dijital Röntgen & Tomografi Odası",
+            "notes": "Kurşun kaplı oda, 3D dental tomografi ve panoramik röntgen"
+        }
+    ],
+    "consumables": [
+        {
+            "name": "Nitril Muayene Eldiveni (Mavisi)",
+            "sku": "SARF-DNT-01",
+            "cost_price": 1.5,
+            "sale_price": 0,
+            "stock_quantity": 500,
+            "low_stock_threshold": 50,
+            "unit": "çift"
+        },
+        {
+            "name": "Tek Kullanımlık Hasta Önlüğü & Ataş",
+            "sku": "SARF-DNT-02",
+            "cost_price": 0.8,
+            "sale_price": 0,
+            "stock_quantity": 400,
+            "low_stock_threshold": 40,
+            "unit": "adet"
+        },
+        {
+            "name": "Tek Kullanımlık Plastik Bardak",
+            "sku": "SARF-DNT-03",
+            "cost_price": 0.25,
+            "sale_price": 0,
+            "stock_quantity": 1000,
+            "low_stock_threshold": 100,
+            "unit": "adet"
+        },
+        {
+            "name": "Tükürük Emici Cerrahi Uç (Aspiratör)",
+            "sku": "SARF-DNT-04",
+            "cost_price": 0.6,
+            "sale_price": 0,
+            "stock_quantity": 600,
+            "low_stock_threshold": 60,
+            "unit": "adet"
+        },
+        {
+            "name": "Dental Lokal Anestezi Ampulü (Artikain)",
+            "sku": "SARF-DNT-05",
+            "cost_price": 15,
+            "sale_price": 0,
+            "stock_quantity": 150,
+            "low_stock_threshold": 20,
+            "unit": "ampul"
+        },
+        {
+            "name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2\/A3)",
+            "sku": "SARF-DNT-06",
+            "cost_price": 120,
+            "sale_price": 0,
+            "stock_quantity": 30,
+            "low_stock_threshold": 5,
+            "unit": "tüp"
+        },
+        {
+            "name": "Otoklav Sterilizasyon Poşeti & İndikatör",
+            "sku": "SARF-DNT-07",
+            "cost_price": 2,
+            "sale_price": 0,
+            "stock_quantity": 350,
+            "low_stock_threshold": 40,
+            "unit": "adet"
+        },
+        {
+            "name": "Polisaj Pastası & Florürlü Cila Pedi",
+            "sku": "SARF-DNT-08",
+            "cost_price": 8,
+            "sale_price": 0,
+            "stock_quantity": 100,
+            "low_stock_threshold": 15,
+            "unit": "adet"
+        }
+    ],
+    "service_consumable_recipes": [
+        {
+            "service_name": "Detaylı Diş Muayenesi & Teşhis",
+            "product_name": "Nitril Muayene Eldiveni (Mavisi)",
+            "quantity_used": 1,
+            "unit": "çift",
+            "notes": "Hekim muayene eldiveni"
+        },
+        {
+            "service_name": "Detaylı Diş Muayenesi & Teşhis",
+            "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Hasta koruma önlüğü"
+        },
+        {
+            "service_name": "Detaylı Diş Muayenesi & Teşhis",
+            "product_name": "Tek Kullanımlık Plastik Bardak",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Ağız çalkalama bardağı"
+        },
+        {
+            "service_name": "Detaylı Diş Muayenesi & Teşhis",
+            "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Tükürük emici aspiratör ucu"
+        },
+        {
+            "service_name": "Detaylı Diş Muayenesi & Teşhis",
+            "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Ayna-sond steril seti"
+        },
+        {
+            "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+            "product_name": "Nitril Muayene Eldiveni (Mavisi)",
+            "quantity_used": 1,
+            "unit": "çift",
+            "notes": "Hekim eldiveni"
+        },
+        {
+            "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+            "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Hasta önlüğü"
+        },
+        {
+            "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+            "product_name": "Tek Kullanımlık Plastik Bardak",
+            "quantity_used": 2,
+            "unit": "adet",
+            "notes": "Çalkalama bardağı"
+        },
+        {
+            "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+            "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Aspiratör ucu"
+        },
+        {
+            "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+            "product_name": "Polisaj Pastası & Florürlü Cila Pedi",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Polisaj cila kiti"
+        },
+        {
+            "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+            "product_name": "Nitril Muayene Eldiveni (Mavisi)",
+            "quantity_used": 1,
+            "unit": "çift",
+            "notes": "Hekim eldiveni"
+        },
+        {
+            "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+            "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Hasta önlüğü"
+        },
+        {
+            "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+            "product_name": "Dental Lokal Anestezi Ampulü (Artikain)",
+            "quantity_used": 1,
+            "unit": "ampul",
+            "notes": "Lokal anestezi"
+        },
+        {
+            "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+            "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Aspiratör ucu"
+        },
+        {
+            "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+            "product_name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2\/A3)",
+            "quantity_used": 0.2,
+            "unit": "tüp",
+            "notes": "0.2 tüp dolgu materyali"
+        },
+        {
+            "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+            "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "El aletleri poşeti"
+        },
+        {
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "product_name": "Nitril Muayene Eldiveni (Mavisi)",
+            "quantity_used": 2,
+            "unit": "çift",
+            "notes": "Hekim ve asistan eldiveni"
+        },
+        {
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Hasta önlüğü"
+        },
+        {
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "product_name": "Dental Lokal Anestezi Ampulü (Artikain)",
+            "quantity_used": 2,
+            "unit": "ampul",
+            "notes": "Çift doz anestezi"
+        },
+        {
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)",
+            "quantity_used": 2,
+            "unit": "adet",
+            "notes": "Kök kanalı ve cerrahi aspiratör"
+        },
+        {
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+            "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör",
+            "quantity_used": 2,
+            "unit": "adet",
+            "notes": "Kanal aletleri poşeti"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Dt. Ali Serdar",
+            "last_name": "Yılmaz",
+            "email": "demo-dentist-admin@kibusiness.co",
+            "phone_number": "05432137000",
+            "notes": "Poliklinik Kurucu Başhekimi"
+        },
+        "providers": [
+            {
+                "first_name": "Dt. Ali Serdar",
+                "last_name": "Yılmaz",
+                "email": "demo-dentist-uzman1@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Ağız, Diş ve Çene Cerrahisi \/ İmplantoloji",
+                "commission_type": "percentage",
+                "commission_value": 45,
+                "services": [
+                    "Detaylı Diş Muayenesi & Teşhis",
+                    "Dental İmplant Cerrahisi (Tek Üye)",
+                    "Cerrahi 20'lik Yaş Diş Çekimi"
+                ],
+                "stations": [
+                    "Diş Üniti 1 (Genel & Cerrahi)"
+                ]
+            },
+            {
+                "first_name": "Dt. Sema",
+                "last_name": "Karaca",
+                "email": "demo-dentist-uzman2@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Estetik Diş Hekimliği & Endodonti",
+                "commission_type": "percentage",
+                "commission_value": 45,
+                "services": [
+                    "Detaylı Diş Muayenesi & Teşhis",
+                    "Ultrasonik Diş Taşı Temizliği & Polisaj",
+                    "Estetik Kompozit Dolgu (Tek Diş)",
+                    "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+                    "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)"
+                ],
+                "stations": [
+                    "Diş Üniti 2 (Estetik & Endodonti)"
+                ]
+            },
+            {
+                "first_name": "Dt. Burak",
+                "last_name": "Özdemir",
+                "email": "demo-dentist-uzman3@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Ortodonti & Şeffaf Plak Uzmanı",
+                "commission_type": "percentage",
+                "commission_value": 45,
+                "services": [
+                    "Detaylı Diş Muayenesi & Teşhis",
+                    "Şeffaf Plak (Invisalign) Kontrol Seansı"
+                ],
+                "stations": [
+                    "Diş Üniti 3 (Ortodonti & Muayene)"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Cengiz",
+                "last_name": "Başaran",
+                "email": "demo-dentist-musteri1@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "İmplant cerrahisi planlaması yapıldı"
+            },
+            {
+                "first_name": "Melek",
+                "last_name": "Duman",
+                "email": "demo-dentist-musteri2@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Kanal tedavisi ve dolgu hastası"
+            },
+            {
+                "first_name": "Haydar",
+                "last_name": "Tekin",
+                "email": "demo-dentist-musteri3@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "20'lik diş ağrısı var"
+            },
+            {
+                "first_name": "Züleyha",
+                "last_name": "Koçak",
+                "email": "demo-dentist-musteri4@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Diş beyazlatma randevusu"
+            },
+            {
+                "first_name": "Necati",
+                "last_name": "Güler",
+                "email": "demo-dentist-musteri5@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Yıllık diş taşı temizliği"
+            },
+            {
+                "first_name": "Sabiha",
+                "last_name": "Erdoğan",
+                "email": "demo-dentist-musteri6@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Şeffaf plak 4. set kontrolü"
+            },
+            {
+                "first_name": "Turgut",
+                "last_name": "Aksoy",
+                "email": "demo-dentist-musteri7@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Ön diş kırık estetik dolgu"
+            },
+            {
+                "first_name": "Vildan",
+                "last_name": "Çevik",
+                "email": "demo-dentist-musteri8@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "İmplant dikiş alma ve kontrol"
+            },
+            {
+                "first_name": "Engin",
+                "last_name": "Bayram",
+                "email": "demo-dentist-musteri9@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Kanal tedavisi 2. seans"
+            },
+            {
+                "first_name": "Nesrin",
+                "last_name": "Uysal",
+                "email": "demo-dentist-musteri10@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Genel kontrol & panoramik röntgen"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": -3,
+                "time": "10:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Dental İmplant Cerrahisi (Tek Üye)",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -3,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -2,
+                "time": "11:00",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
+                "station_idx": 2,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -2,
+                "time": "15:00",
+                "provider_idx": 1,
+                "customer_idx": 4,
+                "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "10:30",
+                "provider_idx": 0,
+                "customer_idx": 2,
+                "service_name": "Cerrahi 20'lik Yaş Diş Çekimi",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": -1,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 3,
+                "service_name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "09:30",
+                "provider_idx": 1,
+                "customer_idx": 6,
+                "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "11:30",
+                "provider_idx": 0,
+                "customer_idx": 7,
+                "service_name": "Detaylı Diş Muayenesi & Teşhis",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 0,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 8,
+                "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "16:00",
+                "provider_idx": 2,
+                "customer_idx": 9,
+                "service_name": "Detaylı Diş Muayenesi & Teşhis",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "10:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Detaylı Diş Muayenesi & Teşhis",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "13:30",
+                "provider_idx": 1,
+                "customer_idx": 4,
+                "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "15:00",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 2,
+                "time": "11:00",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 2,
+                "time": "14:30",
+                "provider_idx": 0,
+                "customer_idx": 2,
+                "service_name": "Detaylı Diş Muayenesi & Teşhis",
+                "station_idx": 0,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": 3,
+                "time": "10:00",
+                "provider_idx": 1,
+                "customer_idx": 3,
+                "service_name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            }
+        ]
+    },
+    "family": "health_clinical",
+    "business_type": "dentist",
+    "ai_policy": {
+        "brand_name": "Diş Hekimi & Ağız Diş Sağlığı",
+        "tone": "formal_empathetic",
+        "language": "tr",
+        "greeting_style": "Merhaba, Diş Hekimi & Ağız Diş Sağlığı asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Hasta",
+            "Diş Hekimi",
+            "Diş Randevusu",
+            "Diş Tedavisi & İmplant",
+            "Diş Üniti",
+            "Ağız & Diş Sağlığı Ürünü",
+            "Tedavi Sözleşmesi",
+            "Hasta Randevusu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Hasta' ve 'Diş Tedavisi & İmplant' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Diş Randevusular",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Diş Üniti Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Hastalar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Diş Randevusu",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Hasta",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Diş Randevusular",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Diş Üniti Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Hasta Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "Klinik Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Klinik başhekimi ve tam yetkili"
+        },
+        {
+            "slug": "clinic_manager",
+            "name": "Klinik Müdürü",
+            "icon": "user-tie",
+            "description": "İdari ve operasyonel yönetim"
+        },
+        {
+            "slug": "doctor",
+            "name": "Hekim \/ Doktor",
+            "icon": "user-md",
+            "description": "Hasta muayenesi, SOAP ve reçete"
+        },
+        {
+            "slug": "nurse",
+            "name": "Hemşire",
+            "icon": "plus-square",
+            "description": "Hasta kabul ve tıbbi destek"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Randevu ve hasta karşılama"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ Tahsilat",
+            "icon": "cash-register",
+            "description": "Fatura ve ödeme işlemleri"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "Klinik",
+            "last_name": "Demo",
+            "email": "demo-dentist-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "Klinik Sahibi (Owner)"
+        },
+        "clinic_manager": {
+            "first_name": "Klinik",
+            "last_name": "Demo",
+            "email": "demo-dentist-clinic_manager@kibusiness.co",
+            "role_slug": "clinic_manager",
+            "job_title": "Klinik Müdürü"
+        },
+        "doctor": {
+            "first_name": "Hekim",
+            "last_name": "Demo",
+            "email": "demo-dentist-doctor@kibusiness.co",
+            "role_slug": "doctor",
+            "job_title": "Hekim \/ Doktor"
+        },
+        "nurse": {
+            "first_name": "Hemşire",
+            "last_name": "Demo",
+            "email": "demo-dentist-nurse@kibusiness.co",
+            "role_slug": "nurse",
+            "job_title": "Hemşire"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-dentist-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-dentist-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ Tahsilat"
+        }
+    }
 }
-

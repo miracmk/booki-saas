@@ -42,15 +42,14 @@ class Dashboard extends App_Controller
         session(['dest_url' => site_url('dashboard')]);
 
         $user_id = session('user_id');
-
-        if (cannot('view', PRIV_APPOINTMENTS)) {
-            if ($user_id) {
-                abort(403, 'Forbidden');
-            }
-
+        if (!$user_id) {
             redirect('login');
-
             return;
+        }
+
+        $this->load->library('permission_service');
+        if (!$this->permission_service->can('view', 'dashboard', (int) $user_id) && cannot('view', PRIV_APPOINTMENTS)) {
+            abort(403, 'Forbidden');
         }
 
         $role_slug = session('role_slug');
@@ -180,7 +179,7 @@ class Dashboard extends App_Controller
 
         $industry_code = current_industry_code();
         $industry_info = current_industry_info();
-        $industry_config = industry_dashboard_config($industry_code);
+        $industry_config = industry_dashboard_config($industry_code, (string) session('role_slug'));
         $terminology = [
             'customer_label' => industry_term('customer_label', 'Müşteri'),
             'provider_label' => industry_term('provider_label', 'Personel / Uzman'),

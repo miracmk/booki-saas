@@ -1,87 +1,379 @@
 {
-  "industry": {
-    "code": "psychology_dietitian_clinic",
-    "name": "Diyetisyen / Psikolog & Danışmanlık",
-    "icon": "🧠",
-    "service_type": "provider",
-    "description": "Psikologlar, diyetisyenler, fizyoterapistler ve beslenme uzmanları için EHR klinik charting, anamnez takibi, online telehealth görüşme ve seans paketleri paketi."
-  },
-  "terminology": {
-    "customer_label": "Danışan",
-    "provider_label": "Uzman / Danışman",
-    "appointment_label": "Seans / Terapi",
-    "station_label": "Görüşme Odası",
-    "service_label": "Seans & Danışmanlık Türü"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "packages",
-    "clinical_records",
-    "telehealth",
-    "adisyon",
-    "finance",
-    "reviews",
-    "messaging"
-  ],
-  "default_settings": {
-    "business_type": "consulting",
-    "slot_interval": 50,
-    "future_booking_limit": 30,
-    "require_phone_number": true,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Bireysel Psikoterapi",
-      "description": "Bilişsel Davranışçı Terapi, EMDR ve Bireysel Psikolojik Destek"
+    "industry": {
+        "code": "psychology_dietitian_clinic",
+        "name": "Diyetisyen \/ Psikolog & Danışmanlık",
+        "icon": "🧠",
+        "service_type": "provider",
+        "description": "Psikologlar, diyetisyenler, fizyoterapistler ve beslenme uzmanları için EHR klinik charting, anamnez takibi, online telehealth görüşme ve seans paketleri paketi."
     },
-    {
-      "name": "Beslenme & Diyet Danışmanlığı",
-      "description": "Kilo yönetimi, sporcu beslenmesi ve kronik hastalıklarda beslenme"
+    "terminology": {
+        "customer": "Danışan",
+        "provider": "Psikolog \/ Diyetisyen",
+        "appointment": "Seans \/ Görüşme",
+        "service": "Terapi \/ Beslenme Seansı",
+        "station": "Görüşme Odası",
+        "product": "Takviye Gıda \/ Analiz Kiti",
+        "order": "Danışmanlık Protokolü",
+        "reservation": "Seans Randevusu",
+        "membership": "Aylık Takip Programı",
+        "package": "Çoklu Seans Paketi",
+        "catalog": "Seans & Protokol Kataloğu",
+        "branch": "Merkez \/ Şube",
+        "customer_label": "Danışan",
+        "provider_label": "Uzman \/ Danışman",
+        "appointment_label": "Seans \/ Terapi",
+        "station_label": "Görüşme Odası",
+        "service_label": "Seans & Danışmanlık Türü"
     },
-    {
-      "name": "Online / Telehealth Seansları",
-      "description": "Görüntülü online terapi ve uzaktan beslenme takibi"
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "packages",
+        "clinical_records",
+        "telehealth",
+        "adisyon",
+        "finance",
+        "reviews",
+        "messaging"
+    ],
+    "default_settings": {
+        "business_type": "consulting",
+        "slot_interval": 50,
+        "future_booking_limit": 30,
+        "require_phone_number": true,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Bireysel Psikoterapi",
+            "description": "Bilişsel Davranışçı Terapi, EMDR ve Bireysel Psikolojik Destek"
+        },
+        {
+            "name": "Beslenme & Diyet Danışmanlığı",
+            "description": "Kilo yönetimi, sporcu beslenmesi ve kronik hastalıklarda beslenme"
+        },
+        {
+            "name": "Online \/ Telehealth Seansları",
+            "description": "Görüntülü online terapi ve uzaktan beslenme takibi"
+        }
+    ],
+    "services": [
+        {
+            "name": "Bireysel Psikoterapi Seansı (50 Dk)",
+            "category": "Bireysel Psikoterapi",
+            "duration": 50,
+            "price": 1800,
+            "attendants_number": 1,
+            "description": "Yüz yüze 50 dakikalık klinik terapi görüşmesi"
+        },
+        {
+            "name": "İlk Beslenme Değerlendirmesi & Anamnez (60 Dk)",
+            "category": "Beslenme & Diyet Danışmanlığı",
+            "duration": 60,
+            "price": 1500,
+            "attendants_number": 1,
+            "description": "Vücut analizi, kan tahlili değerlendirmesi ve kişiye özel diyet planlaması"
+        },
+        {
+            "name": "Online Terapi Görüşmesi (50 Dk)",
+            "category": "Online \/ Telehealth Seansları",
+            "duration": 50,
+            "price": 1600,
+            "attendants_number": 1,
+            "description": "Uçtan uca şifreli görüntülü video görüşme seansı"
+        }
+    ],
+    "stations": [
+        {
+            "name": "Terapi Odası 1 (Sakin)",
+            "capacity": 2,
+            "description": "Ses yalıtımlı klinik terapi odası"
+        },
+        {
+            "name": "Diyet & Ölçüm Odası",
+            "capacity": 2,
+            "description": "Tanita analiz cihazı ve danışmanlık alanı"
+        }
+    ],
+    "family": "health_clinical",
+    "business_type": "psychology_dietitian_clinic",
+    "ai_policy": {
+        "brand_name": "Diyetisyen \/ Psikolog & Danışmanlık",
+        "tone": "formal_empathetic",
+        "language": "tr",
+        "greeting_style": "Merhaba, Diyetisyen \/ Psikolog & Danışmanlık asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Danışan",
+            "Psikolog \/ Diyetisyen",
+            "Seans \/ Görüşme",
+            "Terapi \/ Beslenme Seansı",
+            "Görüşme Odası",
+            "Takviye Gıda \/ Analiz Kiti",
+            "Danışmanlık Protokolü",
+            "Seans Randevusu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Danışan' ve 'Terapi \/ Beslenme Seansı' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Seans \/ Görüşmelar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Görüşme Odası Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Danışanlar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Seans \/ Görüşme",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Danışan",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Seans \/ Görüşmelar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Görüşme Odası Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Danışan Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "Klinik Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Klinik başhekimi ve tam yetkili"
+        },
+        {
+            "slug": "clinic_manager",
+            "name": "Klinik Müdürü",
+            "icon": "user-tie",
+            "description": "İdari ve operasyonel yönetim"
+        },
+        {
+            "slug": "doctor",
+            "name": "Hekim \/ Doktor",
+            "icon": "user-md",
+            "description": "Hasta muayenesi, SOAP ve reçete"
+        },
+        {
+            "slug": "nurse",
+            "name": "Hemşire",
+            "icon": "plus-square",
+            "description": "Hasta kabul ve tıbbi destek"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Randevu ve hasta karşılama"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ Tahsilat",
+            "icon": "cash-register",
+            "description": "Fatura ve ödeme işlemleri"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "Klinik",
+            "last_name": "Demo",
+            "email": "demo-psychology_dietitian_clinic-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "Klinik Sahibi (Owner)"
+        },
+        "clinic_manager": {
+            "first_name": "Klinik",
+            "last_name": "Demo",
+            "email": "demo-psychology_dietitian_clinic-clinic_manager@kibusiness.co",
+            "role_slug": "clinic_manager",
+            "job_title": "Klinik Müdürü"
+        },
+        "doctor": {
+            "first_name": "Hekim",
+            "last_name": "Demo",
+            "email": "demo-psychology_dietitian_clinic-doctor@kibusiness.co",
+            "role_slug": "doctor",
+            "job_title": "Hekim \/ Doktor"
+        },
+        "nurse": {
+            "first_name": "Hemşire",
+            "last_name": "Demo",
+            "email": "demo-psychology_dietitian_clinic-nurse@kibusiness.co",
+            "role_slug": "nurse",
+            "job_title": "Hemşire"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-psychology_dietitian_clinic-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-psychology_dietitian_clinic-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ Tahsilat"
+        }
     }
-  ],
-  "services": [
-    {
-      "name": "Bireysel Psikoterapi Seansı (50 Dk)",
-      "category": "Bireysel Psikoterapi",
-      "duration": 50,
-      "price": 1800.00,
-      "attendants_number": 1,
-      "description": "Yüz yüze 50 dakikalık klinik terapi görüşmesi"
-    },
-    {
-      "name": "İlk Beslenme Değerlendirmesi & Anamnez (60 Dk)",
-      "category": "Beslenme & Diyet Danışmanlığı",
-      "duration": 60,
-      "price": 1500.00,
-      "attendants_number": 1,
-      "description": "Vücut analizi, kan tahlili değerlendirmesi ve kişiye özel diyet planlaması"
-    },
-    {
-      "name": "Online Terapi Görüşmesi (50 Dk)",
-      "category": "Online / Telehealth Seansları",
-      "duration": 50,
-      "price": 1600.00,
-      "attendants_number": 1,
-      "description": "Uçtan uca şifreli görüntülü video görüşme seansı"
-    }
-  ],
-  "stations": [
-    {
-      "name": "Terapi Odası 1 (Sakin)",
-      "capacity": 2,
-      "description": "Ses yalıtımlı klinik terapi odası"
-    },
-    {
-      "name": "Diyet & Ölçüm Odası",
-      "capacity": 2,
-      "description": "Tanita analiz cihazı ve danışmanlık alanı"
-    }
-  ]
 }

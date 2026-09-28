@@ -1,223 +1,768 @@
 {
-  "industry": {
-    "code": "pilates_studio",
-    "name": "Pilates & Reformer Stüdyosu",
-    "icon": "🧘",
-    "service_type": "station",
-    "description": "Reformer aletli pilates, Cadillac, Tower, hamile pilatesi ve mat grup dersleri için istasyon, kontenjan ve paket yönetim sistemi."
-  },
-  "terminology": {
-    "customer_label": "Üye / Danışan",
-    "provider_label": "Pilates Eğitmeni",
-    "appointment_label": "Ders / Seans",
-    "station_label": "Reformer Cihazı / Salon",
-    "service_label": "Ders Tipi"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "packages",
-    "memberships",
-    "adisyon",
-    "finance",
-    "expenses",
-    "checkin",
-    "reviews",
-    "marketing",
-    "loyalty",
-    "staff_commissions"
-  ],
-  "default_settings": {
-    "business_type": "studio",
-    "slot_interval": 50,
-    "future_booking_limit": 30,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 10,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Aletli Reformer Pilates",
-      "description": "Birebir özel ders, düet ve 3-4 kişilik küçük grup reformer dersleri"
+    "industry": {
+        "code": "pilates_studio",
+        "name": "Pilates & Reformer Stüdyosu",
+        "icon": "🧘",
+        "service_type": "station",
+        "description": "Reformer aletli pilates, Cadillac, Tower, hamile pilatesi ve mat grup dersleri için istasyon, kontenjan ve paket yönetim sistemi."
     },
-    {
-      "name": "Klinik & Özel Pilates",
-      "description": "Omurga sağlığı, skolyoz, bel fıtığı ve hamile pilatesi seansları"
+    "terminology": {
+        "customer": "Danışan \/ Üye",
+        "provider": "Pilates Eğitmeni",
+        "appointment": "Pilates Seansı",
+        "service": "Reformer \/ Mat Seansı",
+        "station": "Reformer Cihazı \/ Stüdyo",
+        "product": "Pilates Çorabı \/ Ekipman",
+        "order": "Seans Satışı",
+        "reservation": "Ders Rezervasyonu",
+        "membership": "Stüdyo Üyeliği",
+        "package": "10lu \/ 20li Seans Paketi",
+        "catalog": "Dersler & Seans Kataloğu",
+        "branch": "Stüdyo \/ Şube",
+        "customer_label": "Üye \/ Danışan",
+        "provider_label": "Pilates Eğitmeni",
+        "appointment_label": "Ders \/ Seans",
+        "station_label": "Reformer Cihazı \/ Salon",
+        "service_label": "Ders Tipi"
     },
-    {
-      "name": "Mat & Grup Sınıfları",
-      "description": "Mat pilates, yoga akışı ve stretching grup dersleri"
-    }
-  ],
-  "services": [
-    {
-      "name": "Birebir Private Reformer (50 Dk)",
-      "category": "Aletli Reformer Pilates",
-      "duration": 50,
-      "price": 750.00,
-      "slot_interval": 50,
-      "attendants_number": 1,
-      "color": "#8b5cf6",
-      "description": "Kişiye özel postür ve hedefe göre eğitmenle 1-e-1 reformer seansı."
-    },
-    {
-      "name": "Düet Reformer (2 Kişilik Ders)",
-      "category": "Aletli Reformer Pilates",
-      "duration": 50,
-      "price": 1000.00,
-      "slot_interval": 50,
-      "attendants_number": 2,
-      "color": "#7c3aed",
-      "description": "Arkadaşınız veya eşinizle 2 reformer cihazında eşzamanlı ders."
-    },
-    {
-      "name": "Grup Reformer Dersi (4 Kişilik)",
-      "category": "Aletli Reformer Pilates",
-      "duration": 50,
-      "price": 350.00,
-      "slot_interval": 50,
-      "attendants_number": 4,
-      "color": "#6d28d9",
-      "description": "Maksimum 4 kişilik sınıfta dinamik reformer akışı (kişi başı fiyat)."
-    },
-    {
-      "name": "Klinik Reformer & Omurga Terapisi",
-      "category": "Klinik & Özel Pilates",
-      "duration": 50,
-      "price": 900.00,
-      "slot_interval": 50,
-      "attendants_number": 1,
-      "color": "#ec4899",
-      "description": "Fizik tedavi onaylı, skolyoz ve bel/boyun fıtığı için medikal protokol."
-    },
-    {
-      "name": "Hamile (Prenatal) Pilatesi",
-      "category": "Klinik & Özel Pilates",
-      "duration": 50,
-      "price": 800.00,
-      "slot_interval": 50,
-      "attendants_number": 1,
-      "color": "#f43f5e",
-      "description": "Gebelikte pelvik taban kuvvetlendirme, nefes ve sırt rahatlatma."
-    },
-    {
-      "name": "Mat Pilates & Core (Grup 8 Kişi)",
-      "category": "Mat & Grup Sınıfları",
-      "duration": 55,
-      "price": 200.00,
-      "slot_interval": 60,
-      "attendants_number": 8,
-      "color": "#10b981",
-      "description": "Minder üzerinde çember, top ve elastik bantlarla tüm vücut güçlendirme."
-    },
-    {
-      "name": "Stretching & Esneklik Seansı",
-      "category": "Mat & Grup Sınıfları",
-      "duration": 45,
-      "price": 450.00,
-      "slot_interval": 45,
-      "attendants_number": 1,
-      "color": "#06b6d4",
-      "description": "Kas boyunu uzatan, hareket kabiliyetini artıran derin esnetme."
-    }
-  ],
-  "stations": [
-    {
-      "name": "Reformer Kule 1 (Cadillac)",
-      "notes": "Balanced Body Studio Reformer + Tower kombine ünite"
-    },
-    {
-      "name": "Reformer Kule 2 (Cadillac)",
-      "notes": "Balanced Body Studio Reformer + Tower kombine ünite"
-    },
-    {
-      "name": "Reformer 3 (Grup)",
-      "notes": "Grup ve düet reformer seansları"
-    },
-    {
-      "name": "Reformer 4 (Grup)",
-      "notes": "Grup ve düet reformer seansları"
-    },
-    {
-      "name": "Mat Pilates & Yoga Salonu",
-      "notes": "8 kişilik ahşap parke zemin, ayna duvar, pilates topları"
-    }
-  ],
-  "demo": {
-    "admin": {
-      "first_name": "Tuğçe",
-      "last_name": "Aslan",
-      "email": "demo-pilates_studio-admin@kibusiness.co",
-      "phone_number": "05432137000",
-      "notes": "Pilates Stüdyo Sahibi & Master Eğitmen"
-    },
-    "providers": [
-      {
-        "first_name": "Pelin",
-        "last_name": "Çelik",
-        "email": "demo-pilates_studio-uzman1@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Reformer & Düet Pilates Eğitmeni",
-        "commission_type": "percentage",
-        "commission_value": 35.0,
-        "services": ["Birebir Private Reformer (50 Dk)", "Düet Reformer (2 Kişilik Ders)", "Grup Reformer Dersi (4 Kişilik)"],
-        "stations": ["Reformer Kule 1 (Cadillac)", "Reformer Kule 2 (Cadillac)", "Reformer 3 (Grup)", "Reformer 4 (Grup)"]
-      },
-      {
-        "first_name": "Görkem",
-        "last_name": "Aydın",
-        "email": "demo-pilates_studio-uzman2@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Klinik Pilates & Hamilelik Eğitmeni",
-        "commission_type": "percentage",
-        "commission_value": 40.0,
-        "services": ["Klinik Reformer & Omurga Terapisi", "Hamile (Prenatal) Pilatesi", "Birebir Private Reformer (50 Dk)"],
-        "stations": ["Reformer Kule 1 (Cadillac)", "Reformer Kule 2 (Cadillac)"]
-      },
-      {
-        "first_name": "Eylül",
-        "last_name": "Korkmaz",
-        "email": "demo-pilates_studio-uzman3@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Grup Mat Pilates & Esneklik Eğitmeni",
-        "commission_type": "percentage",
-        "commission_value": 30.0,
-        "services": ["Mat Pilates & Core (Grup 8 Kişi)", "Stretching & Esneklik Seansı", "Grup Reformer Dersi (4 Kişilik)"],
-        "stations": ["Mat Pilates & Yoga Salonu", "Reformer 3 (Grup)", "Reformer 4 (Grup)"]
-      }
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "memberships",
+        "adisyon",
+        "finance",
+        "expenses",
+        "checkin",
+        "reviews",
+        "marketing",
+        "loyalty",
+        "staff_commissions"
     ],
-    "customers": [
-      { "first_name": "Dila", "last_name": "Koç", "email": "demo-pilates_studio-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "12 seanslık private reformer paketi" },
-      { "first_name": "Yasemin", "last_name": "Aral", "email": "demo-pilates_studio-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Hamile pilatesi 2. trimester" },
-      { "first_name": "Beril", "last_name": "Soysal", "email": "demo-pilates_studio-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Klinik reformer - boyun düzleşmesi" },
-      { "first_name": "Ece", "last_name": "Tuncer", "email": "demo-pilates_studio-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Arkadaşıyla düet reformer alıyor" },
-      { "first_name": "Gizem", "last_name": "Yücel", "email": "demo-pilates_studio-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Düet reformer partneri" },
-      { "first_name": "Simge", "last_name": "Kartal", "email": "demo-pilates_studio-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Grup reformer haftada 2 gün" },
-      { "first_name": "Pınar", "last_name": "Oğuz", "email": "demo-pilates_studio-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Mat pilates & core grup dersi" },
-      { "first_name": "Cansu", "last_name": "Demir", "email": "demo-pilates_studio-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Private reformer öğle seansı" },
-      { "first_name": "Leyla", "last_name": "Eroğlu", "email": "demo-pilates_studio-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Stretching ve esneklik odaklı" },
-      { "first_name": "Zeynep", "last_name": "Başar", "email": "demo-pilates_studio-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Sabah 09:00 reformer abonesi" }
+    "default_settings": {
+        "business_type": "studio",
+        "slot_interval": 50,
+        "future_booking_limit": 30,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 10,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Aletli Reformer Pilates",
+            "description": "Birebir özel ders, düet ve 3-4 kişilik küçük grup reformer dersleri"
+        },
+        {
+            "name": "Klinik & Özel Pilates",
+            "description": "Omurga sağlığı, skolyoz, bel fıtığı ve hamile pilatesi seansları"
+        },
+        {
+            "name": "Mat & Grup Sınıfları",
+            "description": "Mat pilates, yoga akışı ve stretching grup dersleri"
+        }
     ],
-    "appointments": [
-      { "day_offset": -3, "time": "09:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Birebir Private Reformer (50 Dk)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -3, "time": "14:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Hamile (Prenatal) Pilatesi", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -2, "time": "10:00", "provider_idx": 1, "customer_idx": 2, "service_name": "Klinik Reformer & Omurga Terapisi", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
-      { "day_offset": -2, "time": "16:00", "provider_idx": 2, "customer_idx": 6, "service_name": "Mat Pilates & Core (Grup 8 Kişi)", "station_idx": 4, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -1, "time": "11:00", "provider_idx": 0, "customer_idx": 3, "service_name": "Düet Reformer (2 Kişilik Ders)", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -1, "time": "15:00", "provider_idx": 0, "customer_idx": 7, "service_name": "Birebir Private Reformer (50 Dk)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "09:00", "provider_idx": 0, "customer_idx": 9, "service_name": "Birebir Private Reformer (50 Dk)", "station_idx": 0, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "11:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Hamile (Prenatal) Pilatesi", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "14:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Birebir Private Reformer (50 Dk)", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "17:00", "provider_idx": 2, "customer_idx": 5, "service_name": "Grup Reformer Dersi (4 Kişilik)", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 1, "time": "10:00", "provider_idx": 1, "customer_idx": 2, "service_name": "Klinik Reformer & Omurga Terapisi", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "iban" },
-      { "day_offset": 1, "time": "13:00", "provider_idx": 0, "customer_idx": 3, "service_name": "Düet Reformer (2 Kişilik Ders)", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 1, "time": "16:00", "provider_idx": 2, "customer_idx": 8, "service_name": "Stretching & Esneklik Seansı", "station_idx": 4, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 2, "time": "09:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Birebir Private Reformer (50 Dk)", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 2, "time": "14:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Hamile (Prenatal) Pilatesi", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 3, "time": "11:00", "provider_idx": 0, "customer_idx": 7, "service_name": "Birebir Private Reformer (50 Dk)", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
-    ]
-  }
+    "services": [
+        {
+            "name": "Birebir Private Reformer (50 Dk)",
+            "category": "Aletli Reformer Pilates",
+            "duration": 50,
+            "price": 750,
+            "slot_interval": 50,
+            "attendants_number": 1,
+            "color": "#8b5cf6",
+            "description": "Kişiye özel postür ve hedefe göre eğitmenle 1-e-1 reformer seansı."
+        },
+        {
+            "name": "Düet Reformer (2 Kişilik Ders)",
+            "category": "Aletli Reformer Pilates",
+            "duration": 50,
+            "price": 1000,
+            "slot_interval": 50,
+            "attendants_number": 2,
+            "color": "#7c3aed",
+            "description": "Arkadaşınız veya eşinizle 2 reformer cihazında eşzamanlı ders."
+        },
+        {
+            "name": "Grup Reformer Dersi (4 Kişilik)",
+            "category": "Aletli Reformer Pilates",
+            "duration": 50,
+            "price": 350,
+            "slot_interval": 50,
+            "attendants_number": 4,
+            "color": "#6d28d9",
+            "description": "Maksimum 4 kişilik sınıfta dinamik reformer akışı (kişi başı fiyat)."
+        },
+        {
+            "name": "Klinik Reformer & Omurga Terapisi",
+            "category": "Klinik & Özel Pilates",
+            "duration": 50,
+            "price": 900,
+            "slot_interval": 50,
+            "attendants_number": 1,
+            "color": "#ec4899",
+            "description": "Fizik tedavi onaylı, skolyoz ve bel\/boyun fıtığı için medikal protokol."
+        },
+        {
+            "name": "Hamile (Prenatal) Pilatesi",
+            "category": "Klinik & Özel Pilates",
+            "duration": 50,
+            "price": 800,
+            "slot_interval": 50,
+            "attendants_number": 1,
+            "color": "#f43f5e",
+            "description": "Gebelikte pelvik taban kuvvetlendirme, nefes ve sırt rahatlatma."
+        },
+        {
+            "name": "Mat Pilates & Core (Grup 8 Kişi)",
+            "category": "Mat & Grup Sınıfları",
+            "duration": 55,
+            "price": 200,
+            "slot_interval": 60,
+            "attendants_number": 8,
+            "color": "#10b981",
+            "description": "Minder üzerinde çember, top ve elastik bantlarla tüm vücut güçlendirme."
+        },
+        {
+            "name": "Stretching & Esneklik Seansı",
+            "category": "Mat & Grup Sınıfları",
+            "duration": 45,
+            "price": 450,
+            "slot_interval": 45,
+            "attendants_number": 1,
+            "color": "#06b6d4",
+            "description": "Kas boyunu uzatan, hareket kabiliyetini artıran derin esnetme."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Reformer Kule 1 (Cadillac)",
+            "notes": "Balanced Body Studio Reformer + Tower kombine ünite"
+        },
+        {
+            "name": "Reformer Kule 2 (Cadillac)",
+            "notes": "Balanced Body Studio Reformer + Tower kombine ünite"
+        },
+        {
+            "name": "Reformer 3 (Grup)",
+            "notes": "Grup ve düet reformer seansları"
+        },
+        {
+            "name": "Reformer 4 (Grup)",
+            "notes": "Grup ve düet reformer seansları"
+        },
+        {
+            "name": "Mat Pilates & Yoga Salonu",
+            "notes": "8 kişilik ahşap parke zemin, ayna duvar, pilates topları"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Tuğçe",
+            "last_name": "Aslan",
+            "email": "demo-pilates_studio-admin@kibusiness.co",
+            "phone_number": "05432137000",
+            "notes": "Pilates Stüdyo Sahibi & Master Eğitmen"
+        },
+        "providers": [
+            {
+                "first_name": "Pelin",
+                "last_name": "Çelik",
+                "email": "demo-pilates_studio-uzman1@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Reformer & Düet Pilates Eğitmeni",
+                "commission_type": "percentage",
+                "commission_value": 35,
+                "services": [
+                    "Birebir Private Reformer (50 Dk)",
+                    "Düet Reformer (2 Kişilik Ders)",
+                    "Grup Reformer Dersi (4 Kişilik)"
+                ],
+                "stations": [
+                    "Reformer Kule 1 (Cadillac)",
+                    "Reformer Kule 2 (Cadillac)",
+                    "Reformer 3 (Grup)",
+                    "Reformer 4 (Grup)"
+                ]
+            },
+            {
+                "first_name": "Görkem",
+                "last_name": "Aydın",
+                "email": "demo-pilates_studio-uzman2@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Klinik Pilates & Hamilelik Eğitmeni",
+                "commission_type": "percentage",
+                "commission_value": 40,
+                "services": [
+                    "Klinik Reformer & Omurga Terapisi",
+                    "Hamile (Prenatal) Pilatesi",
+                    "Birebir Private Reformer (50 Dk)"
+                ],
+                "stations": [
+                    "Reformer Kule 1 (Cadillac)",
+                    "Reformer Kule 2 (Cadillac)"
+                ]
+            },
+            {
+                "first_name": "Eylül",
+                "last_name": "Korkmaz",
+                "email": "demo-pilates_studio-uzman3@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Grup Mat Pilates & Esneklik Eğitmeni",
+                "commission_type": "percentage",
+                "commission_value": 30,
+                "services": [
+                    "Mat Pilates & Core (Grup 8 Kişi)",
+                    "Stretching & Esneklik Seansı",
+                    "Grup Reformer Dersi (4 Kişilik)"
+                ],
+                "stations": [
+                    "Mat Pilates & Yoga Salonu",
+                    "Reformer 3 (Grup)",
+                    "Reformer 4 (Grup)"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Dila",
+                "last_name": "Koç",
+                "email": "demo-pilates_studio-musteri1@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "12 seanslık private reformer paketi"
+            },
+            {
+                "first_name": "Yasemin",
+                "last_name": "Aral",
+                "email": "demo-pilates_studio-musteri2@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Hamile pilatesi 2. trimester"
+            },
+            {
+                "first_name": "Beril",
+                "last_name": "Soysal",
+                "email": "demo-pilates_studio-musteri3@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Klinik reformer - boyun düzleşmesi"
+            },
+            {
+                "first_name": "Ece",
+                "last_name": "Tuncer",
+                "email": "demo-pilates_studio-musteri4@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Arkadaşıyla düet reformer alıyor"
+            },
+            {
+                "first_name": "Gizem",
+                "last_name": "Yücel",
+                "email": "demo-pilates_studio-musteri5@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Düet reformer partneri"
+            },
+            {
+                "first_name": "Simge",
+                "last_name": "Kartal",
+                "email": "demo-pilates_studio-musteri6@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Grup reformer haftada 2 gün"
+            },
+            {
+                "first_name": "Pınar",
+                "last_name": "Oğuz",
+                "email": "demo-pilates_studio-musteri7@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Mat pilates & core grup dersi"
+            },
+            {
+                "first_name": "Cansu",
+                "last_name": "Demir",
+                "email": "demo-pilates_studio-musteri8@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Private reformer öğle seansı"
+            },
+            {
+                "first_name": "Leyla",
+                "last_name": "Eroğlu",
+                "email": "demo-pilates_studio-musteri9@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Stretching ve esneklik odaklı"
+            },
+            {
+                "first_name": "Zeynep",
+                "last_name": "Başar",
+                "email": "demo-pilates_studio-musteri10@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Sabah 09:00 reformer abonesi"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": -3,
+                "time": "09:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Birebir Private Reformer (50 Dk)",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -3,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Hamile (Prenatal) Pilatesi",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -2,
+                "time": "10:00",
+                "provider_idx": 1,
+                "customer_idx": 2,
+                "service_name": "Klinik Reformer & Omurga Terapisi",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": -2,
+                "time": "16:00",
+                "provider_idx": 2,
+                "customer_idx": 6,
+                "service_name": "Mat Pilates & Core (Grup 8 Kişi)",
+                "station_idx": 4,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -1,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 3,
+                "service_name": "Düet Reformer (2 Kişilik Ders)",
+                "station_idx": 2,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "15:00",
+                "provider_idx": 0,
+                "customer_idx": 7,
+                "service_name": "Birebir Private Reformer (50 Dk)",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "09:00",
+                "provider_idx": 0,
+                "customer_idx": 9,
+                "service_name": "Birebir Private Reformer (50 Dk)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "11:00",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Hamile (Prenatal) Pilatesi",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "14:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Birebir Private Reformer (50 Dk)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "17:00",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "Grup Reformer Dersi (4 Kişilik)",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "10:00",
+                "provider_idx": 1,
+                "customer_idx": 2,
+                "service_name": "Klinik Reformer & Omurga Terapisi",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": 1,
+                "time": "13:00",
+                "provider_idx": 0,
+                "customer_idx": 3,
+                "service_name": "Düet Reformer (2 Kişilik Ders)",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "16:00",
+                "provider_idx": 2,
+                "customer_idx": 8,
+                "service_name": "Stretching & Esneklik Seansı",
+                "station_idx": 4,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 2,
+                "time": "09:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Birebir Private Reformer (50 Dk)",
+                "station_idx": 0,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 2,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Hamile (Prenatal) Pilatesi",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 3,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 7,
+                "service_name": "Birebir Private Reformer (50 Dk)",
+                "station_idx": 0,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            }
+        ]
+    },
+    "family": "sports_fitness",
+    "business_type": "pilates_studio",
+    "ai_policy": {
+        "brand_name": "Pilates & Reformer Stüdyosu",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Pilates & Reformer Stüdyosu asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Danışan \/ Üye",
+            "Pilates Eğitmeni",
+            "Pilates Seansı",
+            "Reformer \/ Mat Seansı",
+            "Reformer Cihazı \/ Stüdyo",
+            "Pilates Çorabı \/ Ekipman",
+            "Seans Satışı",
+            "Ders Rezervasyonu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Danışan \/ Üye' ve 'Reformer \/ Mat Seansı' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Pilates Seansılar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Reformer Cihazı \/ Stüdyo Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Danışan \/ Üyelar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Pilates Seansı",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Danışan \/ Üye",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Pilates Seansılar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Reformer Cihazı \/ Stüdyo Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Danışan \/ Üye Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "Kulüp Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tesis ve finans tam yetkilisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Tesis Müdürü",
+            "icon": "user-tie",
+            "description": "Salon ve ekip operasyonu"
+        },
+        {
+            "slug": "trainer",
+            "name": "Personal Trainer (PT)",
+            "icon": "dumbbell",
+            "description": "Birebir antrenman ve danışan takibi"
+        },
+        {
+            "slug": "group_instructor",
+            "name": "Grup Dersi Eğitmeni",
+            "icon": "users",
+            "description": "Stüdyo ve grup seansları"
+        },
+        {
+            "slug": "reception",
+            "name": "Danışma \/ Turnike",
+            "icon": "id-card",
+            "description": "Üye girişi ve check-in"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasiyer",
+            "icon": "cash-register",
+            "description": "Paket ve üyelik satışı"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "Kulüp",
+            "last_name": "Demo",
+            "email": "demo-pilates_studio-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "Kulüp Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Tesis",
+            "last_name": "Demo",
+            "email": "demo-pilates_studio-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Tesis Müdürü"
+        },
+        "trainer": {
+            "first_name": "Personal",
+            "last_name": "Demo",
+            "email": "demo-pilates_studio-trainer@kibusiness.co",
+            "role_slug": "trainer",
+            "job_title": "Personal Trainer (PT)"
+        },
+        "group_instructor": {
+            "first_name": "Grup",
+            "last_name": "Demo",
+            "email": "demo-pilates_studio-group_instructor@kibusiness.co",
+            "role_slug": "group_instructor",
+            "job_title": "Grup Dersi Eğitmeni"
+        },
+        "reception": {
+            "first_name": "Danışma",
+            "last_name": "Demo",
+            "email": "demo-pilates_studio-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Danışma \/ Turnike"
+        },
+        "cashier": {
+            "first_name": "Kasiyer",
+            "last_name": "Demo",
+            "email": "demo-pilates_studio-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasiyer"
+        }
+    }
 }
-

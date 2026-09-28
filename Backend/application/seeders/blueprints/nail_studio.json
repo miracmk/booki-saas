@@ -1,238 +1,792 @@
 {
-  "industry": {
-    "code": "nail_studio",
-    "name": "Tırnak Stüdyosu & Nail Bar",
-    "icon": "💅",
-    "service_type": "procedure",
-    "description": "Protez tırnak, kalıcı oje, medikal manikür/pedikür, nail art varyasyonları ve teknisyen masaları için işlem & eklenti yönetim sistemi."
-  },
-  "terminology": {
-    "customer_label": "Müşteri / Danışan",
-    "provider_label": "Nail Artist / Teknisyen",
-    "appointment_label": "Randevu",
-    "station_label": "Manikür Masası / Pedikür Koltuğu",
-    "service_label": "İşlem / Tasarım"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "packages",
-    "adisyon",
-    "finance",
-    "expenses",
-    "checkin",
-    "inventory",
-    "reviews",
-    "marketing",
-    "loyalty",
-    "staff_commissions"
-  ],
-  "default_settings": {
-    "business_type": "beauty",
-    "slot_interval": 15,
-    "future_booking_limit": 45,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 10,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Protez Tırnak & Jel Sistemler",
-      "description": "Jel tırnak, akrilik sistem, tips uzatma ve tırnak güçlendirme"
+    "industry": {
+        "code": "nail_studio",
+        "name": "Tırnak Stüdyosu & Nail Bar",
+        "icon": "💅",
+        "service_type": "procedure",
+        "description": "Protez tırnak, kalıcı oje, medikal manikür\/pedikür, nail art varyasyonları ve teknisyen masaları için işlem & eklenti yönetim sistemi."
     },
-    {
-      "name": "Kalıcı Oje & Manikür",
-      "description": "Kuru Rus (kombine) manikür, kalıcı oje ve kauçuk taban güçlendirme"
+    "terminology": {
+        "customer": "Danışan",
+        "provider": "Nail Artist",
+        "appointment": "Seans",
+        "service": "Tırnak & Bakım",
+        "station": "Tırnak Masası \/ Koltuk",
+        "product": "Tırnak & El Bakım Ürünü",
+        "order": "Adisyon",
+        "reservation": "Randevu",
+        "membership": "Nail Club",
+        "package": "Seans Paketi",
+        "catalog": "Tırnak Tasarım Kataloğu",
+        "branch": "Stüdyo \/ Şube",
+        "customer_label": "Müşteri \/ Danışan",
+        "provider_label": "Nail Artist \/ Teknisyen",
+        "appointment_label": "Randevu",
+        "station_label": "Manikür Masası \/ Pedikür Koltuğu",
+        "service_label": "İşlem \/ Tasarım"
     },
-    {
-      "name": "Pedikür & Ayak Bakımı",
-      "description": "Islak/kuru pedikür, batık tırnak bakımı ve topuk çatlak onarımı"
-    },
-    {
-      "name": "Nail Art & Özel Tasarım",
-      "description": "French, ombré, el çizimi figürler, taş & folyo tasarımları"
-    }
-  ],
-  "services": [
-    {
-      "name": "Kombine (Rus) Manikür & Kalıcı Oje",
-      "category": "Kalıcı Oje & Manikür",
-      "duration": 60,
-      "price": 550.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#ec4899",
-      "description": "Freze uçlarıyla kütikül temizliği, tırnak şekillendirme ve 3-4 hafta kalıcı oje."
-    },
-    {
-      "name": "Jel Protez Tırnak (Sıfır Set)",
-      "category": "Protez Tırnak & Jel Sistemler",
-      "duration": 90,
-      "price": 1100.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#d946ef",
-      "description": "Şablon ile tırnak uzatma, mimari jel oluşturma ve tek renk kalıcı oje."
-    },
-    {
-      "name": "Protez Tırnak Bakımı (Refill / Dolgu)",
-      "category": "Protez Tırnak & Jel Sistemler",
-      "duration": 75,
-      "price": 800.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#a855f7",
-      "description": "3-4 hafta önce yapılmış protez tırnakların dip dolgusu ve yenilenmesi."
-    },
-    {
-      "name": "Medikal Kuru Pedikür & Kalıcı Oje",
-      "category": "Pedikür & Ayak Bakımı",
-      "duration": 60,
-      "price": 750.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#8b5cf6",
-      "description": "Podolojik frezelerle topuk ve tırnak bakımı, kalıcı oje uygulaması."
-    },
-    {
-      "name": "SPA Pedikür & Parafin Nem Bakımı",
-      "category": "Pedikür & Ayak Bakımı",
-      "duration": 75,
-      "price": 950.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#06b6d4",
-      "description": "Deniz tuzu peeling, masaj, sıcak parafin banyosu ve oje sürümü."
-    },
-    {
-      "name": "Tırnak Çıkarma & Güçlendirici Bakım",
-      "category": "Kalıcı Oje & Manikür",
-      "duration": 30,
-      "price": 250.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#64748b",
-      "description": "Zarar vermeden freze ile tırnak temizleme ve keratin vitamin maskesi."
-    },
-    {
-      "name": "Nail Art - Seviye 1 (French / Baby Boomer)",
-      "category": "Nail Art & Özel Tasarım",
-      "duration": 20,
-      "price": 200.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#f43f5e",
-      "description": "Tüm tırnaklara klasik/renkli french veya degrade ombré tasarımı."
-    },
-    {
-      "name": "Nail Art - Seviye 2 (Serbest El Çizimi / 3D)",
-      "category": "Nail Art & Özel Tasarım",
-      "duration": 40,
-      "price": 400.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#e11d48",
-      "description": "Kişiye özel illüstrasyon, mermer deseni, swarovski taş & 3D figürler."
-    }
-  ],
-  "stations": [
-    {
-      "name": "Manikür Masası 1 (Master)",
-      "notes": "Güçlü toz emici süpürge, Marathon freze makinesi, SunUV LED lamba"
-    },
-    {
-      "name": "Manikür Masası 2",
-      "notes": "Toz çekici, freze cihazı, UV kurutucu"
-    },
-    {
-      "name": "Manikür Masası 3",
-      "notes": "Toz çekici, freze cihazı, UV kurutucu"
-    },
-    {
-      "name": "VIP Pedikür Koltuğu 1 (Masajlı)",
-      "notes": "Otomatik ayak banyosu, sırt masajı, freze sehpası"
-    },
-    {
-      "name": "VIP Pedikür Koltuğu 2",
-      "notes": "Otomatik jakuzili ayak ünitesi, freze cihazı"
-    }
-  ],
-  "demo": {
-    "admin": {
-      "first_name": "Melike",
-      "last_name": "Aydın",
-      "email": "demo-nail_studio-admin@kibusiness.co",
-      "phone_number": "05432137000",
-      "notes": "Nail Studio Kurucusu & Master Artist"
-    },
-    "providers": [
-      {
-        "first_name": "Gözde",
-        "last_name": "Çelik",
-        "email": "demo-nail_studio-uzman1@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Senior Nail Artist & Protez Uzmanı",
-        "commission_type": "percentage",
-        "commission_value": 35.0,
-        "services": ["Jel Protez Tırnak (Sıfır Set)", "Protez Tırnak Bakımı (Refill / Dolgu)", "Kombine (Rus) Manikür & Kalıcı Oje", "Nail Art - Seviye 2 (Serbest El Çizimi / 3D)"],
-        "stations": ["Manikür Masası 1 (Master)", "Manikür Masası 2"]
-      },
-      {
-        "first_name": "Büşra",
-        "last_name": "Kaya",
-        "email": "demo-nail_studio-uzman2@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Kalıcı Oje & Nail Art Teknisyeni",
-        "commission_type": "percentage",
-        "commission_value": 30.0,
-        "services": ["Kombine (Rus) Manikür & Kalıcı Oje", "Tırnak Çıkarma & Güçlendirici Bakım", "Nail Art - Seviye 1 (French / Baby Boomer)", "Protez Tırnak Bakımı (Refill / Dolgu)"],
-        "stations": ["Manikür Masası 2", "Manikür Masası 3"]
-      },
-      {
-        "first_name": "Sıla",
-        "last_name": "Erdoğan",
-        "email": "demo-nail_studio-uzman3@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Podolog & Medikal Pedikür Uzmanı",
-        "commission_type": "percentage",
-        "commission_value": 35.0,
-        "services": ["Medikal Kuru Pedikür & Kalıcı Oje", "SPA Pedikür & Parafin Nem Bakımı", "Kombine (Rus) Manikür & Kalıcı Oje"],
-        "stations": ["VIP Pedikür Koltuğu 1 (Masajlı)", "VIP Pedikür Koltuğu 2"]
-      }
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "adisyon",
+        "finance",
+        "expenses",
+        "checkin",
+        "inventory",
+        "reviews",
+        "marketing",
+        "loyalty",
+        "staff_commissions"
     ],
-    "customers": [
-      { "first_name": "Didem", "last_name": "Aksoy", "email": "demo-nail_studio-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Jel protez badem tırnak & French" },
-      { "first_name": "Ece", "last_name": "Şahin", "email": "demo-nail_studio-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kalıcı oje kırmızı tonları tercih eder" },
-      { "first_name": "Fulya", "last_name": "Demir", "email": "demo-nail_studio-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Protez dolgu bakım randevusu" },
-      { "first_name": "Hazal", "last_name": "Korkmaz", "email": "demo-nail_studio-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "3D Nail art el çizimi figür sevdalısı" },
-      { "first_name": "Iraz", "last_name": "Yılmaz", "email": "demo-nail_studio-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "SPA pedikür & parafin bakımı" },
-      { "first_name": "Jale", "last_name": "Öztürk", "email": "demo-nail_studio-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Medikal pedikür batık kontrolü" },
-      { "first_name": "Kübra", "last_name": "Arslan", "email": "demo-nail_studio-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Tırnak güçlendirici ve kalıcı oje" },
-      { "first_name": "Lale", "last_name": "Güneş", "email": "demo-nail_studio-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Jel protez sıfır set" },
-      { "first_name": "Müge", "last_name": "Çetin", "email": "demo-nail_studio-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kombine manikür nude renkler" },
-      { "first_name": "Nazlı", "last_name": "Polat", "email": "demo-nail_studio-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Aylık düzenli manikür & pedikür" }
+    "default_settings": {
+        "business_type": "beauty",
+        "slot_interval": 15,
+        "future_booking_limit": 45,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 10,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Protez Tırnak & Jel Sistemler",
+            "description": "Jel tırnak, akrilik sistem, tips uzatma ve tırnak güçlendirme"
+        },
+        {
+            "name": "Kalıcı Oje & Manikür",
+            "description": "Kuru Rus (kombine) manikür, kalıcı oje ve kauçuk taban güçlendirme"
+        },
+        {
+            "name": "Pedikür & Ayak Bakımı",
+            "description": "Islak\/kuru pedikür, batık tırnak bakımı ve topuk çatlak onarımı"
+        },
+        {
+            "name": "Nail Art & Özel Tasarım",
+            "description": "French, ombré, el çizimi figürler, taş & folyo tasarımları"
+        }
     ],
-    "appointments": [
-      { "day_offset": -3, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Jel Protez Tırnak (Sıfır Set)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -3, "time": "13:30", "provider_idx": 1, "customer_idx": 1, "service_name": "Kombine (Rus) Manikür & Kalıcı Oje", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -2, "time": "11:00", "provider_idx": 2, "customer_idx": 4, "service_name": "SPA Pedikür & Parafin Nem Bakımı", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -2, "time": "14:30", "provider_idx": 0, "customer_idx": 2, "service_name": "Protez Tırnak Bakımı (Refill / Dolgu)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -1, "time": "10:30", "provider_idx": 1, "customer_idx": 6, "service_name": "Tırnak Çıkarma & Güçlendirici Bakım", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -1, "time": "13:00", "provider_idx": 2, "customer_idx": 5, "service_name": "Medikal Kuru Pedikür & Kalıcı Oje", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -1, "time": "15:30", "provider_idx": 0, "customer_idx": 3, "service_name": "Kombine (Rus) Manikür & Kalıcı Oje", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "10:00", "provider_idx": 0, "customer_idx": 7, "service_name": "Jel Protez Tırnak (Sıfır Set)", "station_idx": 0, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "11:30", "provider_idx": 1, "customer_idx": 8, "service_name": "Kombine (Rus) Manikür & Kalıcı Oje", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "14:00", "provider_idx": 2, "customer_idx": 9, "service_name": "Medikal Kuru Pedikür & Kalıcı Oje", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "16:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Nail Art - Seviye 2 (Serbest El Çizimi / 3D)", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 1, "time": "10:30", "provider_idx": 1, "customer_idx": 1, "service_name": "Kombine (Rus) Manikür & Kalıcı Oje", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 1, "time": "13:30", "provider_idx": 0, "customer_idx": 2, "service_name": "Protez Tırnak Bakımı (Refill / Dolgu)", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 1, "time": "15:00", "provider_idx": 2, "customer_idx": 4, "service_name": "SPA Pedikür & Parafin Nem Bakımı", "station_idx": 4, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 2, "time": "11:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Protez Tırnak Bakımı (Refill / Dolgu)", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 2, "time": "14:00", "provider_idx": 1, "customer_idx": 6, "service_name": "Kombine (Rus) Manikür & Kalıcı Oje", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 3, "time": "10:30", "provider_idx": 2, "customer_idx": 5, "service_name": "Medikal Kuru Pedikür & Kalıcı Oje", "station_idx": 3, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" }
-    ]
-  }
+    "services": [
+        {
+            "name": "Kombine (Rus) Manikür & Kalıcı Oje",
+            "category": "Kalıcı Oje & Manikür",
+            "duration": 60,
+            "price": 550,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#ec4899",
+            "description": "Freze uçlarıyla kütikül temizliği, tırnak şekillendirme ve 3-4 hafta kalıcı oje."
+        },
+        {
+            "name": "Jel Protez Tırnak (Sıfır Set)",
+            "category": "Protez Tırnak & Jel Sistemler",
+            "duration": 90,
+            "price": 1100,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#d946ef",
+            "description": "Şablon ile tırnak uzatma, mimari jel oluşturma ve tek renk kalıcı oje."
+        },
+        {
+            "name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+            "category": "Protez Tırnak & Jel Sistemler",
+            "duration": 75,
+            "price": 800,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#a855f7",
+            "description": "3-4 hafta önce yapılmış protez tırnakların dip dolgusu ve yenilenmesi."
+        },
+        {
+            "name": "Medikal Kuru Pedikür & Kalıcı Oje",
+            "category": "Pedikür & Ayak Bakımı",
+            "duration": 60,
+            "price": 750,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#8b5cf6",
+            "description": "Podolojik frezelerle topuk ve tırnak bakımı, kalıcı oje uygulaması."
+        },
+        {
+            "name": "SPA Pedikür & Parafin Nem Bakımı",
+            "category": "Pedikür & Ayak Bakımı",
+            "duration": 75,
+            "price": 950,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#06b6d4",
+            "description": "Deniz tuzu peeling, masaj, sıcak parafin banyosu ve oje sürümü."
+        },
+        {
+            "name": "Tırnak Çıkarma & Güçlendirici Bakım",
+            "category": "Kalıcı Oje & Manikür",
+            "duration": 30,
+            "price": 250,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#64748b",
+            "description": "Zarar vermeden freze ile tırnak temizleme ve keratin vitamin maskesi."
+        },
+        {
+            "name": "Nail Art - Seviye 1 (French \/ Baby Boomer)",
+            "category": "Nail Art & Özel Tasarım",
+            "duration": 20,
+            "price": 200,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#f43f5e",
+            "description": "Tüm tırnaklara klasik\/renkli french veya degrade ombré tasarımı."
+        },
+        {
+            "name": "Nail Art - Seviye 2 (Serbest El Çizimi \/ 3D)",
+            "category": "Nail Art & Özel Tasarım",
+            "duration": 40,
+            "price": 400,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#e11d48",
+            "description": "Kişiye özel illüstrasyon, mermer deseni, swarovski taş & 3D figürler."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Manikür Masası 1 (Master)",
+            "notes": "Güçlü toz emici süpürge, Marathon freze makinesi, SunUV LED lamba"
+        },
+        {
+            "name": "Manikür Masası 2",
+            "notes": "Toz çekici, freze cihazı, UV kurutucu"
+        },
+        {
+            "name": "Manikür Masası 3",
+            "notes": "Toz çekici, freze cihazı, UV kurutucu"
+        },
+        {
+            "name": "VIP Pedikür Koltuğu 1 (Masajlı)",
+            "notes": "Otomatik ayak banyosu, sırt masajı, freze sehpası"
+        },
+        {
+            "name": "VIP Pedikür Koltuğu 2",
+            "notes": "Otomatik jakuzili ayak ünitesi, freze cihazı"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Melike",
+            "last_name": "Aydın",
+            "email": "demo-nail_studio-admin@kibusiness.co",
+            "phone_number": "05432137000",
+            "notes": "Nail Studio Kurucusu & Master Artist"
+        },
+        "providers": [
+            {
+                "first_name": "Gözde",
+                "last_name": "Çelik",
+                "email": "demo-nail_studio-uzman1@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Senior Nail Artist & Protez Uzmanı",
+                "commission_type": "percentage",
+                "commission_value": 35,
+                "services": [
+                    "Jel Protez Tırnak (Sıfır Set)",
+                    "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                    "Kombine (Rus) Manikür & Kalıcı Oje",
+                    "Nail Art - Seviye 2 (Serbest El Çizimi \/ 3D)"
+                ],
+                "stations": [
+                    "Manikür Masası 1 (Master)",
+                    "Manikür Masası 2"
+                ]
+            },
+            {
+                "first_name": "Büşra",
+                "last_name": "Kaya",
+                "email": "demo-nail_studio-uzman2@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Kalıcı Oje & Nail Art Teknisyeni",
+                "commission_type": "percentage",
+                "commission_value": 30,
+                "services": [
+                    "Kombine (Rus) Manikür & Kalıcı Oje",
+                    "Tırnak Çıkarma & Güçlendirici Bakım",
+                    "Nail Art - Seviye 1 (French \/ Baby Boomer)",
+                    "Protez Tırnak Bakımı (Refill \/ Dolgu)"
+                ],
+                "stations": [
+                    "Manikür Masası 2",
+                    "Manikür Masası 3"
+                ]
+            },
+            {
+                "first_name": "Sıla",
+                "last_name": "Erdoğan",
+                "email": "demo-nail_studio-uzman3@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Podolog & Medikal Pedikür Uzmanı",
+                "commission_type": "percentage",
+                "commission_value": 35,
+                "services": [
+                    "Medikal Kuru Pedikür & Kalıcı Oje",
+                    "SPA Pedikür & Parafin Nem Bakımı",
+                    "Kombine (Rus) Manikür & Kalıcı Oje"
+                ],
+                "stations": [
+                    "VIP Pedikür Koltuğu 1 (Masajlı)",
+                    "VIP Pedikür Koltuğu 2"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Didem",
+                "last_name": "Aksoy",
+                "email": "demo-nail_studio-musteri1@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Jel protez badem tırnak & French"
+            },
+            {
+                "first_name": "Ece",
+                "last_name": "Şahin",
+                "email": "demo-nail_studio-musteri2@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Kalıcı oje kırmızı tonları tercih eder"
+            },
+            {
+                "first_name": "Fulya",
+                "last_name": "Demir",
+                "email": "demo-nail_studio-musteri3@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Protez dolgu bakım randevusu"
+            },
+            {
+                "first_name": "Hazal",
+                "last_name": "Korkmaz",
+                "email": "demo-nail_studio-musteri4@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "3D Nail art el çizimi figür sevdalısı"
+            },
+            {
+                "first_name": "Iraz",
+                "last_name": "Yılmaz",
+                "email": "demo-nail_studio-musteri5@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "SPA pedikür & parafin bakımı"
+            },
+            {
+                "first_name": "Jale",
+                "last_name": "Öztürk",
+                "email": "demo-nail_studio-musteri6@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Medikal pedikür batık kontrolü"
+            },
+            {
+                "first_name": "Kübra",
+                "last_name": "Arslan",
+                "email": "demo-nail_studio-musteri7@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Tırnak güçlendirici ve kalıcı oje"
+            },
+            {
+                "first_name": "Lale",
+                "last_name": "Güneş",
+                "email": "demo-nail_studio-musteri8@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Jel protez sıfır set"
+            },
+            {
+                "first_name": "Müge",
+                "last_name": "Çetin",
+                "email": "demo-nail_studio-musteri9@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Kombine manikür nude renkler"
+            },
+            {
+                "first_name": "Nazlı",
+                "last_name": "Polat",
+                "email": "demo-nail_studio-musteri10@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Aylık düzenli manikür & pedikür"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": -3,
+                "time": "10:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Jel Protez Tırnak (Sıfır Set)",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -3,
+                "time": "13:30",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Kombine (Rus) Manikür & Kalıcı Oje",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -2,
+                "time": "11:00",
+                "provider_idx": 2,
+                "customer_idx": 4,
+                "service_name": "SPA Pedikür & Parafin Nem Bakımı",
+                "station_idx": 3,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -2,
+                "time": "14:30",
+                "provider_idx": 0,
+                "customer_idx": 2,
+                "service_name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "10:30",
+                "provider_idx": 1,
+                "customer_idx": 6,
+                "service_name": "Tırnak Çıkarma & Güçlendirici Bakım",
+                "station_idx": 2,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -1,
+                "time": "13:00",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "Medikal Kuru Pedikür & Kalıcı Oje",
+                "station_idx": 3,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "15:30",
+                "provider_idx": 0,
+                "customer_idx": 3,
+                "service_name": "Kombine (Rus) Manikür & Kalıcı Oje",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "10:00",
+                "provider_idx": 0,
+                "customer_idx": 7,
+                "service_name": "Jel Protez Tırnak (Sıfır Set)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "11:30",
+                "provider_idx": 1,
+                "customer_idx": 8,
+                "service_name": "Kombine (Rus) Manikür & Kalıcı Oje",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "14:00",
+                "provider_idx": 2,
+                "customer_idx": 9,
+                "service_name": "Medikal Kuru Pedikür & Kalıcı Oje",
+                "station_idx": 3,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "16:00",
+                "provider_idx": 1,
+                "customer_idx": 3,
+                "service_name": "Nail Art - Seviye 2 (Serbest El Çizimi \/ 3D)",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "10:30",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Kombine (Rus) Manikür & Kalıcı Oje",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "13:30",
+                "provider_idx": 0,
+                "customer_idx": 2,
+                "service_name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "15:00",
+                "provider_idx": 2,
+                "customer_idx": 4,
+                "service_name": "SPA Pedikür & Parafin Nem Bakımı",
+                "station_idx": 4,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 2,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Protez Tırnak Bakımı (Refill \/ Dolgu)",
+                "station_idx": 0,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 2,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 6,
+                "service_name": "Kombine (Rus) Manikür & Kalıcı Oje",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 3,
+                "time": "10:30",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "Medikal Kuru Pedikür & Kalıcı Oje",
+                "station_idx": 3,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            }
+        ]
+    },
+    "family": "beauty_wellness",
+    "business_type": "nail_studio",
+    "ai_policy": {
+        "brand_name": "Tırnak Stüdyosu & Nail Bar",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Tırnak Stüdyosu & Nail Bar asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Danışan",
+            "Nail Artist",
+            "Seans",
+            "Tırnak & Bakım",
+            "Tırnak Masası \/ Koltuk",
+            "Tırnak & El Bakım Ürünü",
+            "Adisyon",
+            "Randevu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Danışan' ve 'Tırnak & Bakım' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Seanslar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Tırnak Masası \/ Koltuk Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Danışanlar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Seans",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Danışan",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Seanslar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Tırnak Masası \/ Koltuk Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Danışan Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "İşletme Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tam yetkili salon yöneticisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Müdür",
+            "icon": "user-tie",
+            "description": "Operasyon ve ekip yönetimi"
+        },
+        {
+            "slug": "professional",
+            "name": "Uzman \/ Estetisyen",
+            "icon": "magic",
+            "description": "Hizmet ve seans uygulamaları"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Danışan karşılama ve randevu"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ POS",
+            "icon": "cash-register",
+            "description": "Ödeme ve adisyon takibi"
+        },
+        {
+            "slug": "inventory",
+            "name": "Depo \/ Envanter",
+            "icon": "boxes",
+            "description": "Sarf malzeme ve ürün takibi"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "İşletme",
+            "last_name": "Demo",
+            "email": "demo-nail_studio-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "İşletme Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Müdür",
+            "last_name": "Demo",
+            "email": "demo-nail_studio-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Müdür"
+        },
+        "professional": {
+            "first_name": "Uzman",
+            "last_name": "Demo",
+            "email": "demo-nail_studio-professional@kibusiness.co",
+            "role_slug": "professional",
+            "job_title": "Uzman \/ Estetisyen"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-nail_studio-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-nail_studio-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ POS"
+        },
+        "inventory": {
+            "first_name": "Depo",
+            "last_name": "Demo",
+            "email": "demo-nail_studio-inventory@kibusiness.co",
+            "role_slug": "inventory",
+            "job_title": "Depo \/ Envanter"
+        }
+    }
 }
-

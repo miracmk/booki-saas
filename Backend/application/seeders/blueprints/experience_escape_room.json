@@ -1,98 +1,390 @@
 {
-  "industry": {
-    "code": "experience_escape_room",
-    "name": "Kaçış Oyunu / VR & Atölye Deneyimleri",
-    "icon": "🗝️",
-    "service_type": "station",
-    "description": "Kaçış evleri, VR simülasyon salonları, seramik/resim atölyeleri için grup seans rezervasyonu, dijital feragatname (waiver) imzalama, ek paket upsell ve QR biletleme paketi."
-  },
-  "terminology": {
-    "customer_label": "Misafir / Katılımcı",
-    "provider_label": "Oyun Yöneticisi / Eğitmen",
-    "appointment_label": "Oyun / Atölye Seansı",
-    "station_label": "Oyun Odası / Deneyim İstasyonu",
-    "service_label": "Deneyim / Tema"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "digital_waivers",
-    "event_tickets",
-    "booking_addons",
-    "adisyon",
-    "finance",
-    "reviews",
-    "marketing"
-  ],
-  "default_settings": {
-    "business_type": "entertainment",
-    "slot_interval": 60,
-    "future_booking_limit": 30,
-    "require_phone_number": true,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Kaçış Odası Temaları",
-      "description": "Korku, gizem ve macera kaçış oyunu odaları"
+    "industry": {
+        "code": "experience_escape_room",
+        "name": "Kaçış Oyunu \/ VR & Atölye Deneyimleri",
+        "icon": "🗝️",
+        "service_type": "station",
+        "description": "Kaçış evleri, VR simülasyon salonları, seramik\/resim atölyeleri için grup seans rezervasyonu, dijital feragatname (waiver) imzalama, ek paket upsell ve QR biletleme paketi."
     },
-    {
-      "name": "VR & Sanal Gerçeklik Simülasyonu",
-      "description": "Multiplayer VR arenası ve tam donanımlı simülatörler"
+    "terminology": {
+        "customer": "Oyuncu \/ Misafir",
+        "provider": "Oyun Yöneticisi (Game Master)",
+        "appointment": "Oyun Seansı",
+        "service": "Kaçış Oyunu \/ Deneyim",
+        "station": "Oyun Odası \/ Parkur",
+        "product": "Hatıra Ürünü \/ Fotoğraf",
+        "order": "Bilet & İçecek Siparişi",
+        "reservation": "Oyun Rezervasyonu",
+        "membership": "Deneyim Kulübü",
+        "package": "Grup \/ Sezon Paketi",
+        "catalog": "Oyunlar & Deneyim Kataloğu",
+        "branch": "Şube \/ Kaçış Evi",
+        "customer_label": "Misafir \/ Katılımcı",
+        "provider_label": "Oyun Yöneticisi \/ Eğitmen",
+        "appointment_label": "Oyun \/ Atölye Seansı",
+        "station_label": "Oyun Odası \/ Deneyim İstasyonu",
+        "service_label": "Deneyim \/ Tema"
     },
-    {
-      "name": "Yaratıcı Atölye Seansları",
-      "description": "Seramik yapımı, tuval boyama ve workshop etkinlikleri"
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "digital_waivers",
+        "event_tickets",
+        "booking_addons",
+        "adisyon",
+        "finance",
+        "reviews",
+        "marketing"
+    ],
+    "default_settings": {
+        "business_type": "entertainment",
+        "slot_interval": 60,
+        "future_booking_limit": 30,
+        "require_phone_number": true,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Kaçış Odası Temaları",
+            "description": "Korku, gizem ve macera kaçış oyunu odaları"
+        },
+        {
+            "name": "VR & Sanal Gerçeklik Simülasyonu",
+            "description": "Multiplayer VR arenası ve tam donanımlı simülatörler"
+        },
+        {
+            "name": "Yaratıcı Atölye Seansları",
+            "description": "Seramik yapımı, tuval boyama ve workshop etkinlikleri"
+        }
+    ],
+    "services": [
+        {
+            "name": "Kayıp Tapınak Kaçış Oyunu (60 Dk)",
+            "category": "Kaçış Odası Temaları",
+            "duration": 60,
+            "price": 1400,
+            "attendants_number": 6,
+            "description": "2-6 kişilik macera ve bulmaca temalı kaçış deneyimi"
+        },
+        {
+            "name": "Multiplayer VR Arena Seansı (45 Dk)",
+            "category": "VR & Sanal Gerçeklik Simülasyonu",
+            "duration": 45,
+            "price": 1000,
+            "attendants_number": 4,
+            "description": "Kablosuz VR başlıklarıyla 4 kişilik ortak görev oyunu"
+        },
+        {
+            "name": "Seramik Çömlek & Tornalama Atölyesi (90 Dk)",
+            "category": "Yaratıcı Atölye Seansları",
+            "duration": 90,
+            "price": 1250,
+            "attendants_number": 8,
+            "description": "Kil şekillendirme ve seramik torna eğitimi (tüm malzemeler dahil)"
+        }
+    ],
+    "stations": [
+        {
+            "name": "Oda 1: Kayıp Tapınak",
+            "capacity": 6,
+            "description": "Özel ışıklandırma ve gizli geçitli kaçış odası"
+        },
+        {
+            "name": "Oda 2: Akıl Hastanesi (Korku)",
+            "capacity": 6,
+            "description": "Canlı aktörlü gerilim kaçış odası"
+        },
+        {
+            "name": "VR Arena Alanı",
+            "capacity": 4,
+            "description": "4x4 serbest hareketli sanal gerçeklik alanı"
+        },
+        {
+            "name": "Ana Atölye Masası",
+            "capacity": 8,
+            "description": "Grup workshop ve çömlek tornaları istasyonu"
+        }
+    ],
+    "family": "experience",
+    "business_type": "experience_escape_room",
+    "ai_policy": {
+        "brand_name": "Kaçış Oyunu \/ VR & Atölye Deneyimleri",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Kaçış Oyunu \/ VR & Atölye Deneyimleri asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Oyuncu \/ Misafir",
+            "Oyun Yöneticisi (Game Master)",
+            "Oyun Seansı",
+            "Kaçış Oyunu \/ Deneyim",
+            "Oyun Odası \/ Parkur",
+            "Hatıra Ürünü \/ Fotoğraf",
+            "Bilet & İçecek Siparişi",
+            "Oyun Rezervasyonu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Oyuncu \/ Misafir' ve 'Kaçış Oyunu \/ Deneyim' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Oyun Seansılar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Oyun Odası \/ Parkur Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Oyuncu \/ Misafirlar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Oyun Seansı",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Oyuncu \/ Misafir",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Oyun Seansılar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Oyun Odası \/ Parkur Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Oyuncu \/ Misafir Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "İşletme Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tam yetkili salon yöneticisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Müdür",
+            "icon": "user-tie",
+            "description": "Operasyon ve ekip yönetimi"
+        },
+        {
+            "slug": "professional",
+            "name": "Uzman \/ Estetisyen",
+            "icon": "magic",
+            "description": "Hizmet ve seans uygulamaları"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Danışan karşılama ve randevu"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ POS",
+            "icon": "cash-register",
+            "description": "Ödeme ve adisyon takibi"
+        },
+        {
+            "slug": "inventory",
+            "name": "Depo \/ Envanter",
+            "icon": "boxes",
+            "description": "Sarf malzeme ve ürün takibi"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "İşletme",
+            "last_name": "Demo",
+            "email": "demo-experience_escape_room-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "İşletme Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Müdür",
+            "last_name": "Demo",
+            "email": "demo-experience_escape_room-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Müdür"
+        },
+        "professional": {
+            "first_name": "Uzman",
+            "last_name": "Demo",
+            "email": "demo-experience_escape_room-professional@kibusiness.co",
+            "role_slug": "professional",
+            "job_title": "Uzman \/ Estetisyen"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-experience_escape_room-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-experience_escape_room-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ POS"
+        },
+        "inventory": {
+            "first_name": "Depo",
+            "last_name": "Demo",
+            "email": "demo-experience_escape_room-inventory@kibusiness.co",
+            "role_slug": "inventory",
+            "job_title": "Depo \/ Envanter"
+        }
     }
-  ],
-  "services": [
-    {
-      "name": "Kayıp Tapınak Kaçış Oyunu (60 Dk)",
-      "category": "Kaçış Odası Temaları",
-      "duration": 60,
-      "price": 1400.00,
-      "attendants_number": 6,
-      "description": "2-6 kişilik macera ve bulmaca temalı kaçış deneyimi"
-    },
-    {
-      "name": "Multiplayer VR Arena Seansı (45 Dk)",
-      "category": "VR & Sanal Gerçeklik Simülasyonu",
-      "duration": 45,
-      "price": 1000.00,
-      "attendants_number": 4,
-      "description": "Kablosuz VR başlıklarıyla 4 kişilik ortak görev oyunu"
-    },
-    {
-      "name": "Seramik Çömlek & Tornalama Atölyesi (90 Dk)",
-      "category": "Yaratıcı Atölye Seansları",
-      "duration": 90,
-      "price": 1250.00,
-      "attendants_number": 8,
-      "description": "Kil şekillendirme ve seramik torna eğitimi (tüm malzemeler dahil)"
-    }
-  ],
-  "stations": [
-    {
-      "name": "Oda 1: Kayıp Tapınak",
-      "capacity": 6,
-      "description": "Özel ışıklandırma ve gizli geçitli kaçış odası"
-    },
-    {
-      "name": "Oda 2: Akıl Hastanesi (Korku)",
-      "capacity": 6,
-      "description": "Canlı aktörlü gerilim kaçış odası"
-    },
-    {
-      "name": "VR Arena Alanı",
-      "capacity": 4,
-      "description": "4x4 serbest hareketli sanal gerçeklik alanı"
-    },
-    {
-      "name": "Ana Atölye Masası",
-      "capacity": 8,
-      "description": "Grup workshop ve çömlek tornaları istasyonu"
-    }
-  ]
 }

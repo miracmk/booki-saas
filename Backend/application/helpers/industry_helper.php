@@ -164,16 +164,58 @@ if (!function_exists('current_industry_info')) {
     }
 }
 
+if (!function_exists('vertical_service')) {
+    function vertical_service(): Vertical_service
+    {
+        $CI = &get_instance();
+        if (!isset($CI->vertical_service)) {
+            $CI->load->library('vertical_service');
+        }
+        return $CI->vertical_service;
+    }
+}
+
+if (!function_exists('navigation_service')) {
+    function navigation_service(): Navigation_service
+    {
+        $CI = &get_instance();
+        if (!isset($CI->navigation_service)) {
+            $CI->load->library('navigation_service');
+        }
+        return $CI->navigation_service;
+    }
+}
+
+if (!function_exists('permission_service')) {
+    function permission_service(): Permission_service
+    {
+        $CI = &get_instance();
+        if (!isset($CI->permission_service)) {
+            $CI->load->library('permission_service');
+        }
+        return $CI->permission_service;
+    }
+}
+
+if (!function_exists('ai_governance_service')) {
+    function ai_governance_service(): Ai_governance_service
+    {
+        $CI = &get_instance();
+        if (!isset($CI->ai_governance_service)) {
+            $CI->load->library('ai_governance_service');
+        }
+        return $CI->ai_governance_service;
+    }
+}
+
 if (!function_exists('industry_term')) {
     /**
      * Return the industry-specific localized terminology label.
      *
      * Supported keys:
-     * - customer_label     (e.g., Müşteri, Hasta, Misafir, Üye, Danışan, Araç Sahibi)
-     * - provider_label     (e.g., Personel, Hekim, Garson / Servis, Antrenör, Berber)
-     * - service_label      (e.g., Hizmet, Tedavi / İşlem, Menü & Rezervasyon, Ders / Seans)
-     * - station_label      (e.g., İstasyon / Oda, Diş Üniti, Masa / Bölüm, Stüdyo, Peron, Koltuk)
-     * - appointment_label  (e.g., Randevu, Muayene / Tedavi, Masa Rezervasyonu, Ders / Seans)
+     * - customer, provider, appointment, service, station, product,
+     *   order, reservation, membership, package, catalog, branch
+     * (and backward-compatible *_label variants).
      *
      * @param string $key
      * @param string|null $fallback
@@ -194,40 +236,79 @@ if (!function_exists('industry_term')) {
             }
         }
 
+        $base_key = str_ends_with($key, '_label') ? substr($key, 0, -6) : $key;
+        $label_key = str_ends_with($key, '_label') ? $key : ($key . '_label');
+
         // 1. Check custom terminology saved in tenant settings
         if (!empty($custom_terms[$key])) {
             return (string) $custom_terms[$key];
         }
+        if (!empty($custom_terms[$base_key])) {
+            return (string) $custom_terms[$base_key];
+        }
+        if (!empty($custom_terms[$label_key])) {
+            return (string) $custom_terms[$label_key];
+        }
 
         // 2. Check blueprint terminology
         $bp = current_industry_blueprint();
-        if ($bp && !empty($bp['terminology'][$key])) {
-            return (string) $bp['terminology'][$key];
+        if ($bp && !empty($bp['terminology'])) {
+            if (!empty($bp['terminology'][$key])) {
+                return (string) $bp['terminology'][$key];
+            }
+            if (!empty($bp['terminology'][$base_key])) {
+                return (string) $bp['terminology'][$base_key];
+            }
+            if (!empty($bp['terminology'][$label_key])) {
+                return (string) $bp['terminology'][$label_key];
+            }
         }
 
-        // 3. Sensible universal defaults
+        // 3. Universal defaults
         $universal_defaults = [
+            'customer' => 'Müşteri',
             'customer_label' => 'Müşteri',
+            'provider' => 'Personel / Uzman',
             'provider_label' => 'Personel / Uzman',
-            'service_label' => 'Hizmet',
-            'station_label' => 'İstasyon / Oda',
+            'appointment' => 'Randevu',
             'appointment_label' => 'Randevu',
+            'service' => 'Hizmet',
+            'service_label' => 'Hizmet',
+            'station' => 'İstasyon / Oda',
+            'station_label' => 'İstasyon / Oda',
+            'product' => 'Ürün',
+            'order' => 'Sipariş / Adisyon',
+            'reservation' => 'Rezervasyon',
+            'membership' => 'Üyelik',
+            'package' => 'Paket',
+            'catalog' => 'Katalog',
+            'branch' => 'Şube',
         ];
 
-        return $fallback ?? ($universal_defaults[$key] ?? 'Kayıt');
+        return $fallback ?? ($universal_defaults[$key] ?? ($universal_defaults[$base_key] ?? 'Kayıt'));
     }
 }
 
-if (!function_exists('is_module_enabled')) {
+if (!function_exists('module_available')) {
     /**
-     * Check whether a modular feature is enabled for the active tenant / industry.
-     *
-     * Evaluates settings ('features_enabled_json') and falls back to blueprint 'enabled_modules'.
-     *
-     * @param string $module
-     * @return bool
+     * Check if module is available for the given or current vertical/business type.
      */
-    function is_module_enabled(string $module): bool
+    function module_available(string $module, ?string $business_type = null): bool
+    {
+        $code = $business_type ?: current_industry_code();
+        $bp = current_industry_blueprint($code);
+        if ($bp && isset($bp['enabled_modules']) && is_array($bp['enabled_modules'])) {
+            return in_array($module, $bp['enabled_modules'], true);
+        }
+        return true;
+    }
+}
+
+if (!function_exists('module_enabled')) {
+    /**
+     * Check whether a modular feature is enabled for the active tenant.
+     */
+    function module_enabled(string $module): bool
     {
         static $features_cache = null;
 
@@ -242,20 +323,54 @@ if (!function_exists('is_module_enabled')) {
             }
         }
 
-        // If explicitly set in features_enabled_json
         if (isset($features_cache[$module])) {
             return (bool) $features_cache[$module];
         }
 
-        // Otherwise check active blueprint's enabled_modules
+        $core_modules = ['dashboard', 'appointments', 'calendar', 'customers', 'services', 'reports', 'settings', 'users'];
+        if (in_array($module, $core_modules, true)) {
+            return true;
+        }
+
         $bp = current_industry_blueprint();
         if ($bp && isset($bp['enabled_modules']) && is_array($bp['enabled_modules'])) {
             return in_array($module, $bp['enabled_modules'], true);
         }
 
-        // Core modules default to enabled
-        $core_modules = ['appointments', 'calendar', 'customers', 'services', 'reports', 'settings'];
-        return in_array($module, $core_modules, true);
+        return false;
+    }
+}
+
+if (!function_exists('module_permission')) {
+    /**
+     * Check if current user has permission to access the module.
+     */
+    function module_permission(string $module, ?int $user_id = null): bool
+    {
+        if (function_exists('can')) {
+            return can('view', $module, $user_id);
+        }
+        return true;
+    }
+}
+
+if (!function_exists('module_visible')) {
+    /**
+     * Check if module is both enabled for the tenant and permitted for the user.
+     */
+    function module_visible(string $module, ?int $user_id = null): bool
+    {
+        return module_enabled($module) && module_permission($module, $user_id);
+    }
+}
+
+if (!function_exists('is_module_enabled')) {
+    /**
+     * Backward-compatible alias for module_enabled.
+     */
+    function is_module_enabled(string $module): bool
+    {
+        return module_enabled($module);
     }
 }
 
@@ -269,10 +384,47 @@ if (!function_exists('industry_dashboard_config')) {
      * @param string|null $code
      * @return array
      */
-    function industry_dashboard_config(?string $code = null): array
+    function industry_dashboard_config(?string $code = null, ?string $role_slug = null): array
     {
         $code = $code ?: current_industry_code();
+        $role = $role_slug ?: (function_exists('session') ? (session('role_slug') ?: 'owner') : 'owner');
         $url = static fn(string $path): string => function_exists('site_url') ? site_url($path) : '/' . ltrim($path, '/');
+
+        // Check if blueprint defines dashboard for vertical + role
+        $bp = null;
+        if (function_exists('get_instance')) {
+            $vert = vertical_service();
+            $bp = $vert->get_blueprint($code);
+        }
+        if (!empty($bp['dashboard'])) {
+            $dash_map = $bp['dashboard'];
+            $role_config = $dash_map[$role] ?? ($dash_map['staff'] ?? ($dash_map['owner'] ?? null));
+            if ($role_config) {
+                $role_title = (function_exists('session') ? session('job_title') : null) ?: ($role === 'owner' ? 'Yönetici' : ucfirst($role));
+                $badge = ($bp['title'] ?? ucfirst($code)) . ' (' . $role_title . ')';
+                $kpis = $role_config['kpis'] ?? [];
+                $quick_actions = [];
+                foreach ($role_config['quick_actions'] ?? [] as $qa) {
+                    $quick_actions[] = [
+                        'label' => $qa['label'],
+                        'url' => $url($qa['route']),
+                        'class' => $qa['class'] ?? 'btn-primary',
+                        'icon' => $qa['icon'] ?? 'bolt',
+                    ];
+                }
+
+                return [
+                    'badge' => $badge,
+                    'kpi_1_title' => $kpis[0]['label'] ?? 'Bugünkü Program',
+                    'kpi_1_sub' => 'planlanan',
+                    'kpi_2_title' => $kpis[1]['label'] ?? 'Bugünkü Hasılat',
+                    'kpi_3_title' => $kpis[2]['label'] ?? 'Canlı Durum',
+                    'kpi_3_sub' => 'aktif seans',
+                    'kpi_4_title' => $kpis[3]['label'] ?? 'Doluluk Oranı',
+                    'quick_actions' => $quick_actions,
+                ];
+            }
+        }
 
         switch ($code) {
             case 'dentist':
@@ -678,5 +830,80 @@ if (!function_exists('generate_schema_org_json_ld')) {
         }
 
         return $json;
+    }
+}
+
+if (!function_exists('render_empty_state')) {
+    /**
+     * Render a context-aware and role-aware empty state UI block.
+     *
+     * @param string $module Resource or module (services, appointments, customers, stations, etc.)
+     * @param string|null $custom_title Optional title override
+     * @param string|null $custom_action_url Optional action URL override
+     * @return string HTML string
+     */
+    function render_empty_state(string $module, ?string $custom_title = null, ?string $custom_action_url = null): string
+    {
+        $code = current_industry_code();
+        $vert = function_exists('current_vertical_group') ? current_vertical_group() : 'beauty';
+        $user_id = (int) session('user_id');
+
+        $empty_messages = [
+            'services' => [
+                'beauty' => ['title' => 'Henüz hizmet veya bakım eklenmedi', 'desc' => 'Danışanlarınıza sunacağınız cilt bakımı, epilasyon veya masaj hizmetlerini tanımlayarak başlayın.', 'btn' => '+ Yeni Hizmet Ekle', 'route' => 'services', 'perm' => ['add', 'services']],
+                'restaurant' => ['title' => 'Henüz menü oluşturulmadı', 'desc' => 'Misafirlerinize sunacağınız lezzetleri, başlangıçları ve içecekleri menünüze ekleyin.', 'btn' => '+ Menüye Yeni Ürün Ekle', 'route' => 'services', 'perm' => ['add', 'services']],
+                'health' => ['title' => 'Henüz işlem veya muayene tanımlanmadı', 'desc' => 'Kliniğinizde uygulanan muayene türleri, tetkik ve tedavi protokollerini kaydedin.', 'btn' => '+ Yeni İşlem / Muayene Ekle', 'route' => 'services', 'perm' => ['add', 'services']],
+                'sports' => ['title' => 'Henüz ders veya antrenman oluşturulmadı', 'desc' => 'Stüdyonuzda sunulan reformer, fitness dersleri veya birebir PT seanslarını tanımlayın.', 'btn' => '+ Yeni Ders / Seans Ekle', 'route' => 'services', 'perm' => ['add', 'services']],
+                'automotive' => ['title' => 'Henüz servis veya yıkama hizmeti tanımlanmadı', 'desc' => 'Oto yıkama, periyodik bakım veya seramik kaplama paketlerinizi oluşturun.', 'btn' => '+ Yeni Hizmet Ekle', 'route' => 'services', 'perm' => ['add', 'services']],
+            ],
+            'appointments' => [
+                'restaurant' => ['title' => 'Henüz masa rezervasyonu bulunmuyor', 'desc' => 'Bugün için planlanan masa rezervasyonu yok. Yeni bir rezervasyon alabilir veya masaları canlı takip edebilirsiniz.', 'btn' => '+ Yeni Masa Rezervasyonu', 'route' => 'restaurant/reservations', 'perm' => ['add', 'restaurant_reservations']],
+                'default' => ['title' => 'Henüz planlanmış randevu bulunmuyor', 'desc' => 'Takviminizde henüz randevu kaydı yok. Müşterileriniz için yeni randevu oluşturun.', 'btn' => '+ Yeni Randevu Oluştur', 'route' => 'calendar', 'perm' => ['add', 'appointments']],
+            ],
+            'customers' => [
+                'health' => ['title' => 'Henüz hasta kaydı bulunmuyor', 'desc' => 'Kliniğinize başvuran hastalar için dosya açarak tıbbi geçmişlerini takip edin.', 'btn' => '+ Yeni Hasta Kaydı', 'route' => 'customers', 'perm' => ['add', 'customers']],
+                'beauty' => ['title' => 'Henüz danışan kaydı bulunmuyor', 'desc' => 'Salonunuza gelen danışanlarınızı kaydederek seans geçmişlerini görüntüleyin.', 'btn' => '+ Yeni Danışan Ekle', 'route' => 'customers', 'perm' => ['add', 'customers']],
+                'restaurant' => ['title' => 'Henüz müdavim misafir kaydı bulunmuyor', 'desc' => 'Sık gelen misafirlerinizi ve masa tercihlerini CRM sistemine ekleyin.', 'btn' => '+ Yeni Misafir Ekle', 'route' => 'customers', 'perm' => ['add', 'customers']],
+                'default' => ['title' => 'Henüz müşteri kaydı bulunmuyor', 'desc' => 'Yeni müşteri kaydı oluşturarak randevu ve ödeme geçmişini yönetmeye başlayın.', 'btn' => '+ Yeni Müşteri Ekle', 'route' => 'customers', 'perm' => ['add', 'customers']],
+            ],
+            'stations' => [
+                'restaurant' => ['title' => 'Henüz masa veya salon planı tanımlanmadı', 'desc' => 'İç ve dış mekan masalarınızı ve salon krokisini oluşturarak canlı takibe başlayın.', 'btn' => '+ Yeni Masa Ekle', 'route' => 'stations', 'perm' => ['add', 'stations']],
+                'health' => ['title' => 'Henüz muayene odası veya ünit tanımlanmadı', 'desc' => 'Kliniğinizdeki poliklinik odaları ve diş ünitlerini sisteme ekleyin.', 'btn' => '+ Yeni Ünit / Oda Ekle', 'route' => 'stations', 'perm' => ['add', 'stations']],
+                'default' => ['title' => 'Henüz istasyon veya oda tanımlanmadı', 'desc' => 'Randevuların gerçekleşeceği koltuk, kabin veya odaları tanımlayın.', 'btn' => '+ Yeni İstasyon Ekle', 'route' => 'stations', 'perm' => ['add', 'stations']],
+            ],
+        ];
+
+        $conf = $empty_messages[$module][$vert] ?? ($empty_messages[$module]['default'] ?? [
+            'title' => $custom_title ?: 'Kayıt bulunamadı',
+            'desc' => 'Bu bölümde henüz herhangi bir kayıt oluşturulmamış.',
+            'btn' => '+ Yeni Kayıt Ekle',
+            'route' => $module,
+            'perm' => ['add', $module],
+        ]);
+
+        $title = $custom_title ?: $conf['title'];
+        $desc = $conf['desc'];
+        $btn_label = $conf['btn'];
+        $action_url = $custom_action_url ?: site_url($conf['route']);
+        $has_permission = true;
+
+        if (function_exists('can') && !empty($conf['perm'])) {
+            $has_permission = can($conf['perm'][0], $conf['perm'][1], $user_id);
+        }
+
+        $html = '<div class="card border-0 shadow-sm rounded-4 p-5 text-center my-4 empty-state-container">';
+        $html .= '  <div class="mb-3 text-muted opacity-50"><i class="fas fa-folder-open fa-3x"></i></div>';
+        $html .= '  <h5 class="fw-bold text-dark mb-2">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</h5>';
+        $html .= '  <p class="text-muted small mx-auto mb-4" style="max-width: 480px;">' . htmlspecialchars($desc, ENT_QUOTES, 'UTF-8') . '</p>';
+
+        if ($has_permission) {
+            $html .= '  <div><a href="' . htmlspecialchars($action_url, ENT_QUOTES, 'UTF-8') . '" class="btn btn-primary px-4 py-2 rounded-3 shadow-sm fw-semibold"><i class="fas fa-plus me-1"></i> ' . htmlspecialchars($btn_label, ENT_QUOTES, 'UTF-8') . '</a></div>';
+        } else {
+            $html .= '  <div class="small text-muted fst-italic"><i class="fas fa-lock me-1"></i> Yeni kayıt ekleme yetkiniz bulunmuyor.</div>';
+        }
+
+        $html .= '</div>';
+
+        return $html;
     }
 }

@@ -12,60 +12,53 @@
 
 if (!function_exists('can')) {
     /**
-     * Check if the currently logged-in user can perform an action
+     * Check if a user can perform an action on a resource, with optional scope and context.
      *
      * Example:
-     *
      * if (can('edit', 'appointments') === FALSE) abort(403);
+     * if (can('view', 'appointments', null, 'branch', ['branch_id' => 2]) === FALSE) abort(403);
      *
-     * @param string $action
-     * @param string $resource
-     * @param int|null $user_id
-     *
+     * @param string $action Action (view, add, edit, delete, approve, export, manage, refund, override, execute)
+     * @param string $resource Resource or module name
+     * @param int|null $user_id Optional user ID (defaults to current logged-in user)
+     * @param string|null $required_scope Optional scope: own, assigned, branch, all
+     * @param array $context Context details (e.g. ['branch_id' => 1])
      * @return bool
      */
-    function can(string $action, string $resource, ?int $user_id = null): bool
-    {
-        /** @var App_Controller $CI */
+    function can(
+        string $action,
+        string $resource,
+        ?int $user_id = null,
+        ?string $required_scope = null,
+        array $context = []
+    ): bool {
         $CI = &get_instance();
-
-        $CI->load->model('roles_model');
-        $CI->load->model('users_model');
-
-        if (empty($user_id)) {
-            $role_slug = session('role_slug');
-        } else {
-            $user = $CI->users_model->find($user_id);
-
-            $role_slug = $CI->roles_model->value($user['id_roles'], 'slug');
+        if (!isset($CI->permission_service)) {
+            $CI->load->library('permission_service');
         }
 
-        if (empty($role_slug)) {
-            return false;
-        }
-
-        $permissions = $CI->roles_model->get_permissions_by_slug($role_slug);
-
-        return $permissions[$resource][$action] ?? false;
+        return $CI->permission_service->can($action, $resource, $user_id, $required_scope, $context);
     }
 }
 
 if (!function_exists('cannot')) {
     /**
-     * Check if the currently logged-in user can perform an action
-     *
-     * Example:
-     *
-     * if (cannot('edit', 'appointments')) abort(403);
+     * Check if a user CANNOT perform an action on a resource.
      *
      * @param string $action
      * @param string $resource
      * @param int|null $user_id
-     *
+     * @param string|null $required_scope
+     * @param array $context
      * @return bool
      */
-    function cannot(string $action, string $resource, ?int $user_id = null): bool
-    {
-        return !can($action, $resource, $user_id);
+    function cannot(
+        string $action,
+        string $resource,
+        ?int $user_id = null,
+        ?string $required_scope = null,
+        array $context = []
+    ): bool {
+        return !can($action, $resource, $user_id, $required_scope, $context);
     }
 }

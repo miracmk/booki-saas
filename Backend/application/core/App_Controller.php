@@ -90,6 +90,7 @@ class App_Controller extends CI_Controller
         $this->load_common_script_vars();
         $this->enforce_onboarding();
         $this->enforce_robots_policy();
+        $this->enforce_route_permissions();
 
         rate_limit($this->input->ip_address());
     }
@@ -516,6 +517,134 @@ class App_Controller extends CI_Controller
         if (!in_array($current_controller, $public_controllers, true) || session('user_id')) {
             if (!headers_sent()) {
                 header('X-Robots-Tag: noindex, nofollow, noarchive, nosnippet');
+            }
+        }
+    }
+
+    /**
+     * Enforce strict vertical-first, module-aware, and role-based route permissions.
+     * Blocks direct URL navigation with HTTP 403 if the user lacks the required module or permission.
+     */
+    private function enforce_route_permissions(): void
+    {
+        if (is_cli() || !session('user_id')) {
+            return;
+        }
+
+        $controller = strtolower((string) ($this->router->class ?? ''));
+        $action = strtolower((string) ($this->router->method ?? 'index'));
+
+        // Public or exempt controllers (auth handled separately or public pages)
+        $exempt_controllers = [
+            'login', 'logout', 'recovery', 'captcha', 'health', 'booking', 'booking_confirmation',
+            'booking_cancellation', 'landing', 'landing_page', 'review', 'about', 'privacy',
+            'legal', 'places_photo', 'meta', 'zadarma', 'customer_onboarding', 'payment_webhooks',
+            'telegram', 'whatsapp', 'track', 'portal', 'auth_api_v1', 'demo', 'account',
+            'superadmin_auth', 'superadmin_settings', 'superadmin_tenants',
+            'customer_portal', 'consents', 'search'
+        ];
+
+        if (in_array($controller, $exempt_controllers, true)) {
+            return;
+        }
+
+        $user_id = (int) session('user_id');
+        $this->load->library('permission_service');
+
+        // Controller to required [module, action, resource]
+        $controller_rules = [
+            'adisyons' => ['module' => 'adisyon', 'action' => 'view', 'resource' => 'adisyons'],
+            'restaurant' => ['module' => null, 'action' => 'view', 'resource' => 'restaurant_floor_plan'],
+            'expenses' => ['module' => 'expenses', 'action' => 'view', 'resource' => 'expenses'],
+            'finance' => ['module' => 'finance', 'action' => 'view', 'resource' => 'finance'],
+            'invoices' => ['module' => 'invoices', 'action' => 'view', 'resource' => 'invoices'],
+            'pos' => ['module' => 'pos', 'action' => 'view', 'resource' => 'pos'],
+            'packages' => ['module' => 'packages', 'action' => 'view', 'resource' => 'packages'],
+            'memberships' => ['module' => 'memberships', 'action' => 'view', 'resource' => 'memberships'],
+            'checkin' => ['module' => 'checkin', 'action' => 'view', 'resource' => 'checkin'],
+            'marketing' => ['module' => 'marketing', 'action' => 'view', 'resource' => 'marketing'],
+            'reports' => ['module' => 'reports', 'action' => 'view', 'resource' => 'reports'],
+            'ai_agent' => ['module' => 'ai_agent', 'action' => 'view', 'resource' => 'ai_agent'],
+            'ai_assistant' => ['module' => 'ai_assistant', 'action' => 'view', 'resource' => 'ai_assistant'],
+            'randevuburada' => ['module' => 'randevuburada_sync', 'action' => 'view', 'resource' => 'randevuburada'],
+            'branches' => ['module' => null, 'action' => 'view', 'resource' => 'branches'],
+            'stations' => ['module' => 'stations', 'action' => 'view', 'resource' => 'stations'],
+            'products' => ['module' => 'inventory', 'action' => 'view', 'resource' => 'products'],
+            'audit_log' => ['module' => null, 'action' => 'view', 'resource' => 'system_settings'],
+            'data_requests' => ['module' => null, 'action' => 'view', 'resource' => 'system_settings'],
+            'general_settings' => ['module' => null, 'action' => 'view', 'resource' => 'system_settings'],
+            'business_settings' => ['module' => null, 'action' => 'view', 'resource' => 'system_settings'],
+            'booking_settings' => ['module' => null, 'action' => 'view', 'resource' => 'system_settings'],
+            'payment_settings' => ['module' => null, 'action' => 'view', 'resource' => 'system_settings'],
+            'industry_settings' => ['module' => null, 'action' => 'view', 'resource' => 'system_settings'],
+            'admins' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'secretaries' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'providers' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'customers' => ['module' => 'customers', 'action' => 'view', 'resource' => 'customers'],
+            'services' => ['module' => 'services', 'action' => 'view', 'resource' => 'services'],
+            'service_categories' => ['module' => 'services', 'action' => 'view', 'resource' => 'services'],
+            'catalog' => ['module' => 'services', 'action' => 'view', 'resource' => 'services'],
+            'calendar' => ['module' => 'calendar', 'action' => 'view', 'resource' => 'appointments'],
+            'appointments' => ['module' => 'calendar', 'action' => 'view', 'resource' => 'appointments'],
+            'waitlist' => ['module' => 'waitlist', 'action' => 'view', 'resource' => 'waitlist'],
+            'dashboard' => ['module' => null, 'action' => 'view', 'resource' => 'dashboard'],
+            'verticals' => ['module' => null, 'action' => 'view', 'resource' => 'verticals'],
+        ];
+
+        if (isset($controller_rules[$controller])) {
+            $rule = $controller_rules[$controller];
+
+            // 1. Module enablement check
+            if (!empty($rule['module'])) {
+                if (!module_enabled($rule['module'])) {
+                    abort(403, 'Bu modül işletmeniz için aktif değildir.');
+                }
+            }
+
+            // Special case for restaurant: check if restaurant_floor_plan, restaurant_reservations, or adisyon is enabled
+            if ($controller === 'restaurant') {
+                if (!module_enabled('restaurant_floor_plan') && !module_enabled('restaurant_reservations') && !module_enabled('adisyon')) {
+                    abort(403, 'Restoran modülü işletmeniz için aktif değildir.');
+                }
+                if ($action === 'waitress_screen' && !$this->permission_service->can('add', 'adisyons', $user_id) && !$this->permission_service->can('view', 'restaurant_floor_plan', $user_id)) {
+                    abort(403, 'Bu ekrana erişim yetkiniz bulunmamaktadır.');
+                }
+                if ($action === 'kitchen_screen' && !$this->permission_service->can('view', 'verticals_kds', $user_id) && !$this->permission_service->can('view', 'restaurant_floor_plan', $user_id)) {
+                    abort(403, 'Mutfak ekranına erişim yetkiniz bulunmamaktadır.');
+                }
+                return;
+            }
+
+            // Special case for verticals controller: check per-action module & permission
+            if ($controller === 'verticals') {
+                $vertical_action_map = [
+                    'gift_cards' => ['module' => 'verticals_gift_cards', 'resource' => 'verticals_gift_cards'],
+                    'kds' => ['module' => 'verticals_kds', 'resource' => 'verticals_kds'],
+                    'sports' => ['module' => 'verticals_sports', 'resource' => 'verticals_sports'],
+                    'clinic' => ['module' => 'verticals_clinic', 'resource' => 'verticals_clinic'],
+                    'automotive' => ['module' => 'verticals_automotive', 'resource' => 'verticals_automotive'],
+                    'experience' => ['module' => 'verticals_experience', 'resource' => 'verticals_experience'],
+                ];
+                if (isset($vertical_action_map[$action])) {
+                    $vrule = $vertical_action_map[$action];
+                    if (!module_enabled($vrule['module'])) {
+                        abort(403, 'Bu sektörel modül işletmeniz için aktif değildir.');
+                    }
+                    if (!$this->permission_service->can('view', $vrule['resource'], $user_id) && !$this->permission_service->can('view', 'verticals', $user_id)) {
+                        abort(403, 'Bu modüle erişim yetkiniz bulunmamaktadır.');
+                    }
+                }
+                return;
+            }
+
+            // 2. Permission check
+            if (!empty($rule['action']) && !empty($rule['resource'])) {
+                if (!$this->permission_service->can($rule['action'], $rule['resource'], $user_id)) {
+                    if ($controller === 'dashboard' && $this->permission_service->can('view', PRIV_APPOINTMENTS, $user_id)) {
+                        return;
+                    }
+                    abort(403, 'Bu sayfaya erişim yetkiniz bulunmamaktadır.');
+                }
             }
         }
     }

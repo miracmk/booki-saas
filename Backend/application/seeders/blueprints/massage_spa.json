@@ -1,285 +1,927 @@
 {
-  "industry": {
-    "code": "massage_spa",
-    "name": "Masaj Salonu / SPA & Wellness",
-    "icon": "🧖",
-    "service_type": "hybrid",
-    "description": "Geleneksel masajlar, SPA ritüelleri, Türk hamamı, sauna ve medikal masaj odaları için kapsamlı oda ve terapist yönetim sistemi."
-  },
-  "terminology": {
-    "customer_label": "Misafir",
-    "provider_label": "Masaj Terapisti",
-    "appointment_label": "Seans / Rezervasyon",
-    "station_label": "Masaj Odası / Hamam",
-    "service_label": "Masaj / Ritüel"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "packages",
-    "memberships",
-    "adisyon",
-    "finance",
-    "expenses",
-    "checkin",
-    "inventory",
-    "reviews",
-    "marketing",
-    "loyalty",
-    "staff_commissions"
-  ],
-  "default_settings": {
-    "business_type": "wellness",
-    "slot_interval": 30,
-    "future_booking_limit": 60,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 10,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Geleneksel & Uzakdoğu Masajları",
-      "description": "Bali, Thai, Klasik İsveç ve Aromaterapi seansları"
+    "industry": {
+        "code": "massage_spa",
+        "name": "Masaj Salonu \/ SPA & Wellness",
+        "icon": "🧖",
+        "service_type": "hybrid",
+        "description": "Geleneksel masajlar, SPA ritüelleri, Türk hamamı, sauna ve medikal masaj odaları için kapsamlı oda ve terapist yönetim sistemi."
     },
-    {
-      "name": "Medikal & Terapi Masajları",
-      "description": "Derin doku, medikal sırt, kupa ve refleksoloji"
+    "terminology": {
+        "customer": "Misafir",
+        "provider": "Terapist",
+        "appointment": "Masaj Seansı",
+        "service": "Masaj & Terapi",
+        "station": "Masaj Odası \/ Hamam",
+        "product": "Aromaterapi & Bakım Yağı",
+        "order": "Adisyon & Sipariş",
+        "reservation": "Spa Rezervasyonu",
+        "membership": "Spa & Hamam Üyeliği",
+        "package": "Terapi Paketi",
+        "catalog": "Spa & Masaj Menüsü",
+        "branch": "Spa Merkezi \/ Şube",
+        "customer_label": "Misafir",
+        "provider_label": "Masaj Terapisti",
+        "appointment_label": "Seans \/ Rezervasyon",
+        "station_label": "Masaj Odası \/ Hamam",
+        "service_label": "Masaj \/ Ritüel"
     },
-    {
-      "name": "SPA & Hamam Ritüelleri",
-      "description": "Kese köpük, hamam ritüelleri ve çift masajları"
-    }
-  ],
-  "services": [
-    {
-      "name": "Klasik İsveç Masajı (50 Dk)",
-      "category": "Geleneksel & Uzakdoğu Masajları",
-      "duration": 50,
-      "price": 950.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#10b981",
-      "description": "Tüm vücuda uygulanan, kas gerginliğini gideren rahatlatıcı klasik masaj."
-    },
-    {
-      "name": "Aromaterapi Masajı (60 Dk)",
-      "category": "Geleneksel & Uzakdoğu Masajları",
-      "duration": 60,
-      "price": 1200.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#059669",
-      "description": "Doğal esansiyel bitki yağları ile zihinsel ve bedensel dinlenme masajı."
-    },
-    {
-      "name": "Geleneksel Bali Masajı (60 Dk)",
-      "category": "Geleneksel & Uzakdoğu Masajları",
-      "duration": 60,
-      "price": 1300.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#047857",
-      "description": "Akupresur noktalarına yapılan baskı ve esnetmelerle enerji akışını düzenleyen masaj."
-    },
-    {
-      "name": "Derin Doku (Deep Tissue) Masajı (60 Dk)",
-      "category": "Medikal & Terapi Masajları",
-      "duration": 60,
-      "price": 1400.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#3b82f6",
-      "description": "Kronik ağrılar, kulunçlar ve kas sertlikleri için yoğun baskılı derin terapi."
-    },
-    {
-      "name": "Medikal Sırt & Boyun Masajı (40 Dk)",
-      "category": "Medikal & Terapi Masajları",
-      "duration": 40,
-      "price": 850.00,
-      "slot_interval": 20,
-      "attendants_number": 1,
-      "color": "#2563eb",
-      "description": "Masa başı çalışanlar için omurga, sırt ve boyun odaklı medikal seans."
-    },
-    {
-      "name": "Ayak Refleksoloji Masajı (45 Dk)",
-      "category": "Medikal & Terapi Masajları",
-      "duration": 45,
-      "price": 750.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#1d4ed8",
-      "description": "Ayak tabanındaki sinir uçlarına baskı ile tüm organları uyaran şifa seansı."
-    },
-    {
-      "name": "Sıcak Taş (Hot Stone) Masajı (75 Dk)",
-      "category": "Geleneksel & Uzakdoğu Masajları",
-      "duration": 75,
-      "price": 1600.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#d97706",
-      "description": "Isıtılmış volkanik bazalt taşlarıyla uygulanan derin termal rahatlama."
-    },
-    {
-      "name": "Geleneksel Hamam Kese & Köpük (45 Dk)",
-      "category": "SPA & Hamam Ritüelleri",
-      "duration": 45,
-      "price": 900.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#06b6d4",
-      "description": "Göbek taşında ipek kese ile ölü deri arındırma ve organik köpük masajı."
-    },
-    {
-      "name": "Sultan Hamam & Masaj Ritüeli (90 Dk)",
-      "category": "SPA & Hamam Ritüelleri",
-      "duration": 90,
-      "price": 2200.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#0891b2",
-      "description": "Hamam kese köpük + 45 dk aromaterapi masajı + kil vücut maskesi."
-    },
-    {
-      "name": "Çift Masajı (Duo Romance) (60 Dk)",
-      "category": "SPA & Hamam Ritüelleri",
-      "duration": 60,
-      "price": 2400.00,
-      "slot_interval": 30,
-      "attendants_number": 2,
-      "color": "#ec4899",
-      "description": "VIP Çift Odasında aynı anda 2 terapist eşliğinde aromaterapi masajı."
-    }
-  ],
-  "stations": [
-    {
-      "name": "Masaj Odası 1 (Lotus)",
-      "notes": "Isıtmalı masaj yatağı, aromatik difüzör, ses sistemi"
-    },
-    {
-      "name": "Masaj Odası 2 (Bambu)",
-      "notes": "Medikal derin doku ve sıcak taş ısıtıcı ünitesi"
-    },
-    {
-      "name": "Masaj Odası 3 (Zen)",
-      "notes": "Uzakdoğu ve Bali masajları için özel konsept"
-    },
-    {
-      "name": "VIP Çift Odası (Duo Suite)",
-      "notes": "Çift kişilik masaj yatağı, özel jakuzi ve duş alanı"
-    },
-    {
-      "name": "Geleneksel Türk Hamamı",
-      "notes": "Mermer göbek taşı, 2 kurna, kurna başı kese alanı"
-    }
-  ],
-  "consumables": [
-    { "name": "Tek Kullanımlık Sedye Havlusu & Çarşafı", "sku": "SARF-SPA-01", "cost_price": 5.00, "sale_price": 0.00, "stock_quantity": 250, "low_stock_threshold": 30, "unit": "adet" },
-    { "name": "Organik Lavanta & Okaliptüs Masaj Yağı", "sku": "SARF-SPA-02", "cost_price": 0.70, "sale_price": 0.00, "stock_quantity": 4000, "low_stock_threshold": 400, "unit": "ml" },
-    { "name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "sku": "SARF-SPA-03", "cost_price": 6.00, "sale_price": 0.00, "stock_quantity": 200, "low_stock_threshold": 25, "unit": "set" },
-    { "name": "Doğal İpek Hamam Kesesi (Tek Kullanımlık)", "sku": "SARF-SPA-04", "cost_price": 12.00, "sale_price": 0.00, "stock_quantity": 150, "low_stock_threshold": 20, "unit": "adet" },
-    { "name": "Organik Zeytinyağlı Hamam Köpük Sabunu", "sku": "SARF-SPA-05", "cost_price": 0.15, "sale_price": 0.00, "stock_quantity": 2000, "low_stock_threshold": 200, "unit": "gr" }
-  ],
-  "service_consumable_recipes": [
-    { "service_name": "Aromaterapi Masajı (60 Dk)", "product_name": "Tek Kullanımlık Sedye Havlusu & Çarşafı", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye çarşafı" },
-    { "service_name": "Aromaterapi Masajı (60 Dk)", "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "quantity_used": 1.0, "unit": "set", "notes": "Hijyen seti" },
-    { "service_name": "Aromaterapi Masajı (60 Dk)", "product_name": "Organik Lavanta & Okaliptüs Masaj Yağı", "quantity_used": 50.0, "unit": "ml", "notes": "50ml aromaterapi yağı" },
-
-    { "service_name": "Klasik İsveç Masajı (50 Dk)", "product_name": "Tek Kullanımlık Sedye Havlusu & Çarşafı", "quantity_used": 1.0, "unit": "adet", "notes": "Sedye çarşafı" },
-    { "service_name": "Klasik İsveç Masajı (50 Dk)", "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "quantity_used": 1.0, "unit": "set", "notes": "Hijyen seti" },
-    { "service_name": "Klasik İsveç Masajı (50 Dk)", "product_name": "Organik Lavanta & Okaliptüs Masaj Yağı", "quantity_used": 40.0, "unit": "ml", "notes": "40ml masaj yağı" },
-
-    { "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)", "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti", "quantity_used": 1.0, "unit": "set", "notes": "Hamam terlik seti" },
-    { "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)", "product_name": "Doğal İpek Hamam Kesesi (Tek Kullanımlık)", "quantity_used": 1.0, "unit": "adet", "notes": "Kişiye özel kese" },
-    { "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)", "product_name": "Organik Zeytinyağlı Hamam Köpük Sabunu", "quantity_used": 100.0, "unit": "gr", "notes": "100gr köpük sabunu" }
-  ],
-  "demo": {
-    "admin": {
-      "first_name": "Deniz",
-      "last_name": "Kıvanç",
-      "email": "demo-massage_spa-admin@kibusiness.co",
-      "phone_number": "05432137000",
-      "notes": "SPA & Wellness Müdürü"
-    },
-    "providers": [
-      {
-        "first_name": "Aslı",
-        "last_name": "Tekin",
-        "email": "demo-massage_spa-uzman1@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Senior Masaj Terapisti (Bali & İsveç)",
-        "commission_type": "percentage",
-        "commission_value": 30.0,
-        "services": ["Klasik İsveç Masajı (50 Dk)", "Aromaterapi Masajı (60 Dk)", "Geleneksel Bali Masajı (60 Dk)", "Çift Masajı (Duo Romance) (60 Dk)"],
-        "stations": ["Masaj Odası 1 (Lotus)", "Masaj Odası 3 (Zen)", "VIP Çift Odası (Duo Suite)"]
-      },
-      {
-        "first_name": "Cem",
-        "last_name": "Karaca",
-        "email": "demo-massage_spa-uzman2@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Medikal Masaj & Derin Doku Terapisti",
-        "commission_type": "percentage",
-        "commission_value": 30.0,
-        "services": ["Derin Doku (Deep Tissue) Masajı (60 Dk)", "Medikal Sırt & Boyun Masajı (40 Dk)", "Ayak Refleksoloji Masajı (45 Dk)", "Sıcak Taş (Hot Stone) Masajı (75 Dk)"],
-        "stations": ["Masaj Odası 2 (Bambu)"]
-      },
-      {
-        "first_name": "Kadek",
-        "last_name": "Sari",
-        "email": "demo-massage_spa-uzman3@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Bali Masaj & SPA Terapisti",
-        "commission_type": "percentage",
-        "commission_value": 35.0,
-        "services": ["Geleneksel Bali Masajı (60 Dk)", "Aromaterapi Masajı (60 Dk)", "Sıcak Taş (Hot Stone) Masajı (75 Dk)", "Çift Masajı (Duo Romance) (60 Dk)"],
-        "stations": ["Masaj Odası 3 (Zen)", "VIP Çift Odası (Duo Suite)"]
-      },
-      {
-        "first_name": "Fatma",
-        "last_name": "Güler",
-        "email": "demo-massage_spa-uzman4@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Tellak & Hamam Ritüel Uzmanı",
-        "commission_type": "percentage",
-        "commission_value": 30.0,
-        "services": ["Geleneksel Hamam Kese & Köpük (45 Dk)", "Sultan Hamam & Masaj Ritüeli (90 Dk)"],
-        "stations": ["Geleneksel Türk Hamamı"]
-      }
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "memberships",
+        "adisyon",
+        "finance",
+        "expenses",
+        "checkin",
+        "inventory",
+        "reviews",
+        "marketing",
+        "loyalty",
+        "staff_commissions"
     ],
-    "customers": [
-      { "first_name": "Serkan", "last_name": "Güneş", "email": "demo-massage_spa-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Haftalık derin doku seansı alıyor" },
-      { "first_name": "Elif", "last_name": "Bulut", "email": "demo-massage_spa-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Aromaterapi ve hamam paketi" },
-      { "first_name": "Oğuz", "last_name": "Han", "email": "demo-massage_spa-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Sırt ağrısı şikayeti var" },
-      { "first_name": "Nil", "last_name": "Yalçın", "email": "demo-massage_spa-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Eşiyle çift masajı randevusu" },
-      { "first_name": "Canan", "last_name": "Özdemir", "email": "demo-massage_spa-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Bali masajı müdavimi" },
-      { "first_name": "Barış", "last_name": "Aksoy", "email": "demo-massage_spa-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Sıcak taş masajı tercihi" },
-      { "first_name": "Gamze", "last_name": "Duman", "email": "demo-massage_spa-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Kese köpük müdavimi" },
-      { "first_name": "Tolga", "last_name": "Çevik", "email": "demo-massage_spa-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Refleksoloji seansı alıyor" },
-      { "first_name": "Sevgi", "last_name": "Ateş", "email": "demo-massage_spa-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Sultan hamam ritüeli" },
-      { "first_name": "Ufuk", "last_name": "Kaplan", "email": "demo-massage_spa-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "VIP paket üyesi" }
+    "default_settings": {
+        "business_type": "wellness",
+        "slot_interval": 30,
+        "future_booking_limit": 60,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 10,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Geleneksel & Uzakdoğu Masajları",
+            "description": "Bali, Thai, Klasik İsveç ve Aromaterapi seansları"
+        },
+        {
+            "name": "Medikal & Terapi Masajları",
+            "description": "Derin doku, medikal sırt, kupa ve refleksoloji"
+        },
+        {
+            "name": "SPA & Hamam Ritüelleri",
+            "description": "Kese köpük, hamam ritüelleri ve çift masajları"
+        }
     ],
-    "appointments": [
-      { "day_offset": -3, "time": "11:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Klasik İsveç Masajı (50 Dk)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -3, "time": "14:30", "provider_idx": 1, "customer_idx": 2, "service_name": "Derin Doku (Deep Tissue) Masajı (60 Dk)", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -2, "time": "12:00", "provider_idx": 3, "customer_idx": 6, "service_name": "Geleneksel Hamam Kese & Köpük (45 Dk)", "station_idx": 4, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -2, "time": "15:00", "provider_idx": 2, "customer_idx": 4, "service_name": "Geleneksel Bali Masajı (60 Dk)", "station_idx": 2, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -1, "time": "10:30", "provider_idx": 1, "customer_idx": 7, "service_name": "Ayak Refleksoloji Masajı (45 Dk)", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
-      { "day_offset": -1, "time": "14:00", "provider_idx": 0, "customer_idx": 1, "service_name": "Aromaterapi Masajı (60 Dk)", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "11:00", "provider_idx": 0, "customer_idx": 3, "service_name": "Aromaterapi Masajı (60 Dk)", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "13:30", "provider_idx": 1, "customer_idx": 0, "service_name": "Derin Doku (Deep Tissue) Masajı (60 Dk)", "station_idx": 1, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "15:00", "provider_idx": 3, "customer_idx": 8, "service_name": "Sultan Hamam & Masaj Ritüeli (90 Dk)", "station_idx": 4, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "17:00", "provider_idx": 2, "customer_idx": 5, "service_name": "Sıcak Taş (Hot Stone) Masajı (75 Dk)", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 1, "time": "11:30", "provider_idx": 1, "customer_idx": 2, "service_name": "Medikal Sırt & Boyun Masajı (40 Dk)", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 1, "time": "14:00", "provider_idx": 0, "customer_idx": 9, "service_name": "Klasik İsveç Masajı (50 Dk)", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 1, "time": "16:00", "provider_idx": 3, "customer_idx": 6, "service_name": "Geleneksel Hamam Kese & Köpük (45 Dk)", "station_idx": 4, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 2, "time": "12:00", "provider_idx": 2, "customer_idx": 4, "service_name": "Geleneksel Bali Masajı (60 Dk)", "station_idx": 2, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 2, "time": "15:00", "provider_idx": 1, "customer_idx": 0, "service_name": "Derin Doku (Deep Tissue) Masajı (60 Dk)", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "iban" },
-      { "day_offset": 3, "time": "14:00", "provider_idx": 0, "customer_idx": 1, "service_name": "Aromaterapi Masajı (60 Dk)", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
-    ]
-  }
+    "services": [
+        {
+            "name": "Klasik İsveç Masajı (50 Dk)",
+            "category": "Geleneksel & Uzakdoğu Masajları",
+            "duration": 50,
+            "price": 950,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#10b981",
+            "description": "Tüm vücuda uygulanan, kas gerginliğini gideren rahatlatıcı klasik masaj."
+        },
+        {
+            "name": "Aromaterapi Masajı (60 Dk)",
+            "category": "Geleneksel & Uzakdoğu Masajları",
+            "duration": 60,
+            "price": 1200,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#059669",
+            "description": "Doğal esansiyel bitki yağları ile zihinsel ve bedensel dinlenme masajı."
+        },
+        {
+            "name": "Geleneksel Bali Masajı (60 Dk)",
+            "category": "Geleneksel & Uzakdoğu Masajları",
+            "duration": 60,
+            "price": 1300,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#047857",
+            "description": "Akupresur noktalarına yapılan baskı ve esnetmelerle enerji akışını düzenleyen masaj."
+        },
+        {
+            "name": "Derin Doku (Deep Tissue) Masajı (60 Dk)",
+            "category": "Medikal & Terapi Masajları",
+            "duration": 60,
+            "price": 1400,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#3b82f6",
+            "description": "Kronik ağrılar, kulunçlar ve kas sertlikleri için yoğun baskılı derin terapi."
+        },
+        {
+            "name": "Medikal Sırt & Boyun Masajı (40 Dk)",
+            "category": "Medikal & Terapi Masajları",
+            "duration": 40,
+            "price": 850,
+            "slot_interval": 20,
+            "attendants_number": 1,
+            "color": "#2563eb",
+            "description": "Masa başı çalışanlar için omurga, sırt ve boyun odaklı medikal seans."
+        },
+        {
+            "name": "Ayak Refleksoloji Masajı (45 Dk)",
+            "category": "Medikal & Terapi Masajları",
+            "duration": 45,
+            "price": 750,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#1d4ed8",
+            "description": "Ayak tabanındaki sinir uçlarına baskı ile tüm organları uyaran şifa seansı."
+        },
+        {
+            "name": "Sıcak Taş (Hot Stone) Masajı (75 Dk)",
+            "category": "Geleneksel & Uzakdoğu Masajları",
+            "duration": 75,
+            "price": 1600,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#d97706",
+            "description": "Isıtılmış volkanik bazalt taşlarıyla uygulanan derin termal rahatlama."
+        },
+        {
+            "name": "Geleneksel Hamam Kese & Köpük (45 Dk)",
+            "category": "SPA & Hamam Ritüelleri",
+            "duration": 45,
+            "price": 900,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#06b6d4",
+            "description": "Göbek taşında ipek kese ile ölü deri arındırma ve organik köpük masajı."
+        },
+        {
+            "name": "Sultan Hamam & Masaj Ritüeli (90 Dk)",
+            "category": "SPA & Hamam Ritüelleri",
+            "duration": 90,
+            "price": 2200,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#0891b2",
+            "description": "Hamam kese köpük + 45 dk aromaterapi masajı + kil vücut maskesi."
+        },
+        {
+            "name": "Çift Masajı (Duo Romance) (60 Dk)",
+            "category": "SPA & Hamam Ritüelleri",
+            "duration": 60,
+            "price": 2400,
+            "slot_interval": 30,
+            "attendants_number": 2,
+            "color": "#ec4899",
+            "description": "VIP Çift Odasında aynı anda 2 terapist eşliğinde aromaterapi masajı."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Masaj Odası 1 (Lotus)",
+            "notes": "Isıtmalı masaj yatağı, aromatik difüzör, ses sistemi"
+        },
+        {
+            "name": "Masaj Odası 2 (Bambu)",
+            "notes": "Medikal derin doku ve sıcak taş ısıtıcı ünitesi"
+        },
+        {
+            "name": "Masaj Odası 3 (Zen)",
+            "notes": "Uzakdoğu ve Bali masajları için özel konsept"
+        },
+        {
+            "name": "VIP Çift Odası (Duo Suite)",
+            "notes": "Çift kişilik masaj yatağı, özel jakuzi ve duş alanı"
+        },
+        {
+            "name": "Geleneksel Türk Hamamı",
+            "notes": "Mermer göbek taşı, 2 kurna, kurna başı kese alanı"
+        }
+    ],
+    "consumables": [
+        {
+            "name": "Tek Kullanımlık Sedye Havlusu & Çarşafı",
+            "sku": "SARF-SPA-01",
+            "cost_price": 5,
+            "sale_price": 0,
+            "stock_quantity": 250,
+            "low_stock_threshold": 30,
+            "unit": "adet"
+        },
+        {
+            "name": "Organik Lavanta & Okaliptüs Masaj Yağı",
+            "sku": "SARF-SPA-02",
+            "cost_price": 0.7,
+            "sale_price": 0,
+            "stock_quantity": 4000,
+            "low_stock_threshold": 400,
+            "unit": "ml"
+        },
+        {
+            "name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti",
+            "sku": "SARF-SPA-03",
+            "cost_price": 6,
+            "sale_price": 0,
+            "stock_quantity": 200,
+            "low_stock_threshold": 25,
+            "unit": "set"
+        },
+        {
+            "name": "Doğal İpek Hamam Kesesi (Tek Kullanımlık)",
+            "sku": "SARF-SPA-04",
+            "cost_price": 12,
+            "sale_price": 0,
+            "stock_quantity": 150,
+            "low_stock_threshold": 20,
+            "unit": "adet"
+        },
+        {
+            "name": "Organik Zeytinyağlı Hamam Köpük Sabunu",
+            "sku": "SARF-SPA-05",
+            "cost_price": 0.15,
+            "sale_price": 0,
+            "stock_quantity": 2000,
+            "low_stock_threshold": 200,
+            "unit": "gr"
+        }
+    ],
+    "service_consumable_recipes": [
+        {
+            "service_name": "Aromaterapi Masajı (60 Dk)",
+            "product_name": "Tek Kullanımlık Sedye Havlusu & Çarşafı",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Sedye çarşafı"
+        },
+        {
+            "service_name": "Aromaterapi Masajı (60 Dk)",
+            "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti",
+            "quantity_used": 1,
+            "unit": "set",
+            "notes": "Hijyen seti"
+        },
+        {
+            "service_name": "Aromaterapi Masajı (60 Dk)",
+            "product_name": "Organik Lavanta & Okaliptüs Masaj Yağı",
+            "quantity_used": 50,
+            "unit": "ml",
+            "notes": "50ml aromaterapi yağı"
+        },
+        {
+            "service_name": "Klasik İsveç Masajı (50 Dk)",
+            "product_name": "Tek Kullanımlık Sedye Havlusu & Çarşafı",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Sedye çarşafı"
+        },
+        {
+            "service_name": "Klasik İsveç Masajı (50 Dk)",
+            "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti",
+            "quantity_used": 1,
+            "unit": "set",
+            "notes": "Hijyen seti"
+        },
+        {
+            "service_name": "Klasik İsveç Masajı (50 Dk)",
+            "product_name": "Organik Lavanta & Okaliptüs Masaj Yağı",
+            "quantity_used": 40,
+            "unit": "ml",
+            "notes": "40ml masaj yağı"
+        },
+        {
+            "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)",
+            "product_name": "Tek Kullanımlık Terlik & Masaj İç Çamaşırı Seti",
+            "quantity_used": 1,
+            "unit": "set",
+            "notes": "Hamam terlik seti"
+        },
+        {
+            "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)",
+            "product_name": "Doğal İpek Hamam Kesesi (Tek Kullanımlık)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Kişiye özel kese"
+        },
+        {
+            "service_name": "Geleneksel Türk Hamamı Kese & Köpük (45 Dk)",
+            "product_name": "Organik Zeytinyağlı Hamam Köpük Sabunu",
+            "quantity_used": 100,
+            "unit": "gr",
+            "notes": "100gr köpük sabunu"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Deniz",
+            "last_name": "Kıvanç",
+            "email": "demo-massage_spa-admin@kibusiness.co",
+            "phone_number": "05432137000",
+            "notes": "SPA & Wellness Müdürü"
+        },
+        "providers": [
+            {
+                "first_name": "Aslı",
+                "last_name": "Tekin",
+                "email": "demo-massage_spa-uzman1@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Senior Masaj Terapisti (Bali & İsveç)",
+                "commission_type": "percentage",
+                "commission_value": 30,
+                "services": [
+                    "Klasik İsveç Masajı (50 Dk)",
+                    "Aromaterapi Masajı (60 Dk)",
+                    "Geleneksel Bali Masajı (60 Dk)",
+                    "Çift Masajı (Duo Romance) (60 Dk)"
+                ],
+                "stations": [
+                    "Masaj Odası 1 (Lotus)",
+                    "Masaj Odası 3 (Zen)",
+                    "VIP Çift Odası (Duo Suite)"
+                ]
+            },
+            {
+                "first_name": "Cem",
+                "last_name": "Karaca",
+                "email": "demo-massage_spa-uzman2@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Medikal Masaj & Derin Doku Terapisti",
+                "commission_type": "percentage",
+                "commission_value": 30,
+                "services": [
+                    "Derin Doku (Deep Tissue) Masajı (60 Dk)",
+                    "Medikal Sırt & Boyun Masajı (40 Dk)",
+                    "Ayak Refleksoloji Masajı (45 Dk)",
+                    "Sıcak Taş (Hot Stone) Masajı (75 Dk)"
+                ],
+                "stations": [
+                    "Masaj Odası 2 (Bambu)"
+                ]
+            },
+            {
+                "first_name": "Kadek",
+                "last_name": "Sari",
+                "email": "demo-massage_spa-uzman3@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Bali Masaj & SPA Terapisti",
+                "commission_type": "percentage",
+                "commission_value": 35,
+                "services": [
+                    "Geleneksel Bali Masajı (60 Dk)",
+                    "Aromaterapi Masajı (60 Dk)",
+                    "Sıcak Taş (Hot Stone) Masajı (75 Dk)",
+                    "Çift Masajı (Duo Romance) (60 Dk)"
+                ],
+                "stations": [
+                    "Masaj Odası 3 (Zen)",
+                    "VIP Çift Odası (Duo Suite)"
+                ]
+            },
+            {
+                "first_name": "Fatma",
+                "last_name": "Güler",
+                "email": "demo-massage_spa-uzman4@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Tellak & Hamam Ritüel Uzmanı",
+                "commission_type": "percentage",
+                "commission_value": 30,
+                "services": [
+                    "Geleneksel Hamam Kese & Köpük (45 Dk)",
+                    "Sultan Hamam & Masaj Ritüeli (90 Dk)"
+                ],
+                "stations": [
+                    "Geleneksel Türk Hamamı"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Serkan",
+                "last_name": "Güneş",
+                "email": "demo-massage_spa-musteri1@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Haftalık derin doku seansı alıyor"
+            },
+            {
+                "first_name": "Elif",
+                "last_name": "Bulut",
+                "email": "demo-massage_spa-musteri2@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Aromaterapi ve hamam paketi"
+            },
+            {
+                "first_name": "Oğuz",
+                "last_name": "Han",
+                "email": "demo-massage_spa-musteri3@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Sırt ağrısı şikayeti var"
+            },
+            {
+                "first_name": "Nil",
+                "last_name": "Yalçın",
+                "email": "demo-massage_spa-musteri4@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Eşiyle çift masajı randevusu"
+            },
+            {
+                "first_name": "Canan",
+                "last_name": "Özdemir",
+                "email": "demo-massage_spa-musteri5@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Bali masajı müdavimi"
+            },
+            {
+                "first_name": "Barış",
+                "last_name": "Aksoy",
+                "email": "demo-massage_spa-musteri6@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Sıcak taş masajı tercihi"
+            },
+            {
+                "first_name": "Gamze",
+                "last_name": "Duman",
+                "email": "demo-massage_spa-musteri7@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Kese köpük müdavimi"
+            },
+            {
+                "first_name": "Tolga",
+                "last_name": "Çevik",
+                "email": "demo-massage_spa-musteri8@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Refleksoloji seansı alıyor"
+            },
+            {
+                "first_name": "Sevgi",
+                "last_name": "Ateş",
+                "email": "demo-massage_spa-musteri9@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Sultan hamam ritüeli"
+            },
+            {
+                "first_name": "Ufuk",
+                "last_name": "Kaplan",
+                "email": "demo-massage_spa-musteri10@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "VIP paket üyesi"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": -3,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Klasik İsveç Masajı (50 Dk)",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -3,
+                "time": "14:30",
+                "provider_idx": 1,
+                "customer_idx": 2,
+                "service_name": "Derin Doku (Deep Tissue) Masajı (60 Dk)",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -2,
+                "time": "12:00",
+                "provider_idx": 3,
+                "customer_idx": 6,
+                "service_name": "Geleneksel Hamam Kese & Köpük (45 Dk)",
+                "station_idx": 4,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -2,
+                "time": "15:00",
+                "provider_idx": 2,
+                "customer_idx": 4,
+                "service_name": "Geleneksel Bali Masajı (60 Dk)",
+                "station_idx": 2,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "10:30",
+                "provider_idx": 1,
+                "customer_idx": 7,
+                "service_name": "Ayak Refleksoloji Masajı (45 Dk)",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": -1,
+                "time": "14:00",
+                "provider_idx": 0,
+                "customer_idx": 1,
+                "service_name": "Aromaterapi Masajı (60 Dk)",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 3,
+                "service_name": "Aromaterapi Masajı (60 Dk)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "13:30",
+                "provider_idx": 1,
+                "customer_idx": 0,
+                "service_name": "Derin Doku (Deep Tissue) Masajı (60 Dk)",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "15:00",
+                "provider_idx": 3,
+                "customer_idx": 8,
+                "service_name": "Sultan Hamam & Masaj Ritüeli (90 Dk)",
+                "station_idx": 4,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "17:00",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "Sıcak Taş (Hot Stone) Masajı (75 Dk)",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "11:30",
+                "provider_idx": 1,
+                "customer_idx": 2,
+                "service_name": "Medikal Sırt & Boyun Masajı (40 Dk)",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "14:00",
+                "provider_idx": 0,
+                "customer_idx": 9,
+                "service_name": "Klasik İsveç Masajı (50 Dk)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "16:00",
+                "provider_idx": 3,
+                "customer_idx": 6,
+                "service_name": "Geleneksel Hamam Kese & Köpük (45 Dk)",
+                "station_idx": 4,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 2,
+                "time": "12:00",
+                "provider_idx": 2,
+                "customer_idx": 4,
+                "service_name": "Geleneksel Bali Masajı (60 Dk)",
+                "station_idx": 2,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 2,
+                "time": "15:00",
+                "provider_idx": 1,
+                "customer_idx": 0,
+                "service_name": "Derin Doku (Deep Tissue) Masajı (60 Dk)",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": 3,
+                "time": "14:00",
+                "provider_idx": 0,
+                "customer_idx": 1,
+                "service_name": "Aromaterapi Masajı (60 Dk)",
+                "station_idx": 0,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            }
+        ]
+    },
+    "family": "beauty_wellness",
+    "business_type": "massage_spa",
+    "ai_policy": {
+        "brand_name": "Masaj Salonu \/ SPA & Wellness",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Masaj Salonu \/ SPA & Wellness asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Misafir",
+            "Terapist",
+            "Masaj Seansı",
+            "Masaj & Terapi",
+            "Masaj Odası \/ Hamam",
+            "Aromaterapi & Bakım Yağı",
+            "Adisyon & Sipariş",
+            "Spa Rezervasyonu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Misafir' ve 'Masaj & Terapi' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Masaj Seansılar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Masaj Odası \/ Hamam Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Misafirlar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Masaj Seansı",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Misafir",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Masaj Seansılar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Masaj Odası \/ Hamam Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Misafir Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "Spa Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Merkez ve finans yönetimi"
+        },
+        {
+            "slug": "manager",
+            "name": "Spa Müdürü",
+            "icon": "user-tie",
+            "description": "Terapist ve oda koordinasyonu"
+        },
+        {
+            "slug": "therapist",
+            "name": "Masaj Terapisti",
+            "icon": "hands",
+            "description": "Masaj ve terapi uygulamaları"
+        },
+        {
+            "slug": "hamam_staff",
+            "name": "Hamam Görevlisi",
+            "icon": "water",
+            "description": "Kese & köpük bakımları"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Misafir karşılama ve rezervasyon"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa",
+            "icon": "cash-register",
+            "description": "Adisyon ve ödeme alma"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "Spa",
+            "last_name": "Demo",
+            "email": "demo-massage_spa-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "Spa Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Spa",
+            "last_name": "Demo",
+            "email": "demo-massage_spa-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Spa Müdürü"
+        },
+        "therapist": {
+            "first_name": "Masaj",
+            "last_name": "Demo",
+            "email": "demo-massage_spa-therapist@kibusiness.co",
+            "role_slug": "therapist",
+            "job_title": "Masaj Terapisti"
+        },
+        "hamam_staff": {
+            "first_name": "Hamam",
+            "last_name": "Demo",
+            "email": "demo-massage_spa-hamam_staff@kibusiness.co",
+            "role_slug": "hamam_staff",
+            "job_title": "Hamam Görevlisi"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-massage_spa-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-massage_spa-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa"
+        }
+    }
 }
-

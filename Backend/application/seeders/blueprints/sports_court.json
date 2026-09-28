@@ -1,102 +1,394 @@
 {
-  "industry": {
-    "code": "sports_court",
-    "name": "Kort & Halı Saha / Padel / Tenis",
-    "icon": "🎾",
-    "service_type": "station",
-    "description": "Padel, tenis kortları, halı saha, basketbol sahaları için slot rezervasyonu, açık maç oyuncu eşleştirme (matchmaking) ve turnike geçiş paketi."
-  },
-  "terminology": {
-    "customer_label": "Oyuncu",
-    "provider_label": "Kort / Tesis Sorumlusu",
-    "appointment_label": "Kort Rezervasyonu / Maç",
-    "station_label": "Kort / Saha",
-    "service_label": "Saha & Kort Kiralama"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "packages",
-    "memberships",
-    "adisyon",
-    "finance",
-    "expenses",
-    "checkin",
-    "sports_matches",
-    "reviews",
-    "marketing",
-    "loyalty"
-  ],
-  "default_settings": {
+    "industry": {
+        "code": "sports_court",
+        "name": "Kort & Halı Saha \/ Padel \/ Tenis",
+        "icon": "🎾",
+        "service_type": "station",
+        "description": "Padel, tenis kortları, halı saha, basketbol sahaları için slot rezervasyonu, açık maç oyuncu eşleştirme (matchmaking) ve turnike geçiş paketi."
+    },
+    "terminology": {
+        "customer": "Sporcu \/ Takım",
+        "provider": "Saha Hakemi \/ Görevli",
+        "appointment": "Saha \/ Maç Saati",
+        "service": "Kort \/ Saha Kiralama",
+        "station": "Kort \/ Halı Saha",
+        "product": "Top \/ Raket \/ İçecek",
+        "order": "Kira & Satış Adisyonu",
+        "reservation": "Saha Rezervasyonu",
+        "membership": "Kort Aboneliği",
+        "package": "Aylık Maç Paketi",
+        "catalog": "Kort & Hizmet Kataloğu",
+        "branch": "Tesis \/ Kort Alanı",
+        "customer_label": "Oyuncu",
+        "provider_label": "Kort \/ Tesis Sorumlusu",
+        "appointment_label": "Kort Rezervasyonu \/ Maç",
+        "station_label": "Kort \/ Saha",
+        "service_label": "Saha & Kort Kiralama"
+    },
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "memberships",
+        "adisyon",
+        "finance",
+        "expenses",
+        "checkin",
+        "sports_matches",
+        "reviews",
+        "marketing",
+        "loyalty"
+    ],
+    "default_settings": {
+        "business_type": "sports_court",
+        "slot_interval": 60,
+        "future_booking_limit": 14,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 10,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Padel Kort Kiralama",
+            "description": "Panoramik cam ve profesyonel çim padel kortları"
+        },
+        {
+            "name": "Tenis Kortu",
+            "description": "Toprak ve sert zemin tenis kortları"
+        },
+        {
+            "name": "Halı Saha",
+            "description": "7x7 ve 8x8 sentetik çim halı saha maç slotları"
+        }
+    ],
+    "services": [
+        {
+            "name": "Padel Kort Kiralama (60 Dk)",
+            "category": "Padel Kort Kiralama",
+            "duration": 60,
+            "price": 1200,
+            "attendants_number": 4,
+            "description": "4 kişilik standart padel maçı süresi"
+        },
+        {
+            "name": "Tenis Kortu Gündüz Slotu (60 Dk)",
+            "category": "Tenis Kortu",
+            "duration": 60,
+            "price": 800,
+            "attendants_number": 2,
+            "description": "Gündüz saatleri tenis kortu rezervasyonu"
+        },
+        {
+            "name": "Halı Saha 1 Saatlik Maç Slotu",
+            "category": "Halı Saha",
+            "duration": 60,
+            "price": 2000,
+            "attendants_number": 14,
+            "description": "14 kişilik 1 saatlik halı saha maçı"
+        }
+    ],
+    "stations": [
+        {
+            "name": "Padel Kort 1 (Panoramik)",
+            "capacity": 4,
+            "description": "Ana merkez padel kortu, ışıklandırmalı"
+        },
+        {
+            "name": "Padel Kort 2 (Club)",
+            "capacity": 4,
+            "description": "Kulüp içi padel kortu"
+        },
+        {
+            "name": "Tenis Kortu (Toprak)",
+            "capacity": 4,
+            "description": "Uluslararası standartlarda toprak tenis kortu"
+        },
+        {
+            "name": "Halı Saha (1 Nolu Açık Saha)",
+            "capacity": 14,
+            "description": "Yapay çim, profesyonel led aydınlatmalı saha"
+        }
+    ],
+    "family": "sports_fitness",
     "business_type": "sports_court",
-    "slot_interval": 60,
-    "future_booking_limit": 14,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 10,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Padel Kort Kiralama",
-      "description": "Panoramik cam ve profesyonel çim padel kortları"
+    "ai_policy": {
+        "brand_name": "Kort & Halı Saha \/ Padel \/ Tenis",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Kort & Halı Saha \/ Padel \/ Tenis asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Sporcu \/ Takım",
+            "Saha Hakemi \/ Görevli",
+            "Saha \/ Maç Saati",
+            "Kort \/ Saha Kiralama",
+            "Kort \/ Halı Saha",
+            "Top \/ Raket \/ İçecek",
+            "Kira & Satış Adisyonu",
+            "Saha Rezervasyonu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Sporcu \/ Takım' ve 'Kort \/ Saha Kiralama' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
     },
-    {
-      "name": "Tenis Kortu",
-      "description": "Toprak ve sert zemin tenis kortları"
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Saha \/ Maç Saatilar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Kort \/ Halı Saha Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Sporcu \/ Takımlar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Saha \/ Maç Saati",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Sporcu \/ Takım",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Saha \/ Maç Saatilar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Kort \/ Halı Saha Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Sporcu \/ Takım Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
     },
-    {
-      "name": "Halı Saha",
-      "description": "7x7 ve 8x8 sentetik çim halı saha maç slotları"
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "Kulüp Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tesis ve finans tam yetkilisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Tesis Müdürü",
+            "icon": "user-tie",
+            "description": "Salon ve ekip operasyonu"
+        },
+        {
+            "slug": "trainer",
+            "name": "Personal Trainer (PT)",
+            "icon": "dumbbell",
+            "description": "Birebir antrenman ve danışan takibi"
+        },
+        {
+            "slug": "group_instructor",
+            "name": "Grup Dersi Eğitmeni",
+            "icon": "users",
+            "description": "Stüdyo ve grup seansları"
+        },
+        {
+            "slug": "reception",
+            "name": "Danışma \/ Turnike",
+            "icon": "id-card",
+            "description": "Üye girişi ve check-in"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasiyer",
+            "icon": "cash-register",
+            "description": "Paket ve üyelik satışı"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "Kulüp",
+            "last_name": "Demo",
+            "email": "demo-sports_court-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "Kulüp Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Tesis",
+            "last_name": "Demo",
+            "email": "demo-sports_court-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Tesis Müdürü"
+        },
+        "trainer": {
+            "first_name": "Personal",
+            "last_name": "Demo",
+            "email": "demo-sports_court-trainer@kibusiness.co",
+            "role_slug": "trainer",
+            "job_title": "Personal Trainer (PT)"
+        },
+        "group_instructor": {
+            "first_name": "Grup",
+            "last_name": "Demo",
+            "email": "demo-sports_court-group_instructor@kibusiness.co",
+            "role_slug": "group_instructor",
+            "job_title": "Grup Dersi Eğitmeni"
+        },
+        "reception": {
+            "first_name": "Danışma",
+            "last_name": "Demo",
+            "email": "demo-sports_court-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Danışma \/ Turnike"
+        },
+        "cashier": {
+            "first_name": "Kasiyer",
+            "last_name": "Demo",
+            "email": "demo-sports_court-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasiyer"
+        }
     }
-  ],
-  "services": [
-    {
-      "name": "Padel Kort Kiralama (60 Dk)",
-      "category": "Padel Kort Kiralama",
-      "duration": 60,
-      "price": 1200.00,
-      "attendants_number": 4,
-      "description": "4 kişilik standart padel maçı süresi"
-    },
-    {
-      "name": "Tenis Kortu Gündüz Slotu (60 Dk)",
-      "category": "Tenis Kortu",
-      "duration": 60,
-      "price": 800.00,
-      "attendants_number": 2,
-      "description": "Gündüz saatleri tenis kortu rezervasyonu"
-    },
-    {
-      "name": "Halı Saha 1 Saatlik Maç Slotu",
-      "category": "Halı Saha",
-      "duration": 60,
-      "price": 2000.00,
-      "attendants_number": 14,
-      "description": "14 kişilik 1 saatlik halı saha maçı"
-    }
-  ],
-  "stations": [
-    {
-      "name": "Padel Kort 1 (Panoramik)",
-      "capacity": 4,
-      "description": "Ana merkez padel kortu, ışıklandırmalı"
-    },
-    {
-      "name": "Padel Kort 2 (Club)",
-      "capacity": 4,
-      "description": "Kulüp içi padel kortu"
-    },
-    {
-      "name": "Tenis Kortu (Toprak)",
-      "capacity": 4,
-      "description": "Uluslararası standartlarda toprak tenis kortu"
-    },
-    {
-      "name": "Halı Saha (1 Nolu Açık Saha)",
-      "capacity": 14,
-      "description": "Yapay çim, profesyonel led aydınlatmalı saha"
-    }
-  ]
 }

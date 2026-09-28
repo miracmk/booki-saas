@@ -215,7 +215,15 @@ class Roles_model extends App_Model
 
         $this->cast($role);
 
-        unset($role['id'], $role['name'], $role['slug'], $role['is_admin']);
+        unset(
+            $role['id'],
+            $role['name'],
+            $role['slug'],
+            $role['is_admin'],
+            $role['permissions_json'],
+            $role['vertical_family'],
+            $role['business_type']
+        );
 
         // Convert the integer values to boolean.
 
@@ -228,6 +236,10 @@ class Roles_model extends App_Model
                 'edit' => false,
                 'delete' => false,
             ];
+
+            if (!is_numeric($value)) {
+                continue;
+            }
 
             if ($value > 0) {
                 if ((int) ($value / PRIV_DELETE) === 1) {

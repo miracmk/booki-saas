@@ -1,219 +1,761 @@
 {
-  "industry": {
-    "code": "car_wash",
-    "name": "Araç Yıkama & Detailing / Auto Spa",
-    "icon": "🚗",
-    "service_type": "hybrid",
-    "description": "Oto yıkama, iç detaylı temizlik, seramik kaplama, pasta cila ve PPF boya koruma için peron ve istasyon yönetim sistemi."
-  },
-  "terminology": {
-    "customer_label": "Araç Sahibi / Müşteri",
-    "provider_label": "Detailing & Yıkama Uzmanı",
-    "appointment_label": "Servis Randevusu",
-    "station_label": "Yıkama Peronu / Detailing Alanı",
-    "service_label": "Uygulama / Paket"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "packages",
-    "adisyon",
-    "finance",
-    "expenses",
-    "checkin",
-    "inventory",
-    "reviews",
-    "marketing",
-    "loyalty",
-    "staff_commissions"
-  ],
-  "default_settings": {
-    "business_type": "general",
-    "slot_interval": 30,
-    "future_booking_limit": 14,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 15,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Standart & Hızlı Yıkama",
-      "description": "Fırçasız köpüklü dış yıkama, hızlı iç temizlik ve jant bakımı"
+    "industry": {
+        "code": "car_wash",
+        "name": "Araç Yıkama & Detailing \/ Auto Spa",
+        "icon": "🚗",
+        "service_type": "hybrid",
+        "description": "Oto yıkama, iç detaylı temizlik, seramik kaplama, pasta cila ve PPF boya koruma için peron ve istasyon yönetim sistemi."
     },
-    {
-      "name": "Detaylı İç & Dış Temizlik",
-      "description": "Koltuk yıkama, tavan/taban dezenfeksiyonu, buharlı klima temizliği"
+    "terminology": {
+        "customer": "Araç Sahibi",
+        "provider": "Yıkama \/ Detailing Ustası",
+        "appointment": "Araç Kabul Randevusu",
+        "service": "Yıkama \/ Temizlik Hizmeti",
+        "station": "Yıkama Peronu \/ İstasyon",
+        "product": "Oto Kokusu \/ Bakım Ürünü",
+        "order": "İş Emri \/ Adisyon",
+        "reservation": "Araç Randevusu",
+        "membership": "Aylık Yıkama Aboneliği",
+        "package": "Çoklu Yıkama Paketi",
+        "catalog": "Oto Bakım Kataloğu",
+        "branch": "İstasyon \/ Şube",
+        "customer_label": "Araç Sahibi \/ Müşteri",
+        "provider_label": "Detailing & Yıkama Uzmanı",
+        "appointment_label": "Servis Randevusu",
+        "station_label": "Yıkama Peronu \/ Detailing Alanı",
+        "service_label": "Uygulama \/ Paket"
     },
-    {
-      "name": "Boya Koruma & Detailing",
-      "description": "Pasta cila, çizik giderme, seramik kaplama ve PPF kaplama"
-    }
-  ],
-  "services": [
-    {
-      "name": "Fırçasız Köpüklü Dış Yıkama",
-      "category": "Standart & Hızlı Yıkama",
-      "duration": 30,
-      "price": 250.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#3b82f6",
-      "description": "pH nötr aktif köpük, yüksek basınçlı durulama, mikrofiber kurulama ve lastik parlatma."
-    },
-    {
-      "name": "İç + Dış Standart Yıkama",
-      "category": "Standart & Hızlı Yıkama",
-      "duration": 50,
-      "price": 450.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#2563eb",
-      "description": "Köpüklü dış yıkama + iç süpürme, torpido temizliği, cam silme ve paspas yıkama."
-    },
-    {
-      "name": "Detaylı Koltuk & Döşeme Yıkama",
-      "category": "Detaylı İç & Dış Temizlik",
-      "duration": 90,
-      "price": 1200.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#0ea5e9",
-      "description": "Sıcak sulu vakumlu ekstraksiyon makinesi ile kumaş/deri koltuk leke arındırma."
-    },
-    {
-      "name": "VIP Detaylı İç Sterilizasyon & Ozon",
-      "category": "Detaylı İç & Dış Temizlik",
-      "duration": 120,
-      "price": 1800.00,
-      "slot_interval": 60,
-      "attendants_number": 1,
-      "color": "#0284c7",
-      "description": "Tavan, taban, bagaj, koltuklar, havalandırma kanalları buharlı temizlik + ozon jeneratörü ile dezenfeksiyon."
-    },
-    {
-      "name": "3 Aşamalı Pasta Cila & Çizik Giderme",
-      "category": "Boya Koruma & Detailing",
-      "duration": 180,
-      "price": 2500.00,
-      "slot_interval": 60,
-      "attendants_number": 1,
-      "color": "#f59e0b",
-      "description": "Kil temizliği, kalın/ince pasta ile hare ve çizik giderme, wax cila koruma."
-    },
-    {
-      "name": "9H Seramik Kaplama (2 Yıl Garantili)",
-      "category": "Boya Koruma & Detailing",
-      "duration": 240,
-      "price": 6000.00,
-      "slot_interval": 60,
-      "attendants_number": 1,
-      "color": "#eab308",
-      "description": "Tam boya düzeltme + çift kat 9H sertlikte nano seramik koruma katmanı."
-    },
-    {
-      "name": "Motor Yıkama & Koruma",
-      "category": "Detaylı İç & Dış Temizlik",
-      "duration": 40,
-      "price": 400.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#64748b",
-      "description": "Dielektrik kimyasal ve buhar ile susuz motor bloğu temizleme ve plastik koruma."
-    }
-  ],
-  "stations": [
-    {
-      "name": "Peron 1 (Hızlı Yıkama)",
-      "notes": "Yüksek basınçlı su tabancası, köpük jeneratörü, ızgaralı zemin"
-    },
-    {
-      "name": "Peron 2 (İç Temizlik)",
-      "notes": "Endüstriyel vakum süpürgesi, hava tabancaları, mikrofiber kurutma"
-    },
-    {
-      "name": "Peron 3 (İç Temizlik & Yıkama)",
-      "notes": "Kombine yıkama ve iç süpürme alanı"
-    },
-    {
-      "name": "Detailing & Seramik Odası",
-      "notes": "Tozsuz kapalı alan, 360 derece LED aydınlatma, orbital polisaj makineleri"
-    }
-  ],
-  "demo": {
-    "admin": {
-      "first_name": "Hasan",
-      "last_name": "Korkmaz",
-      "email": "demo-car_wash-admin@kibusiness.co",
-      "phone_number": "05432137000",
-      "notes": "Oto Yıkama & Detailing İşletmecisi"
-    },
-    "providers": [
-      {
-        "first_name": "Okan",
-        "last_name": "Demir",
-        "email": "demo-car_wash-uzman1@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Master Detailing & Seramik Uzmanı",
-        "commission_type": "percentage",
-        "commission_value": 30.0,
-        "services": ["3 Aşamalı Pasta Cila & Çizik Giderme", "9H Seramik Kaplama (2 Yıl Garantili)", "VIP Detaylı İç Sterilizasyon & Ozon"],
-        "stations": ["Detailing & Seramik Odası"]
-      },
-      {
-        "first_name": "Yusuf",
-        "last_name": "Avcı",
-        "email": "demo-car_wash-uzman2@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "İç Detaylı Temizlik & Koltuk Yıkama",
-        "commission_type": "percentage",
-        "commission_value": 25.0,
-        "services": ["Detaylı Koltuk & Döşeme Yıkama", "VIP Detaylı İç Sterilizasyon & Ozon", "Motor Yıkama & Koruma", "İç + Dış Standart Yıkama"],
-        "stations": ["Peron 2 (İç Temizlik)", "Peron 3 (İç Temizlik & Yıkama)"]
-      },
-      {
-        "first_name": "Mehmet",
-        "last_name": "Çetin",
-        "email": "demo-car_wash-uzman3@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Yıkama & Hızlı Servis Sorumlusu",
-        "commission_type": "percentage",
-        "commission_value": 20.0,
-        "services": ["Fırçasız Köpüklü Dış Yıkama", "İç + Dış Standart Yıkama", "Motor Yıkama & Koruma"],
-        "stations": ["Peron 1 (Hızlı Yıkama)", "Peron 3 (İç Temizlik & Yıkama)"]
-      }
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "adisyon",
+        "finance",
+        "expenses",
+        "checkin",
+        "inventory",
+        "reviews",
+        "marketing",
+        "loyalty",
+        "staff_commissions"
     ],
-    "customers": [
-      { "first_name": "Recep", "last_name": "Taşkın", "email": "demo-car_wash-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "BMW 520d - Seramik kaplama randevusu" },
-      { "first_name": "Selim", "last_name": "Özer", "email": "demo-car_wash-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Mercedes C200 - Haftalık iç/dış yıkama" },
-      { "first_name": "Kadir", "last_name": "Uçar", "email": "demo-car_wash-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Audi A3 - Koltuk yıkama" },
-      { "first_name": "Fatih", "last_name": "Gül", "email": "demo-car_wash-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Volvo XC90 - VIP detaylı iç temizlik" },
-      { "first_name": "Erdem", "last_name": "Kılıç", "email": "demo-car_wash-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Passat - Pasta cila" },
-      { "first_name": "Hüsnü", "last_name": "Polat", "email": "demo-car_wash-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Golf - Hızlı dış yıkama" },
-      { "first_name": "Mücahit", "last_name": "Karataş", "email": "demo-car_wash-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Tiguan - Motor yıkama & iç/dış" },
-      { "first_name": "Serdar", "last_name": "Çakır", "email": "demo-car_wash-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Porsche Macan - Seramik bakım" },
-      { "first_name": "İsmail", "last_name": "Koç", "email": "demo-car_wash-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Megane - İç/dış standart" },
-      { "first_name": "Tuncay", "last_name": "Şeker", "email": "demo-car_wash-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Clio - Koltuk leke çıkarma" }
+    "default_settings": {
+        "business_type": "general",
+        "slot_interval": 30,
+        "future_booking_limit": 14,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 15,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Standart & Hızlı Yıkama",
+            "description": "Fırçasız köpüklü dış yıkama, hızlı iç temizlik ve jant bakımı"
+        },
+        {
+            "name": "Detaylı İç & Dış Temizlik",
+            "description": "Koltuk yıkama, tavan\/taban dezenfeksiyonu, buharlı klima temizliği"
+        },
+        {
+            "name": "Boya Koruma & Detailing",
+            "description": "Pasta cila, çizik giderme, seramik kaplama ve PPF kaplama"
+        }
     ],
-    "appointments": [
-      { "day_offset": -3, "time": "09:30", "provider_idx": 2, "customer_idx": 1, "service_name": "İç + Dış Standart Yıkama", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -3, "time": "13:00", "provider_idx": 0, "customer_idx": 4, "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -2, "time": "10:00", "provider_idx": 1, "customer_idx": 2, "service_name": "Detaylı Koltuk & Döşeme Yıkama", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -2, "time": "14:30", "provider_idx": 2, "customer_idx": 5, "service_name": "Fırçasız Köpüklü Dış Yıkama", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -1, "time": "09:00", "provider_idx": 0, "customer_idx": 0, "service_name": "9H Seramik Kaplama (2 Yıl Garantili)", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -1, "time": "15:00", "provider_idx": 1, "customer_idx": 3, "service_name": "VIP Detaylı İç Sterilizasyon & Ozon", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "10:00", "provider_idx": 2, "customer_idx": 8, "service_name": "İç + Dış Standart Yıkama", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "11:30", "provider_idx": 1, "customer_idx": 6, "service_name": "Motor Yıkama & Koruma", "station_idx": 1, "status": "confirmed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": 0, "time": "13:30", "provider_idx": 0, "customer_idx": 7, "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "16:00", "provider_idx": 2, "customer_idx": 1, "service_name": "Fırçasız Köpüklü Dış Yıkama", "station_idx": 0, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 1, "time": "09:30", "provider_idx": 1, "customer_idx": 9, "service_name": "Detaylı Koltuk & Döşeme Yıkama", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 1, "time": "13:00", "provider_idx": 2, "customer_idx": 5, "service_name": "İç + Dış Standart Yıkama", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 1, "time": "14:30", "provider_idx": 0, "customer_idx": 4, "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme", "station_idx": 3, "status": "confirmed", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 2, "time": "10:00", "provider_idx": 2, "customer_idx": 1, "service_name": "İç + Dış Standart Yıkama", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 2, "time": "14:00", "provider_idx": 1, "customer_idx": 3, "service_name": "VIP Detaylı İç Sterilizasyon & Ozon", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "iban" },
-      { "day_offset": 3, "time": "09:00", "provider_idx": 0, "customer_idx": 7, "service_name": "9H Seramik Kaplama (2 Yıl Garantili)", "station_idx": 3, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" }
-    ]
-  }
+    "services": [
+        {
+            "name": "Fırçasız Köpüklü Dış Yıkama",
+            "category": "Standart & Hızlı Yıkama",
+            "duration": 30,
+            "price": 250,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#3b82f6",
+            "description": "pH nötr aktif köpük, yüksek basınçlı durulama, mikrofiber kurulama ve lastik parlatma."
+        },
+        {
+            "name": "İç + Dış Standart Yıkama",
+            "category": "Standart & Hızlı Yıkama",
+            "duration": 50,
+            "price": 450,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#2563eb",
+            "description": "Köpüklü dış yıkama + iç süpürme, torpido temizliği, cam silme ve paspas yıkama."
+        },
+        {
+            "name": "Detaylı Koltuk & Döşeme Yıkama",
+            "category": "Detaylı İç & Dış Temizlik",
+            "duration": 90,
+            "price": 1200,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#0ea5e9",
+            "description": "Sıcak sulu vakumlu ekstraksiyon makinesi ile kumaş\/deri koltuk leke arındırma."
+        },
+        {
+            "name": "VIP Detaylı İç Sterilizasyon & Ozon",
+            "category": "Detaylı İç & Dış Temizlik",
+            "duration": 120,
+            "price": 1800,
+            "slot_interval": 60,
+            "attendants_number": 1,
+            "color": "#0284c7",
+            "description": "Tavan, taban, bagaj, koltuklar, havalandırma kanalları buharlı temizlik + ozon jeneratörü ile dezenfeksiyon."
+        },
+        {
+            "name": "3 Aşamalı Pasta Cila & Çizik Giderme",
+            "category": "Boya Koruma & Detailing",
+            "duration": 180,
+            "price": 2500,
+            "slot_interval": 60,
+            "attendants_number": 1,
+            "color": "#f59e0b",
+            "description": "Kil temizliği, kalın\/ince pasta ile hare ve çizik giderme, wax cila koruma."
+        },
+        {
+            "name": "9H Seramik Kaplama (2 Yıl Garantili)",
+            "category": "Boya Koruma & Detailing",
+            "duration": 240,
+            "price": 6000,
+            "slot_interval": 60,
+            "attendants_number": 1,
+            "color": "#eab308",
+            "description": "Tam boya düzeltme + çift kat 9H sertlikte nano seramik koruma katmanı."
+        },
+        {
+            "name": "Motor Yıkama & Koruma",
+            "category": "Detaylı İç & Dış Temizlik",
+            "duration": 40,
+            "price": 400,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#64748b",
+            "description": "Dielektrik kimyasal ve buhar ile susuz motor bloğu temizleme ve plastik koruma."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Peron 1 (Hızlı Yıkama)",
+            "notes": "Yüksek basınçlı su tabancası, köpük jeneratörü, ızgaralı zemin"
+        },
+        {
+            "name": "Peron 2 (İç Temizlik)",
+            "notes": "Endüstriyel vakum süpürgesi, hava tabancaları, mikrofiber kurutma"
+        },
+        {
+            "name": "Peron 3 (İç Temizlik & Yıkama)",
+            "notes": "Kombine yıkama ve iç süpürme alanı"
+        },
+        {
+            "name": "Detailing & Seramik Odası",
+            "notes": "Tozsuz kapalı alan, 360 derece LED aydınlatma, orbital polisaj makineleri"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Hasan",
+            "last_name": "Korkmaz",
+            "email": "demo-car_wash-admin@kibusiness.co",
+            "phone_number": "05432137000",
+            "notes": "Oto Yıkama & Detailing İşletmecisi"
+        },
+        "providers": [
+            {
+                "first_name": "Okan",
+                "last_name": "Demir",
+                "email": "demo-car_wash-uzman1@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Master Detailing & Seramik Uzmanı",
+                "commission_type": "percentage",
+                "commission_value": 30,
+                "services": [
+                    "3 Aşamalı Pasta Cila & Çizik Giderme",
+                    "9H Seramik Kaplama (2 Yıl Garantili)",
+                    "VIP Detaylı İç Sterilizasyon & Ozon"
+                ],
+                "stations": [
+                    "Detailing & Seramik Odası"
+                ]
+            },
+            {
+                "first_name": "Yusuf",
+                "last_name": "Avcı",
+                "email": "demo-car_wash-uzman2@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "İç Detaylı Temizlik & Koltuk Yıkama",
+                "commission_type": "percentage",
+                "commission_value": 25,
+                "services": [
+                    "Detaylı Koltuk & Döşeme Yıkama",
+                    "VIP Detaylı İç Sterilizasyon & Ozon",
+                    "Motor Yıkama & Koruma",
+                    "İç + Dış Standart Yıkama"
+                ],
+                "stations": [
+                    "Peron 2 (İç Temizlik)",
+                    "Peron 3 (İç Temizlik & Yıkama)"
+                ]
+            },
+            {
+                "first_name": "Mehmet",
+                "last_name": "Çetin",
+                "email": "demo-car_wash-uzman3@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Yıkama & Hızlı Servis Sorumlusu",
+                "commission_type": "percentage",
+                "commission_value": 20,
+                "services": [
+                    "Fırçasız Köpüklü Dış Yıkama",
+                    "İç + Dış Standart Yıkama",
+                    "Motor Yıkama & Koruma"
+                ],
+                "stations": [
+                    "Peron 1 (Hızlı Yıkama)",
+                    "Peron 3 (İç Temizlik & Yıkama)"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Recep",
+                "last_name": "Taşkın",
+                "email": "demo-car_wash-musteri1@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "BMW 520d - Seramik kaplama randevusu"
+            },
+            {
+                "first_name": "Selim",
+                "last_name": "Özer",
+                "email": "demo-car_wash-musteri2@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Mercedes C200 - Haftalık iç\/dış yıkama"
+            },
+            {
+                "first_name": "Kadir",
+                "last_name": "Uçar",
+                "email": "demo-car_wash-musteri3@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Audi A3 - Koltuk yıkama"
+            },
+            {
+                "first_name": "Fatih",
+                "last_name": "Gül",
+                "email": "demo-car_wash-musteri4@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Volvo XC90 - VIP detaylı iç temizlik"
+            },
+            {
+                "first_name": "Erdem",
+                "last_name": "Kılıç",
+                "email": "demo-car_wash-musteri5@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Passat - Pasta cila"
+            },
+            {
+                "first_name": "Hüsnü",
+                "last_name": "Polat",
+                "email": "demo-car_wash-musteri6@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Golf - Hızlı dış yıkama"
+            },
+            {
+                "first_name": "Mücahit",
+                "last_name": "Karataş",
+                "email": "demo-car_wash-musteri7@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Tiguan - Motor yıkama & iç\/dış"
+            },
+            {
+                "first_name": "Serdar",
+                "last_name": "Çakır",
+                "email": "demo-car_wash-musteri8@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Porsche Macan - Seramik bakım"
+            },
+            {
+                "first_name": "İsmail",
+                "last_name": "Koç",
+                "email": "demo-car_wash-musteri9@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Megane - İç\/dış standart"
+            },
+            {
+                "first_name": "Tuncay",
+                "last_name": "Şeker",
+                "email": "demo-car_wash-musteri10@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Clio - Koltuk leke çıkarma"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": -3,
+                "time": "09:30",
+                "provider_idx": 2,
+                "customer_idx": 1,
+                "service_name": "İç + Dış Standart Yıkama",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -3,
+                "time": "13:00",
+                "provider_idx": 0,
+                "customer_idx": 4,
+                "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme",
+                "station_idx": 3,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -2,
+                "time": "10:00",
+                "provider_idx": 1,
+                "customer_idx": 2,
+                "service_name": "Detaylı Koltuk & Döşeme Yıkama",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -2,
+                "time": "14:30",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "Fırçasız Köpüklü Dış Yıkama",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -1,
+                "time": "09:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "9H Seramik Kaplama (2 Yıl Garantili)",
+                "station_idx": 3,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "15:00",
+                "provider_idx": 1,
+                "customer_idx": 3,
+                "service_name": "VIP Detaylı İç Sterilizasyon & Ozon",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "10:00",
+                "provider_idx": 2,
+                "customer_idx": 8,
+                "service_name": "İç + Dış Standart Yıkama",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "11:30",
+                "provider_idx": 1,
+                "customer_idx": 6,
+                "service_name": "Motor Yıkama & Koruma",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 0,
+                "time": "13:30",
+                "provider_idx": 0,
+                "customer_idx": 7,
+                "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme",
+                "station_idx": 3,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "16:00",
+                "provider_idx": 2,
+                "customer_idx": 1,
+                "service_name": "Fırçasız Köpüklü Dış Yıkama",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "09:30",
+                "provider_idx": 1,
+                "customer_idx": 9,
+                "service_name": "Detaylı Koltuk & Döşeme Yıkama",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "13:00",
+                "provider_idx": 2,
+                "customer_idx": 5,
+                "service_name": "İç + Dış Standart Yıkama",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "14:30",
+                "provider_idx": 0,
+                "customer_idx": 4,
+                "service_name": "3 Aşamalı Pasta Cila & Çizik Giderme",
+                "station_idx": 3,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 2,
+                "time": "10:00",
+                "provider_idx": 2,
+                "customer_idx": 1,
+                "service_name": "İç + Dış Standart Yıkama",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 2,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 3,
+                "service_name": "VIP Detaylı İç Sterilizasyon & Ozon",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": 3,
+                "time": "09:00",
+                "provider_idx": 0,
+                "customer_idx": 7,
+                "service_name": "9H Seramik Kaplama (2 Yıl Garantili)",
+                "station_idx": 3,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            }
+        ]
+    },
+    "family": "automotive",
+    "business_type": "car_wash",
+    "ai_policy": {
+        "brand_name": "Araç Yıkama & Detailing \/ Auto Spa",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Araç Yıkama & Detailing \/ Auto Spa asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Araç Sahibi",
+            "Yıkama \/ Detailing Ustası",
+            "Araç Kabul Randevusu",
+            "Yıkama \/ Temizlik Hizmeti",
+            "Yıkama Peronu \/ İstasyon",
+            "Oto Kokusu \/ Bakım Ürünü",
+            "İş Emri \/ Adisyon",
+            "Araç Randevusu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Araç Sahibi' ve 'Yıkama \/ Temizlik Hizmeti' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Araç Kabul Randevusular",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Yıkama Peronu \/ İstasyon Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Araç Sahibilar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Araç Kabul Randevusu",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Araç Sahibi",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Araç Kabul Randevusular",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Yıkama Peronu \/ İstasyon Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Araç Sahibi Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "İşletme Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tam yetkili salon yöneticisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Müdür",
+            "icon": "user-tie",
+            "description": "Operasyon ve ekip yönetimi"
+        },
+        {
+            "slug": "professional",
+            "name": "Uzman \/ Estetisyen",
+            "icon": "magic",
+            "description": "Hizmet ve seans uygulamaları"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Danışan karşılama ve randevu"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ POS",
+            "icon": "cash-register",
+            "description": "Ödeme ve adisyon takibi"
+        },
+        {
+            "slug": "inventory",
+            "name": "Depo \/ Envanter",
+            "icon": "boxes",
+            "description": "Sarf malzeme ve ürün takibi"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "İşletme",
+            "last_name": "Demo",
+            "email": "demo-car_wash-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "İşletme Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Müdür",
+            "last_name": "Demo",
+            "email": "demo-car_wash-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Müdür"
+        },
+        "professional": {
+            "first_name": "Uzman",
+            "last_name": "Demo",
+            "email": "demo-car_wash-professional@kibusiness.co",
+            "role_slug": "professional",
+            "job_title": "Uzman \/ Estetisyen"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-car_wash-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-car_wash-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ POS"
+        },
+        "inventory": {
+            "first_name": "Depo",
+            "last_name": "Demo",
+            "email": "demo-car_wash-inventory@kibusiness.co",
+            "role_slug": "inventory",
+            "job_title": "Depo \/ Envanter"
+        }
+    }
 }
-

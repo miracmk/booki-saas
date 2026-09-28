@@ -128,6 +128,34 @@ class Ai_agent extends App_Controller
             $summaries = $this->ai_agent_conversations_model->get_recent_summaries($user_id);
             $summary = trim(implode("\n\n---\n\n", array_reverse($summaries)));
 
+            // AI Governance: Multi-Domain Escalation & Human Handoff
+            $this->load->library('ai_governance_service');
+            $escalation = $this->ai_governance_service->detect_escalation($user_message);
+            if ($escalation) {
+                $this->ai_governance_service->create_escalation_handoff(
+                    $user_id,
+                    $escalation['domain'],
+                    $user_message,
+                    'Otomatik AI Yönetişim Kuralı Tetiklendi'
+                );
+
+                $esc_reply = "Bu konu işletme ve güvenlik politikalarımız gereği doğrudan yetkili ekibimize devredilmiştir (" . ucfirst($escalation['domain']) . " Esasları). En kısa sürede sizinle iletişime geçilecektir.";
+                $history = $this->session->userdata(self::SESSION_KEY) ?: [];
+                $history[] = ['role' => 'user', 'content' => $user_message];
+                $history[] = ['role' => 'assistant', 'content' => $esc_reply];
+                $this->session->set_userdata(self::SESSION_KEY, $history);
+                $this->session->set_userdata(self::SESSION_LAST_ACTIVITY, time());
+
+                json_response([
+                    'success' => true,
+                    'reply' => $esc_reply,
+                    'tool_calls' => [],
+                    'escalated' => true,
+                    'domain' => $escalation['domain'],
+                ]);
+                return;
+            }
+
             // Active conversation from the PHP session (never client-supplied;
             // the session is the only source of truth for the open thread).
             $history = $this->session->userdata(self::SESSION_KEY) ?: [];

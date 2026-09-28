@@ -1,99 +1,391 @@
 {
-  "industry": {
-    "code": "auto_service_detailing",
-    "name": "Oto Servis / Detailing & Ekspertiz",
-    "icon": "🚗",
-    "service_type": "station",
-    "description": "Oto servisler, seramik kaplama/detailing merkezleri ve ekspertiz noktaları için araç plakası/VIN kaydı, DVI dijital ekspertiz raporu ve iş emri (work order) akış paketi."
-  },
-  "terminology": {
-    "customer_label": "Araç Sahibi / Müşteri",
-    "provider_label": "Usta / Teknisyen",
-    "appointment_label": "Servis Randevusu",
-    "station_label": "Lift / Peron / Çalışma Alanı",
-    "service_label": "Servis / İşlem"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "vehicles",
-    "work_orders",
-    "inspections",
-    "adisyon",
-    "inventory",
-    "finance",
-    "reviews",
-    "messaging"
-  ],
-  "default_settings": {
-    "business_type": "automotive",
-    "slot_interval": 60,
-    "future_booking_limit": 30,
-    "require_phone_number": true,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Periyodik Bakım & Mekanik",
-      "description": "Yağ değişimi, filtreler, fren balata kontrolü ve genel mekanik bakım"
+    "industry": {
+        "code": "auto_service_detailing",
+        "name": "Oto Servis \/ Detailing & Ekspertiz",
+        "icon": "🚗",
+        "service_type": "station",
+        "description": "Oto servisler, seramik kaplama\/detailing merkezleri ve ekspertiz noktaları için araç plakası\/VIN kaydı, DVI dijital ekspertiz raporu ve iş emri (work order) akış paketi."
     },
-    {
-      "name": "Detailing & Seramik Kaplama",
-      "description": "Pasta cila, seramik kaplama, iç detaylı sterilizasyon"
+    "terminology": {
+        "customer": "Araç Sahibi",
+        "provider": "Detailing \/ Servis Teknisyeni",
+        "appointment": "Ekspertiz \/ Servis Randevusu",
+        "service": "Seramik Kaplama \/ Detailing",
+        "station": "Servis Lifti \/ Detailing Alanı",
+        "product": "Oto Kimyasalı \/ Yedek Parça",
+        "order": "Servis İş Emri",
+        "reservation": "Servis Randevusu",
+        "membership": "Filo \/ VIP Bakım Kulübü",
+        "package": "Periyodik Bakım Paketi",
+        "catalog": "Servis & İşlem Kataloğu",
+        "branch": "Servis \/ Şube",
+        "customer_label": "Araç Sahibi \/ Müşteri",
+        "provider_label": "Usta \/ Teknisyen",
+        "appointment_label": "Servis Randevusu",
+        "station_label": "Lift \/ Peron \/ Çalışma Alanı",
+        "service_label": "Servis \/ İşlem"
     },
-    {
-      "name": "Oto Ekspertiz & Muayene Öncesi",
-      "description": "Kaporta boya, motor mekanik testleri ve DVI ekspertiz raporu"
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "vehicles",
+        "work_orders",
+        "inspections",
+        "adisyon",
+        "inventory",
+        "finance",
+        "reviews",
+        "messaging"
+    ],
+    "default_settings": {
+        "business_type": "automotive",
+        "slot_interval": 60,
+        "future_booking_limit": 30,
+        "require_phone_number": true,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Periyodik Bakım & Mekanik",
+            "description": "Yağ değişimi, filtreler, fren balata kontrolü ve genel mekanik bakım"
+        },
+        {
+            "name": "Detailing & Seramik Kaplama",
+            "description": "Pasta cila, seramik kaplama, iç detaylı sterilizasyon"
+        },
+        {
+            "name": "Oto Ekspertiz & Muayene Öncesi",
+            "description": "Kaporta boya, motor mekanik testleri ve DVI ekspertiz raporu"
+        }
+    ],
+    "services": [
+        {
+            "name": "Periyodik Bakım (Yağ + Filtre Seti)",
+            "category": "Periyodik Bakım & Mekanik",
+            "duration": 90,
+            "price": 3500,
+            "attendants_number": 1,
+            "description": "Motor yağı, yağ filtresi, hava ve polen filtre değişimi + 20 nokta kontrol"
+        },
+        {
+            "name": "Full Seramik Kaplama & Boya Düzeltme",
+            "category": "Detailing & Seramik Kaplama",
+            "duration": 240,
+            "price": 12000,
+            "attendants_number": 1,
+            "description": "3 aşamalı polisaj + 3 yıllık nano seramik kaplama"
+        },
+        {
+            "name": "Kapsamlı DVI Ekspertiz Paketi",
+            "category": "Oto Ekspertiz & Muayene Öncesi",
+            "duration": 60,
+            "price": 2500,
+            "attendants_number": 1,
+            "description": "101 nokta dijital araç ekspertiz raporu + fotoğraflı analiz linki"
+        }
+    ],
+    "stations": [
+        {
+            "name": "Lift 1 (Mekanik)",
+            "capacity": 1,
+            "description": "4 tonluk hidrolik araç kaldırma lifti"
+        },
+        {
+            "name": "Lift 2 (Hızlı Bakım)",
+            "capacity": 1,
+            "description": "Periyodik bakım ve fren peronu"
+        },
+        {
+            "name": "Detailing Kabini (Tozsuz)",
+            "capacity": 1,
+            "description": "Özel aydınlatmalı ve iklimlendirmeli seramik uygulama alanı"
+        },
+        {
+            "name": "Ekspertiz Test Hattı",
+            "capacity": 1,
+            "description": "Fren test, süspansiyon ve yanal kayma cihazı"
+        }
+    ],
+    "family": "automotive",
+    "business_type": "auto_service_detailing",
+    "ai_policy": {
+        "brand_name": "Oto Servis \/ Detailing & Ekspertiz",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Oto Servis \/ Detailing & Ekspertiz asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Araç Sahibi",
+            "Detailing \/ Servis Teknisyeni",
+            "Ekspertiz \/ Servis Randevusu",
+            "Seramik Kaplama \/ Detailing",
+            "Servis Lifti \/ Detailing Alanı",
+            "Oto Kimyasalı \/ Yedek Parça",
+            "Servis İş Emri",
+            "Servis Randevusu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Araç Sahibi' ve 'Seramik Kaplama \/ Detailing' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Ekspertiz \/ Servis Randevusular",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Servis Lifti \/ Detailing Alanı Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Araç Sahibilar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Ekspertiz \/ Servis Randevusu",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Araç Sahibi",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Ekspertiz \/ Servis Randevusular",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Servis Lifti \/ Detailing Alanı Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Araç Sahibi Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "İşletme Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tam yetkili salon yöneticisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Müdür",
+            "icon": "user-tie",
+            "description": "Operasyon ve ekip yönetimi"
+        },
+        {
+            "slug": "professional",
+            "name": "Uzman \/ Estetisyen",
+            "icon": "magic",
+            "description": "Hizmet ve seans uygulamaları"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Danışan karşılama ve randevu"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ POS",
+            "icon": "cash-register",
+            "description": "Ödeme ve adisyon takibi"
+        },
+        {
+            "slug": "inventory",
+            "name": "Depo \/ Envanter",
+            "icon": "boxes",
+            "description": "Sarf malzeme ve ürün takibi"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "İşletme",
+            "last_name": "Demo",
+            "email": "demo-auto_service_detailing-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "İşletme Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Müdür",
+            "last_name": "Demo",
+            "email": "demo-auto_service_detailing-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Müdür"
+        },
+        "professional": {
+            "first_name": "Uzman",
+            "last_name": "Demo",
+            "email": "demo-auto_service_detailing-professional@kibusiness.co",
+            "role_slug": "professional",
+            "job_title": "Uzman \/ Estetisyen"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-auto_service_detailing-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-auto_service_detailing-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ POS"
+        },
+        "inventory": {
+            "first_name": "Depo",
+            "last_name": "Demo",
+            "email": "demo-auto_service_detailing-inventory@kibusiness.co",
+            "role_slug": "inventory",
+            "job_title": "Depo \/ Envanter"
+        }
     }
-  ],
-  "services": [
-    {
-      "name": "Periyodik Bakım (Yağ + Filtre Seti)",
-      "category": "Periyodik Bakım & Mekanik",
-      "duration": 90,
-      "price": 3500.00,
-      "attendants_number": 1,
-      "description": "Motor yağı, yağ filtresi, hava ve polen filtre değişimi + 20 nokta kontrol"
-    },
-    {
-      "name": "Full Seramik Kaplama & Boya Düzeltme",
-      "category": "Detailing & Seramik Kaplama",
-      "duration": 240,
-      "price": 12000.00,
-      "attendants_number": 1,
-      "description": "3 aşamalı polisaj + 3 yıllık nano seramik kaplama"
-    },
-    {
-      "name": "Kapsamlı DVI Ekspertiz Paketi",
-      "category": "Oto Ekspertiz & Muayene Öncesi",
-      "duration": 60,
-      "price": 2500.00,
-      "attendants_number": 1,
-      "description": "101 nokta dijital araç ekspertiz raporu + fotoğraflı analiz linki"
-    }
-  ],
-  "stations": [
-    {
-      "name": "Lift 1 (Mekanik)",
-      "capacity": 1,
-      "description": "4 tonluk hidrolik araç kaldırma lifti"
-    },
-    {
-      "name": "Lift 2 (Hızlı Bakım)",
-      "capacity": 1,
-      "description": "Periyodik bakım ve fren peronu"
-    },
-    {
-      "name": "Detailing Kabini (Tozsuz)",
-      "capacity": 1,
-      "description": "Özel aydınlatmalı ve iklimlendirmeli seramik uygulama alanı"
-    },
-    {
-      "name": "Ekspertiz Test Hattı",
-      "capacity": 1,
-      "description": "Fren test, süspansiyon ve yanal kayma cihazı"
-    }
-  ]
 }

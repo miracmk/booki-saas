@@ -1,275 +1,980 @@
 {
-  "industry": {
-    "code": "doctor_clinic",
-    "name": "Doktor Özel Klinik & Poliklinik",
-    "icon": "🩺",
-    "service_type": "duration",
-    "description": "Özel muayenehaneler, uzman hekim klinikleri, check-up ve medikal estetik merkezleri için hasta randevu ve oda yönetim sistemi."
-  },
-  "terminology": {
-    "customer_label": "Hasta / Danışan",
-    "provider_label": "Hekim / Doktor",
-    "appointment_label": "Muayene / Randevu",
-    "station_label": "Muayene Odası / Müdahale",
-    "service_label": "Muayene / İşlem"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "packages",
-    "invoices",
-    "adisyon",
-    "finance",
-    "expenses",
-    "checkin",
-    "reviews",
-    "marketing",
-    "staff_commissions"
-  ],
-  "default_settings": {
-    "business_type": "clinic",
-    "slot_interval": 20,
-    "future_booking_limit": 60,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 10,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Uzman Hekim Muayeneleri",
-      "description": "İlk muayene, periyodik kontrol ve detaylı uzman konsültasyonu"
+    "industry": {
+        "code": "doctor_clinic",
+        "name": "Doktor Özel Klinik & Poliklinik",
+        "icon": "🩺",
+        "service_type": "duration",
+        "description": "Özel muayenehaneler, uzman hekim klinikleri, check-up ve medikal estetik merkezleri için hasta randevu ve oda yönetim sistemi."
     },
-    {
-      "name": "Tetkik & Tanı Hizmetleri",
-      "description": "Laboratuvar testleri, EKG, ultrason ve kapsamlı check-up"
+    "terminology": {
+        "customer": "Hasta",
+        "provider": "Hekim \/ Doktor",
+        "appointment": "Muayene \/ Tedavi",
+        "service": "Muayene & Tıbbi İşlem",
+        "station": "Muayene Odası \/ Poliklinik",
+        "product": "Medikal Destek Ürünü",
+        "order": "Sağlık Hizmet Protokolü",
+        "reservation": "Hasta Randevusu",
+        "membership": "Sağlık Takip Programı",
+        "package": "Tedavi Paketi",
+        "catalog": "Klinik İşlemleri & Tedaviler",
+        "branch": "Klinik \/ Şube",
+        "customer_label": "Hasta \/ Danışan",
+        "provider_label": "Hekim \/ Doktor",
+        "appointment_label": "Muayene \/ Randevu",
+        "station_label": "Muayene Odası \/ Müdahale",
+        "service_label": "Muayene \/ İşlem"
     },
-    {
-      "name": "Küçük Cerrahi & Medikal Tedavi",
-      "description": "Lokal anestezi altında küçük müdahaleler, pansuman ve enjeksiyon"
-    },
-    {
-      "name": "Medikal Estetik & Mezoterapi",
-      "description": "Botoks, hyaluronik asit dolgu, PRP ve gençlik aşısı"
-    }
-  ],
-  "services": [
-    {
-      "name": "Uzman Doktor İlk Muayenesi",
-      "category": "Uzman Hekim Muayeneleri",
-      "duration": 30,
-      "price": 1200.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#0284c7",
-      "description": "Ayrıntılı anamnez, fiziki muayene, tanı planı ve reçete düzenleme."
-    },
-    {
-      "name": "Kontrol Muayenesi (10 Gün İçi)",
-      "category": "Uzman Hekim Muayeneleri",
-      "duration": 20,
-      "price": 0.00,
-      "slot_interval": 20,
-      "attendants_number": 1,
-      "color": "#0ea5e9",
-      "description": "İlk muayene sonrası tetkik değerlendirme ve tedavi takibi."
-    },
-    {
-      "name": "Online Görüntülü Konsültasyon",
-      "category": "Uzman Hekim Muayeneleri",
-      "duration": 20,
-      "price": 800.00,
-      "slot_interval": 20,
-      "attendants_number": 1,
-      "color": "#38bdf8",
-      "description": "Uzaktan güvenli video bağlantı ile tahlil yorumlama ve danışmanlık."
-    },
-    {
-      "name": "Kapsamlı VIP Check-Up Paketi",
-      "category": "Tetkik & Tanı Hizmetleri",
-      "duration": 60,
-      "price": 3500.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#10b981",
-      "description": "Tam kan, hormon, biyokimya, EKG, akciğer grafisi ve hekim raporu."
-    },
-    {
-      "name": "12 Derivasyonlu EKG Çekimi",
-      "category": "Tetkik & Tanı Hizmetleri",
-      "duration": 15,
-      "price": 400.00,
-      "slot_interval": 15,
-      "attendants_number": 1,
-      "color": "#059669",
-      "description": "Kalp ritim analizi ve kardiyak ön değerlendirme."
-    },
-    {
-      "name": "Küçük Cerrahi Müdahale & Dikiş",
-      "category": "Küçük Cerrahi & Medikal Tedavi",
-      "duration": 45,
-      "price": 2000.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#ef4444",
-      "description": "Lokal anestezi altında ben alımı, kist eksizyonu veya yara süturasyonu."
-    },
-    {
-      "name": "Üst Yüz Botoks Uygulaması",
-      "category": "Medikal Estetik & Mezoterapi",
-      "duration": 30,
-      "price": 2800.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#ec4899",
-      "description": "Alın, kaş arası ve göz çevresi (kaz ayakları) kırışıklık tedavisi."
-    },
-    {
-      "name": "Dudak / Nazolabial Dolgu",
-      "category": "Medikal Estetik & Mezoterapi",
-      "duration": 40,
-      "price": 3500.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#db2777",
-      "description": "1 ml hyaluronik asit ile hacim ve kontur belirginleştirme."
-    },
-    {
-      "name": "Saç & Yüz PRP Tedavisi",
-      "category": "Medikal Estetik & Mezoterapi",
-      "duration": 45,
-      "price": 1800.00,
-      "slot_interval": 30,
-      "attendants_number": 1,
-      "color": "#8b5cf6",
-      "description": "Kişinin kendi kanından elde edilen trombosit yönünden zengin plazma enjeksiyonu."
-    }
-  ],
-  "stations": [
-    {
-      "name": "Muayene Odası 1 (Dahiliye / Genel)",
-      "notes": "Muayene masası, tansiyon aleti, otoskop, oftalmoskop"
-    },
-    {
-      "name": "Muayene Odası 2 (Dermatoloji & Estetik)",
-      "notes": "Dermatoskop cihazı, medikal estetik koltuğu, büyüteçli LED lamba"
-    },
-    {
-      "name": "Müdahale & Cerrahi Odası",
-      "notes": "Sterilizasyon otoklavı, cerrahi lambader, elektro koter, oksijen tüpü"
-    },
-    {
-      "name": "Hemşirelik & EKG / Kan Alma Odası",
-      "notes": "Santrifüj cihazı, EKG monitörü, kan alma koltuğu"
-    }
-  ],
-  "consumables": [
-    { "name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "sku": "SARF-DOC-01", "cost_price": 3.50, "sale_price": 0.00, "stock_quantity": 300, "low_stock_threshold": 30, "unit": "adet" },
-    { "name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "sku": "SARF-DOC-02", "cost_price": 1.50, "sale_price": 0.00, "stock_quantity": 500, "low_stock_threshold": 50, "unit": "çift" },
-    { "name": "Ahşap Dil Basacağı (Abeslang)", "sku": "SARF-DOC-03", "cost_price": 0.30, "sale_price": 0.00, "stock_quantity": 600, "low_stock_threshold": 50, "unit": "adet" },
-    { "name": "Alkol Bazlı El & Cilt Antiseptiği (100ml)", "sku": "SARF-DOC-04", "cost_price": 12.00, "sale_price": 0.00, "stock_quantity": 100, "low_stock_threshold": 15, "unit": "adet" },
-    { "name": "Steril Gaz Kompres / Bez & Flaster Pedi", "sku": "SARF-DOC-05", "cost_price": 1.20, "sale_price": 0.00, "stock_quantity": 400, "low_stock_threshold": 40, "unit": "paket" },
-    { "name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)", "sku": "SARF-DOC-06", "cost_price": 4.50, "sale_price": 0.00, "stock_quantity": 250, "low_stock_threshold": 30, "unit": "adet" },
-    { "name": "Tek Kullanımlık PRP Santrifüj Tüpü & Kiti", "sku": "SARF-DOC-07", "cost_price": 180.00, "sale_price": 0.00, "stock_quantity": 40, "low_stock_threshold": 10, "unit": "kit" },
-    { "name": "Steril Cerrahi Sütur İpi & Dikiş Kiti", "sku": "SARF-DOC-08", "cost_price": 35.00, "sale_price": 0.00, "stock_quantity": 50, "low_stock_threshold": 10, "unit": "kit" }
-  ],
-  "service_consumable_recipes": [
-    { "service_name": "Uzman Doktor İlk Muayenesi", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Muayene masası örtüsü" },
-    { "service_name": "Uzman Doktor İlk Muayenesi", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim muayene eldiveni" },
-    { "service_name": "Uzman Doktor İlk Muayenesi", "product_name": "Ahşap Dil Basacağı (Abeslang)", "quantity_used": 1.0, "unit": "adet", "notes": "Boğaz muayenesi" },
-
-    { "service_name": "Kontrol Muayenesi (10 Gün İçi)", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Muayene masası örtüsü" },
-    { "service_name": "Kontrol Muayenesi (10 Gün İçi)", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim muayene eldiveni" },
-
-    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Cerrahi masa örtüsü" },
-    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 2.0, "unit": "çift", "notes": "Hekim ve hemşire eldiveni" },
-    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Steril Cerrahi Sütur İpi & Dikiş Kiti", "quantity_used": 1.0, "unit": "kit", "notes": "Steril dikiş kiti" },
-    { "service_name": "Küçük Cerrahi Müdahale & Dikiş", "product_name": "Steril Gaz Kompres / Bez & Flaster Pedi", "quantity_used": 2.0, "unit": "paket", "notes": "Pansuman kapama pedi" },
-
-    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Koltuk örtüsü" },
-    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 1.0, "unit": "çift", "notes": "Hekim eldiveni" },
-    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)", "quantity_used": 3.0, "unit": "adet", "notes": "Mikro enjeksiyon uçları" },
-    { "service_name": "Üst Yüz Botoks Uygulaması", "product_name": "Steril Gaz Kompres / Bez & Flaster Pedi", "quantity_used": 1.0, "unit": "paket", "notes": "Buz kompres ve temizleme" },
-
-    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)", "quantity_used": 1.0, "unit": "adet", "notes": "Koltuk örtüsü" },
-    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)", "quantity_used": 2.0, "unit": "çift", "notes": "Kan alma ve uygulama eldiveni" },
-    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Tek Kullanımlık PRP Santrifüj Tüpü & Kiti", "quantity_used": 1.0, "unit": "kit", "notes": "PRP santrifüj tüpü" },
-    { "service_name": "Saç & Yüz PRP Tedavisi", "product_name": "Tek Kullanımlık İnsülin / Botoks Enjektörü (30G)", "quantity_used": 2.0, "unit": "adet", "notes": "Mezoterapi enjektörü" }
-  ],
-  "demo": {
-    "admin": {
-      "first_name": "Dr. Mehmet",
-      "last_name": "Akar",
-      "email": "demo-doctor_clinic-admin@kibusiness.co",
-      "phone_number": "05432137000",
-      "notes": "Klinik Başhekimi & Dahiliye Uzmanı"
-    },
-    "providers": [
-      {
-        "first_name": "Dr. Mehmet",
-        "last_name": "Akar",
-        "email": "demo-doctor_clinic-uzman1@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Uzm. Dr. İç Hastalıkları (Dahiliye)",
-        "commission_type": "percentage",
-        "commission_value": 50.0,
-        "services": ["Uzman Doktor İlk Muayenesi", "Kontrol Muayenesi (10 Gün İçi)", "Online Görüntülü Konsültasyon", "Kapsamlı VIP Check-Up Paketi"],
-        "stations": ["Muayene Odası 1 (Dahiliye / Genel)"]
-      },
-      {
-        "first_name": "Dr. Ayşe",
-        "last_name": "Güner",
-        "email": "demo-doctor_clinic-uzman2@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Dermatoloji & Medikal Estetik Hekimi",
-        "commission_type": "percentage",
-        "commission_value": 50.0,
-        "services": ["Uzman Doktor İlk Muayenesi", "Kontrol Muayenesi (10 Gün İçi)", "Üst Yüz Botoks Uygulaması", "Dudak / Nazolabial Dolgu", "Saç & Yüz PRP Tedavisi", "Küçük Cerrahi Müdahale & Dikiş"],
-        "stations": ["Muayene Odası 2 (Dermatoloji & Estetik)", "Müdahale & Cerrahi Odası"]
-      },
-      {
-        "first_name": "Hemşire Fatma",
-        "last_name": "Bayrak",
-        "email": "demo-doctor_clinic-uzman3@kibusiness.co",
-        "phone_number": "05432137000",
-        "notes": "Sorumlu Hemşire & Tetkik Birimi",
-        "commission_type": "fixed",
-        "commission_value": 50.0,
-        "services": ["12 Derivasyonlu EKG Çekimi", "Kapsamlı VIP Check-Up Paketi"],
-        "stations": ["Hemşirelik & EKG / Kan Alma Odası"]
-      }
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "invoices",
+        "adisyon",
+        "finance",
+        "expenses",
+        "checkin",
+        "reviews",
+        "marketing",
+        "staff_commissions"
     ],
-    "customers": [
-      { "first_name": "Hakan", "last_name": "Yılmaz", "email": "demo-doctor_clinic-musteri1@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Hipertansiyon takibi, 6 aylık kontrol" },
-      { "first_name": "Emine", "last_name": "Kara", "email": "demo-doctor_clinic-musteri2@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Botoks ve PRP hastası" },
-      { "first_name": "Mustafa", "last_name": "Çetin", "email": "demo-doctor_clinic-musteri3@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "VIP Check-Up randevusu" },
-      { "first_name": "Gülşen", "last_name": "Öz", "email": "demo-doctor_clinic-musteri4@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Dudak dolgusu konsültasyonu" },
-      { "first_name": "Ramazan", "last_name": "Demir", "email": "demo-doctor_clinic-musteri5@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Şeker ölçümü ve dahiliye muayenesi" },
-      { "first_name": "Sevda", "last_name": "Aksoy", "email": "demo-doctor_clinic-musteri6@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Yara pansumanı & kontrol" },
-      { "first_name": "İbrahim", "last_name": "Koç", "email": "demo-doctor_clinic-musteri7@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Göğüs sıkışması, EKG kontrol" },
-      { "first_name": "Hatice", "last_name": "Şen", "email": "demo-doctor_clinic-musteri8@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Dermatoloji ben muayenesi" },
-      { "first_name": "Osman", "last_name": "Aydın", "email": "demo-doctor_clinic-musteri9@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Online görüntülü konsültasyon" },
-      { "first_name": "Nuray", "last_name": "Polat", "email": "demo-doctor_clinic-musteri10@kibusiness.co", "phone_number": "05062505562", "city": "Bursa", "notes": "Saç mezoterapisi 3. seans" }
+    "default_settings": {
+        "business_type": "clinic",
+        "slot_interval": 20,
+        "future_booking_limit": 60,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 10,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Uzman Hekim Muayeneleri",
+            "description": "İlk muayene, periyodik kontrol ve detaylı uzman konsültasyonu"
+        },
+        {
+            "name": "Tetkik & Tanı Hizmetleri",
+            "description": "Laboratuvar testleri, EKG, ultrason ve kapsamlı check-up"
+        },
+        {
+            "name": "Küçük Cerrahi & Medikal Tedavi",
+            "description": "Lokal anestezi altında küçük müdahaleler, pansuman ve enjeksiyon"
+        },
+        {
+            "name": "Medikal Estetik & Mezoterapi",
+            "description": "Botoks, hyaluronik asit dolgu, PRP ve gençlik aşısı"
+        }
     ],
-    "appointments": [
-      { "day_offset": -3, "time": "09:30", "provider_idx": 0, "customer_idx": 0, "service_name": "Uzman Doktor İlk Muayenesi", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -3, "time": "14:00", "provider_idx": 1, "customer_idx": 1, "service_name": "Üst Yüz Botoks Uygulaması", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -2, "time": "10:30", "provider_idx": 2, "customer_idx": 6, "service_name": "12 Derivasyonlu EKG Çekimi", "station_idx": 3, "status": "completed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": -2, "time": "11:00", "provider_idx": 0, "customer_idx": 6, "service_name": "Uzman Doktor İlk Muayenesi", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "physical_pos" },
-      { "day_offset": -1, "time": "13:30", "provider_idx": 1, "customer_idx": 3, "service_name": "Dudak / Nazolabial Dolgu", "station_idx": 1, "status": "completed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": -1, "time": "15:00", "provider_idx": 0, "customer_idx": 4, "service_name": "Uzman Doktor İlk Muayenesi", "station_idx": 0, "status": "completed", "payment_status": "collected", "payment_method": "iban" },
-      { "day_offset": 0, "time": "09:00", "provider_idx": 0, "customer_idx": 2, "service_name": "Kapsamlı VIP Check-Up Paketi", "station_idx": 0, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 0, "time": "11:00", "provider_idx": 1, "customer_idx": 7, "service_name": "Uzman Doktor İlk Muayenesi", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 0, "time": "14:00", "provider_idx": 1, "customer_idx": 9, "service_name": "Saç & Yüz PRP Tedavisi", "station_idx": 1, "status": "confirmed", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 0, "time": "16:00", "provider_idx": 0, "customer_idx": 8, "service_name": "Online Görüntülü Konsültasyon", "station_idx": 0, "status": "confirmed", "payment_status": "collected", "payment_method": "virtual_pos" },
-      { "day_offset": 1, "time": "10:00", "provider_idx": 0, "customer_idx": 0, "service_name": "Kontrol Muayenesi (10 Gün İçi)", "station_idx": 0, "status": "confirmed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": 1, "time": "13:30", "provider_idx": 1, "customer_idx": 1, "service_name": "Kontrol Muayenesi (10 Gün İçi)", "station_idx": 1, "status": "confirmed", "payment_status": "collected", "payment_method": "cash" },
-      { "day_offset": 1, "time": "15:00", "provider_idx": 1, "customer_idx": 5, "service_name": "Küçük Cerrahi Müdahale & Dikiş", "station_idx": 2, "status": "confirmed", "payment_status": "pending", "payment_method": "physical_pos" },
-      { "day_offset": 2, "time": "10:30", "provider_idx": 0, "customer_idx": 4, "service_name": "Kontrol Muayenesi (10 Gün İçi)", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "cash" },
-      { "day_offset": 2, "time": "14:00", "provider_idx": 1, "customer_idx": 3, "service_name": "Saç & Yüz PRP Tedavisi", "station_idx": 1, "status": "reserved", "payment_status": "pending", "payment_method": "virtual_pos" },
-      { "day_offset": 3, "time": "11:00", "provider_idx": 0, "customer_idx": 2, "service_name": "Uzman Doktor İlk Muayenesi", "station_idx": 0, "status": "reserved", "payment_status": "pending", "payment_method": "physical_pos" }
-    ]
-  }
+    "services": [
+        {
+            "name": "Uzman Doktor İlk Muayenesi",
+            "category": "Uzman Hekim Muayeneleri",
+            "duration": 30,
+            "price": 1200,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#0284c7",
+            "description": "Ayrıntılı anamnez, fiziki muayene, tanı planı ve reçete düzenleme."
+        },
+        {
+            "name": "Kontrol Muayenesi (10 Gün İçi)",
+            "category": "Uzman Hekim Muayeneleri",
+            "duration": 20,
+            "price": 0,
+            "slot_interval": 20,
+            "attendants_number": 1,
+            "color": "#0ea5e9",
+            "description": "İlk muayene sonrası tetkik değerlendirme ve tedavi takibi."
+        },
+        {
+            "name": "Online Görüntülü Konsültasyon",
+            "category": "Uzman Hekim Muayeneleri",
+            "duration": 20,
+            "price": 800,
+            "slot_interval": 20,
+            "attendants_number": 1,
+            "color": "#38bdf8",
+            "description": "Uzaktan güvenli video bağlantı ile tahlil yorumlama ve danışmanlık."
+        },
+        {
+            "name": "Kapsamlı VIP Check-Up Paketi",
+            "category": "Tetkik & Tanı Hizmetleri",
+            "duration": 60,
+            "price": 3500,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#10b981",
+            "description": "Tam kan, hormon, biyokimya, EKG, akciğer grafisi ve hekim raporu."
+        },
+        {
+            "name": "12 Derivasyonlu EKG Çekimi",
+            "category": "Tetkik & Tanı Hizmetleri",
+            "duration": 15,
+            "price": 400,
+            "slot_interval": 15,
+            "attendants_number": 1,
+            "color": "#059669",
+            "description": "Kalp ritim analizi ve kardiyak ön değerlendirme."
+        },
+        {
+            "name": "Küçük Cerrahi Müdahale & Dikiş",
+            "category": "Küçük Cerrahi & Medikal Tedavi",
+            "duration": 45,
+            "price": 2000,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#ef4444",
+            "description": "Lokal anestezi altında ben alımı, kist eksizyonu veya yara süturasyonu."
+        },
+        {
+            "name": "Üst Yüz Botoks Uygulaması",
+            "category": "Medikal Estetik & Mezoterapi",
+            "duration": 30,
+            "price": 2800,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#ec4899",
+            "description": "Alın, kaş arası ve göz çevresi (kaz ayakları) kırışıklık tedavisi."
+        },
+        {
+            "name": "Dudak \/ Nazolabial Dolgu",
+            "category": "Medikal Estetik & Mezoterapi",
+            "duration": 40,
+            "price": 3500,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#db2777",
+            "description": "1 ml hyaluronik asit ile hacim ve kontur belirginleştirme."
+        },
+        {
+            "name": "Saç & Yüz PRP Tedavisi",
+            "category": "Medikal Estetik & Mezoterapi",
+            "duration": 45,
+            "price": 1800,
+            "slot_interval": 30,
+            "attendants_number": 1,
+            "color": "#8b5cf6",
+            "description": "Kişinin kendi kanından elde edilen trombosit yönünden zengin plazma enjeksiyonu."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Muayene Odası 1 (Dahiliye \/ Genel)",
+            "notes": "Muayene masası, tansiyon aleti, otoskop, oftalmoskop"
+        },
+        {
+            "name": "Muayene Odası 2 (Dermatoloji & Estetik)",
+            "notes": "Dermatoskop cihazı, medikal estetik koltuğu, büyüteçli LED lamba"
+        },
+        {
+            "name": "Müdahale & Cerrahi Odası",
+            "notes": "Sterilizasyon otoklavı, cerrahi lambader, elektro koter, oksijen tüpü"
+        },
+        {
+            "name": "Hemşirelik & EKG \/ Kan Alma Odası",
+            "notes": "Santrifüj cihazı, EKG monitörü, kan alma koltuğu"
+        }
+    ],
+    "consumables": [
+        {
+            "name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)",
+            "sku": "SARF-DOC-01",
+            "cost_price": 3.5,
+            "sale_price": 0,
+            "stock_quantity": 300,
+            "low_stock_threshold": 30,
+            "unit": "adet"
+        },
+        {
+            "name": "Steril Nitril Muayene Eldiveni (Pudrasız)",
+            "sku": "SARF-DOC-02",
+            "cost_price": 1.5,
+            "sale_price": 0,
+            "stock_quantity": 500,
+            "low_stock_threshold": 50,
+            "unit": "çift"
+        },
+        {
+            "name": "Ahşap Dil Basacağı (Abeslang)",
+            "sku": "SARF-DOC-03",
+            "cost_price": 0.3,
+            "sale_price": 0,
+            "stock_quantity": 600,
+            "low_stock_threshold": 50,
+            "unit": "adet"
+        },
+        {
+            "name": "Alkol Bazlı El & Cilt Antiseptiği (100ml)",
+            "sku": "SARF-DOC-04",
+            "cost_price": 12,
+            "sale_price": 0,
+            "stock_quantity": 100,
+            "low_stock_threshold": 15,
+            "unit": "adet"
+        },
+        {
+            "name": "Steril Gaz Kompres \/ Bez & Flaster Pedi",
+            "sku": "SARF-DOC-05",
+            "cost_price": 1.2,
+            "sale_price": 0,
+            "stock_quantity": 400,
+            "low_stock_threshold": 40,
+            "unit": "paket"
+        },
+        {
+            "name": "Tek Kullanımlık İnsülin \/ Botoks Enjektörü (30G)",
+            "sku": "SARF-DOC-06",
+            "cost_price": 4.5,
+            "sale_price": 0,
+            "stock_quantity": 250,
+            "low_stock_threshold": 30,
+            "unit": "adet"
+        },
+        {
+            "name": "Tek Kullanımlık PRP Santrifüj Tüpü & Kiti",
+            "sku": "SARF-DOC-07",
+            "cost_price": 180,
+            "sale_price": 0,
+            "stock_quantity": 40,
+            "low_stock_threshold": 10,
+            "unit": "kit"
+        },
+        {
+            "name": "Steril Cerrahi Sütur İpi & Dikiş Kiti",
+            "sku": "SARF-DOC-08",
+            "cost_price": 35,
+            "sale_price": 0,
+            "stock_quantity": 50,
+            "low_stock_threshold": 10,
+            "unit": "kit"
+        }
+    ],
+    "service_consumable_recipes": [
+        {
+            "service_name": "Uzman Doktor İlk Muayenesi",
+            "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Muayene masası örtüsü"
+        },
+        {
+            "service_name": "Uzman Doktor İlk Muayenesi",
+            "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)",
+            "quantity_used": 1,
+            "unit": "çift",
+            "notes": "Hekim muayene eldiveni"
+        },
+        {
+            "service_name": "Uzman Doktor İlk Muayenesi",
+            "product_name": "Ahşap Dil Basacağı (Abeslang)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Boğaz muayenesi"
+        },
+        {
+            "service_name": "Kontrol Muayenesi (10 Gün İçi)",
+            "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Muayene masası örtüsü"
+        },
+        {
+            "service_name": "Kontrol Muayenesi (10 Gün İçi)",
+            "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)",
+            "quantity_used": 1,
+            "unit": "çift",
+            "notes": "Hekim muayene eldiveni"
+        },
+        {
+            "service_name": "Küçük Cerrahi Müdahale & Dikiş",
+            "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Cerrahi masa örtüsü"
+        },
+        {
+            "service_name": "Küçük Cerrahi Müdahale & Dikiş",
+            "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)",
+            "quantity_used": 2,
+            "unit": "çift",
+            "notes": "Hekim ve hemşire eldiveni"
+        },
+        {
+            "service_name": "Küçük Cerrahi Müdahale & Dikiş",
+            "product_name": "Steril Cerrahi Sütur İpi & Dikiş Kiti",
+            "quantity_used": 1,
+            "unit": "kit",
+            "notes": "Steril dikiş kiti"
+        },
+        {
+            "service_name": "Küçük Cerrahi Müdahale & Dikiş",
+            "product_name": "Steril Gaz Kompres \/ Bez & Flaster Pedi",
+            "quantity_used": 2,
+            "unit": "paket",
+            "notes": "Pansuman kapama pedi"
+        },
+        {
+            "service_name": "Üst Yüz Botoks Uygulaması",
+            "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Koltuk örtüsü"
+        },
+        {
+            "service_name": "Üst Yüz Botoks Uygulaması",
+            "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)",
+            "quantity_used": 1,
+            "unit": "çift",
+            "notes": "Hekim eldiveni"
+        },
+        {
+            "service_name": "Üst Yüz Botoks Uygulaması",
+            "product_name": "Tek Kullanımlık İnsülin \/ Botoks Enjektörü (30G)",
+            "quantity_used": 3,
+            "unit": "adet",
+            "notes": "Mikro enjeksiyon uçları"
+        },
+        {
+            "service_name": "Üst Yüz Botoks Uygulaması",
+            "product_name": "Steril Gaz Kompres \/ Bez & Flaster Pedi",
+            "quantity_used": 1,
+            "unit": "paket",
+            "notes": "Buz kompres ve temizleme"
+        },
+        {
+            "service_name": "Saç & Yüz PRP Tedavisi",
+            "product_name": "Tek Kullanımlık Sedye Örtüsü (Lamineli Rulo)",
+            "quantity_used": 1,
+            "unit": "adet",
+            "notes": "Koltuk örtüsü"
+        },
+        {
+            "service_name": "Saç & Yüz PRP Tedavisi",
+            "product_name": "Steril Nitril Muayene Eldiveni (Pudrasız)",
+            "quantity_used": 2,
+            "unit": "çift",
+            "notes": "Kan alma ve uygulama eldiveni"
+        },
+        {
+            "service_name": "Saç & Yüz PRP Tedavisi",
+            "product_name": "Tek Kullanımlık PRP Santrifüj Tüpü & Kiti",
+            "quantity_used": 1,
+            "unit": "kit",
+            "notes": "PRP santrifüj tüpü"
+        },
+        {
+            "service_name": "Saç & Yüz PRP Tedavisi",
+            "product_name": "Tek Kullanımlık İnsülin \/ Botoks Enjektörü (30G)",
+            "quantity_used": 2,
+            "unit": "adet",
+            "notes": "Mezoterapi enjektörü"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Dr. Mehmet",
+            "last_name": "Akar",
+            "email": "demo-doctor_clinic-admin@kibusiness.co",
+            "phone_number": "05432137000",
+            "notes": "Klinik Başhekimi & Dahiliye Uzmanı"
+        },
+        "providers": [
+            {
+                "first_name": "Dr. Mehmet",
+                "last_name": "Akar",
+                "email": "demo-doctor_clinic-uzman1@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Uzm. Dr. İç Hastalıkları (Dahiliye)",
+                "commission_type": "percentage",
+                "commission_value": 50,
+                "services": [
+                    "Uzman Doktor İlk Muayenesi",
+                    "Kontrol Muayenesi (10 Gün İçi)",
+                    "Online Görüntülü Konsültasyon",
+                    "Kapsamlı VIP Check-Up Paketi"
+                ],
+                "stations": [
+                    "Muayene Odası 1 (Dahiliye \/ Genel)"
+                ]
+            },
+            {
+                "first_name": "Dr. Ayşe",
+                "last_name": "Güner",
+                "email": "demo-doctor_clinic-uzman2@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Dermatoloji & Medikal Estetik Hekimi",
+                "commission_type": "percentage",
+                "commission_value": 50,
+                "services": [
+                    "Uzman Doktor İlk Muayenesi",
+                    "Kontrol Muayenesi (10 Gün İçi)",
+                    "Üst Yüz Botoks Uygulaması",
+                    "Dudak \/ Nazolabial Dolgu",
+                    "Saç & Yüz PRP Tedavisi",
+                    "Küçük Cerrahi Müdahale & Dikiş"
+                ],
+                "stations": [
+                    "Muayene Odası 2 (Dermatoloji & Estetik)",
+                    "Müdahale & Cerrahi Odası"
+                ]
+            },
+            {
+                "first_name": "Hemşire Fatma",
+                "last_name": "Bayrak",
+                "email": "demo-doctor_clinic-uzman3@kibusiness.co",
+                "phone_number": "05432137000",
+                "notes": "Sorumlu Hemşire & Tetkik Birimi",
+                "commission_type": "fixed",
+                "commission_value": 50,
+                "services": [
+                    "12 Derivasyonlu EKG Çekimi",
+                    "Kapsamlı VIP Check-Up Paketi"
+                ],
+                "stations": [
+                    "Hemşirelik & EKG \/ Kan Alma Odası"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Hakan",
+                "last_name": "Yılmaz",
+                "email": "demo-doctor_clinic-musteri1@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Hipertansiyon takibi, 6 aylık kontrol"
+            },
+            {
+                "first_name": "Emine",
+                "last_name": "Kara",
+                "email": "demo-doctor_clinic-musteri2@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Botoks ve PRP hastası"
+            },
+            {
+                "first_name": "Mustafa",
+                "last_name": "Çetin",
+                "email": "demo-doctor_clinic-musteri3@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "VIP Check-Up randevusu"
+            },
+            {
+                "first_name": "Gülşen",
+                "last_name": "Öz",
+                "email": "demo-doctor_clinic-musteri4@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Dudak dolgusu konsültasyonu"
+            },
+            {
+                "first_name": "Ramazan",
+                "last_name": "Demir",
+                "email": "demo-doctor_clinic-musteri5@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Şeker ölçümü ve dahiliye muayenesi"
+            },
+            {
+                "first_name": "Sevda",
+                "last_name": "Aksoy",
+                "email": "demo-doctor_clinic-musteri6@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Yara pansumanı & kontrol"
+            },
+            {
+                "first_name": "İbrahim",
+                "last_name": "Koç",
+                "email": "demo-doctor_clinic-musteri7@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Göğüs sıkışması, EKG kontrol"
+            },
+            {
+                "first_name": "Hatice",
+                "last_name": "Şen",
+                "email": "demo-doctor_clinic-musteri8@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Dermatoloji ben muayenesi"
+            },
+            {
+                "first_name": "Osman",
+                "last_name": "Aydın",
+                "email": "demo-doctor_clinic-musteri9@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Online görüntülü konsültasyon"
+            },
+            {
+                "first_name": "Nuray",
+                "last_name": "Polat",
+                "email": "demo-doctor_clinic-musteri10@kibusiness.co",
+                "phone_number": "05062505562",
+                "city": "Bursa",
+                "notes": "Saç mezoterapisi 3. seans"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": -3,
+                "time": "09:30",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Uzman Doktor İlk Muayenesi",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -3,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Üst Yüz Botoks Uygulaması",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -2,
+                "time": "10:30",
+                "provider_idx": 2,
+                "customer_idx": 6,
+                "service_name": "12 Derivasyonlu EKG Çekimi",
+                "station_idx": 3,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": -2,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 6,
+                "service_name": "Uzman Doktor İlk Muayenesi",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "13:30",
+                "provider_idx": 1,
+                "customer_idx": 3,
+                "service_name": "Dudak \/ Nazolabial Dolgu",
+                "station_idx": 1,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": -1,
+                "time": "15:00",
+                "provider_idx": 0,
+                "customer_idx": 4,
+                "service_name": "Uzman Doktor İlk Muayenesi",
+                "station_idx": 0,
+                "status": "completed",
+                "payment_status": "collected",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": 0,
+                "time": "09:00",
+                "provider_idx": 0,
+                "customer_idx": 2,
+                "service_name": "Kapsamlı VIP Check-Up Paketi",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "11:00",
+                "provider_idx": 1,
+                "customer_idx": 7,
+                "service_name": "Uzman Doktor İlk Muayenesi",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 0,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 9,
+                "service_name": "Saç & Yüz PRP Tedavisi",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 0,
+                "time": "16:00",
+                "provider_idx": 0,
+                "customer_idx": 8,
+                "service_name": "Online Görüntülü Konsültasyon",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 1,
+                "time": "10:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Kontrol Muayenesi (10 Gün İçi)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "13:30",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Kontrol Muayenesi (10 Gün İçi)",
+                "station_idx": 1,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 1,
+                "time": "15:00",
+                "provider_idx": 1,
+                "customer_idx": 5,
+                "service_name": "Küçük Cerrahi Müdahale & Dikiş",
+                "station_idx": 2,
+                "status": "confirmed",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            },
+            {
+                "day_offset": 2,
+                "time": "10:30",
+                "provider_idx": 0,
+                "customer_idx": 4,
+                "service_name": "Kontrol Muayenesi (10 Gün İçi)",
+                "station_idx": 0,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "cash"
+            },
+            {
+                "day_offset": 2,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 3,
+                "service_name": "Saç & Yüz PRP Tedavisi",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            },
+            {
+                "day_offset": 3,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 2,
+                "service_name": "Uzman Doktor İlk Muayenesi",
+                "station_idx": 0,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "physical_pos"
+            }
+        ]
+    },
+    "family": "health_clinical",
+    "business_type": "doctor_clinic",
+    "ai_policy": {
+        "brand_name": "Doktor Özel Klinik & Poliklinik",
+        "tone": "formal_empathetic",
+        "language": "tr",
+        "greeting_style": "Merhaba, Doktor Özel Klinik & Poliklinik asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Hasta",
+            "Hekim \/ Doktor",
+            "Muayene \/ Tedavi",
+            "Muayene & Tıbbi İşlem",
+            "Muayene Odası \/ Poliklinik",
+            "Medikal Destek Ürünü",
+            "Sağlık Hizmet Protokolü",
+            "Hasta Randevusu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Hasta' ve 'Muayene & Tıbbi İşlem' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Muayene \/ Tedavilar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Muayene Odası \/ Poliklinik Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Hastalar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Muayene \/ Tedavi",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Hasta",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Muayene \/ Tedavilar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Muayene Odası \/ Poliklinik Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Hasta Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "Klinik Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Klinik başhekimi ve tam yetkili"
+        },
+        {
+            "slug": "clinic_manager",
+            "name": "Klinik Müdürü",
+            "icon": "user-tie",
+            "description": "İdari ve operasyonel yönetim"
+        },
+        {
+            "slug": "doctor",
+            "name": "Hekim \/ Doktor",
+            "icon": "user-md",
+            "description": "Hasta muayenesi, SOAP ve reçete"
+        },
+        {
+            "slug": "nurse",
+            "name": "Hemşire",
+            "icon": "plus-square",
+            "description": "Hasta kabul ve tıbbi destek"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Randevu ve hasta karşılama"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ Tahsilat",
+            "icon": "cash-register",
+            "description": "Fatura ve ödeme işlemleri"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "Klinik",
+            "last_name": "Demo",
+            "email": "demo-doctor_clinic-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "Klinik Sahibi (Owner)"
+        },
+        "clinic_manager": {
+            "first_name": "Klinik",
+            "last_name": "Demo",
+            "email": "demo-doctor_clinic-clinic_manager@kibusiness.co",
+            "role_slug": "clinic_manager",
+            "job_title": "Klinik Müdürü"
+        },
+        "doctor": {
+            "first_name": "Hekim",
+            "last_name": "Demo",
+            "email": "demo-doctor_clinic-doctor@kibusiness.co",
+            "role_slug": "doctor",
+            "job_title": "Hekim \/ Doktor"
+        },
+        "nurse": {
+            "first_name": "Hemşire",
+            "last_name": "Demo",
+            "email": "demo-doctor_clinic-nurse@kibusiness.co",
+            "role_slug": "nurse",
+            "job_title": "Hemşire"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-doctor_clinic-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-doctor_clinic-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ Tahsilat"
+        }
+    }
 }
-

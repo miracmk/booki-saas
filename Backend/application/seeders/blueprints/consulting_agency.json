@@ -1,0 +1,414 @@
+{
+    "industry": {
+        "code": "consulting_agency",
+        "name": "Danışmanlık & Ajans",
+        "icon": "💡",
+        "service_type": "duration",
+        "description": "Yönetim danışmanlığı, dijital strateji, İK ve kurumsal danışmanlık için randevu ve proje yönetim sistemi."
+    },
+    "family": "professional",
+    "business_type": "consulting_agency",
+    "terminology": {
+        "customer": "Danışan Firma \/ Müşteri",
+        "provider": "Danışman \/ Stratejist",
+        "appointment": "Danışmanlık Seansı",
+        "service": "Danışmanlık Modülü",
+        "station": "Toplantı Odası",
+        "product": "Rapor \/ Strateji Dokümanı",
+        "order": "Danışmanlık Sözleşmesi",
+        "reservation": "Randevu",
+        "membership": "Aylık Danışmanlık Paketi",
+        "package": "Seans Paketi",
+        "catalog": "Danışmanlık Kataloğu",
+        "branch": "Ofis \/ Lokasyon",
+        "customer_label": "Müşteri",
+        "provider_label": "Danışman",
+        "appointment_label": "Seans",
+        "station_label": "Toplantı Odası",
+        "service_label": "Danışmanlık Hizmeti"
+    },
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "finance",
+        "invoices",
+        "expenses",
+        "reports",
+        "settings",
+        "crm",
+        "ai_agent"
+    ],
+    "default_settings": {
+        "business_type": "professional",
+        "slot_interval": 30,
+        "future_booking_limit": 60,
+        "require_phone_number": true,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Strateji & Büyüme",
+            "description": "Şirket büyüme, pazara giriş ve dönüşüm danışmanlığı"
+        },
+        {
+            "name": "Operasyonel Mükemmellik",
+            "description": "Süreç analizi, verimlilik ve organizasyonel tasarım"
+        }
+    ],
+    "services": [
+        {
+            "name": "Büyüme Stratejisi Keşif Seansı",
+            "category": "Strateji & Büyüme",
+            "duration": 60,
+            "price": 3000,
+            "color": "#6366f1",
+            "description": "Hedef pazar analizi ve büyüme yol haritası belirleme."
+        },
+        {
+            "name": "Süreç İyileştirme Çalıştayı (2 Saat)",
+            "category": "Operasyonel Mükemmellik",
+            "duration": 120,
+            "price": 6000,
+            "color": "#8b5cf6",
+            "description": "Departman içi iş akışı optimizasyonu çalıştayı."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Strateji Odası A",
+            "notes": "Akıllı tahta donanımlı"
+        },
+        {
+            "name": "Online Görüşme Kabini 1",
+            "notes": "Ses yalıtımlı podcast & video kabini"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Deniz",
+            "last_name": "Aras",
+            "email": "demo-consulting_agency-admin@kibusiness.co",
+            "phone_number": "05332003040",
+            "notes": "Ajans Başkanı"
+        },
+        "providers": [
+            {
+                "first_name": "Mert",
+                "last_name": "Güler",
+                "email": "demo-consulting-danisman1@kibusiness.co",
+                "phone_number": "05332003041",
+                "notes": "Kıdemli Büyüme Danışmanı",
+                "services": [
+                    "Büyüme Stratejisi Keşif Seansı"
+                ],
+                "stations": [
+                    "Strateji Odası A"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Banu",
+                "last_name": "Tekin",
+                "email": "demo-consulting-musteri1@kibusiness.co",
+                "phone_number": "05353004050",
+                "city": "İzmir",
+                "notes": "E-ticaret marka yöneticisi"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": 0,
+                "time": "11:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Büyüme Stratejisi Keşif Seansı",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "iban"
+            }
+        ]
+    },
+    "ai_policy": {
+        "brand_name": "Danışmanlık & Ajans",
+        "tone": "formal_empathetic",
+        "language": "tr",
+        "greeting_style": "Merhaba, Danışmanlık & Ajans asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Danışan Firma \/ Müşteri",
+            "Danışman \/ Stratejist",
+            "Danışmanlık Seansı",
+            "Danışmanlık Modülü",
+            "Toplantı Odası",
+            "Rapor \/ Strateji Dokümanı",
+            "Danışmanlık Sözleşmesi",
+            "Randevu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Danışan Firma \/ Müşteri' ve 'Danışmanlık Modülü' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Danışmanlık Seansılar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Toplantı Odası Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Danışan Firma \/ Müşterilar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Danışmanlık Seansı",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Danışan Firma \/ Müşteri",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Danışmanlık Seansılar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Toplantı Odası Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Danışan Firma \/ Müşteri Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "İşletme Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tam yetkili salon yöneticisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Müdür",
+            "icon": "user-tie",
+            "description": "Operasyon ve ekip yönetimi"
+        },
+        {
+            "slug": "professional",
+            "name": "Uzman \/ Estetisyen",
+            "icon": "magic",
+            "description": "Hizmet ve seans uygulamaları"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Danışan karşılama ve randevu"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ POS",
+            "icon": "cash-register",
+            "description": "Ödeme ve adisyon takibi"
+        },
+        {
+            "slug": "inventory",
+            "name": "Depo \/ Envanter",
+            "icon": "boxes",
+            "description": "Sarf malzeme ve ürün takibi"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "İşletme",
+            "last_name": "Demo",
+            "email": "demo-consulting_agency-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "İşletme Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Müdür",
+            "last_name": "Demo",
+            "email": "demo-consulting_agency-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Müdür"
+        },
+        "professional": {
+            "first_name": "Uzman",
+            "last_name": "Demo",
+            "email": "demo-consulting_agency-professional@kibusiness.co",
+            "role_slug": "professional",
+            "job_title": "Uzman \/ Estetisyen"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-consulting_agency-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-consulting_agency-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ POS"
+        },
+        "inventory": {
+            "first_name": "Depo",
+            "last_name": "Demo",
+            "email": "demo-consulting_agency-inventory@kibusiness.co",
+            "role_slug": "inventory",
+            "job_title": "Depo \/ Envanter"
+        }
+    }
+}

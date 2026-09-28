@@ -1,0 +1,472 @@
+{
+    "industry": {
+        "code": "law_firm",
+        "name": "Hukuk Bürosu & Avukatlık",
+        "icon": "⚖️",
+        "service_type": "duration",
+        "description": "Müvekkil randevuları, dava ve duruşma takibi, hukuki danışmanlık ve zaman çizelgesi yönetimi."
+    },
+    "family": "professional",
+    "business_type": "law_firm",
+    "terminology": {
+        "customer": "Müvekkil",
+        "provider": "Avukat \/ Hukukçu",
+        "appointment": "Danışmanlık \/ Duruşma",
+        "service": "Hukuki Hizmet",
+        "station": "Görüşme Odası",
+        "product": "Dosya \/ Matbu Evrak",
+        "order": "Hizmet Sözleşmesi",
+        "reservation": "Randevu",
+        "membership": "Hukuki Danışmanlık Paketi",
+        "package": "Dava \/ Danışmanlık Paketi",
+        "catalog": "Hukuki Hizmetler",
+        "branch": "Büro \/ Ofis",
+        "customer_label": "Müvekkil",
+        "provider_label": "Avukat",
+        "appointment_label": "Randevu",
+        "station_label": "Görüşme Odası",
+        "service_label": "Hukuki Hizmet"
+    },
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "packages",
+        "finance",
+        "invoices",
+        "expenses",
+        "reports",
+        "settings",
+        "crm",
+        "ai_agent"
+    ],
+    "default_settings": {
+        "business_type": "professional",
+        "slot_interval": 30,
+        "future_booking_limit": 60,
+        "require_phone_number": true,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Hukuki Danışmanlık",
+            "description": "Yüz yüze ve online hukuki danışmanlık seansları"
+        },
+        {
+            "name": "Dava & Uyuşmazlık",
+            "description": "Ticaret, iş ve aile hukuku dava süreçleri"
+        },
+        {
+            "name": "Sözleşme & Uyum",
+            "description": "Sözleşme hazırlama ve KVKK uyum süreçleri"
+        }
+    ],
+    "services": [
+        {
+            "name": "Genel Hukuki Danışmanlık (1 Saat)",
+            "category": "Hukuki Danışmanlık",
+            "duration": 60,
+            "price": 3500,
+            "color": "#1e3a8a",
+            "description": "Kapsamlı hukuki durum analizi ve hukuki görüş."
+        },
+        {
+            "name": "Online Hukuki Danışmanlık (45 Dk)",
+            "category": "Hukuki Danışmanlık",
+            "duration": 45,
+            "price": 2500,
+            "color": "#2563eb",
+            "description": "Görüntülü online hukuki danışmanlık."
+        },
+        {
+            "name": "Sözleşme İnceleme & Revizyon",
+            "category": "Sözleşme & Uyum",
+            "duration": 90,
+            "price": 5000,
+            "color": "#0d9488",
+            "description": "Ticari sözleşmelerin risk analizi ve revizyonu."
+        },
+        {
+            "name": "Dava Dosyası Ön İnceleme",
+            "category": "Dava & Uyuşmazlık",
+            "duration": 60,
+            "price": 4000,
+            "color": "#b45309",
+            "description": "Açılacak veya mevcut davaların delil ve strateji tespiti."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Başkanlık Görüşme Odası",
+            "notes": "Kıdemli ortak görüşme salonu"
+        },
+        {
+            "name": "Görüşme Odası 1 (Adalet)",
+            "notes": "Müvekkil toplantı odası"
+        },
+        {
+            "name": "Toplantı Salonu (Büyük)",
+            "notes": "Arabuluculuk ve çoklu toplantılar"
+        }
+    ],
+    "demo": {
+        "admin": {
+            "first_name": "Kemal",
+            "last_name": "Yıldırım",
+            "email": "demo-law_firm-admin@kibusiness.co",
+            "phone_number": "05321002030",
+            "notes": "Kurucu Ortak Avukat"
+        },
+        "providers": [
+            {
+                "first_name": "Av. Selin",
+                "last_name": "Acar",
+                "email": "demo-law_firm-avukat1@kibusiness.co",
+                "phone_number": "05321002031",
+                "notes": "Ticaret Hukuku Uzmanı",
+                "services": [
+                    "Genel Hukuki Danışmanlık (1 Saat)",
+                    "Sözleşme İnceleme & Revizyon"
+                ],
+                "stations": [
+                    "Görüşme Odası 1 (Adalet)"
+                ]
+            },
+            {
+                "first_name": "Av. Burak",
+                "last_name": "Koç",
+                "email": "demo-law_firm-avukat2@kibusiness.co",
+                "phone_number": "05321002032",
+                "notes": "İş ve Aile Hukuku",
+                "services": [
+                    "Genel Hukuki Danışmanlık (1 Saat)",
+                    "Online Hukuki Danışmanlık (45 Dk)"
+                ],
+                "stations": [
+                    "Başkanlık Görüşme Odası"
+                ]
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Ahmet",
+                "last_name": "Yılmaz",
+                "email": "demo-law_firm-muvekkil1@kibusiness.co",
+                "phone_number": "05051234567",
+                "city": "İstanbul",
+                "notes": "Şirket ortağı"
+            },
+            {
+                "first_name": "Canan",
+                "last_name": "Demir",
+                "email": "demo-law_firm-muvekkil2@kibusiness.co",
+                "phone_number": "05051234568",
+                "city": "Ankara",
+                "notes": "Sözleşme danışmanlığı"
+            }
+        ],
+        "appointments": [
+            {
+                "day_offset": 0,
+                "time": "10:00",
+                "provider_idx": 0,
+                "customer_idx": 0,
+                "service_name": "Genel Hukuki Danışmanlık (1 Saat)",
+                "station_idx": 0,
+                "status": "confirmed",
+                "payment_status": "collected",
+                "payment_method": "iban"
+            },
+            {
+                "day_offset": 1,
+                "time": "14:00",
+                "provider_idx": 1,
+                "customer_idx": 1,
+                "service_name": "Online Hukuki Danışmanlık (45 Dk)",
+                "station_idx": 1,
+                "status": "reserved",
+                "payment_status": "pending",
+                "payment_method": "virtual_pos"
+            }
+        ]
+    },
+    "ai_policy": {
+        "brand_name": "Hukuk Bürosu & Avukatlık",
+        "tone": "formal_empathetic",
+        "language": "tr",
+        "greeting_style": "Merhaba, Hukuk Bürosu & Avukatlık asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Müvekkil",
+            "Avukat \/ Hukukçu",
+            "Danışmanlık \/ Duruşma",
+            "Hukuki Hizmet",
+            "Görüşme Odası",
+            "Dosya \/ Matbu Evrak",
+            "Hizmet Sözleşmesi",
+            "Randevu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Müvekkil' ve 'Hukuki Hizmet' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
+    },
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Danışmanlık \/ Duruşmalar",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Görüşme Odası Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Müvekkillar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Danışmanlık \/ Duruşma",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Müvekkil",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Danışmanlık \/ Duruşmalar",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Görüşme Odası Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Müvekkil Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
+    },
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "İşletme Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tam yetkili salon yöneticisi"
+        },
+        {
+            "slug": "manager",
+            "name": "Müdür",
+            "icon": "user-tie",
+            "description": "Operasyon ve ekip yönetimi"
+        },
+        {
+            "slug": "professional",
+            "name": "Uzman \/ Estetisyen",
+            "icon": "magic",
+            "description": "Hizmet ve seans uygulamaları"
+        },
+        {
+            "slug": "reception",
+            "name": "Resepsiyon",
+            "icon": "concierge-bell",
+            "description": "Danışan karşılama ve randevu"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasa \/ POS",
+            "icon": "cash-register",
+            "description": "Ödeme ve adisyon takibi"
+        },
+        {
+            "slug": "inventory",
+            "name": "Depo \/ Envanter",
+            "icon": "boxes",
+            "description": "Sarf malzeme ve ürün takibi"
+        }
+    ],
+    "demo_users": {
+        "owner": {
+            "first_name": "İşletme",
+            "last_name": "Demo",
+            "email": "demo-law_firm-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "İşletme Sahibi (Owner)"
+        },
+        "manager": {
+            "first_name": "Müdür",
+            "last_name": "Demo",
+            "email": "demo-law_firm-manager@kibusiness.co",
+            "role_slug": "manager",
+            "job_title": "Müdür"
+        },
+        "professional": {
+            "first_name": "Uzman",
+            "last_name": "Demo",
+            "email": "demo-law_firm-professional@kibusiness.co",
+            "role_slug": "professional",
+            "job_title": "Uzman \/ Estetisyen"
+        },
+        "reception": {
+            "first_name": "Resepsiyon",
+            "last_name": "Demo",
+            "email": "demo-law_firm-reception@kibusiness.co",
+            "role_slug": "reception",
+            "job_title": "Resepsiyon"
+        },
+        "cashier": {
+            "first_name": "Kasa",
+            "last_name": "Demo",
+            "email": "demo-law_firm-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasa \/ POS"
+        },
+        "inventory": {
+            "first_name": "Depo",
+            "last_name": "Demo",
+            "email": "demo-law_firm-inventory@kibusiness.co",
+            "role_slug": "inventory",
+            "job_title": "Depo \/ Envanter"
+        }
+    }
+}

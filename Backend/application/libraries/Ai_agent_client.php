@@ -405,11 +405,22 @@ class Ai_agent_client
     private function execute_tool(string $name, array $args): array
     {
         $CI = &get_instance();
+        $CI->load->library('ai_governance_service');
+
+        $user_id = (int) session('user_id');
+        $clearance = $CI->ai_governance_service->authorize_tool($name, $user_id);
+        if ($clearance === 'forbidden') {
+            return ['error' => 'Bu işlem için yetkiniz bulunmamaktadır (AI Governance Policy).'];
+        }
+
         $CI->load->model('customers_model');
         $CI->load->model('appointments_model');
         $CI->load->model('services_model');
         $CI->load->model('providers_model');
         $CI->load->model('roles_model');
+
+        // Controlled Behavioral Learning observation
+        $CI->ai_governance_service->record_observation('tool_executed', ['tool' => $name, 'user_id' => $user_id]);
 
         try {
             switch ($name) {

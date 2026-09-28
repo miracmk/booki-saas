@@ -1,173 +1,477 @@
 {
-  "industry": {
-    "code": "restaurant",
-    "name": "Restoran, Kafe & Bistro",
-    "icon": "🍽️",
-    "service_type": "station",
-    "description": "Restoran, kafe, bistro ve meyhaneler için canlı masa yerleşimi, adisyon, masa rezervasyonu ve deneyim yönetimi."
-  },
-  "terminology": {
-    "customer_label": "Misafir",
-    "provider_label": "Garson / Şef",
-    "appointment_label": "Masa Rezervasyonu",
-    "station_label": "Masa / Bölüm",
-    "service_label": "Menü & Rezervasyon"
-  },
-  "enabled_modules": [
-    "appointments",
-    "calendar",
-    "stations",
-    "adisyon",
-    "pos",
-    "finance",
-    "expenses",
-    "checkin",
-    "reviews",
-    "marketing",
-    "restaurant_floor_plan",
-    "restaurant_reservations",
-    "restaurant_experiences"
-  ],
-  "default_settings": {
+    "industry": {
+        "code": "restaurant",
+        "name": "Restoran, Kafe & Bistro",
+        "icon": "🍽️",
+        "service_type": "station",
+        "description": "Restoran, kafe, bistro ve meyhaneler için canlı masa yerleşimi, adisyon, masa rezervasyonu ve deneyim yönetimi."
+    },
+    "terminology": {
+        "customer": "Misafir",
+        "provider": "Garson \/ Servis Personeli",
+        "appointment": "Masa Rezervasyonu",
+        "service": "Menü & Deneyim",
+        "station": "Masa \/ Bölüm",
+        "product": "Yiyecek & İçecek",
+        "order": "Adisyon \/ Masa Siparişi",
+        "reservation": "Masa Rezervasyonu",
+        "membership": "Müdavim Kulübü",
+        "package": "Fix Menü \/ Tadım Paketi",
+        "catalog": "Restoran Menüsü & Gruplar",
+        "branch": "Restoran \/ Şube",
+        "customer_label": "Misafir",
+        "provider_label": "Garson \/ Şef",
+        "appointment_label": "Masa Rezervasyonu",
+        "station_label": "Masa \/ Bölüm",
+        "service_label": "Menü & Rezervasyon"
+    },
+    "enabled_modules": [
+        "appointments",
+        "calendar",
+        "stations",
+        "adisyon",
+        "pos",
+        "finance",
+        "expenses",
+        "checkin",
+        "reviews",
+        "marketing",
+        "restaurant_floor_plan",
+        "restaurant_reservations",
+        "restaurant_experiences"
+    ],
+    "default_settings": {
+        "business_type": "restaurant",
+        "slot_interval": 30,
+        "future_booking_limit": 30,
+        "require_phone_number": true,
+        "session_deviation_tolerance_minutes": 15,
+        "currency_symbol": "₺",
+        "currency_code": "TRY"
+    },
+    "service_categories": [
+        {
+            "name": "Masa Rezervasyonları",
+            "description": "Öğle ve akşam servisi standart masa rezervasyonları"
+        },
+        {
+            "name": "Şef Deneyimi & Tadım Menüleri",
+            "description": "Şefin özel tadım menüsü ve eşleşmeli gurme tadımlar"
+        },
+        {
+            "name": "Özel Gün & Organizasyon",
+            "description": "Doğum günü, kurumsal yemekler ve VIP oda tahsisi"
+        }
+    ],
+    "services": [
+        {
+            "name": "Akşam Yemeği Rezervasyonu (Standart)",
+            "category": "Masa Rezervasyonları",
+            "duration": 120,
+            "price": 0,
+            "slot_interval": 30,
+            "attendants_number": 4,
+            "color": "#ef4444",
+            "description": "2-4 kişilik ana salon veya bahçe masa rezervasyonu."
+        },
+        {
+            "name": "Şefin Tadım Menüsü (5 Aşamalı)",
+            "category": "Şef Deneyimi & Tadım Menüleri",
+            "duration": 150,
+            "price": 1850,
+            "slot_interval": 30,
+            "attendants_number": 2,
+            "color": "#f59e0b",
+            "description": "Mevsimlik lezzetlerden oluşan 5 aşamalı imza şef tadım menüsü."
+        },
+        {
+            "name": "VIP Salon Özel Kutlama & Akşam Yemeği",
+            "category": "Özel Gün & Organizasyon",
+            "duration": 180,
+            "price": 3500,
+            "slot_interval": 60,
+            "attendants_number": 10,
+            "color": "#8b5cf6",
+            "description": "10 kişiye kadar özel kapalı VIP salon tahsisi ve özel garson servisi."
+        },
+        {
+            "name": "Hafta Sonu Serpme Kahvaltı Rezervasyonu",
+            "category": "Masa Rezervasyonları",
+            "duration": 90,
+            "price": 450,
+            "slot_interval": 30,
+            "attendants_number": 4,
+            "color": "#10b981",
+            "description": "Organik serpme kahvaltı ve sınırsız çay servisi eşliğinde masa rezervasyonu."
+        }
+    ],
+    "stations": [
+        {
+            "name": "Masa 1 (Cam Kenarı)",
+            "notes": "2-4 kişilik ana salon manzaralı masa"
+        },
+        {
+            "name": "Masa 2 (Cam Kenarı)",
+            "notes": "2-4 kişilik ana salon manzaralı masa"
+        },
+        {
+            "name": "Masa 3 (Orta Salon)",
+            "notes": "4-6 kişilik ferah salon masası"
+        },
+        {
+            "name": "Bahçe Masa 10",
+            "notes": "4 kişilik açık hava bahçe masası"
+        },
+        {
+            "name": "VIP Özel Oda",
+            "notes": "10-12 kişilik ses yalıtımlı özel yemek odası"
+        }
+    ],
+    "demo": {
+        "providers": [
+            {
+                "first_name": "Murat",
+                "last_name": "Şef",
+                "email": "murat.sef@demo-restoran.test",
+                "phone_number": "5551110001",
+                "notes": "Baş Şef & Restoran Müdürü"
+            },
+            {
+                "first_name": "Caner",
+                "last_name": "Kaptan",
+                "email": "caner.kaptan@demo-restoran.test",
+                "phone_number": "5551110002",
+                "notes": "Servis Şefi & Sommelier"
+            }
+        ],
+        "customers": [
+            {
+                "first_name": "Kemal",
+                "last_name": "Doğan",
+                "email": "kemal.dogan@example.test",
+                "phone_number": "5552220001"
+            },
+            {
+                "first_name": "Selin",
+                "last_name": "Yıldırım",
+                "email": "selin.yildirim@example.test",
+                "phone_number": "5552220002"
+            }
+        ],
+        "appointments": [
+            {
+                "service_name": "Akşam Yemeği Rezervasyonu (Standart)",
+                "station_name": "Masa 1 (Cam Kenarı)",
+                "days_offset": 0,
+                "time": "19:30:00",
+                "customer_index": 0,
+                "provider_index": 0,
+                "status": "confirmed",
+                "notes": "Cam kenarı tercih edildi, yıl dönümü kutlaması."
+            },
+            {
+                "service_name": "Şefin Tadım Menüsü (5 Aşamalı)",
+                "station_name": "Masa 2 (Cam Kenarı)",
+                "days_offset": 1,
+                "time": "20:00:00",
+                "customer_index": 1,
+                "provider_index": 1,
+                "status": "confirmed",
+                "notes": "Glutensiz ekmek talebi var."
+            }
+        ]
+    },
+    "family": "restaurant_food",
     "business_type": "restaurant",
-    "slot_interval": 30,
-    "future_booking_limit": 30,
-    "require_phone_number": true,
-    "session_deviation_tolerance_minutes": 15,
-    "currency_symbol": "₺",
-    "currency_code": "TRY"
-  },
-  "service_categories": [
-    {
-      "name": "Masa Rezervasyonları",
-      "description": "Öğle ve akşam servisi standart masa rezervasyonları"
+    "ai_policy": {
+        "brand_name": "Restoran, Kafe & Bistro",
+        "tone": "friendly_professional",
+        "language": "tr",
+        "greeting_style": "Merhaba, Restoran, Kafe & Bistro asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "allowed_terms": [
+            "Misafir",
+            "Garson \/ Servis Personeli",
+            "Masa Rezervasyonu",
+            "Menü & Deneyim",
+            "Masa \/ Bölüm",
+            "Yiyecek & İçecek",
+            "Adisyon \/ Masa Siparişi",
+            "Masa Rezervasyonu"
+        ],
+        "forbidden_terms": [
+            "garantili sonuç",
+            "yüzde yüz kesin",
+            "hukuki taahhüt",
+            "tıbbi teşhis"
+        ],
+        "do_rules": [
+            "Her zaman 'Misafir' ve 'Menü & Deneyim' terminolojisini kullan.",
+            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+        ],
+        "dont_rules": [
+            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+            "Onaysız veri silme veya para iadesi işlemi yapma.",
+            "Tıbbi reçete veya hukuki kesin taahhüt verme."
+        ],
+        "business_rules": {
+            "allow_online_booking": true,
+            "max_advance_days": 60,
+            "require_phone": true
+        },
+        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+        "escalation_rules": {
+            "medical": {
+                "trigger_keywords": [
+                    "ilaç",
+                    "yan etki",
+                    "alerji",
+                    "kanama",
+                    "enfeksiyon",
+                    "ağrı"
+                ],
+                "action": "escalate_to_doctor"
+            },
+            "legal": {
+                "trigger_keywords": [
+                    "dava",
+                    "ihtarname",
+                    "avukat",
+                    "tazminat",
+                    "mahkeme"
+                ],
+                "action": "escalate_to_lawyer"
+            },
+            "payment": {
+                "trigger_keywords": [
+                    "fazla çekim",
+                    "dolandırıcılık",
+                    "itiraz",
+                    "chargeback"
+                ],
+                "action": "escalate_to_manager"
+            },
+            "angry_customer": {
+                "trigger_keywords": [
+                    "şikayetçiyim",
+                    "berbat",
+                    "dava edeceğim",
+                    "rezalet",
+                    "tüketici hakem"
+                ],
+                "action": "escalate_to_owner"
+            },
+            "uncertainty": {
+                "threshold": 0.65,
+                "action": "escalate_to_staff"
+            }
+        },
+        "allowed_actions": [
+            "search_customers",
+            "get_customer",
+            "list_appointments",
+            "get_services",
+            "check_availability"
+        ],
+        "approval_required_actions": [
+            "propose_appointment_create",
+            "propose_appointment_update",
+            "propose_appointment_cancel",
+            "propose_customer_update"
+        ],
+        "forbidden_actions": [
+            "direct_delete_customer",
+            "direct_refund_payment",
+            "change_security_settings"
+        ]
     },
-    {
-      "name": "Şef Deneyimi & Tadım Menüleri",
-      "description": "Şefin özel tadım menüsü ve eşleşmeli gurme tadımlar"
+    "dashboard": {
+        "owner": {
+            "kpis": [
+                {
+                    "key": "today_appointments",
+                    "label": "Bugünkü Masa Rezervasyonular",
+                    "icon": "calendar-check",
+                    "color": "primary"
+                },
+                {
+                    "key": "today_revenue",
+                    "label": "Bugünkü Hasılat",
+                    "icon": "wallet",
+                    "color": "success"
+                },
+                {
+                    "key": "active_sessions",
+                    "label": "Canlı Masa \/ Bölüm Doluluğu",
+                    "icon": "door-open",
+                    "color": "info"
+                },
+                {
+                    "key": "customer_growth",
+                    "label": "Yeni Misafirlar",
+                    "icon": "user-plus",
+                    "color": "warning"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "+ Yeni Masa Rezervasyonu",
+                    "route": "calendar",
+                    "icon": "calendar-plus",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Yeni Misafir",
+                    "route": "customers",
+                    "icon": "user-plus",
+                    "class": "btn-success"
+                },
+                {
+                    "label": "⚡ Hızlı Satış",
+                    "route": "pos",
+                    "icon": "cash-register",
+                    "class": "btn-warning"
+                },
+                {
+                    "label": "📊 Günlük Rapor",
+                    "route": "reports",
+                    "icon": "chart-line",
+                    "class": "btn-info"
+                }
+            ]
+        },
+        "staff": {
+            "kpis": [
+                {
+                    "key": "my_today_appointments",
+                    "label": "Bugünkü Programım",
+                    "icon": "calendar-day",
+                    "color": "primary"
+                },
+                {
+                    "key": "my_completed_tasks",
+                    "label": "Tamamlanan Masa Rezervasyonular",
+                    "icon": "check-circle",
+                    "color": "success"
+                },
+                {
+                    "key": "my_station_status",
+                    "label": "Masa \/ Bölüm Durumu",
+                    "icon": "door-open",
+                    "color": "info"
+                }
+            ],
+            "quick_actions": [
+                {
+                    "label": "📅 Takvimim",
+                    "route": "calendar",
+                    "icon": "calendar",
+                    "class": "btn-primary"
+                },
+                {
+                    "label": "+ Misafir Notu Ekle",
+                    "route": "customers",
+                    "icon": "file-alt",
+                    "class": "btn-outline-primary"
+                }
+            ]
+        }
     },
-    {
-      "name": "Özel Gün & Organizasyon",
-      "description": "Doğum günü, kurumsal yemekler ve VIP oda tahsisi"
-    }
-  ],
-  "services": [
-    {
-      "name": "Akşam Yemeği Rezervasyonu (Standart)",
-      "category": "Masa Rezervasyonları",
-      "duration": 120,
-      "price": 0.00,
-      "slot_interval": 30,
-      "attendants_number": 4,
-      "color": "#ef4444",
-      "description": "2-4 kişilik ana salon veya bahçe masa rezervasyonu."
-    },
-    {
-      "name": "Şefin Tadım Menüsü (5 Aşamalı)",
-      "category": "Şef Deneyimi & Tadım Menüleri",
-      "duration": 150,
-      "price": 1850.00,
-      "slot_interval": 30,
-      "attendants_number": 2,
-      "color": "#f59e0b",
-      "description": "Mevsimlik lezzetlerden oluşan 5 aşamalı imza şef tadım menüsü."
-    },
-    {
-      "name": "VIP Salon Özel Kutlama & Akşam Yemeği",
-      "category": "Özel Gün & Organizasyon",
-      "duration": 180,
-      "price": 3500.00,
-      "slot_interval": 60,
-      "attendants_number": 10,
-      "color": "#8b5cf6",
-      "description": "10 kişiye kadar özel kapalı VIP salon tahsisi ve özel garson servisi."
-    },
-    {
-      "name": "Hafta Sonu Serpme Kahvaltı Rezervasyonu",
-      "category": "Masa Rezervasyonları",
-      "duration": 90,
-      "price": 450.00,
-      "slot_interval": 30,
-      "attendants_number": 4,
-      "color": "#10b981",
-      "description": "Organik serpme kahvaltı ve sınırsız çay servisi eşliğinde masa rezervasyonu."
-    }
-  ],
-  "stations": [
-    {
-      "name": "Masa 1 (Cam Kenarı)",
-      "notes": "2-4 kişilik ana salon manzaralı masa"
-    },
-    {
-      "name": "Masa 2 (Cam Kenarı)",
-      "notes": "2-4 kişilik ana salon manzaralı masa"
-    },
-    {
-      "name": "Masa 3 (Orta Salon)",
-      "notes": "4-6 kişilik ferah salon masası"
-    },
-    {
-      "name": "Bahçe Masa 10",
-      "notes": "4 kişilik açık hava bahçe masası"
-    },
-    {
-      "name": "VIP Özel Oda",
-      "notes": "10-12 kişilik ses yalıtımlı özel yemek odası"
-    }
-  ],
-  "demo": {
-    "providers": [
-      {
-        "first_name": "Murat",
-        "last_name": "Şef",
-        "email": "murat.sef@demo-restoran.test",
-        "phone_number": "5551110001",
-        "notes": "Baş Şef & Restoran Müdürü"
-      },
-      {
-        "first_name": "Caner",
-        "last_name": "Kaptan",
-        "email": "caner.kaptan@demo-restoran.test",
-        "phone_number": "5551110002",
-        "notes": "Servis Şefi & Sommelier"
-      }
+    "demo_roles": [
+        {
+            "slug": "owner",
+            "name": "İşletme Sahibi (Owner)",
+            "icon": "crown",
+            "description": "Tüm restoran, finans ve operasyon yetkisi"
+        },
+        {
+            "slug": "general_manager",
+            "name": "Genel Müdür",
+            "icon": "user-tie",
+            "description": "Operasyonel ve şube yönetimi"
+        },
+        {
+            "slug": "floor_manager",
+            "name": "Salon Şefi",
+            "icon": "tasks",
+            "description": "Masa planı, rezervasyon ve servis akışı"
+        },
+        {
+            "slug": "waiter",
+            "name": "Garson",
+            "icon": "utensils",
+            "description": "Masa siparişi, adisyon ve servis"
+        },
+        {
+            "slug": "cashier",
+            "name": "Kasiyer",
+            "icon": "cash-register",
+            "description": "Kasa tahsilatı ve hesap kapatma"
+        },
+        {
+            "slug": "kitchen",
+            "name": "Mutfak (KDS)",
+            "icon": "fire",
+            "description": "Gelen sipariş hazırlama ekranı"
+        },
+        {
+            "slug": "bar",
+            "name": "Bar Personeli",
+            "icon": "cocktail",
+            "description": "Bar ve içecek sipariş ekranı"
+        }
     ],
-    "customers": [
-      {
-        "first_name": "Kemal",
-        "last_name": "Doğan",
-        "email": "kemal.dogan@example.test",
-        "phone_number": "5552220001"
-      },
-      {
-        "first_name": "Selin",
-        "last_name": "Yıldırım",
-        "email": "selin.yildirim@example.test",
-        "phone_number": "5552220002"
-      }
-    ],
-    "appointments": [
-      {
-        "service_name": "Akşam Yemeği Rezervasyonu (Standart)",
-        "station_name": "Masa 1 (Cam Kenarı)",
-        "days_offset": 0,
-        "time": "19:30:00",
-        "customer_index": 0,
-        "provider_index": 0,
-        "status": "confirmed",
-        "notes": "Cam kenarı tercih edildi, yıl dönümü kutlaması."
-      },
-      {
-        "service_name": "Şefin Tadım Menüsü (5 Aşamalı)",
-        "station_name": "Masa 2 (Cam Kenarı)",
-        "days_offset": 1,
-        "time": "20:00:00",
-        "customer_index": 1,
-        "provider_index": 1,
-        "status": "confirmed",
-        "notes": "Glutensiz ekmek talebi var."
-      }
-    ]
-  }
+    "demo_users": {
+        "owner": {
+            "first_name": "İşletme",
+            "last_name": "Demo",
+            "email": "demo-restaurant-owner@kibusiness.co",
+            "role_slug": "owner",
+            "job_title": "İşletme Sahibi (Owner)"
+        },
+        "general_manager": {
+            "first_name": "Genel",
+            "last_name": "Demo",
+            "email": "demo-restaurant-general_manager@kibusiness.co",
+            "role_slug": "general_manager",
+            "job_title": "Genel Müdür"
+        },
+        "floor_manager": {
+            "first_name": "Salon",
+            "last_name": "Demo",
+            "email": "demo-restaurant-floor_manager@kibusiness.co",
+            "role_slug": "floor_manager",
+            "job_title": "Salon Şefi"
+        },
+        "waiter": {
+            "first_name": "Garson",
+            "last_name": "Demo",
+            "email": "demo-restaurant-waiter@kibusiness.co",
+            "role_slug": "waiter",
+            "job_title": "Garson"
+        },
+        "cashier": {
+            "first_name": "Kasiyer",
+            "last_name": "Demo",
+            "email": "demo-restaurant-cashier@kibusiness.co",
+            "role_slug": "cashier",
+            "job_title": "Kasiyer"
+        },
+        "kitchen": {
+            "first_name": "Mutfak",
+            "last_name": "Demo",
+            "email": "demo-restaurant-kitchen@kibusiness.co",
+            "role_slug": "kitchen",
+            "job_title": "Mutfak (KDS)"
+        },
+        "bar": {
+            "first_name": "Bar",
+            "last_name": "Demo",
+            "email": "demo-restaurant-bar@kibusiness.co",
+            "role_slug": "bar",
+            "job_title": "Bar Personeli"
+        }
+    }
 }
-
