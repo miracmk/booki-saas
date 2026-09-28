@@ -3,6 +3,23 @@
 This file contains the code changes that were introduced into each release so that it is easy for
 developers to maintain and readjust their custom modifications on the main project codebase.
 
+## [Wave 4 / Faz 4.0] - 2026-09-28
+
+### Added
+
+- **Unified Settings Center (`/settings`)**: High-performance, schema-driven settings management replacing 8+ fragmented legacy pages with a modern tabbed layout.
+  - 6 Core Sections: Business & Identity, Booking Rules, Communication, Integrations, Legal & Privacy, Security & Admin.
+  - Full working plan management: Weekly working hours (Mon-Sun toggles & time pickers), company-wide breaks, holidays & blocked periods (`ea_blocked_periods`) with modal add and delete actions, staff working exceptions (`ea_working_plan_exceptions`) card, and one-click "Sync Schedule to All Staff".
+  - Developer & MCP Integration tab: masked Agent API key, click-to-reveal with permission check and audit log, key rotation with confirmation modal, and MCP server health ping check.
+  - In-card instant save buttons on every subtab header plus global floating change bar.
+  - Complete dual-language localization (Turkish and English) across all keys and descriptions.
+
+### Fixed
+
+- **Settings Save Persistence**: Whitelisted `settings/api/.*` in `csrf_exclude_uris` and included both `X-CSRF-Token` and `csrf_token` in JSON request payloads to eliminate 403 CSRF rejections.
+- **Empty Working Exceptions & Hours**: Connected `blocked_periods_model`, `working_plan_exceptions_model`, and `providers_model` to provide full CRUD capabilities within the Business Hours subtab.
+- **Ai_channel_responder Prompt Warning**: Added missing `$booking_url` fallback (`setting('company_link') ?: site_url()`) resolving PHP warnings in integration test suites.
+
 ## [Wave 3 / Faz 3.5] - 2026-09-10
 
 ### Added
