@@ -38,6 +38,11 @@ class Config {
 }
 EOF
 
+# Ensure Backend/config.php is synchronized with the generated config
+if [ -d "/var/www/html/Backend" ]; then
+    cp /var/www/html/config.php /var/www/html/Backend/config.php
+fi
+
 # Email Config
 
 cat <<EOF >/var/www/html/application/config/email.php
@@ -63,6 +68,10 @@ cat <<EOF >/var/www/html/application/config/email.php
 \$config['crlf'] = "\r\n";
 \$config['newline'] = "\r\n";
 EOF
+
+if [ -d "/var/www/html/Backend/application/config" ]; then
+    cp /var/www/html/application/config/email.php /var/www/html/Backend/application/config/email.php 2>/dev/null || true
+fi
 
 # Ki Reservation (2026-08-26) - unlike Salon Flora's own standalone deployment (one fixed domain,
 # where forcing base_url makes sense), this is the multi-tenant SaaS instance: config.php ALREADY

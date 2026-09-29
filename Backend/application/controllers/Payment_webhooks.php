@@ -65,7 +65,6 @@ class Payment_webhooks extends App_Controller
      */
     public function iyzico(): void
     {
-        $this->handle_webhook('iyzico');
         $this->callback('iyzico');
     }
 
@@ -74,7 +73,6 @@ class Payment_webhooks extends App_Controller
      */
     public function paytr(): void
     {
-        $this->handle_webhook('paytr');
         $this->callback('paytr');
     }
 
@@ -83,7 +81,6 @@ class Payment_webhooks extends App_Controller
      */
     public function stripe(): void
     {
-        $this->handle_webhook('stripe');
         $this->callback('stripe');
     }
 
