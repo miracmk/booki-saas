@@ -76,6 +76,7 @@ class Services_model extends App_Model
      */
     public function save(array $service): int
     {
+        $this->sanitize($service);
         $this->validate($service);
 
         if (empty($service['id'])) {
@@ -86,13 +87,84 @@ class Services_model extends App_Model
     }
 
     /**
+     * Sanitize fields to prevent MySQL strict mode errors (e.g. empty string for integer/decimal columns).
+     *
+     * @param array $service Associative array with service data passed by reference.
+     */
+    protected function sanitize(array &$service): void
+    {
+        $nullable_integers = ['id_service_categories', 'daily_capacity'];
+        foreach ($nullable_integers as $field) {
+            if (array_key_exists($field, $service)) {
+                if ($service[$field] === '' || $service[$field] === null || $service[$field] === 'null') {
+                    $service[$field] = null;
+                } else {
+                    $service[$field] = (int) $service[$field];
+                }
+            }
+        }
+
+        $nature = $service['service_nature'] ?? $service['access_type'] ?? 'duration';
+        $requires_duration = in_array($nature, ['duration', 'packaged', 'quantity_timed', 'provider_custom_duration'], true);
+
+        if ($requires_duration) {
+            $service['duration'] = (isset($service['duration']) && $service['duration'] !== '') ? (int) $service['duration'] : 60;
+            $service['slot_interval'] = !empty($service['slot_interval']) ? (int) $service['slot_interval'] : 15;
+            $service['attendants_number'] = !empty($service['attendants_number']) ? (int) $service['attendants_number'] : 1;
+        } else {
+            $service['duration'] = ($nature === 'daily_pass') ? 480 : 0;
+            $service['slot_interval'] = 15;
+            $service['attendants_number'] = 1;
+        }
+
+        if (array_key_exists('total_passes', $service)) {
+            $service['total_passes'] = ($service['total_passes'] === '' || $service['total_passes'] === null) ? 1 : (int) $service['total_passes'];
+        }
+
+        if (array_key_exists('pass_validity_days', $service)) {
+            $service['pass_validity_days'] = ($service['pass_validity_days'] === '' || $service['pass_validity_days'] === null) ? 30 : (int) $service['pass_validity_days'];
+        }
+
+        if (array_key_exists('price', $service)) {
+            $service['price'] = ($service['price'] === '' || $service['price'] === null) ? 0.00 : (float) $service['price'];
+        }
+
+        if (array_key_exists('tax_rate', $service)) {
+            $service['tax_rate'] = ($service['tax_rate'] === '' || $service['tax_rate'] === null) ? 20.00 : (float) $service['tax_rate'];
+        }
+
+        if (array_key_exists('is_private', $service)) {
+            $service['is_private'] = !empty($service['is_private']) ? 1 : 0;
+        }
+
+        if (array_key_exists('follow_up_required', $service)) {
+            $service['follow_up_required'] = !empty($service['follow_up_required']) ? 1 : 0;
+        }
+
+        $nullable_strings = ['follow_up_category', 'follow_up_priority', 'follow_up_delay_override', 'follow_up_message_override', 'location', 'description'];
+        foreach ($nullable_strings as $field) {
+            if (array_key_exists($field, $service) && $service[$field] === '') {
+                $service[$field] = null;
+            }
+        }
+
+        if (isset($service['provider_durations']) && is_array($service['provider_durations'])) {
+            $service['provider_durations'] = json_encode($service['provider_durations'], JSON_UNESCAPED_UNICODE);
+        }
+
+        if (isset($service['crm_follow_up_rules']) && is_array($service['crm_follow_up_rules'])) {
+            $service['crm_follow_up_rules'] = json_encode($service['crm_follow_up_rules'], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    /**
      * Validate the service data.
      *
      * @param array $service Associative array with the service data.
      *
      * @throws InvalidArgumentException
      */
-    public function validate(array $service): void
+    public function validate(array &$service): void
     {
         // If a service ID is provided then check whether the record really exists in the database.
         if (!empty($service['id'])) {
@@ -145,7 +217,7 @@ class Services_model extends App_Model
         } else {
             // For non-timed services, populate safe fallbacks so DB constraints don't fail
             if (empty($service['duration'])) {
-                $service['duration'] = 0;
+                $service['duration'] = ($nature === 'daily_pass') ? 480 : 0;
             }
             if (empty($service['slot_interval'])) {
                 $service['slot_interval'] = 15;
@@ -291,6 +363,12 @@ class Services_model extends App_Model
             $service['provider_durations'] = json_decode($service['provider_durations'], true) ?: [];
         } elseif (empty($service['provider_durations'])) {
             $service['provider_durations'] = [];
+        }
+
+        if (!empty($service['crm_follow_up_rules']) && is_string($service['crm_follow_up_rules'])) {
+            $service['crm_follow_up_rules'] = json_decode($service['crm_follow_up_rules'], true) ?: [];
+        } elseif (empty($service['crm_follow_up_rules'])) {
+            $service['crm_follow_up_rules'] = [];
         }
 
         return $service;

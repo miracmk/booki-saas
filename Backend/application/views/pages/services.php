@@ -383,9 +383,9 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold small text-dark" for="follow-up-category">
-                                <i class="fas fa-stethoscope me-1 text-info"></i>Takip Protokolü / SOAP Türü *
+                                <i class="fas fa-stethoscope me-1 text-info"></i>Ana Takip Protokolü / SOAP Türü *
                             </label>
-                            <select id="follow-up-category" class="form-select" disabled>
+                            <select id="follow-up-category" class="form-select">
                                 <option value="medical_reaction">🩺 Klinik SOAP & Reaksiyon/Komplikasyon Kontrolü (Hekim/Klinik)</option>
                                 <option value="medical_protocol">💊 İlaç Kullanımı & Tedavi Protokolü ("İlacınızı içmeyi unutmayın")</option>
                                 <option value="photo_checkin">📸 Görsel / Fotoğraf Durum Kontrolü ("Cildinizdeki durum nedir? Fotoğraf paylaşınız")</option>
@@ -394,38 +394,37 @@
                                 <option value="routine_check">📅 Periyodik Kontrol & Seans Geri Çağırma (Kontrol Randevusu)</option>
                                 <option value="retention_marketing">🔄 Paket Seans Tüketim & Yenileme Hatırlatması</option>
                             </select>
-                            <div class="form-text small text-muted">Hizmet tamamlandığında hastaya/danışana iletilecek klinik takip protokolü.</div>
+                            <div class="form-text small text-muted">Hizmet tamamlandığında danışana uygulanacak birincil klinik veya operasyonel takip.</div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold small text-dark" for="follow-up-priority">
                                 <i class="fas fa-shield-alt me-1 text-warning"></i>Öncelik Derecesi
                             </label>
-                            <select id="follow-up-priority" class="form-select" disabled>
+                            <select id="follow-up-priority" class="form-select">
                                 <option value="critical">🚨 Kritik (Tıbbi / Opt-out Bypass)</option>
                                 <option value="standard" selected>⭐ Standart (Önemli Takip)</option>
                                 <option value="optional">ℹ️ İsteğe Bağlı</option>
                             </select>
-                            <div class="form-text small text-muted">Kritik takipler hastanın pazarlama onayından bağımsız tıbbi güvenlik için iletilir.</div>
+                            <div class="form-text small text-muted">Kritik takipler hastanın tıbbi güvenliği için iletilir.</div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold small text-dark" for="follow-up-delay-override">
-                                <i class="fas fa-hourglass-half me-1 text-secondary"></i>Tetiklenme Zamanı
+                                <i class="fas fa-hourglass-half me-1 text-secondary"></i>Varsayılan Tetiklenme
                             </label>
-                            <input type="text" id="follow-up-delay-override" class="form-control" placeholder="Örn: 24 hours" value="24 hours" disabled>
+                            <input type="text" id="follow-up-delay-override" class="form-control" placeholder="Örn: 24 hours" value="24 hours">
                             <div class="mt-1 d-flex flex-wrap gap-1">
                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-quick-delay" data-delay="0 minutes">Hemen</button>
                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-quick-delay" data-delay="2 hours">2 Saat</button>
                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-quick-delay" data-delay="24 hours">24 Saat</button>
-                                <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-quick-delay" data-delay="48 hours">48 Saat</button>
                                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-quick-delay" data-delay="3 days">3 Gün</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label fw-bold small text-dark mb-0" for="follow-up-message-override">
-                                <i class="fab fa-whatsapp text-success me-1"></i>WhatsApp / SMS Takip Mesajı Şablonu
+                                <i class="fab fa-whatsapp text-success me-1"></i>Varsayılan Takip Mesajı Şablonu
                             </label>
                             <div class="btn-group btn-group-sm">
                                 <button type="button" class="btn btn-outline-primary btn-xs py-0 btn-template-pill" data-type="medication">
@@ -439,10 +438,39 @@
                                 </button>
                             </div>
                         </div>
-                        <textarea id="follow-up-message-override" rows="3" class="form-control" placeholder="Örn: Sayın {{customer_name}}, {{service_name}} işlemi sonrası hekiminizin reçete ettiği ilaçları saatinde almayı lütfen unutmayınız..." disabled></textarea>
-                        <div class="form-text small text-muted d-flex justify-content-between align-items-center mt-1">
-                            <span>Dinamik Değişkenler: <code>{{customer_name}}</code>, <code>{{service_name}}</code>, <code>{{provider_name}}</code>, <code>{{booking_url}}</code></span>
-                            <span class="badge bg-light text-secondary border">Follow-Up Engine Entegre</span>
+                        <textarea id="follow-up-message-override" rows="2" class="form-control" placeholder="Örn: Sayın {{customer_name}}, {{service_name}} işlemi sonrası hekiminizin reçete ettiği ilaçları saatinde almayı lütfen unutmayınız..."></textarea>
+                    </div>
+
+                    <!-- Takip Adımları & Otomasyon Zaman Çizelgesi -->
+                    <div class="card border border-primary border-opacity-25 rounded-3 mb-2">
+                        <div class="card-header bg-primary bg-opacity-10 py-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-primary small"><i class="fas fa-list-ol me-2"></i>Klinik Takip Adımları ve Zaman Çizelgesi</span>
+                                <small class="text-muted d-block" style="font-size:11px;">Hizmet sonrası belirlenen saat ve günlerde otomatik iletilecek adımları düzenleyin</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-primary py-1 px-2" id="btn-add-follow-up-modal">
+                                    <i class="fas fa-plus me-1"></i>Yeni Adım Ekle
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="service-follow-up-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 25%;">Tetikleyici</th>
+                                            <th style="width: 15%;">Zamanlama</th>
+                                            <th style="width: 15%;">Kanal</th>
+                                            <th style="width: 35%;">Eylem / Mesaj</th>
+                                            <th style="width: 10%;" class="text-end">İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="text-muted text-center py-3"><td colspan="5">Kayıtlı takip adımı bulunamadı.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -527,15 +555,16 @@
     </div>
 </div>
 
-<!-- Modal: Yeni Takip Kuralı (CRM & Follow-up) Ekle -->
+<!-- Modal: Yeni / Düzenle Takip Kuralı & Adımı (CRM & Follow-up) -->
 <div class="modal fade" id="modal-follow-up-form" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-paper-plane text-success me-2"></i>Yeni CRM Takip Kuralı Ekle</h5>
+                <h5 class="modal-title" id="modal-follow-up-title"><i class="fas fa-notes-medical text-primary me-2"></i>Takip Adımı Düzenle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="follow-up-rule-index" value="-1">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Tetikleyici Olay *</label>
                     <select class="form-select" id="follow-up-trigger-select">
@@ -547,42 +576,56 @@
                 </div>
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <label class="form-label fw-semibold">Zamanlama / Gecikme</label>
+                        <label class="form-label fw-semibold">Zamanlama / Gecikme *</label>
                         <select class="form-select" id="follow-up-delay-select">
                             <option value="immediate">Hemen (0 dk)</option>
                             <option value="2_hours">2 Saat Sonra</option>
-                            <option value="24_hours">24 Saat Sonra</option>
-                            <option value="3_days" selected>3 Gün Sonra</option>
+                            <option value="12_hours">12 Saat Sonra</option>
+                            <option value="24_hours" selected>24 Saat Sonra</option>
+                            <option value="48_hours">48 Saat Sonra</option>
+                            <option value="3_days">3 Gün Sonra</option>
                             <option value="1_week">1 Hafta Sonra</option>
                             <option value="30_days">30 Gün Sonra</option>
                         </select>
                     </div>
                     <div class="col-6">
-                        <label class="form-label fw-semibold">İletişim Kanalı</label>
+                        <label class="form-label fw-semibold">İletişim Kanalı *</label>
                         <select class="form-select" id="follow-up-channel-select">
-                            <option value="sms">📱 SMS</option>
                             <option value="whatsapp">💬 WhatsApp</option>
+                            <option value="sms">📱 SMS</option>
                             <option value="email">✉️ E-Posta</option>
                         </select>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Otomasyon Eylemi *</label>
+                    <label class="form-label fw-semibold">Otomasyon Eylemi / Protokol Türü *</label>
                     <select class="form-select" id="follow-up-action-select">
-                        <option value="review_nps">⭐ Memnuniyet & NPS Anketi Gönder</option>
-                        <option value="renewal_reminder">🔄 Paket Yenileme & Özel Teklif Gönder</option>
+                        <option value="medical_protocol">💊 İlaç Kullanımı & Tedavi Protokolü Hatırlatması</option>
+                        <option value="medical_reaction">🩺 Klinik SOAP & Reaksiyon/Ağrı Kontrolü</option>
+                        <option value="photo_checkin">📸 Görsel / Fotoğraf Durum Kontrolü (Fotoğraf Talebi)</option>
+                        <option value="aftercare_safety">🛡️ Bakım Sonrası Talimatları & Güvenlik</option>
+                        <option value="review_nps">⭐ Memnuniyet & NPS Anketi</option>
+                        <option value="renewal_reminder">🔄 Paket Yenileme & Özel Teklif</option>
                         <option value="tag_vip">🏷️ Müşteriye "VIP" Etiketi Ekle</option>
-                        <option value="aftercare_safety">🩺 Bakım / Seans Sonrası Talimatları Gönder</option>
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Mesaj Şablonu / Notu</label>
-                    <textarea class="form-control" id="follow-up-message-input" rows="2" placeholder="Örn: Merhaba Sayın {customer_name}, {service_name} bakımımızdan memnun kaldınız mı? Puanlamak için tıklayın..."></textarea>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label fw-semibold mb-0">Mesaj Metni / Talimat *</label>
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-insert-var" data-var="{{customer_name}}">+ Danışan</button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-insert-var" data-var="{{service_name}}">+ Hizmet</button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 btn-insert-var" data-var="{{provider_name}}">+ Uzman</button>
+                        </div>
+                    </div>
+                    <textarea class="form-control" id="follow-up-message-input" rows="3" placeholder="Örn: Merhaba Sayın {{customer_name}}, {{service_name}} işlemi sonrasında..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-success" id="btn-save-follow-up-submit">Kuralı Kaydet</button>
+                <button type="button" class="btn btn-primary" id="btn-save-follow-up-submit">
+                    <i class="fas fa-check me-1"></i>Adımı Kaydet
+                </button>
             </div>
         </div>
     </div>

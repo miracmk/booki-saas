@@ -179,32 +179,35 @@ App.Pages.Services = (function () {
         $services.on('click', '#save-service', () => {
             const nature = $serviceNature.val() || 'duration';
             const isFollowUp = Number($('#follow-up-required').prop('checked'));
+            const catVal = $serviceCategoryId.val();
             const service = {
-                name: $name.val(),
+                name: $name.val() ? $name.val().trim() : '',
                 service_nature: nature,
                 access_type: nature,
                 accessType: nature,
-                tax_rate: $taxRate.val() || '20.00',
-                price: $price.val(),
-                currency: $currency.val(),
-                description: $description.val(),
-                location: $location.val(),
+                tax_rate: ($taxRate.val() !== '' && $taxRate.val() !== null) ? Number($taxRate.val()) : 20.00,
+                price: ($price.val() !== '' && $price.val() !== null) ? Number($price.val()) : 0.00,
+                currency: $currency.val() || '₺',
+                description: $description.val() ? $description.val().trim() : '',
+                location: $location.val() ? $location.val().trim() : '',
                 color: App.Components.ColorSelection.getColor($color),
                 is_private: Number($isPrivate.prop('checked')),
-                id_service_categories: $serviceCategoryId.val() || undefined,
+                id_service_categories: (catVal && catVal !== '' && catVal !== 'null') ? Number(catVal) : null,
                 follow_up_required: isFollowUp,
-                follow_up_category: isFollowUp ? $('#follow-up-category').val() : null,
-                follow_up_priority: isFollowUp ? $('#follow-up-priority').val() : 'optional',
+                follow_up_category: isFollowUp ? ($('#follow-up-category').val() || 'medical_protocol') : null,
+                follow_up_priority: isFollowUp ? ($('#follow-up-priority').val() || 'standard') : 'optional',
                 follow_up_delay_override: isFollowUp ? ($('#follow-up-delay-override').val() || '24 hours') : null,
                 follow_up_message_override: isFollowUp ? ($('#follow-up-message-override').val() || '') : null,
+                crm_follow_up_rules: isFollowUp ? (serviceFollowUpRules || []) : [],
             };
 
             if (['duration', 'packaged', 'quantity_timed', 'provider_custom_duration'].includes(nature)) {
-                service.duration = $duration.val();
-                service.slot_interval = $slotInterval.val();
-                service.attendants_number = $attendantsNumber.val();
+                service.duration = Number($duration.val() || 60);
+                service.slot_interval = Number($slotInterval.val() || 15);
+                service.attendants_number = Number($attendantsNumber.val() || 1);
                 if (nature === 'packaged' || nature === 'quantity_timed') {
-                    service.total_passes = $totalPasses.val() || 10;
+                    service.total_passes = Number($totalPasses.val() || 10);
+                    service.pass_validity_days = 90;
                 }
             } else if (nature === 'daily_pass') {
                 service.duration = 480;
@@ -212,14 +215,14 @@ App.Pages.Services = (function () {
                 service.attendants_number = 1;
                 service.valid_hours_start = $validHoursStart.val() || '09:00';
                 service.valid_hours_end = $validHoursEnd.val() || '18:00';
-                service.daily_capacity = $dailyCapacity.val() || null;
+                service.daily_capacity = ($dailyCapacity.val() && $dailyCapacity.val() !== '') ? Number($dailyCapacity.val()) : null;
             } else if (nature === 'multi_pass') {
                 service.duration = 0;
-                service.slot_interval = 60;
+                service.slot_interval = 15;
                 service.attendants_number = 1;
-                service.pass_validity_days = $passValidityDays.val() || 30;
+                service.pass_validity_days = Number($passValidityDays.val() || 30);
                 if ($multiPassQuotaType.val() === 'fixed') {
-                    service.total_passes = $multiPassQuotaNumber.val() || 30;
+                    service.total_passes = Number($multiPassQuotaNumber.val() || 30);
                 } else {
                     service.total_passes = 0; // unlimited
                 }
@@ -245,7 +248,7 @@ App.Pages.Services = (function () {
             }
 
             if ($id.val() !== '') {
-                service.id = $id.val();
+                service.id = Number($id.val());
             }
 
             if (!App.Pages.Services.validate()) {
@@ -472,14 +475,84 @@ App.Pages.Services = (function () {
         $services.on('change', '#follow-up-required', function () {
             if ($(this).prop('checked')) {
                 $('#follow-up-config-body').slideDown(200);
+                $('#follow-up-config-body').find('input, select, textarea, button').prop('disabled', false);
+                if (!serviceFollowUpRules || serviceFollowUpRules.length === 0) {
+                    syncDefaultFollowUpStep();
+                }
             } else {
                 $('#follow-up-config-body').slideUp(200);
+                $('#follow-up-config-body').find('input, select, textarea, button:not([data-bs-dismiss])').prop('disabled', true);
             }
         });
 
         // Quick delay buttons
         $services.on('click', '.btn-quick-delay', function () {
             $('#follow-up-delay-override').val($(this).data('delay'));
+        });
+
+        // Variable inserter in follow-up step modal
+        $services.on('click', '.btn-insert-var', function () {
+            const varTag = $(this).data('var');
+            const $ta = $('#follow-up-message-input');
+            const cur = $ta.val();
+            $ta.val(cur + (cur.length > 0 && !cur.endsWith(' ') ? ' ' : '') + varTag + ' ').focus();
+        });
+
+        // Open follow-up step modal to add a new step
+        $services.on('click', '#btn-add-follow-up-modal', () => {
+            $('#modal-follow-up-title').html('<i class="fas fa-plus text-primary me-2"></i>Yeni Takip Adımı Ekle');
+            $('#follow-up-rule-index').val('-1');
+            $('#follow-up-trigger-select').val('appointment_completed');
+            $('#follow-up-delay-select').val('24_hours');
+            $('#follow-up-channel-select').val('whatsapp');
+            $('#follow-up-action-select').val($('#follow-up-category').val() || 'medical_protocol');
+            $('#follow-up-message-input').val($('#follow-up-message-override').val() || '');
+            showModal('modal-follow-up-form');
+        });
+
+        // Open follow-up step modal to edit an existing step
+        $services.on('click', '.btn-edit-follow-up', function () {
+            const idx = Number($(this).data('index'));
+            const rule = serviceFollowUpRules[idx];
+            if (!rule) return;
+            $('#modal-follow-up-title').html('<i class="fas fa-edit text-primary me-2"></i>Takip Adımını Düzenle (Adım ' + (idx + 1) + ')');
+            $('#follow-up-rule-index').val(idx);
+            $('#follow-up-trigger-select').val(rule.trigger || 'appointment_completed');
+            $('#follow-up-delay-select').val(rule.delay || '24_hours');
+            $('#follow-up-channel-select').val(rule.channel || 'whatsapp');
+            $('#follow-up-action-select').val(rule.action || 'medical_protocol');
+            $('#follow-up-message-input').val(rule.message || '');
+            showModal('modal-follow-up-form');
+        });
+
+        // Delete follow-up step
+        $services.on('click', '.btn-delete-follow-up', function () {
+            const idx = Number($(this).data('index'));
+            serviceFollowUpRules.splice(idx, 1);
+            renderFollowUpRules();
+            App.Layouts.Backend.displayNotification('Takip adımı silindi.');
+        });
+
+        // Submit follow-up step form (Add or Edit)
+        $('#btn-save-follow-up-submit').on('click', () => {
+            const idx = Number($('#follow-up-rule-index').val());
+            const newRule = {
+                trigger: $('#follow-up-trigger-select').val(),
+                delay: $('#follow-up-delay-select').val(),
+                channel: $('#follow-up-channel-select').val(),
+                action: $('#follow-up-action-select').val(),
+                message: $('#follow-up-message-input').val().trim(),
+            };
+
+            if (idx >= 0 && idx < serviceFollowUpRules.length) {
+                serviceFollowUpRules[idx] = newRule;
+                App.Layouts.Backend.displayNotification('Takip adımı güncellendi.');
+            } else {
+                serviceFollowUpRules.push(newRule);
+                App.Layouts.Backend.displayNotification('Yeni takip adımı eklendi.');
+            }
+            hideModal('modal-follow-up-form');
+            renderFollowUpRules();
         });
 
         // Follow-up template pills
@@ -490,18 +563,67 @@ App.Pages.Services = (function () {
                 $('#follow-up-priority').val('critical');
                 $('#follow-up-delay-override').val('2 hours');
                 $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} işlemi sonrası doktorunuzun/uzmanınızın reçete ettiği ilaç ve destek ürünlerini saatinde almayı lütfen unutmayınız. Acil danışma veya sorularınız için kliniğimize ulaşabilirsiniz.');
+                serviceFollowUpRules = [
+                    {
+                        trigger: 'appointment_completed',
+                        delay: '2_hours',
+                        channel: 'whatsapp',
+                        action: 'medical_protocol',
+                        message: 'Sayın {{customer_name}}, {{service_name}} işlemi sonrası doktorunuzun/uzmanınızın reçete ettiği ilaç ve destek ürünlerini saatinde almayı lütfen unutmayınız.',
+                    },
+                    {
+                        trigger: 'appointment_completed',
+                        delay: '24_hours',
+                        channel: 'whatsapp',
+                        action: 'medical_protocol',
+                        message: 'Merhaba {{customer_name}}, tedavinizin 2. günündesiniz. İlaç kullanımınızı düzenli sürdürüyor musunuz? Danışmak istediğiniz bir konu var mı?',
+                    }
+                ];
             } else if (type === 'photo') {
                 $('#follow-up-category').val('photo_checkin');
                 $('#follow-up-priority').val('standard');
                 $('#follow-up-delay-override').val('24 hours');
                 $('#follow-up-message-override').val('Merhaba {{customer_name}}, {{service_name}} uygulamasının üzerinden 24 saat geçti. Cildinizdeki iyileşme sürecini ve doku durumunu takip edebilmemiz için lütfen işlem bölgesinin güncel bir fotoğrafını bu mesaja yanıt olarak iletir misiniz?');
+                serviceFollowUpRules = [
+                    {
+                        trigger: 'appointment_completed',
+                        delay: '24_hours',
+                        channel: 'whatsapp',
+                        action: 'photo_checkin',
+                        message: 'Merhaba {{customer_name}}, {{service_name}} uygulamasının üzerinden 24 saat geçti. Doku iyileşme sürecinizi takip edebilmemiz için işlem bölgesinin fotoğrafını paylaşabilir misiniz?',
+                    },
+                    {
+                        trigger: 'appointment_completed',
+                        delay: '3_days',
+                        channel: 'whatsapp',
+                        action: 'photo_checkin',
+                        message: 'Sayın {{customer_name}}, 3. gün cilt analiziniz için lütfen gün ışığında net bir fotoğrafınızı uzmanımızla paylaşınız.',
+                    }
+                ];
             } else if (type === 'soap') {
                 $('#follow-up-category').val('medical_reaction');
                 $('#follow-up-priority').val('critical');
                 $('#follow-up-delay-override').val('24 hours');
                 $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} tedaviniz sonrasında genel durumunuz nasıl? Herhangi bir ağrı, şişlik veya beklenmeyen bir reaksiyon hissediyor musunuz? (1: Çok İyiyim, 2: Hekimime Danışmak İstiyorum)');
+                serviceFollowUpRules = [
+                    {
+                        trigger: 'appointment_completed',
+                        delay: '2_hours',
+                        channel: 'whatsapp',
+                        action: 'aftercare_safety',
+                        message: 'Sayın {{customer_name}}, {{service_name}} işlemi tamamlandı. İlk 24 saat işlem bölgesine sıcak su temas ettirmemenizi ve önerilen bakım losyonunu uygulamanızı öneririz.',
+                    },
+                    {
+                        trigger: 'appointment_completed',
+                        delay: '24_hours',
+                        channel: 'whatsapp',
+                        action: 'medical_reaction',
+                        message: 'Sayın {{customer_name}}, {{service_name}} tedaviniz sonrasında genel durumunuz nasıl? Herhangi bir ağrı, şişlik veya beklenmeyen bir reaksiyon hissediyor musunuz?',
+                    }
+                ];
             }
-            App.Layouts.Backend.displayNotification('Şablon mesaj ve parametreler yüklendi.');
+            renderFollowUpRules();
+            App.Layouts.Backend.displayNotification('Şablon takip adımları ve mesajları yüklendi.');
         });
     }
 
@@ -625,6 +747,24 @@ App.Pages.Services = (function () {
     }
 
     /**
+     * Synchronize a default follow-up step based on current template selections.
+     */
+    function syncDefaultFollowUpStep() {
+        const cat = $('#follow-up-category').val() || 'medical_protocol';
+        const msg = $('#follow-up-message-override').val() || '';
+        serviceFollowUpRules = [
+            {
+                trigger: 'appointment_completed',
+                delay: '24_hours',
+                channel: 'whatsapp',
+                action: cat,
+                message: msg || 'Sayın {{customer_name}}, {{service_name}} işlemi sonrası kontrol ve takip mesajınızdır.',
+            }
+        ];
+        renderFollowUpRules();
+    }
+
+    /**
      * Render the table of CRM follow-up automation rules.
      */
     function renderFollowUpRules() {
@@ -632,7 +772,7 @@ App.Pages.Services = (function () {
         $tbody.empty();
 
         if (!serviceFollowUpRules || !serviceFollowUpRules.length) {
-            $tbody.html('<tr class="text-muted text-center py-3"><td colspan="5">Kayıtlı takip kuralı bulunamadı.</td></tr>');
+            $tbody.html('<tr class="text-muted text-center py-3"><td colspan="5">Kayıtlı takip adımı bulunamadı. "+ Yeni Adım Ekle" butonuna tıklayarak ilk adımı oluşturabilirsiniz.</td></tr>');
             return;
         }
 
@@ -644,36 +784,52 @@ App.Pages.Services = (function () {
         };
 
         const delayLabels = {
-            'immediate': 'Hemen',
-            '2_hours': '2 Saat Sonra',
-            '24_hours': '24 Saat Sonra',
-            '3_days': '3 Gün Sonra',
-            '1_week': '1 Hafta Sonra',
-            '30_days': '30 Gün Sonra',
+            'immediate': '⚡ Hemen (0 dk)',
+            '2_hours': '⏱️ 2 Saat Sonra',
+            '12_hours': '⏱️ 12 Saat Sonra',
+            '24_hours': '📅 24 Saat Sonra',
+            '48_hours': '📅 48 Saat Sonra',
+            '3_days': '📅 3 Gün Sonra',
+            '1_week': '🗓️ 1 Hafta Sonra',
+            '30_days': '🗓️ 30 Gün Sonra',
         };
 
         const channelLabels = {
-            'sms': '<i class="fas fa-comment-sms text-primary me-1"></i>SMS',
-            'whatsapp': '<i class="fab fa-whatsapp text-success me-1"></i>WhatsApp',
-            'email': '<i class="fas fa-envelope text-info me-1"></i>E-Posta',
+            'whatsapp': '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fab fa-whatsapp me-1"></i>WhatsApp</span>',
+            'sms': '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fas fa-comment-sms me-1"></i>SMS</span>',
+            'email': '<span class="badge bg-info-subtle text-info border border-info-subtle"><i class="fas fa-envelope me-1"></i>E-Posta</span>',
         };
 
         const actionLabels = {
+            'medical_protocol': '💊 İlaç Kullanımı & Tedavi Protokolü',
+            'medical_reaction': '🩺 Klinik SOAP & Reaksiyon Kontrolü',
+            'photo_checkin': '📸 Cilt/Doku Fotoğraf Durum Kontrolü',
+            'aftercare_safety': '🛡️ Bakım Sonrası Talimatları & Güvenlik',
             'review_nps': '⭐ Memnuniyet & NPS Anketi',
             'renewal_reminder': '🔄 Paket Yenileme & Teklif',
             'tag_vip': '🏷️ "VIP" Etiketi Ekle',
-            'aftercare_safety': '🩺 Bakım Sonrası Talimatları',
         };
 
         serviceFollowUpRules.forEach((rule, idx) => {
             const tr = `
                 <tr>
-                    <td>${triggerLabels[rule.trigger] || rule.trigger}</td>
-                    <td><span class="badge bg-light text-dark border">${delayLabels[rule.delay] || rule.delay}</span></td>
-                    <td>${channelLabels[rule.channel] || rule.channel}</td>
-                    <td class="fw-semibold text-dark">${actionLabels[rule.action] || rule.action}</td>
-                    <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-follow-up" data-index="${idx}">
+                    <td>
+                        <span class="badge bg-light text-secondary border me-1">Adım ${idx + 1}</span>
+                        ${triggerLabels[rule.trigger] || ('<span class="badge bg-secondary">' + escapeHtml(rule.trigger) + '</span>')}
+                    </td>
+                    <td><span class="badge bg-light text-dark border">${delayLabels[rule.delay] || escapeHtml(rule.delay)}</span></td>
+                    <td>${channelLabels[rule.channel] || ('<span class="badge bg-light text-dark">' + escapeHtml(rule.channel) + '</span>')}</td>
+                    <td>
+                        <div class="fw-semibold text-dark">${actionLabels[rule.action] || escapeHtml(rule.action)}</div>
+                        <div class="small text-muted text-truncate" style="max-width: 280px;" title="${escapeHtml(rule.message || '')}">
+                            ${escapeHtml(rule.message || 'Özel mesaj yok')}
+                        </div>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <button type="button" class="btn btn-sm btn-outline-primary me-1 btn-edit-follow-up" data-index="${idx}" title="Düzenle">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-follow-up" data-index="${idx}" title="Sil">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </td>
@@ -757,6 +913,8 @@ App.Pages.Services = (function () {
         $('#follow-up-priority').val('standard').prop('disabled', true);
         $('#follow-up-delay-override').val('24 hours').prop('disabled', true);
         $('#follow-up-message-override').val('').prop('disabled', true);
+        serviceFollowUpRules = [];
+        renderFollowUpRules();
         $('.provider-duration-input').val('').prop('disabled', true);
         $('.provider-custom-duration-container').hide();
 
@@ -821,10 +979,27 @@ App.Pages.Services = (function () {
         } else {
             $('#follow-up-config-body').hide();
         }
-        $('#follow-up-category').val(service.follow_up_category || service.followUpCategory || 'medical_reaction');
+        $('#follow-up-category').val(service.follow_up_category || service.followUpCategory || 'medical_protocol');
         $('#follow-up-priority').val(service.follow_up_priority || service.followUpPriority || 'standard');
         $('#follow-up-delay-override').val(service.follow_up_delay_override || service.followUpDelayOverride || '24 hours');
         $('#follow-up-message-override').val(service.follow_up_message_override || service.followUpMessageOverride || '');
+
+        // Restore CRM follow-up rules array
+        serviceFollowUpRules = [];
+        if (Array.isArray(service.crm_follow_up_rules)) {
+            serviceFollowUpRules = service.crm_follow_up_rules;
+        } else if (typeof service.crm_follow_up_rules === 'string' && service.crm_follow_up_rules.trim()) {
+            try {
+                serviceFollowUpRules = JSON.parse(service.crm_follow_up_rules) || [];
+            } catch (e) {
+                serviceFollowUpRules = [];
+            }
+        }
+        renderFollowUpRules();
+
+        if (isFollowUpReq && $('#services-page').hasClass('editing')) {
+            $('#follow-up-config-body').find('input, select, textarea, button').prop('disabled', false);
+        }
 
         // Populate per-provider custom durations
         let pDurs = {};

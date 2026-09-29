@@ -168,6 +168,11 @@ class Services extends App_Controller
                 if (!empty($service['provider_durations']) && is_string($service['provider_durations'])) {
                     $service['provider_durations'] = json_decode($service['provider_durations'], true) ?: [];
                 }
+                if (!empty($service['crm_follow_up_rules']) && is_string($service['crm_follow_up_rules'])) {
+                    $service['crm_follow_up_rules'] = json_decode($service['crm_follow_up_rules'], true) ?: [];
+                } elseif (empty($service['crm_follow_up_rules'])) {
+                    $service['crm_follow_up_rules'] = [];
+                }
             }
 
             json_response($services);
@@ -194,6 +199,9 @@ class Services extends App_Controller
 
             if (isset($service['provider_durations']) && is_array($service['provider_durations'])) {
                 $service['provider_durations'] = json_encode($service['provider_durations'], JSON_UNESCAPED_UNICODE);
+            }
+            if (isset($service['crm_follow_up_rules']) && is_array($service['crm_follow_up_rules'])) {
+                $service['crm_follow_up_rules'] = json_encode($service['crm_follow_up_rules'], JSON_UNESCAPED_UNICODE);
             }
 
             $this->services_model->only($service, $this->allowed_service_fields);
@@ -237,6 +245,11 @@ class Services extends App_Controller
             }
 
             $service = $this->services_model->find($service_id);
+            if (!empty($service['crm_follow_up_rules']) && is_string($service['crm_follow_up_rules'])) {
+                $service['crm_follow_up_rules'] = json_decode($service['crm_follow_up_rules'], true) ?: [];
+            } elseif (empty($service['crm_follow_up_rules'])) {
+                $service['crm_follow_up_rules'] = [];
+            }
 
             json_response($service);
         } catch (Throwable $e) {
@@ -262,6 +275,9 @@ class Services extends App_Controller
 
             if (isset($service['provider_durations']) && is_array($service['provider_durations'])) {
                 $service['provider_durations'] = json_encode($service['provider_durations'], JSON_UNESCAPED_UNICODE);
+            }
+            if (isset($service['crm_follow_up_rules']) && is_array($service['crm_follow_up_rules'])) {
+                $service['crm_follow_up_rules'] = json_encode($service['crm_follow_up_rules'], JSON_UNESCAPED_UNICODE);
             }
 
             $this->services_model->only($service, $this->allowed_service_fields);
