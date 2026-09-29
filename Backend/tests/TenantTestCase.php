@@ -226,3 +226,20 @@ abstract class TenantTestCase extends BaseTestCase
         parent::tearDown();
     }
 }
+
+/**
+ * Legacy compatibility base test class.
+ */
+abstract class App_TestCase extends TenantTestCase
+{
+    public function __get(string $name)
+    {
+        return self::ci()->$name ?? null;
+    }
+
+    public function __call(string $name, array $arguments)
+    {
+        return self::ci()->$name(...$arguments);
+    }
+}
+

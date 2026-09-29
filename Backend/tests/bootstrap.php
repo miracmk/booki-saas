@@ -24,3 +24,9 @@ if (!defined('BASEPATH')) {
 
 putenv('APP_ENV=testing');
 $_SERVER['APP_ENV'] = 'testing';
+
+if (!class_exists('App_TestCase', false)) {
+    require_once __DIR__ . '/TenantTestCase.php';
+    class_alias('Tests\\App_TestCase', 'App_TestCase');
+}
+
