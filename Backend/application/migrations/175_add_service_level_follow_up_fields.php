@@ -54,7 +54,7 @@ class Migration_Add_service_level_follow_up_fields extends App_Migration
             $this->dbforge->add_column('services', [
                 'follow_up_priority' => [
                     'type' => 'ENUM',
-                    'constraint' => "'critical','standard','optional'",
+                    'constraint' => ['critical', 'standard', 'optional'],
                     'default' => 'optional',
                     'null' => false,
                     'after' => 'follow_up_category',

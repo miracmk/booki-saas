@@ -528,6 +528,23 @@ $route['verticals/save_student_grade'] = 'verticals/save_student_grade';
 $route['api/v1/verticals/education/attendance']['post'] = 'api/v1/verticals_api_v1/save_attendance';
 $route['api/v1/verticals/education/grades']['post'] = 'api/v1/verticals_api_v1/save_student_grade';
 
+// Sector 9: Professional Services (Legal, Consulting, Real Estate)
+$route['verticals/legal'] = 'verticals/legal';
+$route['legal'] = 'verticals/legal';
+$route['verticals/save_legal_case'] = 'verticals/save_legal_case';
+$route['api/v1/verticals/legal/cases']['post'] = 'api/v1/verticals_api_v1/save_legal_case';
+
+$route['verticals/consulting'] = 'verticals/consulting';
+$route['consulting'] = 'verticals/consulting';
+$route['verticals/save_consulting_time_log'] = 'verticals/save_consulting_time_log';
+$route['api/v1/verticals/consulting/time_logs']['post'] = 'api/v1/verticals_api_v1/save_consulting_time_log';
+
+$route['verticals/real_estate'] = 'verticals/real_estate';
+$route['real_estate'] = 'verticals/real_estate';
+$route['verticals/save_real_estate_listing'] = 'verticals/save_real_estate_listing';
+$route['api/v1/verticals/real_estate/listings']['post'] = 'api/v1/verticals_api_v1/save_real_estate_listing';
+
+
 // CLI console
 $route['console'] = 'console/index';
 $route['console/(:any)'] = 'console/$1';

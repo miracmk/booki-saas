@@ -18,7 +18,7 @@ FROM alextselegidis/easyappointments:1.6.0
 # URL (/health, /booking, /login...) through the CodeIgniter front controller. Without the module the
 # whole app 404s on any segment route. a2enmod here makes the Apache apache2.conf AllowOverride All
 # (from docker-php.conf) actually take effect for .htaccess.
-RUN a2enmod rewrite proxy proxy_http headers
+RUN a2enmod rewrite proxy proxy_http headers && rm -rf /var/www/html/*
 COPY --chown=www-data:www-data . /var/www/html/
 COPY --from=vendor --chown=www-data:www-data /app/vendor /var/www/html/vendor
 

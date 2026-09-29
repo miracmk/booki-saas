@@ -1260,6 +1260,233 @@ class Verticals_api_v1 extends App_Controller
             json_response(['error' => $e->getMessage()], 400);
         }
     }
+
+    /* -------------------------------------------------------------------------
+     * 9. PROFESYONEL HİZMETLER (HUKUK, DANIŞMANLIK & GAYRİMENKUL)
+     * ------------------------------------------------------------------------- */
+
+    public function save_legal_case(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                json_response(['error' => 'Müvekkiller doğrudan dava kaydı açamaz.'], 403);
+                return;
+            }
+
+            $post = request();
+            $client_id = (int) ($post['id_users_client'] ?? 0);
+            $case_number = trim((string) ($post['case_number'] ?? ''));
+            $court_name = trim((string) ($post['court_name'] ?? ''));
+            $case_subject = trim((string) ($post['case_subject'] ?? ''));
+            $opposing_party = trim((string) ($post['opposing_party'] ?? ''));
+            $case_type = trim((string) ($post['case_type'] ?? 'civil'));
+            $hearing_datetime = !empty($post['hearing_datetime']) ? date('Y-m-d H:i:s', strtotime($post['hearing_datetime'])) : null;
+
+            if ($client_id <= 0) {
+                json_response(['error' => 'Müvekkil seçilmelidir.'], 400);
+                return;
+            }
+            if (empty($case_number) || empty($court_name)) {
+                json_response(['error' => 'Esas no ve mahkeme bilgisi zorunludur.'], 400);
+                return;
+            }
+            if (empty($case_subject)) {
+                json_response(['error' => 'Dava konusu zorunludur.'], 400);
+                return;
+            }
+
+            $this->load->library('migration');
+            $this->migration->version(176);
+
+            $now = date('Y-m-d H:i:s');
+            $this->db->insert('legal_cases', [
+                'case_number' => $case_number,
+                'court_name' => $court_name,
+                'id_users_client' => $client_id,
+                'opposing_party' => $opposing_party,
+                'case_type' => $case_type,
+                'case_subject' => $case_subject,
+                'hearing_datetime' => $hearing_datetime,
+                'status' => 'open',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+            json_response([
+                'success' => true,
+                'message' => 'Dava dosyası başarıyla kaydedildi.',
+                'case_id' => $this->db->insert_id(),
+            ], 201);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function save_consulting_time_log(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                json_response(['error' => 'Müşteriler zaman kaydı oluşturamaz.'], 403);
+                return;
+            }
+
+            $post = request();
+            $client_id = (int) ($post['id_users_client'] ?? 0);
+            $consultant_id = (int) ($post['id_users_consultant'] ?? 0);
+            $project_name = trim((string) ($post['project_name'] ?? ''));
+            $duration_minutes = (int) ($post['duration_minutes'] ?? 0);
+            $hourly_rate = isset($post['hourly_rate']) ? (float) $post['hourly_rate'] : 0.00;
+            $work_description = trim((string) ($post['work_description'] ?? ''));
+            $is_billable = !empty($post['is_billable']) ? 1 : 0;
+
+            if ($client_id <= 0 || $consultant_id <= 0) {
+                json_response(['error' => 'Müşteri ve danışman seçilmelidir.'], 400);
+                return;
+            }
+            if (empty($project_name)) {
+                json_response(['error' => 'Proje veya konu başlığı zorunludur.'], 400);
+                return;
+            }
+            if ($duration_minutes <= 0) {
+                json_response(['error' => 'Süre 0 dakikadan büyük olmalıdır.'], 400);
+                return;
+            }
+
+            $total_fee = round(($duration_minutes / 60) * $hourly_rate, 2);
+
+            $this->load->library('migration');
+            $this->migration->version(176);
+
+            $now = date('Y-m-d H:i:s');
+            $this->db->insert('consulting_time_logs', [
+                'id_users_client' => $client_id,
+                'id_users_consultant' => $consultant_id,
+                'project_name' => $project_name,
+                'duration_minutes' => $duration_minutes,
+                'hourly_rate' => $hourly_rate,
+                'total_fee' => $total_fee,
+                'work_description' => $work_description,
+                'is_billable' => $is_billable,
+                'status' => 'logged',
+                'created_at' => $now,
+            ]);
+
+            json_response([
+                'success' => true,
+                'message' => 'Zaman kaydı başarıyla oluşturuldu.',
+                'log_id' => $this->db->insert_id(),
+                'total_fee' => $total_fee,
+            ], 201);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function save_real_estate_listing(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                json_response(['error' => 'Müşteriler ilan ekleyemez.'], 403);
+                return;
+            }
+
+            $post = request();
+            $title = trim((string) ($post['title'] ?? ''));
+            $listing_type = in_array($post['listing_type'] ?? '', ['sale', 'rent']) ? $post['listing_type'] : 'sale';
+            $property_type = trim((string) ($post['property_type'] ?? 'apartment'));
+            $price = isset($post['price']) ? (float) $post['price'] : 0.00;
+            $city = trim((string) ($post['city'] ?? 'İstanbul'));
+            $district = trim((string) ($post['district'] ?? ''));
+            $square_meters = !empty($post['square_meters']) ? (int) $post['square_meters'] : null;
+            $agent_id = !empty($post['id_users_agent']) ? (int) $post['id_users_agent'] : null;
+
+            if (empty($title)) {
+                json_response(['error' => 'İlan başlığı zorunludur.'], 400);
+                return;
+            }
+            if ($price <= 0) {
+                json_response(['error' => 'Geçerli bir fiyat girilmelidir.'], 400);
+                return;
+            }
+            if (empty($district)) {
+                json_response(['error' => 'İlçe bilgisi zorunludur.'], 400);
+                return;
+            }
+
+            $this->load->library('migration');
+            $this->migration->version(176);
+
+            $listing_code = 'LST-' . strtoupper(bin2hex(random_bytes(3)));
+            $now = date('Y-m-d H:i:s');
+
+            $insertData = [
+                'title' => $title,
+                'slug' => strtolower($listing_code),
+                'listing_type' => $listing_type,
+                'price' => $price,
+                'city' => $city,
+                'district' => $district,
+                'status' => 'active',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
+            if ($this->db->field_exists('listing_code', 'real_estate_listings')) {
+                $insertData['listing_code'] = $listing_code;
+            }
+            if ($this->db->field_exists('property_type', 'real_estate_listings')) {
+                $insertData['property_type'] = $property_type;
+            }
+            if ($this->db->field_exists('square_meters', 'real_estate_listings')) {
+                $insertData['square_meters'] = $square_meters;
+            }
+            if ($this->db->field_exists('gross_m2', 'real_estate_listings')) {
+                $insertData['gross_m2'] = $square_meters ?: 0;
+            }
+            if ($this->db->field_exists('id_users_agent', 'real_estate_listings')) {
+                $insertData['id_users_agent'] = $agent_id;
+            }
+            if ($this->db->field_exists('agent_user_id', 'real_estate_listings')) {
+                $insertData['agent_user_id'] = $agent_id;
+            }
+
+            $this->db->insert('real_estate_listings', $insertData);
+
+            json_response([
+                'success' => true,
+                'message' => 'Gayrimenkul ilanı başarıyla kaydedildi.',
+                'listing_id' => $this->db->insert_id(),
+                'listing_code' => $listing_code,
+            ], 201);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
 }
+
 
 

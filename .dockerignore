@@ -1,7 +1,7 @@
 .git
-deploy
+deploy/*
 !deploy/docker-entrypoint.sh
-dev
+dev/*
 !dev/docker-entrypoint.sh
 _arsiv
 tokensave-docs
@@ -14,3 +14,7 @@ storage/logs/*
 storage/sessions/*
 storage/cache/*
 storage/backups/*
+MobileApp
+DesktopApp
+RandevuBurada
+WebApp

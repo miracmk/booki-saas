@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Migration 175: Professional Services Suite (Legal, Consulting & Real Estate)
+ * Migration 176: Professional Services Suite (Legal, Consulting & Real Estate)
  */
 class Migration_professional_services_suite extends CI_Migration
 {
@@ -72,6 +72,51 @@ class Migration_professional_services_suite extends CI_Migration
                     KEY `idx_property_status` (`status`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             ");
+        } else {
+            $this->load->dbforge();
+            if (!$this->db->field_exists('listing_code', 'real_estate_listings')) {
+                $this->dbforge->add_column('real_estate_listings', [
+                    'listing_code' => [
+                        'type' => 'VARCHAR',
+                        'constraint' => 50,
+                        'null' => true,
+                        'after' => 'id',
+                    ],
+                ]);
+            }
+            if (!$this->db->field_exists('property_type', 'real_estate_listings')) {
+                $this->dbforge->add_column('real_estate_listings', [
+                    'property_type' => [
+                        'type' => 'VARCHAR',
+                        'constraint' => 64,
+                        'null' => true,
+                        'default' => 'apartment',
+                        'after' => 'listing_type',
+                    ],
+                ]);
+            }
+            if (!$this->db->field_exists('square_meters', 'real_estate_listings')) {
+                $this->dbforge->add_column('real_estate_listings', [
+                    'square_meters' => [
+                        'type' => 'INT',
+                        'constraint' => 10,
+                        'unsigned' => true,
+                        'null' => true,
+                        'after' => 'district',
+                    ],
+                ]);
+            }
+            if (!$this->db->field_exists('id_users_agent', 'real_estate_listings')) {
+                $this->dbforge->add_column('real_estate_listings', [
+                    'id_users_agent' => [
+                        'type' => 'INT',
+                        'constraint' => 10,
+                        'unsigned' => true,
+                        'null' => true,
+                        'after' => 'status',
+                    ],
+                ]);
+            }
         }
     }
 
