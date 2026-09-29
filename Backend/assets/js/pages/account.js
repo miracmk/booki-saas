@@ -108,11 +108,12 @@ App.Pages.Account = (function () {
         $notes.val(account.notes);
         $language.val(account.language);
         $timezone.val(account.timezone);
-        $username.val(account.settings.username);
+        const settings = account.settings || {};
+        $username.val(settings.username || '');
         $password.val('');
         $retypePassword.val('');
-        $calendarView.val(account.settings.calendar_view);
-        notifications.prop('checked', Boolean(Number(account.settings.notifications)));
+        $calendarView.val(settings.calendar_view || 'default');
+        notifications.prop('checked', Boolean(Number(settings.notifications || 0)));
     }
 
     /**
@@ -400,6 +401,13 @@ App.Pages.Account = (function () {
         const account = vars('account');
 
         deserialize(account);
+
+        if (!vars('can_edit')) {
+            $('#account input, #account select, #account textarea').prop('disabled', true).prop('readonly', true);
+            $('#totp-disabled-content, #totp-enabled-content').addClass('d-none');
+            $('#save-settings').remove();
+            return;
+        }
 
         $saveSettings.on('click', onSaveSettingsClick);
 

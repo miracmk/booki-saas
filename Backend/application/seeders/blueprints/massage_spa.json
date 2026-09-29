@@ -73,7 +73,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#10b981",
-            "description": "Tüm vücuda uygulanan, kas gerginliğini gideren rahatlatıcı klasik masaj."
+            "description": "Tüm vücuda uygulanan, kas gerginliğini gideren rahatlatıcı klasik masaj.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Aromaterapi Masajı (60 Dk)",
@@ -83,7 +86,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#059669",
-            "description": "Doğal esansiyel bitki yağları ile zihinsel ve bedensel dinlenme masajı."
+            "description": "Doğal esansiyel bitki yağları ile zihinsel ve bedensel dinlenme masajı.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Geleneksel Bali Masajı (60 Dk)",
@@ -93,7 +99,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#047857",
-            "description": "Akupresur noktalarına yapılan baskı ve esnetmelerle enerji akışını düzenleyen masaj."
+            "description": "Akupresur noktalarına yapılan baskı ve esnetmelerle enerji akışını düzenleyen masaj.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Derin Doku (Deep Tissue) Masajı (60 Dk)",
@@ -103,7 +112,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#3b82f6",
-            "description": "Kronik ağrılar, kulunçlar ve kas sertlikleri için yoğun baskılı derin terapi."
+            "description": "Kronik ağrılar, kulunçlar ve kas sertlikleri için yoğun baskılı derin terapi.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Medikal Sırt & Boyun Masajı (40 Dk)",
@@ -113,7 +125,10 @@
             "slot_interval": 20,
             "attendants_number": 1,
             "color": "#2563eb",
-            "description": "Masa başı çalışanlar için omurga, sırt ve boyun odaklı medikal seans."
+            "description": "Masa başı çalışanlar için omurga, sırt ve boyun odaklı medikal seans.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Ayak Refleksoloji Masajı (45 Dk)",
@@ -123,7 +138,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#1d4ed8",
-            "description": "Ayak tabanındaki sinir uçlarına baskı ile tüm organları uyaran şifa seansı."
+            "description": "Ayak tabanındaki sinir uçlarına baskı ile tüm organları uyaran şifa seansı.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Sıcak Taş (Hot Stone) Masajı (75 Dk)",
@@ -133,7 +151,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#d97706",
-            "description": "Isıtılmış volkanik bazalt taşlarıyla uygulanan derin termal rahatlama."
+            "description": "Isıtılmış volkanik bazalt taşlarıyla uygulanan derin termal rahatlama.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Geleneksel Hamam Kese & Köpük (45 Dk)",
@@ -143,7 +164,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#06b6d4",
-            "description": "Göbek taşında ipek kese ile ölü deri arındırma ve organik köpük masajı."
+            "description": "Göbek taşında ipek kese ile ölü deri arındırma ve organik köpük masajı.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Sultan Hamam & Masaj Ritüeli (90 Dk)",
@@ -153,7 +177,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#0891b2",
-            "description": "Hamam kese köpük + 45 dk aromaterapi masajı + kil vücut maskesi."
+            "description": "Hamam kese köpük + 45 dk aromaterapi masajı + kil vücut maskesi.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Çift Masajı (Duo Romance) (60 Dk)",
@@ -163,7 +190,10 @@
             "slot_interval": 30,
             "attendants_number": 2,
             "color": "#ec4899",
-            "description": "VIP Çift Odasında aynı anda 2 terapist eşliğinde aromaterapi masajı."
+            "description": "VIP Çift Odasında aynı anda 2 terapist eşliğinde aromaterapi masajı.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

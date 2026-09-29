@@ -17,6 +17,12 @@ class Sports_matches_model extends App_Model
         }
 
         $now = date('Y-m-d H:i:s');
+        $raw_max = isset($data['max_players']) && is_numeric($data['max_players']) ? (int) $data['max_players'] : 4;
+        $max_players = min(50, max(2, $raw_max));
+        $created_by = !empty($data['created_by_user_id'])
+            ? (int) $data['created_by_user_id']
+            : ((int) session('user_id') ?: 1);
+
         $match = [
             'title' => trim($data['title']),
             'id_stations' => !empty($data['id_stations']) ? (int) $data['id_stations'] : null,
@@ -26,23 +32,23 @@ class Sports_matches_model extends App_Model
             'match_type' => $data['match_type'] ?? 'open',
             'sport_type' => $data['sport_type'] ?? 'padel',
             'level_required' => $data['level_required'] ?? 'all',
-            'max_players' => max(2, (int) ($data['max_players'] ?? 4)),
+            'max_players' => $max_players,
             'current_players' => 1,
             'price_per_player' => (float) ($data['price_per_player'] ?? 0.00),
             'status' => 'open',
-            'created_by_user_id' => (int) ($data['created_by_user_id'] ?? 1),
+            'created_by_user_id' => $created_by,
             'created_at' => $now,
             'updated_at' => $now,
         ];
 
         $this->db->trans_start();
         $this->db->insert('sports_court_matches', $match);
-        $match_id = $this->db->insert_id();
+        $match_id = (int) $this->db->insert_id();
 
         // Creator automatically joins as first participant
         $this->db->insert('sports_match_participants', [
             'id_matches' => $match_id,
-            'id_users_customer' => (int) $match['created_by_user_id'],
+            'id_users_customer' => $created_by,
             'payment_status' => 'paid',
             'team' => 'Team A',
             'skill_level' => $data['creator_skill_level'] ?? null,
@@ -81,17 +87,13 @@ class Sports_matches_model extends App_Model
     }
 
     /**
-     * Join an open match.
+     * Join an open match with atomic concurrency protection.
      */
     public function join_match(int $match_id, int $customer_id, ?string $team = null, ?string $skill_level = null): array
     {
         $match = $this->db->get_where('sports_court_matches', ['id' => $match_id])->row_array();
         if (!$match) {
             return ['success' => false, 'message' => 'Maç bulunamadı.'];
-        }
-
-        if ($match['status'] !== 'open') {
-            return ['success' => false, 'message' => 'Maç katılıma açık değil (Durum: ' . $match['status'] . ').'];
         }
 
         // Check if already joined
@@ -104,40 +106,40 @@ class Sports_matches_model extends App_Model
             return ['success' => false, 'message' => 'Bu maça zaten katıldınız.'];
         }
 
-        $current_count = (int) $match['current_players'];
-        $max_count = (int) $match['max_players'];
-
-        if ($current_count >= $max_count) {
-            return ['success' => false, 'message' => 'Maç kontenjanı dolmuştur.'];
+        if ($match['status'] !== 'open') {
+            return ['success' => false, 'message' => 'Maç kontenjanı dolmuştur veya maç açık değil.'];
         }
 
         $this->db->trans_start();
 
+        $table = $this->db->dbprefix('sports_court_matches');
+        $sql = "UPDATE {$table} SET status = CASE WHEN current_players + 1 >= max_players THEN 'full' ELSE status END, current_players = current_players + 1 WHERE id = ? AND current_players < max_players AND status = 'open'";
+        $this->db->query($sql, [$match_id]);
+
+        if ($this->db->affected_rows() <= 0) {
+            $this->db->trans_rollback();
+            return ['success' => false, 'message' => 'Maç kontenjanı dolmuştur veya maç açık değil.'];
+        }
+
+        $now = date('Y-m-d H:i:s');
         $this->db->insert('sports_match_participants', [
             'id_matches' => $match_id,
             'id_users_customer' => $customer_id,
             'payment_status' => ((float) $match['price_per_player'] > 0) ? 'pending' : 'paid',
-            'team' => $team ?? ($current_count % 2 === 0 ? 'Team A' : 'Team B'),
+            'team' => $team ?? (((int) $match['current_players'] % 2 === 0) ? 'Team A' : 'Team B'),
             'skill_level' => $skill_level,
-            'joined_at' => date('Y-m-d H:i:s'),
+            'joined_at' => $now,
         ]);
 
-        $new_count = $current_count + 1;
-        $new_status = ($new_count >= $max_count) ? 'full' : 'open';
-
-        $this->db->update('sports_court_matches', [
-            'current_players' => $new_count,
-            'status' => $new_status,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ], ['id' => $match_id]);
-
         $this->db->trans_complete();
+
+        $updated = $this->db->get_where('sports_court_matches', ['id' => $match_id])->row_array();
 
         return [
             'success' => true,
             'message' => 'Maça başarıyla katıldınız!',
-            'current_players' => $new_count,
-            'status' => $new_status,
+            'current_players' => (int) ($updated['current_players'] ?? ((int) $match['current_players'] + 1)),
+            'status' => $updated['status'] ?? 'open',
         ];
     }
 
@@ -176,7 +178,7 @@ class Sports_matches_model extends App_Model
         // Check active membership or confirmed appointment starting within 30 minutes
         $now = date('Y-m-d H:i:s');
         $granted = false;
-        $reason = 'Giriş izni onaylandı.';
+        $reason = 'Geçerli üyelik, aktif randevu veya maç katılımı bulunamadı.';
         $customer_name = 'Misafir';
 
         if ($resolved['customer_id']) {
@@ -221,6 +223,34 @@ class Sports_matches_model extends App_Model
             if ($appt) {
                 $granted = true;
                 $reason = 'Rezervasyon/kort randevusu doğrulandı: ' . $customer_name;
+            }
+        }
+
+        // 3. Open Match participation check (sports_court_matches & sports_match_participants, window: [-30 min, +45 min])
+        if (!$granted && $resolved['customer_id']) {
+            $cid = (int) $resolved['customer_id'];
+            $match_window_start = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+            $match_window_end = date('Y-m-d H:i:s', strtotime('-45 minutes'));
+
+            $m = $this->db
+                ->select('m.*')
+                ->from('sports_court_matches m')
+                ->join('sports_match_participants p', 'p.id_matches = m.id')
+                ->where('p.id_users_customer', $cid)
+                ->where_not_in('m.status', ['cancelled'])
+                ->where('m.start_datetime <=', $match_window_start)
+                ->group_start()
+                    ->where('m.end_datetime >=', $match_window_end)
+                    ->or_where('m.start_datetime >=', $match_window_end)
+                ->group_end()
+                ->order_by('m.start_datetime ASC')
+                ->limit(1)
+                ->get()
+                ->row_array();
+
+            if ($m) {
+                $granted = true;
+                $reason = 'Açık maç katılımı doğrulandı (' . $m['title'] . '): ' . $customer_name;
             }
         }
 

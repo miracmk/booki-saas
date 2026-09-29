@@ -77,7 +77,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Derin gözenek temizliği, buhar, ozon, komedon temizliği ve nem maskesi."
+            "description": "Derin gözenek temizliği, buhar, ozon, komedon temizliği ve nem maskesi.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Hydrafacial Cilt Yenileme",
@@ -87,7 +90,11 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#d946ef",
-            "description": "Vorteks teknolojisi ile derinlemesine soyma, temizleme, nemlendirme ve antioksidan koruma."
+            "description": "Vorteks teknolojisi ile derinlemesine soyma, temizleme, nemlendirme ve antioksidan koruma.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Karbon Peeling (Q-Switch Lazer)",
@@ -97,7 +104,11 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#a855f7",
-            "description": "Gözenek sıkılaştırma, leke açma ve cilt parlatma protokolü."
+            "description": "Gözenek sıkılaştırma, leke açma ve cilt parlatma protokolü.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Tüm Vücut Buz Lazer Seansı",
@@ -107,7 +118,11 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#3b82f6",
-            "description": "Yeni nesil 3 dalga boylu acısız buz başlıklı tüm vücut lazer uygulaması."
+            "description": "Yeni nesil 3 dalga boylu acısız buz başlıklı tüm vücut lazer uygulaması.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Yarım Bacak & Genital Lazer",
@@ -117,7 +132,11 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#0ea5e9",
-            "description": "Hızlı ve konforlu bölgesel epilasyon seansı."
+            "description": "Hızlı ve konforlu bölgesel epilasyon seansı.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "İpek Kirpik (Volume / Mega)",
@@ -127,7 +146,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#f59e0b",
-            "description": "Hafif vizon kirpiklerle kişiye özel hacimli bakış tasarımı."
+            "description": "Hafif vizon kirpiklerle kişiye özel hacimli bakış tasarımı.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Kaş Laminasyonu & Vitamin",
@@ -137,7 +159,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#eab308",
-            "description": "Kaş yönünü düzeltme, keratin & vitamin botox dolgusu."
+            "description": "Kaş yönünü düzeltme, keratin & vitamin botox dolgusu.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Microblading 3D Kıl Tekniği",
@@ -147,7 +172,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#84cc16",
-            "description": "Altın oran kaş ölçümü ve organik pigmentlerle kalıcı kıl efekti."
+            "description": "Altın oran kaş ölçümü ve organik pigmentlerle kalıcı kıl efekti.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "G5 Masajı & Selülit Protokolü",
@@ -157,7 +186,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#10b981",
-            "description": "Ritmik masaj dalgalarıyla kan dolaşımını hızlandırma ve selülit giderme."
+            "description": "Ritmik masaj dalgalarıyla kan dolaşımını hızlandırma ve selülit giderme.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Lenf Drenaj & Pressoterapi",
@@ -167,7 +199,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#06b6d4",
-            "description": "Ödem atıcı, toksin temizleyici hava basınçlı lenfatik masaj."
+            "description": "Ödem atıcı, toksin temizleyici hava basınçlı lenfatik masaj.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

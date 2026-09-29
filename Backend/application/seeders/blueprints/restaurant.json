@@ -72,7 +72,10 @@
             "slot_interval": 30,
             "attendants_number": 4,
             "color": "#ef4444",
-            "description": "2-4 kişilik ana salon veya bahçe masa rezervasyonu."
+            "description": "2-4 kişilik ana salon veya bahçe masa rezervasyonu.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Şefin Tadım Menüsü (5 Aşamalı)",
@@ -82,7 +85,10 @@
             "slot_interval": 30,
             "attendants_number": 2,
             "color": "#f59e0b",
-            "description": "Mevsimlik lezzetlerden oluşan 5 aşamalı imza şef tadım menüsü."
+            "description": "Mevsimlik lezzetlerden oluşan 5 aşamalı imza şef tadım menüsü.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "VIP Salon Özel Kutlama & Akşam Yemeği",
@@ -92,7 +98,10 @@
             "slot_interval": 60,
             "attendants_number": 10,
             "color": "#8b5cf6",
-            "description": "10 kişiye kadar özel kapalı VIP salon tahsisi ve özel garson servisi."
+            "description": "10 kişiye kadar özel kapalı VIP salon tahsisi ve özel garson servisi.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Hafta Sonu Serpme Kahvaltı Rezervasyonu",
@@ -102,7 +111,10 @@
             "slot_interval": 30,
             "attendants_number": 4,
             "color": "#10b981",
-            "description": "Organik serpme kahvaltı ve sınırsız çay servisi eşliğinde masa rezervasyonu."
+            "description": "Organik serpme kahvaltı ve sınırsız çay servisi eşliğinde masa rezervasyonu.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

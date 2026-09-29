@@ -44,6 +44,12 @@ class Follow_up_engine
      * Entry point when a booking transitions to COMPLETED or CHECKED_OUT.
      * Dispatches BookingCompletedEvent and schedules delayed queue jobs.
      *
+     * Now includes service-level follow-up awareness:
+     * 1. Checks if the service has follow_up_required = true
+     * 2. Uses service-level follow_up_category to match rules
+     * 3. Respects follow_up_priority (critical/standard/optional)
+     * 4. Applies service-level delay and message overrides
+     *
      * @param int|string $booking_id The appointment/booking ID.
      * @param array $options Optional override parameters.
      * @return array Created dispatch IDs.
@@ -79,6 +85,21 @@ class Follow_up_engine
         $blueprint_type = current_industry_code();
         $industry_family = $this->resolve_industry_family($blueprint_type);
 
+        // Load the service to check service-level follow-up configuration
+        $service = null;
+        if (!empty($appointment['id_services'])) {
+            $service = $this->CI->db
+                ->get_where('services', ['id' => $appointment['id_services']])
+                ->row_array();
+        }
+
+        // Service-level follow-up fields
+        $svc_follow_up_required  = (bool) ($service['follow_up_required'] ?? false);
+        $svc_follow_up_category  = $service['follow_up_category'] ?? null;
+        $svc_follow_up_priority  = $service['follow_up_priority'] ?? 'optional';
+        $svc_delay_override      = $service['follow_up_delay_override'] ?? null;
+        $svc_message_override    = $service['follow_up_message_override'] ?? null;
+
         // Fetch active rules for this tenant and blueprint
         $rules = $this->CI->follow_up_rules_model->get_active_rules($tenant_id, $blueprint_type);
 
@@ -94,18 +115,33 @@ class Follow_up_engine
             return [];
         }
 
+        // Filter and prioritize rules based on service-level configuration
+        $rules = $this->filter_rules_by_service_config($rules, $svc_follow_up_required, $svc_follow_up_category, $svc_follow_up_priority);
+
+        if (empty($rules)) {
+            return [];
+        }
+
         $created_dispatches = [];
         $timezone = $this->get_company_timezone();
+        $is_opted_out = !empty($customer['marketing_opt_out']);
 
         foreach ($rules as $rule) {
-            // Check opt-out state: if customer opted out and rule is NOT reaction_check, skip scheduling
-            $is_opted_out = !empty($customer['marketing_opt_out']);
-            if ($is_opted_out && ($rule['rule_type'] ?? '') !== 'reaction_check') {
+            $rule_type = $rule['rule_type'] ?? '';
+
+            // Determine effective priority for this dispatch
+            $effective_priority = $this->resolve_effective_priority($rule, $svc_follow_up_priority);
+
+            // Critical priority rules (medical reaction checks) bypass opt-out
+            if ($is_opted_out && $effective_priority !== 'critical') {
                 continue;
             }
 
+            // Apply service-level delay override if present
+            $effective_delay = $svc_delay_override ?: ($rule['trigger_delay_interval'] ?? '0 minutes');
+
             // Calculate trigger time from interval
-            $delay_seconds = $this->parse_interval_seconds($rule['trigger_delay_interval'] ?? '0 minutes');
+            $delay_seconds = $this->parse_interval_seconds($effective_delay);
             $scheduled_dt = new DateTime('now', new DateTimeZone($timezone));
 
             if ($delay_seconds > 0) {
@@ -119,8 +155,12 @@ class Follow_up_engine
             $now_dt = new DateTime('now', new DateTimeZone($timezone));
             $queue_delay = max(0, $scheduled_dt->getTimestamp() - $now_dt->getTimestamp());
 
-            // Build dynamic payload variables
-            $payload = $this->build_payload_context($appointment, $customer, $rule, $options);
+            // Build dynamic payload variables with service-level overrides
+            $payload = $this->build_payload_context($appointment, $customer, $rule, array_merge($options, [
+                '_service_follow_up_category' => $svc_follow_up_category,
+                '_service_follow_up_priority' => $svc_follow_up_priority,
+                '_service_message_override'   => $svc_message_override,
+            ]));
 
             $dispatch_id = 'fup_' . bin2hex(random_bytes(16));
 
@@ -151,6 +191,91 @@ class Follow_up_engine
         }
 
         return $created_dispatches;
+    }
+
+    /**
+     * Filter sector-level rules based on service-level follow-up configuration.
+     *
+     * Logic:
+     * - If service has follow_up_required = true AND a specific category:
+     *   → Only dispatch rules matching that category (e.g. medical_reaction → reaction_check)
+     * - If service has follow_up_required = false AND priority = 'optional':
+     *   → Only dispatch marketing/NPS rules if tenant has them enabled
+     * - If service has no follow-up config (legacy):
+     *   → Fall back to existing sector-level behavior (all active rules)
+     *
+     * @param array $rules All active rules for this tenant/blueprint
+     * @param bool $svc_required Whether service requires follow-up
+     * @param string|null $svc_category Service follow-up category
+     * @param string $svc_priority Service follow-up priority level
+     * @return array Filtered rules
+     */
+    private function filter_rules_by_service_config(array $rules, bool $svc_required, ?string $svc_category, string $svc_priority): array
+    {
+        // Legacy services without follow-up fields: use all sector rules (backward compat)
+        if (!$svc_required && $svc_category === null) {
+            return $rules;
+        }
+
+        // Map service follow-up categories to matching rule_types
+        $category_to_rule_types = [
+            'medical_reaction'    => ['reaction_check'],
+            'medical_protocol'    => ['diet_form', 'routine_check', 'reaction_check'],
+            'aftercare_safety'    => ['aftercare', 'reaction_check'],
+            'asset_delivery'      => ['asset_delivery'],
+            'compliance_check'    => ['aftercare', 'reaction_check'],
+            'veterinary_postop'   => ['reaction_check', 'aftercare'],
+            'retention_marketing' => ['retention_rebook'],
+            'review_nps'          => ['review_request'],
+        ];
+
+        $matched_rule_types = $category_to_rule_types[$svc_category] ?? [];
+
+        if ($svc_required) {
+            // Service requires follow-up: dispatch category-matched rules
+            // Always include retention_rebook and review_request as bonus if active
+            $required_types = array_merge($matched_rule_types, ['retention_rebook', 'review_request']);
+            return array_filter($rules, static function ($rule) use ($required_types) {
+                return in_array($rule['rule_type'] ?? '', $required_types, true);
+            });
+        }
+
+        // Service does NOT require follow-up: only dispatch optional marketing/NPS
+        if ($svc_priority === 'optional') {
+            return array_filter($rules, static function ($rule) {
+                return in_array($rule['rule_type'] ?? '', ['retention_rebook', 'review_request'], true);
+            });
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Resolve the effective follow-up priority considering both the rule type
+     * and service-level priority configuration.
+     *
+     * - Medical reaction checks are ALWAYS critical regardless of service config
+     * - Service priority elevates/lowers the effective priority
+     *
+     * @param array $rule The follow-up rule
+     * @param string $svc_priority Service-level priority (critical/standard/optional)
+     * @return string Effective priority
+     */
+    private function resolve_effective_priority(array $rule, string $svc_priority): string
+    {
+        $rule_type = $rule['rule_type'] ?? '';
+
+        // Medical reaction checks are always critical - they involve patient safety
+        if ($rule_type === 'reaction_check') {
+            return 'critical';
+        }
+
+        // Service-level priority takes precedence for other rule types
+        if ($svc_priority === 'critical') {
+            return 'critical';
+        }
+
+        return $svc_priority ?: 'optional';
     }
 
     /**
@@ -673,11 +798,17 @@ class Follow_up_engine
      */
     private function render_message_text(?array $rule, array $payload, array $customer): string
     {
-        $schema = !empty($rule['dynamic_payload_schema'])
-            ? (is_string($rule['dynamic_payload_schema']) ? json_decode($rule['dynamic_payload_schema'], true) : $rule['dynamic_payload_schema'])
-            : [];
+        // Check for service-level message override first
+        $service_message_override = $payload['_service_message_override'] ?? null;
+        if (!empty($service_message_override)) {
+            $template = $service_message_override;
+        } else {
+            $schema = !empty($rule['dynamic_payload_schema'])
+                ? (is_string($rule['dynamic_payload_schema']) ? json_decode($rule['dynamic_payload_schema'], true) : $rule['dynamic_payload_schema'])
+                : [];
 
-        $template = $schema['mesaj'] ?? ($schema['soru'] ?? null);
+            $template = $schema['mesaj'] ?? ($schema['soru'] ?? null);
+        }
 
         if (!$template) {
             // Built-in templates per rule type

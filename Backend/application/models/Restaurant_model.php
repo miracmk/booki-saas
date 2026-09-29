@@ -2144,5 +2144,87 @@ class Restaurant_model extends App_Model
         }
         return $this->db->order_by('created_at', 'desc')->limit($limit)->get('restaurant_disposals')->result_array();
     }
+
+    /**
+     * Get or initialize guest intelligence profile for a customer.
+     */
+    public function get_guest_preferences(int $customer_id): array
+    {
+        if (!$this->db->table_exists('restaurant_guest_preferences')) {
+            return [
+                'id_users_customer' => $customer_id,
+                'vip_level' => 'regular',
+                'dietary_restrictions' => null,
+                'seating_preference' => null,
+                'favorite_drink' => null,
+                'special_notes' => null,
+                'visit_count' => 0,
+                'no_show_count' => 0,
+                'average_spend' => 0.00,
+            ];
+        }
+
+        $prefs = $this->db->get_where('restaurant_guest_preferences', ['id_users_customer' => $customer_id])->row_array();
+        if ($prefs) {
+            return $prefs;
+        }
+
+        return [
+            'id_users_customer' => $customer_id,
+            'vip_level' => 'regular',
+            'dietary_restrictions' => null,
+            'seating_preference' => null,
+            'favorite_drink' => null,
+            'special_notes' => null,
+            'visit_count' => 0,
+            'no_show_count' => 0,
+            'average_spend' => 0.00,
+        ];
+    }
+
+    /**
+     * Upsert guest preferences (dietary, VIP, seating, favorite drinks).
+     */
+    public function save_guest_preferences(int $customer_id, array $data): array
+    {
+        if (!$this->db->table_exists('restaurant_guest_preferences')) {
+            return ['id_users_customer' => $customer_id];
+        }
+
+        $existing = $this->db->get_where('restaurant_guest_preferences', ['id_users_customer' => $customer_id])->row_array();
+        $now = date('Y-m-d H:i:s');
+
+        $dietary = $data['dietary_restrictions'] ?? ($data['dietary'] ?? []);
+        if (!empty($data['allergies'])) {
+            $allergies = is_array($data['allergies']) ? $data['allergies'] : [$data['allergies']];
+            $dietary = array_merge(is_array($dietary) ? $dietary : [$dietary], $allergies);
+        }
+        if (is_array($dietary)) {
+            $dietary = json_encode(array_values(array_unique($dietary)), JSON_UNESCAPED_UNICODE);
+        }
+
+        $record = [
+            'vip_level' => $data['vip_level'] ?? 'regular',
+            'dietary_restrictions' => $dietary,
+            'seating_preference' => $data['seating_preference'] ?? ($data['preferred_seating'] ?? null),
+            'favorite_drink' => $data['favorite_drink'] ?? null,
+            'special_notes' => $data['special_notes'] ?? ($data['notes'] ?? null),
+            'updated_at' => $now,
+        ];
+
+        if ($existing) {
+            $this->db->update('restaurant_guest_preferences', $record, ['id_users_customer' => $customer_id]);
+        } else {
+            $record['id_users_customer'] = $customer_id;
+            $record['visit_count'] = 0;
+            $record['no_show_count'] = 0;
+            $record['average_spend'] = 0.00;
+            $record['created_at'] = $now;
+            $this->db->insert('restaurant_guest_preferences', $record);
+        }
+
+        return $this->get_guest_preferences($customer_id);
+    }
 }
+
 

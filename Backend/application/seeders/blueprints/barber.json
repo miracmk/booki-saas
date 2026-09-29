@@ -76,7 +76,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#3b82f6",
-            "description": "Yıkama, saç analizi, makas & makine kesimi ve şekillendirici uygulama."
+            "description": "Yıkama, saç analizi, makas & makine kesimi ve şekillendirici uygulama.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Sakal Tasarımı & Sıcak Havlu",
@@ -86,7 +89,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#1d4ed8",
-            "description": "Ustura sakal tıraşı, sıcak havlu kompresi, buhar ve sakal yağı masajı."
+            "description": "Ustura sakal tıraşı, sıcak havlu kompresi, buhar ve sakal yağı masajı.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Saç + Sakal Full Bakım",
@@ -96,7 +102,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#2563eb",
-            "description": "Komple saç kesimi, sakal tıraşı, yüz maskesi ve kulak/burun ağdası."
+            "description": "Komple saç kesimi, sakal tıraşı, yüz maskesi ve kulak/burun ağdası.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Kadın Saç Kesimi & Tasarım",
@@ -106,7 +115,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Yüz tipine uygun kişiye özel kesim, yıkama ve fön."
+            "description": "Yüz tipine uygun kişiye özel kesim, yıkama ve fön.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Profesyonel Fön & Şekillendirme",
@@ -116,7 +128,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#db2777",
-            "description": "Kırık fön, düz fön veya maşa dalgası."
+            "description": "Kırık fön, düz fön veya maşa dalgası.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Dip Boya & Yıkama",
@@ -126,7 +141,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#a855f7",
-            "description": "Doğal ve parlak renk pigmentleriyle dip tazeleme."
+            "description": "Doğal ve parlak renk pigmentleriyle dip tazeleme.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Balyaj / Ombre / Brushlight",
@@ -136,7 +154,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#7c3aed",
-            "description": "Açma, tonlama, boyama ve cila işlemleri dahil komple renk değişimi."
+            "description": "Açma, tonlama, boyama ve cila işlemleri dahil komple renk değişimi.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Keratin Bakım & Botox",
@@ -146,7 +167,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#10b981",
-            "description": "Yıpranmış saç tellerini onaran, elektriklenmeyi önleyen yoğun keratin yüklemesi."
+            "description": "Yıpranmış saç tellerini onaran, elektriklenmeyi önleyen yoğun keratin yüklemesi.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Brezilya Fönü (Kalıcı Düzleştirme)",
@@ -156,7 +180,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#059669",
-            "description": "4-6 ay kalıcı pürüzsüzlük ve ipeksi parlaklık."
+            "description": "4-6 ay kalıcı pürüzsüzlük ve ipeksi parlaklık.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

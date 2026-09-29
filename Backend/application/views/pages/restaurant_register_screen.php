@@ -510,7 +510,7 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                             <div class="col-6 col-md-4 quick-item-col" data-name="<?= strtolower(e($mi['name'])) ?>">
                                 <div class="card p-3 border rounded-3 h-100 d-flex flex-column justify-content-between shadow-sm cursor-pointer hover-card" 
                                      style="cursor: pointer;"
-                                     onclick="addItemToAdisyon(<?= $mi['id'] ?>, '<?= addslashes($mi['name']) ?>', <?= (float) $mi['price'] ?>, '<?= $mi['station'] ?>')">
+                                     onclick="addItemToAdisyon(<?= $mi['id'] ?>, '<?= htmlspecialchars(addslashes($mi['name']), ENT_QUOTES, 'UTF-8') ?>', <?= (float) $mi['price'] ?>, '<?= $mi['station'] ?>')">
                                     <div class="fw-bold text-dark"><?= e($mi['name']) ?></div>
                                     <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                         <span class="text-primary fw-bolder fs-6 mono-num"><?= number_format((float) $mi['price'], 2) ?> ₺</span>
@@ -534,6 +534,13 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
         let currentCustomerId = null;
         let currentTableData = null;
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         // Clock
         setInterval(() => {
             const now = new Date();
@@ -548,7 +555,7 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
             toastEl.style.minWidth = '280px';
             toastEl.innerHTML = `
                 <i class="fas ${type === 'success' ? 'fa-check-circle' : (type === 'danger' ? 'fa-exclamation-circle' : 'fa-info-circle')}"></i>
-                <div class="small fw-bold">${message}</div>
+                <div class="small fw-bold">${escapeHtml(message)}</div>
             `;
             container.appendChild(toastEl);
             setTimeout(() => {
@@ -659,8 +666,8 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                     row.innerHTML = `
                         <div>
                             <span class="badge bg-dark rounded-pill px-2 py-1 me-1 mono-num">${parseInt(item.quantity)}x</span> 
-                            <strong class="text-dark">${item.name}</strong>
-                            ${item.notes ? `<div class="text-muted fst-italic" style="font-size: 11px;"><i class="fas fa-sticky-note me-1"></i>${item.notes}</div>` : ''}
+                            <strong class="text-dark">${escapeHtml(item.name)}</strong>
+                            ${item.notes ? `<div class="text-muted fst-italic" style="font-size: 11px;"><i class="fas fa-sticky-note me-1"></i>${escapeHtml(item.notes)}</div>` : ''}
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <span class="fw-bold mono-num text-dark">${parseFloat(item.total_amount).toFixed(2)} ₺</span>
@@ -725,6 +732,24 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                     }
 
                     document.getElementById('customer-info-box').style.display = 'block';
+
+                    // Ensure customer ID is attached to active adisyon
+                    if (currentAdisyonId) {
+                        try {
+                            await fetch('<?= site_url('restaurant/api/attach_customer') ?>', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    adisyon_id: currentAdisyonId,
+                                    customer_id: currentCustomerId,
+                                    table_id: currentTableId
+                                })
+                            });
+                        } catch (e) {
+                            console.warn('Customer attach warning:', e);
+                        }
+                    }
+
                     showPosToast('Müşteri başarıyla eşleştirildi!', 'success');
                 } else {
                     showPosToast('Müşteri bulunamadı.', 'warning');
@@ -870,7 +895,10 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                 const res = await fetch('<?= site_url('restaurant/api/close_table') ?>', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ table_id: currentTableId })
+                    body: JSON.stringify({
+                        table_id: currentTableId,
+                        customer_id: currentCustomerId
+                    })
                 });
                 const data = await res.json();
 
@@ -891,10 +919,20 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                 showPosToast('Ödeme yapılacak açık bir adisyon yok.', 'warning');
                 return;
             }
-            // Parse total ignoring formatting, adisyon-total-val innerText might have ' ₺'
-            let rawTotal = document.getElementById('adisyon-total-val').innerText;
-            rawTotal = rawTotal.replace(/[^0-9.-]+/g,"");
-            const totalPayable = parseFloat(rawTotal) || 0;
+
+            let totalPayable = 0;
+            if (currentTableData && currentTableData.adisyon && currentTableData.adisyon.total_amount !== undefined && currentTableData.adisyon.total_amount !== null) {
+                totalPayable = parseFloat(currentTableData.adisyon.total_amount) || 0;
+            } else {
+                let rawTotal = document.getElementById('adisyon-total-val')?.innerText || '0';
+                if (rawTotal.includes('.') && rawTotal.includes(',')) {
+                    rawTotal = rawTotal.replace(/\./g, '').replace(',', '.');
+                } else if (rawTotal.includes(',')) {
+                    rawTotal = rawTotal.replace(',', '.');
+                }
+                rawTotal = rawTotal.replace(/[^0-9.-]+/g, "");
+                totalPayable = parseFloat(rawTotal) || 0;
+            }
             
             SplitPaymentModal.open('adisyon', currentAdisyonId, totalPayable, []);
             SplitPaymentModal.onFinalized(function(data) {
@@ -911,25 +949,39 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
             }
 
             const items = [];
-            document.querySelectorAll('#adisyon-items-list tr').forEach(tr => {
-                const name = tr.querySelector('.item-name')?.innerText || tr.cells[0]?.innerText;
-                const qty = parseInt(tr.querySelector('.item-qty')?.innerText || tr.cells[1]?.innerText) || 1;
-                const price = parseFloat(tr.querySelector('.item-price')?.innerText?.replace(/[^0-9.-]+/g, "") || tr.cells[2]?.innerText?.replace(/[^0-9.-]+/g, "")) || 0;
-                if (name && qty) {
-                    items.push({ name: name.trim(), qty: qty, price: price });
-                }
-            });
+            if (currentTableData && currentTableData.adisyon && Array.isArray(currentTableData.adisyon.items)) {
+                currentTableData.adisyon.items.forEach(item => {
+                    items.push({
+                        name: item.name,
+                        quantity: parseInt(item.quantity) || 1,
+                        price: parseFloat(item.total_amount || item.price) || 0
+                    });
+                });
+            }
 
-            const rawTotal = document.getElementById('adisyon-total-val').innerText.replace(/[^0-9.-]+/g, "");
-            const total = parseFloat(rawTotal) || 0;
-            const tableNum = document.getElementById('pos-active-table-title')?.innerText?.replace('Masa ', '') || currentTableId;
+            let total = 0;
+            if (currentTableData && currentTableData.adisyon && currentTableData.adisyon.total_amount !== undefined && currentTableData.adisyon.total_amount !== null) {
+                total = parseFloat(currentTableData.adisyon.total_amount) || 0;
+            } else {
+                let rawTotal = document.getElementById('adisyon-total-val')?.innerText || '0';
+                if (rawTotal.includes('.') && rawTotal.includes(',')) {
+                    rawTotal = rawTotal.replace(/\./g, '').replace(',', '.');
+                } else if (rawTotal.includes(',')) {
+                    rawTotal = rawTotal.replace(',', '.');
+                }
+                rawTotal = rawTotal.replace(/[^0-9.-]+/g, "");
+                total = parseFloat(rawTotal) || 0;
+            }
+
+            const tableBadge = document.getElementById('selected-table-badge')?.innerText || '';
+            const tableNum = tableBadge.replace('Masa ', '').trim();
 
             ThermalReceipt.open({
                 venueName: 'BooKi Restoran',
                 tableNumber: tableNum,
                 adisyonId: currentAdisyonId,
                 total: total,
-                subtotal: total,
+                subtotal: (currentTableData && currentTableData.adisyon && currentTableData.adisyon.subtotal !== undefined) ? parseFloat(currentTableData.adisyon.subtotal) : total,
                 items: items
             });
         }

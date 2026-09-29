@@ -966,4 +966,28 @@ $lang['settings_field_ai_discount_policy_desc'] = 'Guidance on discounts or prom
 $lang['settings_field_ai_forbidden_terms'] = 'Forbidden Terms';
 $lang['settings_field_ai_forbidden_terms_desc'] = 'Comma-separated terms or words the AI assistant should never mention.';
 
+// Service-Level Follow-Up Engine (M174)
+$lang['follow_up_engine'] = 'Post-Service Follow-Up Engine';
+$lang['follow_up_required'] = 'Follow-Up Required';
+$lang['follow_up_category'] = 'Follow-Up Category';
+$lang['follow_up_priority'] = 'Follow-Up Priority';
+$lang['follow_up_delay_override'] = 'Delay Override (Service-Level)';
+$lang['follow_up_message_override'] = 'Custom Follow-Up Message';
+$lang['follow_up_priority_critical'] = 'Critical (Medical / Safety)';
+$lang['follow_up_priority_standard'] = 'Standard (Enabled by Default)';
+$lang['follow_up_priority_optional'] = 'Optional (Marketing)';
+$lang['follow_up_cat_medical_reaction'] = 'Medical Reaction Check';
+$lang['follow_up_cat_medical_protocol'] = 'Treatment Protocol Monitoring';
+$lang['follow_up_cat_aftercare_safety'] = 'Aftercare Safety';
+$lang['follow_up_cat_asset_delivery'] = 'Digital/Physical Asset Delivery';
+$lang['follow_up_cat_compliance_check'] = 'Compliance Check';
+$lang['follow_up_cat_veterinary_postop'] = 'Veterinary Post-Op Monitoring';
+$lang['follow_up_cat_retention_marketing'] = 'Retention Rebook (Marketing)';
+$lang['follow_up_cat_review_nps'] = 'NPS & Customer Review';
+$lang['follow_up_service_stats_title'] = 'Service-Level Follow-Up Requirements';
+$lang['follow_up_critical_count'] = 'Critical (Medical)';
+$lang['follow_up_standard_count'] = 'Standard (Default On)';
+$lang['follow_up_optional_count'] = 'Optional (Marketing)';
+$lang['follow_up_required_total'] = 'Services Requiring Follow-Up';
+
 

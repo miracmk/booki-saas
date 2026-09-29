@@ -73,6 +73,16 @@ class Permission_service
             return false;
         }
 
+        // Customer guard: customer is strictly read-only on account/user_settings and customer records (cannot edit, add, or delete)
+        if ($role_slug === 'customer') {
+            if ($resource === 'user_settings' || $resource === PRIV_USER_SETTINGS || $resource === 'customers' || $resource === PRIV_CUSTOMERS) {
+                if ($action === 'view') {
+                    return $required_scope === null || $this->evaluate_scope('own', $required_scope, $user_id, $context);
+                }
+                return false;
+            }
+        }
+
         // 3. Check Granular JSON Permissions
         if (!empty($role['permissions_json'])) {
             $perms = json_decode($role['permissions_json'], true);
@@ -101,6 +111,18 @@ class Permission_service
                         }
 
                         return $this->evaluate_scope($granted_scope, $required_scope, $user_id, $context);
+                    }
+                }
+
+                // Default user_settings (own account / profile settings) access:
+                // All backend staff roles (non-customer) have permission to view and edit their own settings
+                // unless explicitly configured or denied in permissions_json.
+                if ($resource === 'user_settings' || $resource === PRIV_USER_SETTINGS) {
+                    if ($role_slug !== 'customer' && in_array($action, ['view', 'edit'], true)) {
+                        if ($required_scope === null) {
+                            return true;
+                        }
+                        return $this->evaluate_scope('own', $required_scope, $user_id, $context);
                     }
                 }
 

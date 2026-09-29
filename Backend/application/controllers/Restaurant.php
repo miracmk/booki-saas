@@ -1324,7 +1324,20 @@ class Restaurant extends App_Controller
 
         $this->load->model('adisyons_model');
         $adisyon = $this->adisyons_model->find($adisyon_id);
-        if (!$adisyon || empty($adisyon['id_users_customer'])) {
+        if (!$adisyon) {
+            $this->output->set_status_header(400)->set_content_type('application/json')->set_output(json_encode([
+                'status' => 'error',
+                'message' => 'Adisyon bulunamadı.'
+            ]));
+            return;
+        }
+
+        if (empty($adisyon['id_users_customer']) && !empty($payload['customer_id'])) {
+            $this->db->update('adisyons', ['id_users_customer' => (int) $payload['customer_id']], ['id' => $adisyon_id]);
+            $adisyon['id_users_customer'] = (int) $payload['customer_id'];
+        }
+
+        if (empty($adisyon['id_users_customer'])) {
             $this->output->set_status_header(400)->set_content_type('application/json')->set_output(json_encode([
                 'status' => 'error',
                 'message' => 'Adisyona bağlı bir müşteri bulunamadı. Lütfen önce masaya müşteri bağlayın.'
@@ -1459,8 +1472,8 @@ class Restaurant extends App_Controller
         $raw = file_get_contents('php://input');
         $payload = !empty($raw) ? json_decode($raw, true) : $this->input->post();
 
-        $source_id = (int) ($payload['source_table_id'] ?? 0);
-        $target_id = (int) ($payload['target_table_id'] ?? 0);
+        $source_id = (int) ($payload['source_table_id'] ?? $payload['from_table_id'] ?? 0);
+        $target_id = (int) ($payload['target_table_id'] ?? $payload['to_table_id'] ?? 0);
 
         try {
             $result = $this->restaurant_model->transfer_table($source_id, $target_id, session('user_id') ?: null);
@@ -1488,21 +1501,49 @@ class Restaurant extends App_Controller
         }
 
         $search_phone = preg_replace('/[^0-9]/', '', $phone);
-        $customers = $this->customers_model->get();
-        $customer = null;
-
-        foreach ($customers as $c) {
-            $c_phone = preg_replace('/[^0-9]/', '', $c['phone_number'] ?? '');
-            if (!empty($c_phone) && !empty($search_phone) && (str_ends_with($c_phone, $search_phone) || str_ends_with($search_phone, $c_phone))) {
-                $customer = $c;
-                break;
-            }
-        }
-
-        if (!$customer) {
+        if (empty($search_phone)) {
             $this->output->set_content_type('application/json')->set_output(json_encode(['status' => 'not_found']));
             return;
         }
+
+        $last10 = (strlen($search_phone) >= 10) ? substr($search_phone, -10) : $search_phone;
+
+        $this->db->select('users.*')
+            ->from('users')
+            ->join('roles', 'roles.id = users.id_roles', 'left')
+            ->group_start()
+                ->where('users.role_slug', 'customer')
+                ->or_where('roles.slug', 'customer')
+            ->group_end()
+            ->group_start()
+                ->like('users.phone_number', $search_phone)
+                ->or_like('users.phone_number', $last10)
+                ->or_like('users.mobile_number', $search_phone)
+                ->or_like('users.mobile_number', $last10);
+
+        if (function_exists('sf_pii_hash') && $this->db->field_exists('phone_number_hash', 'users')) {
+            $candidates = array_unique(array_filter([
+                $search_phone,
+                $last10,
+                '0' . $last10,
+                '+90' . $last10,
+                '90' . $last10,
+            ]));
+            $hashes = array_unique(array_filter(array_map('sf_pii_hash', $candidates)));
+            if (!empty($hashes)) {
+                $this->db->or_where_in('users.phone_number_hash', $hashes);
+            }
+        }
+
+        $this->db->group_end();
+        $customer_row = $this->db->limit(1)->get()->row_array();
+
+        if (!$customer_row) {
+            $this->output->set_content_type('application/json')->set_output(json_encode(['status' => 'not_found']));
+            return;
+        }
+
+        $customer = $this->customers_model->find((int) $customer_row['id']);
 
         $customer_id = (int) $customer['id'];
         $points = $this->loyalty_points_model->get_balance($customer_id);
@@ -1532,6 +1573,40 @@ class Restaurant extends App_Controller
                     'patron_profile' => $patron_profile,
                 ],
             ]));
+    }
+
+    /**
+     * API: Attach customer to adisyon and/or table.
+     */
+    public function api_attach_customer(): void
+    {
+        $this->ensure_authenticated();
+        $payload = $this->get_request_payload();
+
+        $customer_id = (int) ($payload['customer_id'] ?? 0);
+        $adisyon_id = (int) ($payload['adisyon_id'] ?? 0);
+        $table_id = (int) ($payload['table_id'] ?? 0);
+
+        if (!$customer_id) {
+            $this->output->set_status_header(400)->set_content_type('application/json')->set_output(json_encode([
+                'status' => 'error',
+                'message' => 'Müşteri ID gereklidir.'
+            ]));
+            return;
+        }
+
+        if ($adisyon_id) {
+            $this->db->update('adisyons', ['id_users_customer' => $customer_id], ['id' => $adisyon_id]);
+        } elseif ($table_id) {
+            $table = $this->db->get_where('restaurant_tables', ['id' => $table_id])->row_array();
+            if ($table && !empty($table['current_id_adisyons'])) {
+                $this->db->update('adisyons', ['id_users_customer' => $customer_id], ['id' => (int) $table['current_id_adisyons']]);
+            }
+        }
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['status' => 'success', 'message' => 'Müşteri adisyona bağlandı.']));
     }
 
     /**
@@ -1664,9 +1739,10 @@ class Restaurant extends App_Controller
             $this->adisyons_model->close($adisyon_id);
 
             $adisyon = $this->adisyons_model->find($adisyon_id);
-            if (empty($adisyon['id_users_customer']) && !empty($payload['customer_id'])) {
-                $this->db->update('adisyons', ['id_users_customer' => (int) $payload['customer_id']], ['id' => $adisyon_id]);
-                $adisyon['id_users_customer'] = (int) $payload['customer_id'];
+            $provided_customer_id = (int) ($payload['customer_id'] ?? 0);
+            if ($provided_customer_id > 0 && (empty($adisyon['id_users_customer']) || (int) $adisyon['id_users_customer'] !== $provided_customer_id)) {
+                $this->db->update('adisyons', ['id_users_customer' => $provided_customer_id], ['id' => $adisyon_id]);
+                $adisyon['id_users_customer'] = $provided_customer_id;
             }
 
             $points_to_earn = 0;

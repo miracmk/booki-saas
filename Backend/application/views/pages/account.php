@@ -5,15 +5,135 @@
 <div id="account-page" class="container backend-page py-3">
     <div id="account">
         <div class="row">
-            <div class="col-lg-8 offset-lg-2">
+            <div class="<?= vars('is_customer') ? 'col-lg-10 offset-lg-1' : 'col-lg-8 offset-lg-2' ?>">
+                <?php if (vars('is_customer')): ?>
+                    <div class="alert alert-light border border-info border-opacity-25 d-flex align-items-center mb-4 p-3 shadow-sm rounded-3">
+                        <div class="me-3 text-info">
+                            <i class="fas fa-id-card-alt fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="alert-heading mb-1 text-dark fw-bold">
+                                Müşteri Kartı ve Profil Özeti 
+                                <span class="badge bg-secondary ms-2 fw-normal fs-6">Salt Okunur</span>
+                            </h6>
+                            <div class="text-muted small">
+                                Profil bilgilerinizi ve işlem geçmişinizi bu sayfadan inceleyebilirsiniz. Bilgilerinizi güncellemek veya randevu değişikliği yapmak için lütfen işletme yetkilisi ile iletişime geçiniz.
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php if (!empty(vars('customer_card'))): ?>
+                        <?php $customer_card = vars('customer_card'); ?>
+                        <?php if (!empty($customer_card['tags'])): ?>
+                            <div class="mb-3 d-flex flex-wrap gap-2">
+                                <?php foreach ($customer_card['tags'] as $tag): ?>
+                                    <span class="badge <?= $tag['class'] ?> px-2 py-1"><?= html_escape($tag['label']) ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php $metrics = $customer_card['metrics'] ?? []; ?>
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6 col-md-3">
+                                <div class="card h-100 border shadow-sm">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="text-muted small text-uppercase fw-semibold mb-1">Toplam Randevu</div>
+                                        <div class="fs-4 fw-bold text-primary"><?= (int)($metrics['total_appointments'] ?? 0) ?></div>
+                                        <div class="text-success small"><i class="fas fa-check-circle me-1"></i><?= (int)($metrics['completed_appointments'] ?? 0) ?> Tamamlandı</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="card h-100 border shadow-sm">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="text-muted small text-uppercase fw-semibold mb-1">İptal / Gelmedi</div>
+                                        <div class="fs-4 fw-bold text-secondary"><?= (int)($metrics['cancellations'] ?? 0) ?> / <?= (int)($metrics['no_shows'] ?? 0) ?></div>
+                                        <div class="text-muted small">İptal ve Gelmedi</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="card h-100 border shadow-sm">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="text-muted small text-uppercase fw-semibold mb-1">Paket / Üyelik</div>
+                                        <div class="fs-4 fw-bold text-info"><?= (int)($metrics['active_packages_count'] ?? 0) ?> / <?= (int)($metrics['active_memberships_count'] ?? 0) ?></div>
+                                        <div class="text-muted small">Aktif Paket & Üyelik</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <div class="card h-100 border shadow-sm">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="text-muted small text-uppercase fw-semibold mb-1">Son Ziyaret</div>
+                                        <div class="fs-6 fw-bold text-dark mt-1">
+                                            <?= !empty($metrics['last_visit']) ? date('d.m.Y H:i', strtotime($metrics['last_visit'])) : '-' ?>
+                                        </div>
+                                        <?php if (!empty($metrics['next_appointment'])): ?>
+                                            <div class="text-primary small mt-1" title="<?= html_escape($metrics['next_appointment']['service_name'] ?? '') ?>">
+                                                <i class="fas fa-clock me-1"></i><?= date('d.m.Y H:i', strtotime($metrics['next_appointment']['start_datetime'])) ?>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="text-muted small mt-1">Gelecek randevu yok</div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <?php if (!empty($customer_card['timeline'])): ?>
+                            <div class="card border shadow-sm mb-4">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                                    <h6 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-primary"></i>İşlem ve Randevu Geçmişi</h6>
+                                    <span class="badge bg-secondary"><?= count($customer_card['timeline']) ?> Kayıt</span>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                                        <table class="table table-hover table-striped mb-0 align-middle">
+                                            <thead class="table-light sticky-top">
+                                                <tr>
+                                                    <th class="ps-3">Tarih</th>
+                                                    <th>İşlem / Hizmet</th>
+                                                    <th>Detay</th>
+                                                    <th>Durum</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($customer_card['timeline'] as $item): ?>
+                                                    <tr>
+                                                        <td class="ps-3 text-nowrap small text-muted">
+                                                            <i class="fas <?= !empty($item['icon']) ? html_escape($item['icon']) : 'fa-circle' ?> me-1 text-<?= html_escape($item['badge'] ?? 'primary') ?>"></i>
+                                                            <?= !empty($item['date']) ? date('d.m.Y H:i', strtotime($item['date'])) : '-' ?>
+                                                        </td>
+                                                        <td class="fw-semibold text-dark small">
+                                                            <?= html_escape($item['title'] ?? '') ?>
+                                                        </td>
+                                                        <td class="small text-muted">
+                                                            <?= html_escape($item['subtitle'] ?? '') ?>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-<?= html_escape($item['badge'] ?? 'secondary') ?>">
+                                                                <?= html_escape(ucfirst($item['status'] ?? '')) ?>
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                <?php endif; ?>
+
                 <form>
                     <fieldset>
                         <div class="d-flex justify-content-between align-items-center border-bottom mb-4 py-2">
                             <h4 class="mb-0 fw-light">
-                                <?= lang('account') ?>
+                                <?= vars('is_customer') ? 'Kişisel Hesap ve İletişim Bilgileri' : lang('account') ?>
                             </h4>
 
-                            <?php if (can('edit', PRIV_USER_SETTINGS)): ?>
+                            <?php if (vars('can_edit')): ?>
                                 <button type="button" id="save-settings" class="btn btn-primary">
                                     <i class="fas fa-check-square me-2"></i>
                                     <?= lang('save') ?>
@@ -175,6 +295,7 @@
                             </div>
                         </div>
 
+                        <?php if (!vars('is_customer')): ?>
                         <!-- Two-Factor Authentication Section -->
                         <div class="border-top pt-4 mt-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -382,6 +503,7 @@
                                 </div>
                             </div>
                         </div>
+                        <?php endif; ?>
                     </fieldset>
                 </form>
             </div>

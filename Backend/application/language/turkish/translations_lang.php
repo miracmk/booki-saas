@@ -984,4 +984,28 @@ $lang['settings_field_ai_discount_policy_desc'] = 'İndirim sorulduğunda asista
 $lang['settings_field_ai_forbidden_terms'] = 'Yasaklı Kelimeler';
 $lang['settings_field_ai_forbidden_terms_desc'] = 'AI asistanın yanıtlarında kullanmaması gereken kelimeler (virgülle ayırın).';
 
+// Service-Level Follow-Up Engine (M174)
+$lang['follow_up_engine'] = 'Hizmet Sonrası Takip Motoru';
+$lang['follow_up_required'] = 'Takip Gerekli';
+$lang['follow_up_category'] = 'Takip Kategorisi';
+$lang['follow_up_priority'] = 'Takip Önceliği';
+$lang['follow_up_delay_override'] = 'Gecikme Süresi (Hizmet Bazlı)';
+$lang['follow_up_message_override'] = 'Özel Takip Mesajı';
+$lang['follow_up_priority_critical'] = 'Kritik (Tıbbi / Güvenlik)';
+$lang['follow_up_priority_standard'] = 'Standart (Varsayılan Açık)';
+$lang['follow_up_priority_optional'] = 'Opsiyonel (Marketing)';
+$lang['follow_up_cat_medical_reaction'] = 'Tıbbi Reaksiyon Kontrolü';
+$lang['follow_up_cat_medical_protocol'] = 'Tedavi Protokolü Takibi';
+$lang['follow_up_cat_aftercare_safety'] = 'Aftercare Güvenliği';
+$lang['follow_up_cat_asset_delivery'] = 'Dijital/Fiziksel Varlık Teslimi';
+$lang['follow_up_cat_compliance_check'] = 'Uyum Kontrolü';
+$lang['follow_up_cat_veterinary_postop'] = 'Veteriner Postoperatif Takip';
+$lang['follow_up_cat_retention_marketing'] = 'Randevu Yenileme (Marketing)';
+$lang['follow_up_cat_review_nps'] = 'NPS & Müşteri Değerlendirmesi';
+$lang['follow_up_service_stats_title'] = 'Hizmet Bazlı Takip Gerekliliği';
+$lang['follow_up_critical_count'] = 'Kritik (Tıbbi)';
+$lang['follow_up_standard_count'] = 'Standart (Varsayılan Açık)';
+$lang['follow_up_optional_count'] = 'Opsiyonel (Marketing)';
+$lang['follow_up_required_total'] = 'Takip Zorunlu Hizmet';
+
 

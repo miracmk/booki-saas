@@ -21,7 +21,7 @@ class Digital_waivers_model extends App_Model
             'title' => trim($data['title']),
             'content_html' => $data['content_html'],
             'is_mandatory' => isset($data['is_mandatory']) ? (int) $data['is_mandatory'] : 1,
-            'applicable_service_ids' => !empty($data['service_ids']) ? (is_array($data['service_ids']) ? implode(',', $data['service_ids']) : $data['service_ids']) : null,
+            'applicable_service_ids' => !empty($data['applicable_service_ids']) ? (is_array($data['applicable_service_ids']) ? implode(',', $data['applicable_service_ids']) : (string) $data['applicable_service_ids']) : (!empty($data['service_ids']) ? (is_array($data['service_ids']) ? implode(',', $data['service_ids']) : (string) $data['service_ids']) : null),
             'updated_at' => $now,
         ];
 

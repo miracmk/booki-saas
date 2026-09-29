@@ -368,14 +368,16 @@ Port: `8765` | Transport: `StreamableHTTPServerTransport` | Base Path: `/mcp`
 └── 📁 {tenant_db_name} (Örn: salonflora_db, izole kiracı DB'leri)
     ├── appointments                # Randevular
     ├── customers                   # Müşteri verileri, sadakat puanları
-    ├── services                    # Hizmet kataloğu
+    ├── services                    # Hizmet kataloğu (follow_up_required, follow_up_category, follow_up_priority, follow_up_delay_override, follow_up_message_override eklendi - M174)
     ├── service_categories          # Kategoriler
-    ├── users                       # Personel (job_title, role_slug, branch_ids eklendi)
+    ├── users                       # Personel (job_title, role_slug, branch_ids, marketing_opt_out eklendi)
     ├── roles                       # Roller (permissions_json, vertical_family, business_type eklendi)
     ├── user_branches               # Çok şubeli personel-şube eşleşmeleri (YENİ - M170)
     ├── tenant_ai_policies          # Tenant bazlı AI kuralları ve ton politikası (YENİ - M170)
     ├── ai_learned_rules            # AI davranış öğrenme hattı kayıtları (YENİ - M170)
     ├── ai_escalation_handoffs      # İnsan devri ve kriz eskalasyon kayıtları (YENİ - M170)
+    ├── follow_up_rules             # Sektörel otonom takip kuralları (YENİ - M171)
+    ├── follow_up_dispatches        # Zamanlanmış takip görevleri & NPS yanıtları (YENİ - M171)
     ├── adisyons                    # POS adisyonları, ödeme kalemleri
     ├── stations                    # Sandalye / masa / oda tanımları
     └── settings                    # Kiracıya özel çalışma saatleri & kurallar

@@ -349,9 +349,11 @@ class Migration_Multi_vertical_enterprise_suite extends App_Migration
             $this->dbforge->add_field([
                 'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
                 'ticket_code' => ['type' => 'VARCHAR', 'constraint' => 50, 'unique' => true],
-                'id_appointments' => ['type' => 'INT'],
-                'id_users_customer' => ['type' => 'INT'],
+                'id_appointments' => ['type' => 'INT', 'null' => true, 'default' => null],
+                'id_users_customer' => ['type' => 'INT', 'null' => true, 'default' => null],
                 'seat_or_slot_label' => ['type' => 'VARCHAR', 'constraint' => 50, 'null' => true, 'default' => null],
+                'ticket_type' => ['type' => 'VARCHAR', 'constraint' => 100, 'null' => true, 'default' => null],
+                'price' => ['type' => 'DECIMAL', 'constraint' => '10,2', 'default' => 0.00],
                 'status' => ['type' => 'VARCHAR', 'constraint' => 30, 'default' => 'valid'], // valid, used, cancelled
                 'used_at' => ['type' => 'DATETIME', 'null' => true, 'default' => null],
                 'created_at' => ['type' => 'DATETIME'],

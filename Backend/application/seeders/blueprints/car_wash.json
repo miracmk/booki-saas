@@ -72,7 +72,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#3b82f6",
-            "description": "pH nötr aktif köpük, yüksek basınçlı durulama, mikrofiber kurulama ve lastik parlatma."
+            "description": "pH nötr aktif köpük, yüksek basınçlı durulama, mikrofiber kurulama ve lastik parlatma.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "İç + Dış Standart Yıkama",
@@ -82,7 +85,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#2563eb",
-            "description": "Köpüklü dış yıkama + iç süpürme, torpido temizliği, cam silme ve paspas yıkama."
+            "description": "Köpüklü dış yıkama + iç süpürme, torpido temizliği, cam silme ve paspas yıkama.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Detaylı Koltuk & Döşeme Yıkama",
@@ -92,7 +98,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#0ea5e9",
-            "description": "Sıcak sulu vakumlu ekstraksiyon makinesi ile kumaş/deri koltuk leke arındırma."
+            "description": "Sıcak sulu vakumlu ekstraksiyon makinesi ile kumaş/deri koltuk leke arındırma.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "VIP Detaylı İç Sterilizasyon & Ozon",
@@ -102,7 +111,10 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#0284c7",
-            "description": "Tavan, taban, bagaj, koltuklar, havalandırma kanalları buharlı temizlik + ozon jeneratörü ile dezenfeksiyon."
+            "description": "Tavan, taban, bagaj, koltuklar, havalandırma kanalları buharlı temizlik + ozon jeneratörü ile dezenfeksiyon.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "3 Aşamalı Pasta Cila & Çizik Giderme",
@@ -112,7 +124,10 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#f59e0b",
-            "description": "Kil temizliği, kalın/ince pasta ile hare ve çizik giderme, wax cila koruma."
+            "description": "Kil temizliği, kalın/ince pasta ile hare ve çizik giderme, wax cila koruma.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "9H Seramik Kaplama (2 Yıl Garantili)",
@@ -122,7 +137,10 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#eab308",
-            "description": "Tam boya düzeltme + çift kat 9H sertlikte nano seramik koruma katmanı."
+            "description": "Tam boya düzeltme + çift kat 9H sertlikte nano seramik koruma katmanı.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Motor Yıkama & Koruma",
@@ -132,7 +150,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#64748b",
-            "description": "Dielektrik kimyasal ve buhar ile susuz motor bloğu temizleme ve plastik koruma."
+            "description": "Dielektrik kimyasal ve buhar ile susuz motor bloğu temizleme ve plastik koruma.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

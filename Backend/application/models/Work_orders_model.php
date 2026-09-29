@@ -14,7 +14,15 @@ class Work_orders_model extends App_Model
     {
         $year = date('Y');
         $count = $this->db->where('created_at >=', $year . '-01-01 00:00:00')->count_all_results('work_orders');
-        return sprintf('WO-%s-%04d', $year, $count + 1);
+        $num = $count + 1;
+        do {
+            $candidate = sprintf('WO-%s-%04d', $year, $num);
+            $exists = $this->db->where('work_order_number', $candidate)->count_all_results('work_orders');
+            if ($exists === 0) {
+                return $candidate;
+            }
+            $num++;
+        } while (true);
     }
 
     /**
@@ -29,6 +37,20 @@ class Work_orders_model extends App_Model
         $now = date('Y-m-d H:i:s');
         $wo_number = !empty($data['work_order_number']) ? $data['work_order_number'] : $this->generate_work_order_number();
 
+        $labor_items_json = null;
+        if (!empty($data['labor_items'])) {
+            $labor_items_json = is_string($data['labor_items']) ? $data['labor_items'] : json_encode($data['labor_items']);
+        } elseif (!empty($data['labor_items_json'])) {
+            $labor_items_json = is_string($data['labor_items_json']) ? $data['labor_items_json'] : json_encode($data['labor_items_json']);
+        }
+
+        $parts_items_json = null;
+        if (!empty($data['parts_items'])) {
+            $parts_items_json = is_string($data['parts_items']) ? $data['parts_items'] : json_encode($data['parts_items']);
+        } elseif (!empty($data['parts_items_json'])) {
+            $parts_items_json = is_string($data['parts_items_json']) ? $data['parts_items_json'] : json_encode($data['parts_items_json']);
+        }
+
         $wo = [
             'work_order_number' => $wo_number,
             'id_vehicles' => (int) $data['id_vehicles'],
@@ -37,8 +59,8 @@ class Work_orders_model extends App_Model
             'status' => $data['status'] ?? 'created',
             'estimated_cost' => (float) ($data['estimated_cost'] ?? 0.00),
             'final_cost' => (float) ($data['final_cost'] ?? 0.00),
-            'labor_items_json' => !empty($data['labor_items']) ? json_encode($data['labor_items']) : null,
-            'parts_items_json' => !empty($data['parts_items']) ? json_encode($data['parts_items']) : null,
+            'labor_items_json' => $labor_items_json,
+            'parts_items_json' => $parts_items_json,
             'delivery_datetime' => !empty($data['delivery_datetime']) ? $data['delivery_datetime'] : null,
             'created_at' => $now,
             'updated_at' => $now,
@@ -46,6 +68,29 @@ class Work_orders_model extends App_Model
 
         $this->db->insert('work_orders', $wo);
         $wo['id'] = $this->db->insert_id();
+
+        return $wo;
+    }
+
+    /**
+     * Get work order by ID with vehicle and technician details.
+     */
+    public function get_by_id(int $id): ?array
+    {
+        $wo = $this->db
+            ->select('wo.*, v.plate_number, v.brand, v.model, v.year, v.color, v.current_km, c.first_name as owner_first_name, c.last_name as owner_last_name, c.phone_number as owner_phone, u.first_name as technician_first_name, u.last_name as technician_last_name')
+            ->from('work_orders wo')
+            ->join('customer_vehicles v', 'v.id = wo.id_vehicles', 'left')
+            ->join('users c', 'c.id = v.id_users_customer', 'left')
+            ->join('users u', 'u.id = wo.id_users_technician', 'left')
+            ->where('wo.id', $id)
+            ->get()
+            ->row_array();
+
+        if ($wo) {
+            $wo['labor_items'] = !empty($wo['labor_items_json']) ? json_decode($wo['labor_items_json'], true) : [];
+            $wo['parts_items'] = !empty($wo['parts_items_json']) ? json_decode($wo['parts_items_json'], true) : [];
+        }
 
         return $wo;
     }
@@ -63,6 +108,11 @@ class Work_orders_model extends App_Model
 
         if (!in_array($status, $valid, true)) {
             throw new InvalidArgumentException('Geçersiz iş emri durumu: ' . $status);
+        }
+
+        $wo = $this->db->get_where('work_orders', ['id' => $work_order_id])->row_array();
+        if (!$wo) {
+            throw new InvalidArgumentException('İş emri bulunamadı.');
         }
 
         $now = date('Y-m-d H:i:s');
@@ -90,13 +140,20 @@ class Work_orders_model extends App_Model
         $now = date('Y-m-d H:i:s');
         $token = bin2hex(random_bytes(16)); // 32-char secure public share token
 
+        $items_json = null;
+        if (!empty($data['items'])) {
+            $items_json = is_string($data['items']) ? $data['items'] : json_encode($data['items']);
+        } elseif (!empty($data['items_json'])) {
+            $items_json = is_string($data['items_json']) ? $data['items_json'] : json_encode($data['items_json']);
+        }
+
         $inspection = [
             'id_vehicles' => (int) $data['id_vehicles'],
             'id_appointments' => !empty($data['id_appointments']) ? (int) $data['id_appointments'] : null,
             'inspector_id' => !empty($data['inspector_id']) ? (int) $data['inspector_id'] : null,
             'inspection_type' => $data['inspection_type'] ?? 'general_service',
             'overall_score' => isset($data['overall_score']) ? (int) $data['overall_score'] : null,
-            'items_json' => !empty($data['items']) ? json_encode($data['items']) : null,
+            'items_json' => $items_json,
             'customer_shared_token' => $token,
             'created_at' => $now,
             'updated_at' => $now,
@@ -134,6 +191,11 @@ class Work_orders_model extends App_Model
      */
     public function approve_inspection_by_token(string $token): bool
     {
+        $existing = $this->db->get_where('vehicle_inspections', ['customer_shared_token' => $token])->row_array();
+        if (!$existing) {
+            throw new InvalidArgumentException('Ekspertiz raporu bulunamadı.');
+        }
+
         return $this->db->update('vehicle_inspections', [
             'customer_approved_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),

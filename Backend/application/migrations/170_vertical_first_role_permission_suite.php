@@ -412,13 +412,17 @@ class Migration_Vertical_first_role_permission_suite extends App_Migration
         ];
 
         foreach ($roles_to_seed as $slug => $data) {
+            $perms = $data['permissions'];
+            if ($slug !== 'customer' && !isset($perms['*']) && !isset($perms['user_settings'])) {
+                $perms['user_settings'] = ['view' => 'own', 'edit' => 'own'];
+            }
             $role_payload = [
                 'name' => $data['name'],
                 'slug' => $slug,
                 'is_admin' => $data['is_admin'],
                 'vertical_family' => $data['vertical_family'],
                 'business_type' => $data['business_type'],
-                'permissions_json' => json_encode($data['permissions']),
+                'permissions_json' => json_encode($perms),
                 'update_datetime' => date('Y-m-d H:i:s'),
             ];
 
@@ -447,6 +451,7 @@ class Migration_Vertical_first_role_permission_suite extends App_Migration
                 'services' => ['view' => 'all'],
                 'stations' => ['view' => 'branch'],
                 'ai_agent' => ['view' => 'assigned', 'propose' => 'assigned'],
+                'user_settings' => ['view' => 'own', 'edit' => 'own'],
             ],
             'secretary' => [
                 'appointments' => ['view' => 'branch', 'add' => 'branch', 'edit' => 'branch', 'delete' => 'branch'],
@@ -456,6 +461,7 @@ class Migration_Vertical_first_role_permission_suite extends App_Migration
                 'waitlist' => ['view' => 'branch', 'add' => 'branch', 'edit' => 'branch'],
                 'checkin' => ['view' => 'branch', 'add' => 'branch'],
                 'pos' => ['view' => 'branch', 'add' => 'branch'],
+                'user_settings' => ['view' => 'own', 'edit' => 'own'],
             ],
             'customer' => [
                 'appointments' => ['view' => 'own', 'add' => 'own'],

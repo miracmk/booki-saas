@@ -45,6 +45,9 @@ class Follow_up extends App_Controller
         $stats = $this->follow_up_dispatches_model->get_stats_for_tenant($tenant_id);
         $recent_dispatches = $this->follow_up_dispatches_model->get_tenant_dispatches($tenant_id, [], 30);
 
+        // Compute service-level follow-up statistics
+        $service_follow_up_stats = $this->compute_service_follow_up_stats();
+
         html_vars([
             'page_title' => 'Hizmet Sonrası Takip Motoru',
             'active_menu' => PRIV_SYSTEM_SETTINGS,
@@ -53,6 +56,7 @@ class Follow_up extends App_Controller
             'recent_dispatches' => $recent_dispatches,
             'blueprint_type' => $blueprint_type,
             'industry_family' => $industry_family,
+            'service_follow_up_stats' => $service_follow_up_stats,
         ]);
 
         script_vars([
@@ -311,5 +315,76 @@ class Follow_up extends App_Controller
             }
         }
         return 'default';
+    }
+
+    /**
+     * Compute service-level follow-up statistics for the current tenant.
+     *
+     * Returns counts by priority level (critical/standard/optional),
+     * total services requiring follow-up, and category breakdown.
+     *
+     * @return array Statistics array
+     */
+    private function compute_service_follow_up_stats(): array
+    {
+        $stats = [
+            'critical' => 0,
+            'standard' => 0,
+            'optional' => 0,
+            'required_total' => 0,
+            'categories' => [],
+        ];
+
+        // Check if follow_up_required column exists
+        if (!$this->db->field_exists('follow_up_required', 'services')) {
+            return $stats;
+        }
+
+        // Count by priority
+        $priority_counts = $this->db
+            ->select('follow_up_priority, COUNT(*) as cnt')
+            ->from('services')
+            ->where('follow_up_required', 1)
+            ->group_by('follow_up_priority')
+            ->get()
+            ->result_array();
+
+        foreach ($priority_counts as $row) {
+            $p = strtolower($row['follow_up_priority'] ?? 'optional');
+            $cnt = (int) $row['cnt'];
+            if (isset($stats[$p])) {
+                $stats[$p] = $cnt;
+            }
+            $stats['required_total'] += $cnt;
+        }
+
+        // Count by category
+        $category_counts = $this->db
+            ->select('follow_up_category, COUNT(*) as cnt')
+            ->from('services')
+            ->where('follow_up_required', 1)
+            ->where('follow_up_category IS NOT NULL', null, false)
+            ->group_by('follow_up_category')
+            ->get()
+            ->result_array();
+
+        $category_labels = [
+            'medical_reaction' => 'Tıbbi Reaksiyon',
+            'medical_protocol' => 'Tedavi Protokolü',
+            'aftercare_safety' => 'Aftercare Güvenliği',
+            'asset_delivery' => 'Varlık Teslimi',
+            'compliance_check' => 'Uyum Kontrolü',
+            'veterinary_postop' => 'Veteriner Postop',
+            'retention_marketing' => 'Randevu Yenileme',
+            'review_nps' => 'NPS & Değerlendirme',
+        ];
+
+        foreach ($category_counts as $row) {
+            $cat = $row['follow_up_category'] ?? '';
+            $label = $category_labels[$cat] ?? $cat;
+            $stats['categories'][$label] = (int) $row['cnt'];
+        }
+
+        return $stats;
     }
 }

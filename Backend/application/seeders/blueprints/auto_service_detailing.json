@@ -67,7 +67,11 @@
             "duration": 90,
             "price": 3500,
             "attendants_number": 1,
-            "description": "Motor yağı, yağ filtresi, hava ve polen filtre değişimi + 20 nokta kontrol"
+            "description": "Motor yağı, yağ filtresi, hava ve polen filtre değişimi + 20 nokta kontrol",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "72 hours"
         },
         {
             "name": "Full Seramik Kaplama & Boya Düzeltme",
@@ -75,7 +79,11 @@
             "duration": 240,
             "price": 12000,
             "attendants_number": 1,
-            "description": "3 aşamalı polisaj + 3 yıllık nano seramik kaplama"
+            "description": "3 aşamalı polisaj + 3 yıllık nano seramik kaplama",
+            "follow_up_required": true,
+            "follow_up_category": "compliance_check",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "Kapsamlı DVI Ekspertiz Paketi",
@@ -83,7 +91,11 @@
             "duration": 60,
             "price": 2500,
             "attendants_number": 1,
-            "description": "101 nokta dijital araç ekspertiz raporu + fotoğraflı analiz linki"
+            "description": "101 nokta dijital araç ekspertiz raporu + fotoğraflı analiz linki",
+            "follow_up_required": true,
+            "follow_up_category": "asset_delivery",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "15 minutes"
         }
     ],
     "stations": [

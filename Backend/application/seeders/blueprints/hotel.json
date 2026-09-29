@@ -73,7 +73,10 @@
             "slot_interval": 60,
             "attendants_number": 2,
             "color": "#3b82f6",
-            "description": "Queen size yatak, şehir manzarası, açık büfe kahvaltı ve ücretsiz Wi-Fi."
+            "description": "Queen size yatak, şehir manzarası, açık büfe kahvaltı ve ücretsiz Wi-Fi.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Deluxe Teraslı Suite Oda (Gecelik)",
@@ -83,7 +86,10 @@
             "slot_interval": 60,
             "attendants_number": 3,
             "color": "#1d4ed8",
-            "description": "King size yatak, jakuzili özel teras, mini bar ve premium karşılama ikramları."
+            "description": "King size yatak, jakuzili özel teras, mini bar ve premium karşılama ikramları.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Kral Dairesi (Presidential Suite)",
@@ -93,7 +99,10 @@
             "slot_interval": 60,
             "attendants_number": 4,
             "color": "#f59e0b",
-            "description": "Panoramik manzara, 2 yatak odası, özel salon, sauna ve 24 saat butler hizmeti."
+            "description": "Panoramik manzara, 2 yatak odası, özel salon, sauna ve 24 saat butler hizmeti.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Otel SPA Rahatlatıcı Masaj (50 Dk)",
@@ -103,7 +112,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#10b981",
-            "description": "Yorgunluk giderici aromatik bitki yağlarıyla tüm vücut masajı."
+            "description": "Yorgunluk giderici aromatik bitki yağlarıyla tüm vücut masajı.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "VIP Havalimanı Karşılama & Transfer",
@@ -113,7 +125,10 @@
             "slot_interval": 60,
             "attendants_number": 4,
             "color": "#8b5cf6",
-            "description": "Mercedes Vito VIP araç ile Sabiha Gökçen / Yeni Havalimanı özel transferi."
+            "description": "Mercedes Vito VIP araç ile Sabiha Gökçen / Yeni Havalimanı özel transferi.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Toplantı Salonu Kiralama (Yarım Gün)",
@@ -123,7 +138,10 @@
             "slot_interval": 60,
             "attendants_number": 20,
             "color": "#ec4899",
-            "description": "20 kişilik toplantı salonu, projeksiyon, ses sistemi ve coffee break ikramları."
+            "description": "20 kişilik toplantı salonu, projeksiyon, ses sistemi ve coffee break ikramları.",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

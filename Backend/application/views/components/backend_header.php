@@ -25,6 +25,7 @@ if ($expiry_warning): ?>
 <?php
 $header_company_name = vars('company_name') ?: 'BooKi';
 $header_company_logo = base_url('assets/img/logo.png');
+$active_menu = $active_menu ?? (vars('active_menu') ?: '');
 ?>
 <!-- Mobile Top Navigation Bar -->
 <nav id="header" class="d-md-none navbar navbar-dark bg-primary py-2 px-2">
@@ -297,56 +298,20 @@ $header_company_logo = base_url('assets/img/logo.png');
             <?php endforeach; ?>
         </ul>
 
-        <!-- User Footer Card & Quick Actions Dropup -->
+        <!-- User Footer Card - Directly links to Account Settings -->
         <div class="p-2 border-top border-light border-opacity-25 sidebar-footer-account mt-auto">
             <div class="d-flex align-items-center justify-content-between">
-                <div class="dropup flex-grow-1 min-w-0 me-1">
-                    <a href="#" class="d-flex align-items-center text-white text-decoration-none p-1 rounded-2 sidebar-user-btn text-truncate" id="sidebarUserDropdown" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="<?= e(vars('user_display_name') ?: 'Hesabım') ?>">
-                        <div class="avatar-circle flex-shrink-0 bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm me-2" style="width: 32px; height: 32px; border-radius: 50%; font-size: 13px;">
-                            <?= strtoupper(mb_substr(trim(vars('user_display_name') ?: session('job_title') ?: 'U'), 0, 1, 'UTF-8')) ?>
+                <a href="<?= site_url('account') ?>" class="d-flex align-items-center text-white text-decoration-none p-1 rounded-2 sidebar-user-btn text-truncate flex-grow-1 min-w-0 me-1" title="<?= lang('account') ?: 'Profil & Hesap Ayarları' ?>">
+                    <div class="avatar-circle flex-shrink-0 bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm me-2" style="width: 32px; height: 32px; border-radius: 50%; font-size: 13px;">
+                        <?= strtoupper(mb_substr(trim(vars('user_display_name') ?: session('job_title') ?: 'U'), 0, 1, 'UTF-8')) ?>
+                    </div>
+                    <div class="flex-grow-1 overflow-hidden text-start" style="line-height: 1.2;">
+                        <div class="fw-semibold text-truncate small text-white"><?= e(vars('user_display_name') ?: 'Hesabım') ?></div>
+                        <div class="text-white-50 text-truncate" style="font-size: 11px;">
+                            <?= e(session('job_title') ?: (session('role_slug') === 'admin' ? 'Yönetici' : (session('role_slug') === 'customer' ? 'Müşteri' : 'Kullanıcı'))) ?>
                         </div>
-                        <div class="flex-grow-1 overflow-hidden text-start" style="line-height: 1.2;">
-                            <div class="fw-semibold text-truncate small text-white"><?= e(vars('user_display_name') ?: 'Hesabım') ?></div>
-                            <div class="text-white-50 text-truncate" style="font-size: 11px;">
-                                <?= e(session('job_title') ?: (session('role_slug') === 'admin' ? 'Yönetici' : 'Kullanıcı')) ?>
-                            </div>
-                        </div>
-                        <i class="fas fa-ellipsis-v text-white-50 ms-1 small"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark shadow-lg border border-secondary border-opacity-25 rounded-3 py-2" aria-labelledby="sidebarUserDropdown" style="font-size: 13px; min-width: 220px; z-index: 1050;">
-                        <li class="px-3 py-1 mb-1 border-bottom border-secondary border-opacity-25">
-                            <div class="fw-semibold text-white small text-truncate"><?= e(vars('user_display_name') ?: 'Hesabım') ?></div>
-                            <div class="text-white-50 text-truncate" style="font-size: 11px;"><?= e(session('user_email') ?: '') ?></div>
-                        </li>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center" href="<?= site_url('account') ?>">
-                                <i class="fas fa-user-cog text-secondary me-2" style="width: 16px;"></i>
-                                <span><?= lang('account') ?: 'Profil & Hesap Ayarları' ?></span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center" href="<?= site_url('booking') ?>" target="_blank" rel="noopener">
-                                <i class="fas fa-external-link-alt text-info me-2" style="width: 16px;"></i>
-                                <span>Müşteri Randevu Sayfası</span>
-                            </a>
-                        </li>
-                        <?php if (!empty($mp_url)): ?>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center" href="<?= e($mp_url) ?>" target="_blank" rel="noopener">
-                                <i class="fas fa-store text-warning me-2" style="width: 16px;"></i>
-                                <span>RandevuBurada Vitrinim</span>
-                            </a>
-                        </li>
-                        <?php endif; ?>
-                        <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
-                        <li>
-                            <a class="dropdown-item py-2 d-flex align-items-center text-danger" href="<?= site_url('logout') ?>">
-                                <i class="fas fa-sign-out-alt me-2" style="width: 16px;"></i>
-                                <span><?= lang('log_out') ?: 'Çıkış Yap' ?></span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                    </div>
+                </a>
                 <a href="<?= site_url('logout') ?>" class="btn btn-sm text-white-50 hover-text-danger p-1 flex-shrink-0" title="<?= lang('log_out') ?: 'Çıkış Yap' ?>" style="line-height: 1;">
                     <i class="fas fa-sign-out-alt fa-lg"></i>
                 </a>

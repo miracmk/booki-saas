@@ -65,7 +65,11 @@
             "duration": 50,
             "price": 1800,
             "attendants_number": 1,
-            "description": "Yüz yüze 50 dakikalık klinik terapi görüşmesi"
+            "description": "Yüz yüze 50 dakikalık klinik terapi görüşmesi",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "7 days"
         },
         {
             "name": "İlk Beslenme Değerlendirmesi & Anamnez (60 Dk)",
@@ -73,7 +77,11 @@
             "duration": 60,
             "price": 1500,
             "attendants_number": 1,
-            "description": "Vücut analizi, kan tahlili değerlendirmesi ve kişiye özel diyet planlaması"
+            "description": "Vücut analizi, kan tahlili değerlendirmesi ve kişiye özel diyet planlaması",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "7 days"
         },
         {
             "name": "Online Terapi Görüşmesi (50 Dk)",
@@ -81,7 +89,11 @@
             "duration": 50,
             "price": 1600,
             "attendants_number": 1,
-            "description": "Uçtan uca şifreli görüntülü video görüşme seansı"
+            "description": "Uçtan uca şifreli görüntülü video görüşme seansı",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "7 days"
         }
     ],
     "stations": [

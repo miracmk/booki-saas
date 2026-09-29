@@ -443,11 +443,31 @@ $route['onboarding/(:any)'] = 'onboarding/$1';
 
 // Multi-Vertical Enterprise Suite Web Routes
 $route['verticals/gift_cards'] = 'verticals/gift_cards';
+$route['verticals/redeem_gift_card'] = 'verticals/redeem_gift_card';
 $route['verticals/kds'] = 'verticals/kds';
 $route['verticals/sports'] = 'verticals/sports';
+$route['verticals/create_sports_match'] = 'verticals/create_sports_match';
+$route['verticals/join_sports_match'] = 'verticals/join_sports_match';
+$route['verticals/verify_turnstile'] = 'verticals/verify_turnstile';
 $route['verticals/clinic'] = 'verticals/clinic';
+$route['verticals/add_clinical_record'] = 'verticals/add_clinical_record';
+$route['verticals/get_patient_history/(:num)'] = 'verticals/get_patient_history/$1';
+$route['verticals/save_patient_insurance'] = 'verticals/save_patient_insurance';
+$route['verticals/get_telehealth_link/(:num)'] = 'verticals/get_telehealth_link/$1';
 $route['verticals/automotive'] = 'verticals/automotive';
+$route['verticals/add_vehicle'] = 'verticals/add_vehicle';
+$route['verticals/create_work_order'] = 'verticals/create_work_order';
+$route['verticals/update_work_order_status'] = 'verticals/update_work_order_status';
+$route['verticals/save_vehicle_inspection'] = 'verticals/save_vehicle_inspection';
 $route['verticals/experience'] = 'verticals/experience';
+$route['verticals/save_digital_waiver'] = 'verticals/save_digital_waiver';
+$route['verticals/sign_digital_waiver'] = 'verticals/sign_digital_waiver';
+$route['verticals/issue_event_ticket'] = 'verticals/issue_event_ticket';
+$route['verticals/validate_event_ticket'] = 'verticals/validate_event_ticket';
+$route['verticals/hospitality'] = 'verticals/hospitality';
+$route['verticals/update_room_status'] = 'verticals/update_room_status';
+$route['verticals/add_room_charge'] = 'verticals/add_room_charge';
+$route['verticals/save_guest_preferences'] = 'verticals/save_guest_preferences';
 
 $route['kds'] = 'verticals/kds';
 $route['gift_cards'] = 'verticals/gift_cards';
@@ -455,6 +475,7 @@ $route['sports'] = 'verticals/sports';
 $route['clinic'] = 'verticals/clinic';
 $route['automotive'] = 'verticals/automotive';
 $route['experience'] = 'verticals/experience';
+$route['hospitality'] = 'verticals/hospitality';
 
 // Multi-Vertical Enterprise Suite API Routes
 $route['api/v1/verticals/gift_cards/issue']['post'] = 'api/v1/verticals_api_v1/issue_gift_card';
@@ -487,12 +508,25 @@ $route['api/v1/verticals/automotive/inspections/(:any)']['get'] = 'api/v1/vertic
 $route['api/v1/verticals/automotive/inspections/(:any)/approve']['post'] = 'api/v1/verticals_api_v1/approve_inspection/$1';
 $route['api/v1/verticals/automotive/work_orders']['post'] = 'api/v1/verticals_api_v1/create_work_order';
 $route['api/v1/verticals/automotive/work_orders/(:num)/status']['post'] = 'api/v1/verticals_api_v1/update_work_order_status/$1';
+$route['api/v1/verticals/automotive/work_orders/status']['post'] = 'api/v1/verticals_api_v1/update_work_order_status';
 
 $route['api/v1/verticals/experience/waivers']['post'] = 'api/v1/verticals_api_v1/save_digital_waiver';
 $route['api/v1/verticals/experience/waivers/sign']['post'] = 'api/v1/verticals_api_v1/sign_digital_waiver';
 $route['api/v1/verticals/experience/addons/(:num)']['post'] = 'api/v1/verticals_api_v1/add_booking_addon/$1';
 $route['api/v1/verticals/experience/tickets/issue']['post'] = 'api/v1/verticals_api_v1/issue_event_ticket';
+$route['api/v1/verticals/experience/tickets']['post'] = 'api/v1/verticals_api_v1/issue_event_ticket';
 $route['api/v1/verticals/experience/tickets/validate']['post'] = 'api/v1/verticals_api_v1/validate_event_ticket';
+
+$route['api/v1/verticals/hospitality/room_status']['post'] = 'api/v1/verticals_api_v1/update_room_status';
+$route['api/v1/verticals/hospitality/charges']['post'] = 'api/v1/verticals_api_v1/add_room_charge';
+$route['api/v1/verticals/hospitality/guest_preferences/(:num)']['post'] = 'api/v1/verticals_api_v1/save_guest_preferences/$1';
+
+$route['verticals/education'] = 'verticals/education';
+$route['education'] = 'verticals/education';
+$route['verticals/save_attendance'] = 'verticals/save_attendance';
+$route['verticals/save_student_grade'] = 'verticals/save_student_grade';
+$route['api/v1/verticals/education/attendance']['post'] = 'api/v1/verticals_api_v1/save_attendance';
+$route['api/v1/verticals/education/grades']['post'] = 'api/v1/verticals_api_v1/save_student_grade';
 
 // CLI console
 $route['console'] = 'console/index';

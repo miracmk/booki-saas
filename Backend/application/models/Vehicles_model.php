@@ -63,6 +63,21 @@ class Vehicles_model extends App_Model
     }
 
     /**
+     * Get all vehicles with customer details (for Agent API & workshop listing).
+     */
+    public function get_all(int $limit = 100, int $offset = 0): array
+    {
+        return $this->db
+            ->select('v.*, c.first_name as owner_first_name, c.last_name as owner_last_name, c.phone_number')
+            ->from('customer_vehicles v')
+            ->join('users c', 'c.id = v.id_users_customer', 'left')
+            ->order_by('v.created_at DESC')
+            ->limit($limit, $offset)
+            ->get()
+            ->result_array();
+    }
+
+    /**
      * Update vehicle details or mileage (km).
      */
     public function update_vehicle(int $vehicle_id, array $data): bool

@@ -578,7 +578,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-bold">Ödeme Yöntemi</label>
-                    <div class="row g-2">
+                    <div class="row g-2" id="payment-method-selector">
                         <div class="col-4">
                             <button type="button" class="btn btn-outline-primary w-100 py-2 payment-method-btn active" data-method="cash" onclick="selectPaymentMethod('cash', this)">
                                 <i class="fas fa-money-bill-wave d-block mb-1"></i> Nakit
@@ -594,10 +594,25 @@
                                 <i class="fas fa-university d-block mb-1"></i> Havale/EFT
                             </button>
                         </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary w-100 py-2 payment-method-btn" data-method="package" onclick="selectPaymentMethod('package', this)">
+                                <i class="fas fa-box d-block mb-1"></i> Paket / Seans
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary w-100 py-2 payment-method-btn" data-method="membership" onclick="selectPaymentMethod('membership', this)">
+                                <i class="fas fa-id-card d-block mb-1"></i> Paket/Üyelik
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary w-100 py-2 payment-method-btn" data-method="gift_card" onclick="selectPaymentMethod('gift_card', this)">
+                                <i class="fas fa-gift d-block mb-1"></i> Hediye Kartı
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Package / Membership Deduction Section -->
+                <!-- Package / Membership / Gift Card Deduction Section -->
                 <div id="package-deduction-group" class="mb-3 d-none">
                     <label class="form-label small fw-bold text-success"><i class="fas fa-box me-1"></i>Aktif Paket ile Seans Düş</label>
                     <select id="payment-package-select" class="form-select form-select-sm"></select>
@@ -605,6 +620,10 @@
                 <div id="membership-deduction-group" class="mb-3 d-none">
                     <label class="form-label small fw-bold text-info"><i class="fas fa-id-card me-1"></i>Aktif Üyelik ile Düş</label>
                     <select id="payment-membership-select" class="form-select form-select-sm"></select>
+                </div>
+                <div id="gift-card-deduction-group" class="mb-3 d-none">
+                    <label class="form-label small fw-bold text-danger"><i class="fas fa-gift me-1"></i>Hediye Kartı Kodu</label>
+                    <input type="text" id="payment-gift-card-code" class="form-control form-control-sm text-uppercase font-monospace" placeholder="Örn: GIFT-XXXXXX">
                 </div>
             </div>
             <div class="modal-footer">
@@ -855,6 +874,7 @@ function openAdisyonDrawer(id) {
         .then(data => {
             if (data.status === 'success') {
                 currentAdisyonData = data;
+                window.currentAdisyon = data.adisyon;
                 renderAdisyonDrawer(data);
                 const drawerEl = document.getElementById('adisyon-drawer');
                 const bsDrawer = bootstrap.Offcanvas.getOrCreateInstance(drawerEl);
@@ -968,52 +988,160 @@ function removeItemFromAdisyon(itemId) {
         });
 }
 
-function showPaymentModal() {
-    if (!currentAdisyonData) return;
-    const ad = currentAdisyonData.adisyon;
-    const remaining = Math.max(0, parseFloat(ad.total_amount) - parseFloat(ad.paid_amount));
+async function showPaymentModal(adisyonId) {
+    if (adisyonId && (!currentAdisyonData || currentAdisyonId !== adisyonId)) {
+        currentAdisyonId = adisyonId;
+        try {
+            const res = await fetch('<?= site_url('adisyons/get_details/') ?>' + adisyonId);
+            const data = await res.json();
+            if (data.status === 'success') {
+                currentAdisyonData = data;
+                window.currentAdisyon = data.adisyon;
+                renderAdisyonDrawer(data);
+            }
+        } catch(e) {}
+    }
+
+    const currentAdisyon = (currentAdisyonData && currentAdisyonData.adisyon) ? currentAdisyonData.adisyon : (window.currentAdisyon || currentAdisyonData);
+    if (!currentAdisyonData && !currentAdisyon) return;
+
+    const ad = currentAdisyon;
+    const remaining = Math.max(0, parseFloat(ad.total_amount || 0) - parseFloat(ad.paid_amount || 0));
     document.getElementById('payment-amount').value = remaining.toFixed(2);
 
     // Packages setup
     const pkgSelect = document.getElementById('payment-package-select');
     const pkgGroup = document.getElementById('package-deduction-group');
-    if (currentAdisyonData.customer_packages && currentAdisyonData.customer_packages.length > 0) {
+    const packages = (currentAdisyonData && currentAdisyonData.customer_packages) || (currentAdisyon && currentAdisyon.customer_packages) || [];
+    if (packages && packages.length > 0) {
         pkgSelect.innerHTML = '<option value="">-- Paket Seçin --</option>' + 
-            currentAdisyonData.customer_packages.map(p => `<option value="${p.id}">${p.service_name} (${p.total_sessions - p.used_sessions} seans kaldı)</option>`).join('');
+            packages.map(p => `<option value="${p.id}">${p.service_name || p.name || 'Paket'} (${(p.total_sessions || 0) - (p.used_sessions || 0)} seans kaldı)</option>`).join('');
         pkgGroup.classList.remove('d-none');
     } else {
+        pkgSelect.innerHTML = '<option value="">-- Paket Bulunamadı --</option>';
         pkgGroup.classList.add('d-none');
     }
 
-    const modal = new bootstrap.Modal(document.getElementById('payment-modal'));
+    // Memberships setup
+    const membSelect = document.getElementById('payment-membership-select');
+    const membGroup = document.getElementById('membership-deduction-group');
+    let memberships = (currentAdisyonData && currentAdisyonData.customer_memberships) || 
+                      (currentAdisyon && currentAdisyon.customer_memberships) || [];
+
+    // If memberships not in memory but customer exists, fetch memberships
+    if ((!memberships || memberships.length === 0) && ad.id_users_customer) {
+        try {
+            const mRes = await fetch('<?= site_url('memberships/get_customer_memberships/') ?>' + ad.id_users_customer);
+            if (mRes.ok) {
+                const mData = await mRes.json();
+                if (Array.isArray(mData)) memberships = mData;
+                else if (mData && mData.memberships) memberships = mData.memberships;
+            }
+        } catch(e) {}
+    }
+
+    if (memberships && memberships.length > 0) {
+        membSelect.innerHTML = '<option value="">-- Üyelik Seçin --</option>' +
+            memberships.map(m => {
+                const title = m.package_name || m.title || m.plan_name || 'Üyelik';
+                const remainingCredits = (m.remaining_credits !== undefined && m.remaining_credits !== null)
+                    ? m.remaining_credits
+                    : ((m.remaining_amount !== undefined && m.remaining_amount !== null) ? m.remaining_amount : 0);
+                return `<option value="${m.id}">${title} (Kalan: ${remainingCredits})</option>`;
+            }).join('');
+        membGroup.classList.remove('d-none');
+    } else {
+        membSelect.innerHTML = '<option value="">-- Üyelik Bulunamadı --</option>';
+        membGroup.classList.add('d-none');
+    }
+
+    // Reset default payment method to cash
+    const cashBtn = document.querySelector('.payment-method-btn[data-method="cash"]');
+    selectPaymentMethod('cash', cashBtn);
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('payment-modal'));
     modal.show();
 }
 
 function selectPaymentMethod(method, btn) {
     selectedPaymentMethod = method;
     document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn) btn.classList.add('active');
+
+    const giftCardGroup = document.getElementById('gift-card-deduction-group');
+    if (giftCardGroup) {
+        if (method === 'gift_card') {
+            giftCardGroup.classList.remove('d-none');
+            const codeInput = document.getElementById('payment-gift-card-code');
+            if (codeInput) setTimeout(() => codeInput.focus(), 150);
+        } else {
+            giftCardGroup.classList.add('d-none');
+        }
+    }
+
+    const pkgGroup = document.getElementById('package-deduction-group');
+    if (method === 'package' && pkgGroup) {
+        pkgGroup.classList.remove('d-none');
+    }
+
+    const membGroup = document.getElementById('membership-deduction-group');
+    if (method === 'membership' && membGroup) {
+        membGroup.classList.remove('d-none');
+    }
 }
 
 function submitPayment() {
     const amount = document.getElementById('payment-amount').value;
-    const pkgId = document.getElementById('payment-package-select').value;
+    const pkgId = $('#payment-package-select').val() || document.getElementById('payment-package-select')?.value;
+    const membId = $('#payment-membership-select').val() || document.getElementById('payment-membership-select')?.value;
+    const giftCardCode = (document.getElementById('payment-gift-card-code')?.value || '').trim();
+
+    if (!amount || parseFloat(amount) <= 0) {
+        alert('Lütfen geçerli bir tahsilat tutarı giriniz.');
+        return;
+    }
 
     const fd = new FormData();
     fd.append('id_adisyons', currentAdisyonId);
     fd.append('amount', amount);
     fd.append('payment_method', selectedPaymentMethod);
-    if (pkgId) fd.append('id_customer_packages', pkgId);
+
+    if (selectedPaymentMethod === 'membership' || selectedPaymentMethod === 'package') {
+        if (membId) {
+            fd.append('id_customer_memberships', membId);
+        }
+        if (pkgId) {
+            fd.append('id_customer_packages', pkgId);
+        }
+    } else {
+        if (pkgId) fd.append('id_customer_packages', pkgId);
+        if (membId) fd.append('id_customer_memberships', membId);
+    }
+
+    if (selectedPaymentMethod === 'gift_card') {
+        if (!giftCardCode) {
+            alert('Lütfen hediye kartı kodunu giriniz.');
+            return;
+        }
+        fd.append('gift_card_code', giftCardCode.toUpperCase());
+    }
 
     fetch('<?= site_url('adisyons/pay') ?>', { method: 'POST', body: fd })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                bootstrap.Modal.getInstance(document.getElementById('payment-modal')).hide();
+                const modalEl = document.getElementById('payment-modal');
+                if (modalEl) {
+                    const inst = bootstrap.Modal.getInstance(modalEl);
+                    if (inst) inst.hide();
+                }
                 openAdisyonDrawer(currentAdisyonId);
             } else {
                 alert(data.message || 'Ödeme alınamadı.');
             }
+        })
+        .catch(err => {
+            alert('Ağ hatası: ' + err.message);
         });
 }
 

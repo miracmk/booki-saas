@@ -69,7 +69,10 @@
             "duration": 60,
             "price": 3500,
             "color": "#1e3a8a",
-            "description": "Kapsamlı hukuki durum analizi ve hukuki görüş."
+            "description": "Kapsamlı hukuki durum analizi ve hukuki görüş.",
+            "follow_up_required": false,
+            "follow_up_category": "asset_delivery",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Online Hukuki Danışmanlık (45 Dk)",
@@ -77,7 +80,10 @@
             "duration": 45,
             "price": 2500,
             "color": "#2563eb",
-            "description": "Görüntülü online hukuki danışmanlık."
+            "description": "Görüntülü online hukuki danışmanlık.",
+            "follow_up_required": false,
+            "follow_up_category": "asset_delivery",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Sözleşme İnceleme & Revizyon",
@@ -85,7 +91,10 @@
             "duration": 90,
             "price": 5000,
             "color": "#0d9488",
-            "description": "Ticari sözleşmelerin risk analizi ve revizyonu."
+            "description": "Ticari sözleşmelerin risk analizi ve revizyonu.",
+            "follow_up_required": false,
+            "follow_up_category": "asset_delivery",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Dava Dosyası Ön İnceleme",
@@ -93,7 +102,10 @@
             "duration": 60,
             "price": 4000,
             "color": "#b45309",
-            "description": "Açılacak veya mevcut davaların delil ve strateji tespiti."
+            "description": "Açılacak veya mevcut davaların delil ve strateji tespiti.",
+            "follow_up_required": false,
+            "follow_up_category": "asset_delivery",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

@@ -72,7 +72,10 @@
             "slot_interval": 50,
             "attendants_number": 1,
             "color": "#8b5cf6",
-            "description": "Kişiye özel postür ve hedefe göre eğitmenle 1-e-1 reformer seansı."
+            "description": "Kişiye özel postür ve hedefe göre eğitmenle 1-e-1 reformer seansı.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Düet Reformer (2 Kişilik Ders)",
@@ -82,7 +85,10 @@
             "slot_interval": 50,
             "attendants_number": 2,
             "color": "#7c3aed",
-            "description": "Arkadaşınız veya eşinizle 2 reformer cihazında eşzamanlı ders."
+            "description": "Arkadaşınız veya eşinizle 2 reformer cihazında eşzamanlı ders.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Grup Reformer Dersi (4 Kişilik)",
@@ -92,7 +98,10 @@
             "slot_interval": 50,
             "attendants_number": 4,
             "color": "#6d28d9",
-            "description": "Maksimum 4 kişilik sınıfta dinamik reformer akışı (kişi başı fiyat)."
+            "description": "Maksimum 4 kişilik sınıfta dinamik reformer akışı (kişi başı fiyat).",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Klinik Reformer & Omurga Terapisi",
@@ -102,7 +111,10 @@
             "slot_interval": 50,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Fizik tedavi onaylı, skolyoz ve bel/boyun fıtığı için medikal protokol."
+            "description": "Fizik tedavi onaylı, skolyoz ve bel/boyun fıtığı için medikal protokol.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Hamile (Prenatal) Pilatesi",
@@ -112,7 +124,10 @@
             "slot_interval": 50,
             "attendants_number": 1,
             "color": "#f43f5e",
-            "description": "Gebelikte pelvik taban kuvvetlendirme, nefes ve sırt rahatlatma."
+            "description": "Gebelikte pelvik taban kuvvetlendirme, nefes ve sırt rahatlatma.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Mat Pilates & Core (Grup 8 Kişi)",
@@ -122,7 +137,10 @@
             "slot_interval": 60,
             "attendants_number": 8,
             "color": "#10b981",
-            "description": "Minder üzerinde çember, top ve elastik bantlarla tüm vücut güçlendirme."
+            "description": "Minder üzerinde çember, top ve elastik bantlarla tüm vücut güçlendirme.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Stretching & Esneklik Seansı",
@@ -132,7 +150,10 @@
             "slot_interval": 45,
             "attendants_number": 1,
             "color": "#06b6d4",
-            "description": "Kas boyunu uzatan, hareket kabiliyetini artıran derin esnetme."
+            "description": "Kas boyunu uzatan, hareket kabiliyetini artıran derin esnetme.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

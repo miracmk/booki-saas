@@ -143,13 +143,21 @@ class Customer_memberships_model extends App_Model
     public function get_for_customer(int $customer_id): array
     {
         $memberships = $this->db
-            ->where('id_users_customer', $customer_id)
-            ->order_by('created_at', 'DESC')
-            ->get('customer_memberships')
+            ->select('cm.*, mp.name as plan_name, mp.name as package_name, mp.name as title, mp.sessions_per_period')
+            ->from('customer_memberships cm')
+            ->join('membership_plans mp', 'mp.id = cm.id_membership_plans', 'left')
+            ->where('cm.id_users_customer', $customer_id)
+            ->order_by('cm.created_at', 'DESC')
+            ->get()
             ->result_array();
 
         foreach ($memberships as &$membership) {
             $this->cast($membership);
+            $limit = isset($membership['sessions_per_period']) ? (int) $membership['sessions_per_period'] : 0;
+            $used = isset($membership['sessions_used_this_period']) ? (int) $membership['sessions_used_this_period'] : 0;
+            $remaining = max(0, $limit - $used);
+            $membership['remaining_credits'] = $remaining;
+            $membership['remaining_amount'] = $remaining;
         }
 
         return $memberships;
@@ -335,6 +343,18 @@ class Customer_memberships_model extends App_Model
             if ($existing > 0) {
                 $this->db->trans_complete();
                 return;
+            }
+
+            $membership = $this->find($membership_id);
+            if ($membership['status'] !== 'active') {
+                throw new RuntimeException('Üyelik aktif değil (Durum: ' . $membership['status'] . ').');
+            }
+
+            $plan = $this->db->get_where('membership_plans', ['id' => $membership['id_membership_plans']])->row_array();
+            if ($plan && $plan['sessions_per_period'] !== null && empty($plan['is_unlimited'])) {
+                if ((int) $membership['sessions_used_this_period'] >= (int) $plan['sessions_per_period']) {
+                    throw new RuntimeException('Bu dönem için üyelik seans hakkı tükenmiştir.');
+                }
             }
 
             $this->db->insert('customer_membership_sessions', [

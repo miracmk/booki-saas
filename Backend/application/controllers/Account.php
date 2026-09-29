@@ -90,15 +90,49 @@ class Account extends App_Controller
 
         $account = $this->users_model->find($user_id);
 
+        if (function_exists('sf_pii_is_encrypted')) {
+            foreach (['email', 'phone_number', 'mobile_number', 'address', 'city', 'state', 'zip_code', 'notes'] as $field) {
+                if (!empty($account[$field]) && sf_pii_is_encrypted($account[$field])) {
+                    $account[$field] = sf_pii_decrypt($account[$field]);
+                }
+            }
+        }
+
+        if (empty($account['settings'])) {
+            $account['settings'] = [
+                'username' => $account['email'] ?? '',
+                'calendar_view' => 'default',
+                'notifications' => 1,
+            ];
+        }
+
+        $role_slug = session('role_slug') ?: $this->permission_service->get_user_role_slug($user_id);
+        $is_customer = ($role_slug === 'customer');
+        $can_edit = can('edit', PRIV_USER_SETTINGS) && !$is_customer;
+
+        $customer_card = null;
+        if ($is_customer) {
+            try {
+                $customer_card = $this->customers_model->get_customer_360_timeline($user_id);
+            } catch (Throwable $e) {
+                log_message('error', 'Customer card timeline load error: ' . $e->getMessage());
+            }
+        }
+
         script_vars([
             'account' => filter_sensitive_user_data($account),
+            'is_customer' => $is_customer,
+            'can_edit' => $can_edit,
         ]);
 
         html_vars([
-            'page_title' => lang('settings'),
+            'page_title' => $is_customer ? (lang('customer_details_title') ?: 'Müşteri Kartı & Hesap') : lang('settings'),
             'active_menu' => PRIV_SYSTEM_SETTINGS,
             'user_display_name' => $this->accounts->get_user_display_name($user_id),
             'grouped_timezones' => $this->timezones->to_grouped_array(),
+            'is_customer' => $is_customer,
+            'can_edit' => $can_edit,
+            'customer_card' => $customer_card,
         ]);
 
         $this->load->view('pages/account');
@@ -112,8 +146,8 @@ class Account extends App_Controller
         try {
             method('post');
 
-            if (cannot('edit', PRIV_USER_SETTINGS)) {
-                throw new RuntimeException('You do not have the required permissions for this task.');
+            if (cannot('edit', PRIV_USER_SETTINGS) || session('role_slug') === 'customer') {
+                throw new RuntimeException('Bu işlem için düzenleme yetkiniz bulunmamaktadır (Salt Okunur).');
             }
 
             check('account', 'array');

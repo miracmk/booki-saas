@@ -76,7 +76,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#0ea5e9",
-            "description": "Ağız içi kamera ile muayene, diş eti ölçümü ve tedavi planlaması."
+            "description": "Ağız içi kamera ile muayene, diş eti ölçümü ve tedavi planlaması.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
@@ -86,7 +90,11 @@
             "slot_interval": 20,
             "attendants_number": 1,
             "color": "#0284c7",
-            "description": "Diş taşlarının temizlenmesi, leke arındırma ve florürlü cila uygulaması."
+            "description": "Diş taşlarının temizlenmesi, leke arındırma ve florürlü cila uygulaması.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Estetik Kompozit Dolgu (Tek Diş)",
@@ -96,7 +104,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#3b82f6",
-            "description": "Çürük temizliği, nano-hibrit kompozit dolgu ve anatomik cila."
+            "description": "Çürük temizliği, nano-hibrit kompozit dolgu ve anatomik cila.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
@@ -106,7 +118,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#1d4ed8",
-            "description": "Döner aletlerle kök kanalı şekillendirme, dezenfeksiyon ve dolum."
+            "description": "Döner aletlerle kök kanalı şekillendirme, dezenfeksiyon ve dolum.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Dental İmplant Cerrahisi (Tek Üye)",
@@ -116,7 +132,11 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#8b5cf6",
-            "description": "Titanyum implant yerleşimi ve primer stabilizasyon dikişi."
+            "description": "Titanyum implant yerleşimi ve primer stabilizasyon dikişi.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_reaction",
+            "follow_up_priority": "critical",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Cerrahi 20'lik Yaş Diş Çekimi",
@@ -126,7 +146,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#7c3aed",
-            "description": "Gömülü veya yarı gömülü 20 yaş dişinin kemik cerrahisiyle çekimi."
+            "description": "Gömülü veya yarı gömülü 20 yaş dişinin kemik cerrahisiyle çekimi.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_reaction",
+            "follow_up_priority": "critical",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)",
@@ -136,7 +160,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Lazer/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma."
+            "description": "Lazer/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
@@ -146,7 +174,11 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#10b981",
-            "description": "Dijital ortodonti plak uyumu kontrolü ve yeni plak setlerinin teslimi."
+            "description": "Dijital ortodonti plak uyumu kontrolü ve yeni plak setlerinin teslimi.",
+            "follow_up_required": true,
+            "follow_up_category": "aftercare_safety",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "24 hours"
         }
     ],
     "stations": [

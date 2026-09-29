@@ -75,7 +75,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#0284c7",
-            "description": "Ayrıntılı anamnez, fiziki muayene, tanı planı ve reçete düzenleme."
+            "description": "Ayrıntılı anamnez, fiziki muayene, tanı planı ve reçete düzenleme.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "Kontrol Muayenesi (10 Gün İçi)",
@@ -85,7 +89,11 @@
             "slot_interval": 20,
             "attendants_number": 1,
             "color": "#0ea5e9",
-            "description": "İlk muayene sonrası tetkik değerlendirme ve tedavi takibi."
+            "description": "İlk muayene sonrası tetkik değerlendirme ve tedavi takibi.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "Online Görüntülü Konsültasyon",
@@ -95,7 +103,11 @@
             "slot_interval": 20,
             "attendants_number": 1,
             "color": "#38bdf8",
-            "description": "Uzaktan güvenli video bağlantı ile tahlil yorumlama ve danışmanlık."
+            "description": "Uzaktan güvenli video bağlantı ile tahlil yorumlama ve danışmanlık.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "Kapsamlı VIP Check-Up Paketi",
@@ -105,7 +117,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#10b981",
-            "description": "Tam kan, hormon, biyokimya, EKG, akciğer grafisi ve hekim raporu."
+            "description": "Tam kan, hormon, biyokimya, EKG, akciğer grafisi ve hekim raporu.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "12 Derivasyonlu EKG Çekimi",
@@ -115,7 +131,11 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#059669",
-            "description": "Kalp ritim analizi ve kardiyak ön değerlendirme."
+            "description": "Kalp ritim analizi ve kardiyak ön değerlendirme.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "Küçük Cerrahi Müdahale & Dikiş",
@@ -125,7 +145,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#ef4444",
-            "description": "Lokal anestezi altında ben alımı, kist eksizyonu veya yara süturasyonu."
+            "description": "Lokal anestezi altında ben alımı, kist eksizyonu veya yara süturasyonu.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_reaction",
+            "follow_up_priority": "critical",
+            "follow_up_delay_override": "24 hours"
         },
         {
             "name": "Üst Yüz Botoks Uygulaması",
@@ -135,7 +159,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Alın, kaş arası ve göz çevresi (kaz ayakları) kırışıklık tedavisi."
+            "description": "Alın, kaş arası ve göz çevresi (kaz ayakları) kırışıklık tedavisi.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "Dudak / Nazolabial Dolgu",
@@ -145,7 +173,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#db2777",
-            "description": "1 ml hyaluronik asit ile hacim ve kontur belirginleştirme."
+            "description": "1 ml hyaluronik asit ile hacim ve kontur belirginleştirme.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         },
         {
             "name": "Saç & Yüz PRP Tedavisi",
@@ -155,7 +187,11 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#8b5cf6",
-            "description": "Kişinin kendi kanından elde edilen trombosit yönünden zengin plazma enjeksiyonu."
+            "description": "Kişinin kendi kanından elde edilen trombosit yönünden zengin plazma enjeksiyonu.",
+            "follow_up_required": true,
+            "follow_up_category": "medical_protocol",
+            "follow_up_priority": "standard",
+            "follow_up_delay_override": "48 hours"
         }
     ],
     "stations": [

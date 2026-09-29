@@ -36,7 +36,8 @@ class Adisyons_model extends App_Model
 
         if ($existing) {
             $this->cast($existing);
-            return $existing;
+            $this->apply_appointment_deposit_if_needed((int) $existing['id'], $appointment_id);
+            return $this->find((int) $existing['id']);
         }
 
         // Fetch appointment details to initialize adisyon
@@ -96,11 +97,65 @@ class Adisyons_model extends App_Model
                 'created_at' => $now,
             ]);
 
+            // Query appointment details & apply deposit if deposit_status === 'paid' and deposit_amount > 0
+            $this->apply_appointment_deposit_if_needed($adisyon_id, $appointment_id, $appointment);
+
             $this->db->trans_complete();
             return $this->find($adisyon_id);
         } catch (Throwable $e) {
             $this->db->trans_rollback();
             throw new RuntimeException('Could not create adisyon: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Apply online appointment deposit to adisyon if paid and not yet recorded.
+     */
+    public function apply_appointment_deposit_if_needed(int $adisyon_id, int $appointment_id, ?array $appointment = null): void
+    {
+        if ($appointment === null) {
+            $appointment = $this->db->get_where('appointments', ['id' => $appointment_id])->row_array();
+        }
+
+        if (!$appointment) {
+            return;
+        }
+
+        $deposit_status = strtolower((string) ($appointment['deposit_status'] ?? ''));
+        $deposit_amount = (float) ($appointment['deposit_amount'] ?? 0);
+
+        if ($deposit_status === 'paid' && $deposit_amount > 0) {
+            // Check if this deposit has already been recorded in adisyon_payments for this $adisyon_id
+            $existing_payment = $this->db
+                ->where('id_adisyons', $adisyon_id)
+                ->like('notes', 'Online Randevu Kaporası')
+                ->get('adisyon_payments')
+                ->row_array();
+
+            if (!$existing_payment) {
+                $now = date('Y-m-d H:i:s');
+                $this->db->insert('adisyon_payments', [
+                    'id_adisyons' => $adisyon_id,
+                    'payment_method' => 'card',
+                    'amount' => $deposit_amount,
+                    'notes' => 'Online Randevu Kaporası',
+                    'created_at' => $now,
+                ]);
+
+                // Recalculate/update adisyon paid_amount = (current paid_amount + deposit_amount)
+                $current_adisyon = $this->db->get_where('adisyons', ['id' => $adisyon_id])->row_array();
+                if ($current_adisyon) {
+                    $new_paid = round((float) ($current_adisyon['paid_amount'] ?? 0) + $deposit_amount, 2);
+                    $total_amount = (float) ($current_adisyon['total_amount'] ?? 0);
+                    $payment_status = ($new_paid >= $total_amount) ? 'paid' : 'partially_paid';
+
+                    $this->db->where('id', $adisyon_id)->update('adisyons', [
+                        'paid_amount' => $new_paid,
+                        'payment_status' => $payment_status,
+                        'updated_at' => $now,
+                    ]);
+                }
+            }
         }
     }
 
@@ -338,6 +393,20 @@ class Adisyons_model extends App_Model
             if ($method === 'membership' && !empty($payment_data['id_customer_memberships']) && !empty($adisyon['id_appointments'])) {
                 $this->load->model('customer_memberships_model');
                 $this->customer_memberships_model->consume_session((int) $payment_data['id_customer_memberships'], (int) $adisyon['id_appointments']);
+            }
+
+            // Check if paid with gift card -> redeem balance
+            if ($method === 'gift_card' && !empty($payment_data['gift_card_code'])) {
+                $this->load->model('gift_cards_model');
+                $redeem_res = $this->gift_cards_model->redeem(
+                    $payment_data['gift_card_code'],
+                    $amount,
+                    !empty($adisyon['id_appointments']) ? (int) $adisyon['id_appointments'] : null,
+                    $adisyon_id
+                );
+                if (empty($redeem_res['success'])) {
+                    throw new RuntimeException($redeem_res['message'] ?? 'Hediye kartı tahsilatı gerçekleştirilemedi.');
+                }
             }
 
             // If cash payment and cash register is active, register cash in

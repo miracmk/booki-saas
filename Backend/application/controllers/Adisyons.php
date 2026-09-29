@@ -290,34 +290,280 @@ class Adisyons extends App_Controller
     }
 
     /**
-     * Record payment (Cash, Card, Transfer, Package, Membership).
+     * Record payment against an adisyon (Cash, Card, Transfer, Package, Membership, Gift Card).
      */
-    public function pay(): void
+    public function add_payment(): void
     {
         $this->ensure_authenticated();
-        $adisyon_id = (int) $this->input->post('id_adisyons');
-        $payment_data = [
-            'amount' => (float) $this->input->post('amount'),
-            'payment_method' => $this->input->post('payment_method') ?: 'cash',
-            'id_customer_packages' => $this->input->post('id_customer_packages') ?: null,
-            'id_customer_memberships' => $this->input->post('id_customer_memberships') ?: null,
-            'notes' => $this->input->post('notes') ?: null,
-            'received_by' => $this->session->userdata('user_id'),
-        ];
+
+        $raw = file_get_contents('php://input');
+        $post = !empty($raw) ? json_decode($raw, true) : $this->input->post();
+        if (!is_array($post)) {
+            $post = $this->input->post() ?: [];
+        }
+
+        $adisyon_id = (int) ($post['id_adisyons'] ?? $post['adisyon_id'] ?? 0);
+        $amount = (float) ($post['amount'] ?? 0.00);
+        $payment_method = trim((string) ($post['payment_method'] ?? 'cash'));
+        $id_customer_memberships = !empty($post['id_customer_memberships']) ? (int) $post['id_customer_memberships'] : null;
+        $id_customer_packages = !empty($post['id_customer_packages']) ? (int) $post['id_customer_packages'] : null;
+        $gift_card_code = trim((string) ($post['gift_card_code'] ?? $post['code'] ?? ''));
+        $notes = $post['notes'] ?? $post['note'] ?? null;
+        $received_by = $this->session->userdata('user_id');
 
         try {
-            $payment_id = $this->adisyons_model->record_payment($adisyon_id, $payment_data);
+            if ($adisyon_id <= 0) {
+                throw new InvalidArgumentException('Geçersiz adisyon ID.');
+            }
+            if ($amount <= 0) {
+                throw new InvalidArgumentException('Ödeme tutarı 0\'dan büyük olmalıdır.');
+            }
+
             $adisyon = $this->adisyons_model->find($adisyon_id);
+            if (!$adisyon) {
+                throw new InvalidArgumentException('Adisyon bulunamadı: ' . $adisyon_id);
+            }
+
+            $customer_id = !empty($adisyon['id_users_customer']) ? (int) $adisyon['id_users_customer'] : null;
+            $appointment_id = !empty($adisyon['id_appointments']) ? (int) $adisyon['id_appointments'] : null;
+            $now = date('Y-m-d H:i:s');
+
+            $this->db->trans_start();
+
+            // 1. Membership / Package with id_customer_memberships provided
+            if (in_array($payment_method, ['membership', 'package'], true) && $id_customer_memberships) {
+                if (empty($customer_id)) {
+                    throw new InvalidArgumentException('Üyelik veya paket ile ödeme yapabilmek için adisyona kayıtlı bir müşteri atanmalıdır.');
+                }
+                $cm = $this->db->get_where('customer_memberships', ['id' => $id_customer_memberships])->row_array();
+                if ($cm) {
+                    // Verify the membership belongs to the customer
+                    if ((int) $cm['id_users_customer'] !== $customer_id) {
+                        throw new InvalidArgumentException('Seçilen üyelik bu müşteriye ait değil.');
+                    }
+                    if ($cm['status'] !== 'active') {
+                        throw new InvalidArgumentException('Üyelik aktif değil (Durum: ' . $cm['status'] . ').');
+                    }
+                    if (!empty($cm['current_period_end']) && strtotime($cm['current_period_end']) < time()) {
+                        throw new InvalidArgumentException('Üyelik süresi dolmuştur.');
+                    }
+
+                    // Verify available remaining credits/sessions
+                    $plan = $this->db->get_where('membership_plans', ['id' => $cm['id_membership_plans']])->row_array();
+                    if ($plan && $plan['sessions_per_period'] !== null && empty($plan['is_unlimited'])) {
+                        $sessions_used = (int) $cm['sessions_used_this_period'];
+                        $sessions_total = (int) $plan['sessions_per_period'];
+                        if ($sessions_used >= $sessions_total) {
+                            throw new InvalidArgumentException('Bu dönem için üyelik seans hakkı tükenmiştir.');
+                        }
+                    }
+
+                    // Deduct credit/session from customer_memberships
+                    $this->db->set('sessions_used_this_period', 'sessions_used_this_period + 1', false);
+                    $this->db->where('id', $id_customer_memberships);
+                    $this->db->update('customer_memberships');
+
+                    if ($appointment_id) {
+                        $existing_s = $this->db->get_where('customer_membership_sessions', ['id_appointments' => $appointment_id])->num_rows();
+                        if ($existing_s === 0) {
+                            $this->db->insert('customer_membership_sessions', [
+                                'id_customer_memberships' => $id_customer_memberships,
+                                'id_appointments' => $appointment_id,
+                                'consumed_at' => $now,
+                            ]);
+                        }
+                    }
+                } else {
+                    // If not found in customer_memberships, check customer_packages
+                    $id_customer_packages = $id_customer_memberships;
+                }
+            }
+
+            // Package deduction if customer_packages is used
+            if ($payment_method === 'package' && $id_customer_packages) {
+                if (empty($customer_id)) {
+                    throw new InvalidArgumentException('Paket ile ödeme yapabilmek için adisyona kayıtlı bir müşteri atanmalıdır.');
+                }
+                $pkg = $this->db->get_where('customer_packages', ['id' => $id_customer_packages])->row_array();
+                if (!$pkg) {
+                    throw new InvalidArgumentException('Geçersiz paket ID: ' . $id_customer_packages);
+                }
+                if ((int) $pkg['id_users_customer'] !== $customer_id) {
+                    throw new InvalidArgumentException('Seçilen paket bu müşteriye ait değil.');
+                }
+                if ($pkg['status'] !== 'active') {
+                    throw new InvalidArgumentException('Paket aktif değil (Durum: ' . $pkg['status'] . ').');
+                }
+                if (!empty($pkg['expires_at']) && strtotime($pkg['expires_at']) < time()) {
+                    throw new InvalidArgumentException('Paketin kullanım süresi dolmuştur.');
+                }
+                if ((int) $pkg['used_sessions'] >= (int) $pkg['total_sessions']) {
+                    throw new InvalidArgumentException('Paket seans hakkı tükenmiştir.');
+                }
+
+                $this->db->set('used_sessions', 'used_sessions + 1', false);
+                $this->db->where('id', $id_customer_packages);
+                $this->db->update('customer_packages');
+
+                if ($appointment_id) {
+                    $existing_ps = $this->db->get_where('customer_package_sessions', ['id_appointments' => $appointment_id])->num_rows();
+                    if ($existing_ps === 0) {
+                        $this->db->insert('customer_package_sessions', [
+                            'id_customer_packages' => $id_customer_packages,
+                            'id_appointments' => $appointment_id,
+                            'consumed_at' => $now,
+                        ]);
+                    }
+                }
+
+                if ($this->db->table_exists('package_usage_logs')) {
+                    $this->db->insert('package_usage_logs', [
+                        'id_customer_packages' => $id_customer_packages,
+                        'id_appointments' => $appointment_id,
+                        'sessions_deducted' => 1,
+                        'remaining_after' => max(0, (int) $pkg['total_sessions'] - (int) $pkg['used_sessions'] - 1),
+                        'action' => 'deducted',
+                        'performed_by' => $received_by,
+                        'notes' => $notes ?: ('Adisyon #' . $adisyon_id . ' ödemesi'),
+                        'created_at' => $now,
+                    ]);
+                }
+            }
+
+            // 2. Gift Card validation & deduction
+            if ($payment_method === 'gift_card') {
+                if (empty($gift_card_code)) {
+                    throw new InvalidArgumentException('Hediye kartı kodu gereklidir.');
+                }
+                $card = $this->db->get_where('gift_cards', ['code' => strtoupper($gift_card_code)])->row_array();
+                if (!$card) {
+                    throw new InvalidArgumentException('Geçersiz hediye kartı kodu: ' . $gift_card_code);
+                }
+                if (!empty($card['expires_at']) && $card['expires_at'] < date('Y-m-d')) {
+                    $this->db->where('id', $card['id'])->update('gift_cards', [
+                        'status' => 'expired',
+                        'updated_at' => $now,
+                    ]);
+                    throw new InvalidArgumentException('Hediye kartının kullanım süresi dolmuştur.');
+                }
+                if ($card['status'] !== 'active') {
+                    throw new InvalidArgumentException('Hediye kartı aktif değil (Durum: ' . $card['status'] . ').');
+                }
+                $card_balance = (float) $card['current_balance'];
+                if ($card_balance < $amount) {
+                    throw new InvalidArgumentException('Hediye kartında yetersiz bakiye. Mevcut: ₺' . number_format($card_balance, 2));
+                }
+
+                $new_card_balance = round($card_balance - $amount, 2);
+                $new_card_status = ($new_card_balance <= 0.001) ? 'depleted' : 'active';
+
+                $this->db->where('id', $card['id'])->update('gift_cards', [
+                    'current_balance' => $new_card_balance,
+                    'status' => $new_card_status,
+                    'updated_at' => $now,
+                ]);
+
+                if ($this->db->table_exists('gift_card_redemptions')) {
+                    $redemption_data = [
+                        'id_gift_cards' => $card['id'],
+                        'id_appointments' => $appointment_id,
+                        'id_adisyons' => $adisyon_id,
+                        'redeemed_amount' => $amount,
+                        'redeemed_at' => $now,
+                    ];
+                    if ($this->db->field_exists('notes', 'gift_card_redemptions')) {
+                        $redemption_data['notes'] = $notes ?: ('Adisyon #' . $adisyon_id . ' ödemesi (' . $card['code'] . ')');
+                    }
+                    $this->db->insert('gift_card_redemptions', $redemption_data);
+                }
+
+                if ($this->db->table_exists('gift_card_transactions')) {
+                    $this->db->insert('gift_card_transactions', [
+                        'id_gift_cards' => $card['id'],
+                        'amount' => $amount,
+                        'notes' => $notes ?: ('Adisyon #' . $adisyon_id . ' ödemesi (' . $card['code'] . ')'),
+                        'created_at' => $now,
+                    ]);
+                }
+
+                $notes = ($notes ? ($notes . ' | ') : '') . 'Hediye Kartı: ' . $card['code'];
+            }
+
+            // 3. Insert payment row
+            $payment_row = [
+                'id_adisyons' => $adisyon_id,
+                'payment_method' => $payment_method,
+                'amount' => $amount,
+                'id_customer_packages' => $id_customer_packages,
+                'id_customer_memberships' => $id_customer_memberships,
+                'notes' => $notes,
+                'received_by' => $received_by,
+                'created_at' => $now,
+            ];
+            $this->db->insert('adisyon_payments', $payment_row);
+            $payment_id = $this->db->insert_id();
+
+            // Cash register if cash
+            if ($payment_method === 'cash') {
+                $open_register = $this->db->get_where('cash_registers', ['status' => 'open'])->row_array();
+                if ($open_register) {
+                    $this->db->set('current_balance', 'current_balance + ' . $amount, false);
+                    $this->db->set('total_cash_in', 'total_cash_in + ' . $amount, false);
+                    $this->db->where('id', $open_register['id']);
+                    $this->db->update('cash_registers');
+                }
+            }
+
+            // Recalculate adisyon paid_amount and payment_status
+            $total_paid = (float) $this->db
+                ->select_sum('amount')
+                ->where('id_adisyons', $adisyon_id)
+                ->get('adisyon_payments')
+                ->row()->amount;
+
+            $status = ($total_paid >= (float) $adisyon['total_amount']) ? 'paid' : 'partially_paid';
+
+            $this->db->update('adisyons', [
+                'paid_amount' => $total_paid,
+                'payment_status' => $status,
+                'updated_at' => $now,
+            ], ['id' => $adisyon_id]);
+
+            $this->db->trans_complete();
+
+            if ($this->db->trans_status() === false) {
+                throw new RuntimeException('Ödeme kaydedilirken veritabanı hatası oluştu.');
+            }
+
+            $updated_adisyon = $this->adisyons_model->find($adisyon_id);
 
             $this->output
                 ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => 'success', 'payment_id' => $payment_id, 'adisyon' => $adisyon]));
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'payment_id' => $payment_id,
+                    'adisyon' => $updated_adisyon,
+                ]));
         } catch (Throwable $e) {
+            if ($this->db->trans_status() === false || $this->db->trans_enabled) {
+                $this->db->trans_rollback();
+            }
             $this->output
                 ->set_status_header(400)
                 ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ]));
         }
+    }
+
+    /**
+     * Record payment alias.
+     */
+    public function pay(): void
+    {
+        $this->add_payment();
     }
 
     /**
@@ -485,12 +731,12 @@ class Adisyons extends App_Controller
 
         $data = [
             'entity_type' => $post['entity_type'] ?? 'adisyon',
-            'entity_id' => $post['entity_id'] ?? 0,
+            'entity_id' => (int) ($post['entity_id'] ?? $post['adisyon_id'] ?? 0),
             'payment_type' => $post['payment_type'] ?? 'cash',
-            'amount' => $post['amount'] ?? 0.00,
+            'amount' => (float) ($post['amount'] ?? 0.00),
             'discount_percent' => $post['discount_percent'] ?? null,
             'coupon_code' => $post['coupon_code'] ?? null,
-            'notes' => $post['notes'] ?? null,
+            'notes' => $post['notes'] ?? $post['note'] ?? null,
         ];
 
         $payment_id = $this->split_payments_model->add_payment($data);
@@ -532,6 +778,12 @@ class Adisyons extends App_Controller
             return;
         }
 
+        $raw = file_get_contents('php://input');
+        $payload = !empty($raw) ? json_decode($raw, true) : $this->input->post();
+        if (!is_array($payload)) {
+            $payload = [];
+        }
+
         $totals = $this->split_payments_model->get_totals('adisyon', $adisyon_id);
         $payments = $this->split_payments_model->get_payments('adisyon', $adisyon_id);
         
@@ -545,8 +797,9 @@ class Adisyons extends App_Controller
         $total_paid = 0.0;
         foreach ($payments as $payment) {
             $p_type = $payment['payment_type'];
-            if (in_array($p_type, ['cash', 'card', 'transfer', 'gift_card', 'membership'])) {
+            if (in_array($p_type, ['cash', 'card', 'credit_card', 'transfer', 'gift_card', 'membership'])) {
                 $mapped_type = $p_type;
+                if ($p_type === 'credit_card') $mapped_type = 'card';
                 if ($p_type === 'gift_card') $mapped_type = 'cash';
                 if ($p_type === 'membership') $mapped_type = 'cash';
                 
@@ -573,6 +826,20 @@ class Adisyons extends App_Controller
             'updated_at' => date('Y-m-d H:i:s')
         ]);
 
+        $close_table = ($this->input->post('close_table') == '1' || ($payload['close_table'] ?? '') == '1' || ($payload['close_table'] ?? '') === true);
+        $table_closed = false;
+        if ($close_table && $status === 'paid' && $this->db->table_exists('restaurant_tables')) {
+            $table = $this->db->get_where('restaurant_tables', ['current_id_adisyons' => $adisyon_id])->row_array();
+            if ($table) {
+                $this->db->where('id', (int) $table['id'])->update('restaurant_tables', [
+                    'status' => 'cleaning',
+                    'current_id_adisyons' => null,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+                $table_closed = true;
+            }
+        }
+
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
@@ -588,7 +855,8 @@ class Adisyons extends App_Controller
             ->set_output(json_encode([
                 'status' => 'success',
                 'payment_status' => $status,
-                'paid_amount' => $total_paid
+                'paid_amount' => $total_paid,
+                'table_closed' => $table_closed,
             ]));
     }
 

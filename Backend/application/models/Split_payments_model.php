@@ -44,7 +44,7 @@ class Split_payments_model extends CI_Model
 
         foreach ($payments as $payment) {
             $amount = (float) $payment['amount'];
-            if (in_array($payment['payment_type'], ['cash', 'card', 'transfer', 'gift_card', 'membership'])) {
+            if (in_array($payment['payment_type'], ['cash', 'card', 'credit_card', 'transfer', 'gift_card', 'membership'])) {
                 $total_paid += $amount;
             } elseif (in_array($payment['payment_type'], ['discount', 'coupon'])) {
                 $total_discount += $amount;

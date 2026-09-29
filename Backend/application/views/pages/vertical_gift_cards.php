@@ -145,7 +145,7 @@ section('content');
                                         </td>
                                         <td><?= $c['expires_at'] ? date('d.m.Y', strtotime($c['expires_at'])) : '<span class="text-muted">Süresiz</span>' ?></td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary btn-redeem-card" data-code="<?= e($c['code']) ?>" data-balance="<?= $c['current_balance'] ?>">
+                                            <button class="btn btn-sm btn-outline-primary btn-redeem-card" data-id="<?= $c['id'] ?>" data-code="<?= e($c['code']) ?>" data-balance="<?= $c['current_balance'] ?>">
                                                 <i class="fas fa-hand-holding-usd me-1"></i> Bakiye Harca
                                             </button>
                                         </td>
@@ -249,6 +249,64 @@ section('content');
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-check me-1"></i> Kartı Tanımla & Üret</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HEDİYE KARTI BAKİYE HARCAMA -->
+    <div class="modal fade" id="redeemGiftCardModal" tabindex="-1" aria-labelledby="redeemGiftCardModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="redeemGiftCardModalLabel">
+                        <i class="fas fa-hand-holding-usd text-primary me-2"></i>Hediye Kartı Bakiye Harca
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <form id="form-redeem-gift-card">
+                    <input type="hidden" id="redeem-card-id" name="card_id">
+                    <input type="hidden" id="redeem-card-code" name="code">
+                    <div class="modal-body">
+                        <div class="bg-light p-3 rounded mb-3 border">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-muted small">Kart Kodu:</span>
+                                <span class="badge bg-dark font-monospace fs-6 px-2 py-1" id="redeem-display-code">-</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">Mevcut Bakiye:</span>
+                                <span class="fw-bold text-success fs-5" id="redeem-display-balance">₺0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="redeem-amount" class="form-label fw-semibold">
+                                Harcanacak Tutar (₺) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">₺</span>
+                                <input type="number" id="redeem-amount" name="amount" class="form-control" step="0.01" min="1" placeholder="0.00" required>
+                            </div>
+                            <div class="form-text text-muted" id="redeem-max-hint">Maksimum harcanabilir: ₺0.00</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="redeem-adisyon-id" class="form-label fw-semibold">Adisyon ID <small class="text-muted">(İsteğe bağlı)</small></label>
+                                <input type="number" id="redeem-adisyon-id" name="adisyon_id" class="form-control" placeholder="Örn: 1042">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="redeem-notes" class="form-label fw-semibold">Not / Açıklama <small class="text-muted">(İsteğe bağlı)</small></label>
+                                <input type="text" id="redeem-notes" name="notes" class="form-control" placeholder="Örn: Kuaför hizmeti">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit-redeem">
+                            <i class="fas fa-check me-1"></i> Harcamayı Onayla
+                        </button>
                     </div>
                 </form>
             </div>
@@ -381,5 +439,110 @@ document.getElementById('form-issue-card').addEventListener('submit', async func
             await sendDepositSettings(toggleDeposit.checked);
         });
     }
+
+    // Gift Card Redemption Modal & Handler
+    let activeRedeemRow = null;
+
+    $(document).on('click', '.btn-redeem-card', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const cardId = btn.data('id') || btn.attr('data-id');
+        const code = btn.data('code') || btn.attr('data-code');
+        const balance = parseFloat(btn.data('balance') || btn.attr('data-balance') || 0);
+
+        activeRedeemRow = btn.closest('tr');
+
+        $('#redeem-card-id').val(cardId || '');
+        $('#redeem-card-code').val(code || '');
+        $('#redeem-display-code').text(code || '-');
+        $('#redeem-display-balance').text('₺' + balance.toFixed(2));
+        $('#redeem-max-hint').text('Maksimum harcanabilir: ₺' + balance.toFixed(2));
+
+        const amountInput = $('#redeem-amount');
+        amountInput.attr('max', balance);
+        amountInput.val('');
+        $('#redeem-adisyon-id').val('');
+        $('#redeem-notes').val('');
+
+        const modalEl = document.getElementById('redeemGiftCardModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    });
+
+    $('#form-redeem-gift-card').on('submit', async function(e) {
+        e.preventDefault();
+        const btnSubmit = $('#btn-submit-redeem');
+        const cardId = $('#redeem-card-id').val();
+        const code = $('#redeem-card-code').val();
+        const amount = parseFloat($('#redeem-amount').val());
+        const balance = parseFloat($('#redeem-amount').attr('max') || 0);
+        const adisyonId = $('#redeem-adisyon-id').val();
+        const notes = $('#redeem-notes').val();
+
+        if (isNaN(amount) || amount <= 0) {
+            alert('Lütfen geçerli bir harcama tutarı giriniz.');
+            return;
+        }
+
+        if (amount > balance) {
+            alert('Harcama tutarı mevcut bakiyeden (₺' + balance.toFixed(2) + ') fazla olamaz.');
+            return;
+        }
+
+        btnSubmit.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> İşleniyor...');
+
+        try {
+            const payload = {
+                card_id: cardId ? parseInt(cardId, 10) : undefined,
+                code: code,
+                amount: amount,
+                notes: notes || undefined,
+                adisyon_id: adisyonId ? parseInt(adisyonId, 10) : undefined
+            };
+
+            const res = await fetch('<?= site_url('api/v1/verticals/gift_cards/redeem') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                const modalEl = document.getElementById('redeemGiftCardModal');
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                }
+
+                if (window.App && App.Layouts && App.Layouts.Backend) {
+                    App.Layouts.Backend.displayNotification(data.message || 'Bakiye başarıyla harcandı.');
+                } else {
+                    alert(data.message || 'Bakiye başarıyla harcandı.');
+                }
+
+                if (activeRedeemRow && typeof data.remaining_balance !== 'undefined') {
+                    const newBalance = parseFloat(data.remaining_balance);
+                    activeRedeemRow.find('td:nth-child(4)').text('₺' + newBalance.toFixed(2));
+                    const redeemBtn = activeRedeemRow.find('.btn-redeem-card');
+                    redeemBtn.data('balance', newBalance).attr('data-balance', newBalance);
+
+                    if (newBalance <= 0.001) {
+                        activeRedeemRow.find('td:nth-child(5)').html('<span class="badge bg-secondary">Tükendi</span>');
+                        redeemBtn.prop('disabled', true).addClass('disabled');
+                    }
+                } else {
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            } else {
+                alert('Hata: ' + (data.message || data.error || 'Harcama işlemi gerçekleştirilemedi.'));
+            }
+        } catch (err) {
+            alert('Ağ hatası: ' + err.message);
+        } finally {
+            btnSubmit.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Harcamayı Onayla');
+        }
+    });
     </script>
 <?php end_section('scripts'); ?>

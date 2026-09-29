@@ -314,7 +314,7 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                             <div class="col-6 col-md-4 waiter-food-item" data-name="<?= strtolower(e($mi['name'])) ?>">
                                 <div class="card bg-dark border-secondary p-3 rounded-3 h-100 cursor-pointer d-flex flex-column justify-content-between shadow-sm"
                                      style="cursor: pointer;"
-                                     onclick="addWaiterItem(<?= $mi['id'] ?>, '<?= addslashes($mi['name']) ?>', <?= (float) $mi['price'] ?>, '<?= $mi['station'] ?>')">
+                                     onclick="addWaiterItem(<?= $mi['id'] ?>, '<?= htmlspecialchars(addslashes($mi['name']), ENT_QUOTES, 'UTF-8') ?>', <?= (float) $mi['price'] ?>, '<?= $mi['station'] ?>')">
                                     <div class="fw-bold small text-light"><?= e($mi['name']) ?></div>
                                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
                                         <span class="text-warning fw-bold mono-num"><?= number_format((float) $mi['price'], 2) ?> ₺</span>
@@ -377,6 +377,13 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
         let waiterCart = [];
         let audioCtx = null;
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         setInterval(() => {
             document.getElementById('clock-text').innerText = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
         }, 1000);
@@ -388,7 +395,7 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
             toastEl.style.minWidth = '260px';
             toastEl.innerHTML = `
                 <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
-                <div class="small fw-bold">${message}</div>
+                <div class="small fw-bold">${escapeHtml(message)}</div>
             `;
             container.appendChild(toastEl);
             setTimeout(() => {
@@ -488,7 +495,7 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
 
             container.innerHTML = waiterCart.map((item, idx) => `
                 <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-secondary text-white">
-                    <span><strong>${item.quantity}x</strong> ${item.name}</span>
+                    <span><strong>${item.quantity}x</strong> ${escapeHtml(item.name)}</span>
                     <div class="d-flex align-items-center gap-2">
                         <strong class="text-warning mono-num">${(item.quantity * item.price).toFixed(2)} ₺</strong>
                         <button class="btn btn-sm btn-link text-danger p-0" onclick="removeWaiterItem(${idx})"><i class="fas fa-times"></i></button>
@@ -572,7 +579,12 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                 const res = await fetch('<?= site_url('restaurant/api/transfer_table') ?>', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ from_table_id: selectedTableId, to_table_id: targetId })
+                    body: JSON.stringify({
+                        source_table_id: selectedTableId,
+                        target_table_id: targetId,
+                        from_table_id: selectedTableId,
+                        to_table_id: targetId
+                    })
                 });
                 if (!res.ok) return;
                 const data = await res.json();
@@ -580,6 +592,13 @@ $sections = array_values(array_unique(array_filter(array_column($tables, 'sectio
                     showWaiterToast('Masa başarıyla aktarıldı.', 'success');
                     setTimeout(() => window.location.reload(), 600);
                 } else {
+                    showWaiterToast(data.message || 'Masa aktarılamadı.', 'danger');
+                }
+            } catch (e) {
+                showWaiterToast('Hata: ' + e.message, 'danger');
+            }
+        }
+
         // Masada Tahsilat Al (Parçalı Ödeme)
         async function openWaitressSplitPayment() {
             bootstrap.Modal.getInstance(document.getElementById('tableActionsModal')).hide();

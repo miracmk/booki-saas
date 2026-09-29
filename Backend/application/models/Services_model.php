@@ -498,6 +498,11 @@ class Services_model extends App_Model
             'isPrivate' => (bool) $service['is_private'],
             'serviceCategoryId' =>
                 $service['id_service_categories'] !== null ? (int) $service['id_service_categories'] : null,
+            'followUpRequired' => (bool) ($service['follow_up_required'] ?? false),
+            'followUpCategory' => $service['follow_up_category'] ?? null,
+            'followUpPriority' => $service['follow_up_priority'] ?? 'optional',
+            'followUpDelayOverride' => $service['follow_up_delay_override'] ?? null,
+            'followUpMessageOverride' => $service['follow_up_message_override'] ?? null,
         ];
 
         $service = $encoded_resource;
@@ -571,6 +576,26 @@ class Services_model extends App_Model
 
         if (array_key_exists('totalPasses', $service)) {
             $decoded_resource['total_passes'] = (int) $service['totalPasses'];
+        }
+
+        if (array_key_exists('followUpRequired', $service)) {
+            $decoded_resource['follow_up_required'] = $service['followUpRequired'] ? 1 : 0;
+        }
+
+        if (array_key_exists('followUpCategory', $service)) {
+            $decoded_resource['follow_up_category'] = $service['followUpCategory'];
+        }
+
+        if (array_key_exists('followUpPriority', $service)) {
+            $decoded_resource['follow_up_priority'] = $service['followUpPriority'];
+        }
+
+        if (array_key_exists('followUpDelayOverride', $service)) {
+            $decoded_resource['follow_up_delay_override'] = $service['followUpDelayOverride'];
+        }
+
+        if (array_key_exists('followUpMessageOverride', $service)) {
+            $decoded_resource['follow_up_message_override'] = $service['followUpMessageOverride'];
         }
 
         $service = $decoded_resource;

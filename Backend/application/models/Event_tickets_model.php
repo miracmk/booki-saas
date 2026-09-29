@@ -12,7 +12,7 @@ class Event_tickets_model extends App_Model
     public function generate_ticket_code(): string
     {
         do {
-            $code = 'TKT-' . strtoupper(bin2hex(random_bytes(2))) . '-' . strtoupper(bin2hex(random_bytes(2)));
+            $code = 'TKT-' . strtoupper(bin2hex(random_bytes(4)));
             $exists = $this->db->get_where('event_tickets', ['ticket_code' => $code])->num_rows() > 0;
         } while ($exists);
 
@@ -22,23 +22,25 @@ class Event_tickets_model extends App_Model
     /**
      * Generate and issue an event/session admission ticket.
      */
-    public function issue_ticket(int $appointment_id, int $customer_id, ?string $seat_or_slot_label = null): array
+    public function issue_ticket(?int $appointment_id, ?int $customer_id, ?string $seat_or_slot_label = null, ?string $ticket_type = null, float $price = 0.00): array
     {
         $now = date('Y-m-d H:i:s');
         $code = $this->generate_ticket_code();
 
         $ticket = [
             'ticket_code' => $code,
-            'id_appointments' => $appointment_id,
-            'id_users_customer' => $customer_id,
-            'seat_or_slot_label' => $seat_or_slot_label,
+            'id_appointments' => !empty($appointment_id) ? (int) $appointment_id : null,
+            'id_users_customer' => !empty($customer_id) ? (int) $customer_id : null,
+            'seat_or_slot_label' => $seat_or_slot_label ?: ($ticket_type ?: null),
+            'ticket_type' => $ticket_type ?: ($seat_or_slot_label ?: 'standard'),
+            'price' => $price,
             'status' => 'valid',
             'used_at' => null,
             'created_at' => $now,
         ];
 
         $this->db->insert('event_tickets', $ticket);
-        $ticket['id'] = $this->db->insert_id();
+        $ticket['id'] = (int) $this->db->insert_id();
 
         return $ticket;
     }
@@ -71,7 +73,7 @@ class Event_tickets_model extends App_Model
             return [
                 'valid' => false,
                 'status' => 'already_used',
-                'message' => 'Bu bilet daha önce kullanılmıştır (' . $ticket['used_at'] . ').',
+                'message' => 'Bu bilet daha önce kullanılmış.',
                 'ticket' => $ticket,
             ];
         }
@@ -98,7 +100,7 @@ class Event_tickets_model extends App_Model
         return [
             'valid' => true,
             'status' => 'success',
-            'message' => 'Bilet başarıyla doğrulandı ve giriş sağlandı.',
+            'message' => 'Bilet geçerli! Giriş onaylandı.',
             'ticket' => $ticket,
         ];
     }

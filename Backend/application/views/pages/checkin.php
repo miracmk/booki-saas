@@ -177,18 +177,29 @@
 
 <?php section('scripts'); ?>
 <script>
-function submitQuickCheckin() {
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+function submitQuickCheckin(isQr = false) {
     const inputEl = document.getElementById('checkin-quick-input') || document.getElementById('quick-input');
     const input = inputEl ? inputEl.value.trim() : '';
     if (!input) return;
 
     const fd = new FormData();
-    if (input.match(/^\d+$/) && input.length >= 7) {
+    const isPhone = !isQr && (/^\+?\d{7,15}$/).test(input);
+    const checkinMethod = (isQr || !isPhone) ? 'qr' : 'phone';
+
+    if (checkinMethod === 'phone') {
         fd.append('phone', input);
     } else {
         fd.append('qr_token', input);
+        fd.append('qr_code_token', input);
     }
-    fd.append('checkin_method', 'phone');
+    fd.append('checkin_method', checkinMethod);
 
     fetch('<?= site_url('checkin/do_checkin') ?>', { method: 'POST', body: fd })
         .then(res => res.json())
@@ -198,17 +209,29 @@ function submitQuickCheckin() {
 
             if (data.status === 'success') {
                 fb.classList.add('alert-success');
-                fb.innerHTML = `<strong>Başarılı!</strong> ${data.customer.first_name} ${data.customer.last_name} girişi yapıldı (Saat: ${data.entry_time}).`;
+                const cName = ((data.customer && data.customer.first_name) ? escapeHtml(data.customer.first_name) + ' ' + escapeHtml(data.customer.last_name || '') : 'Misafir');
+                const eTime = escapeHtml(data.entry_time || '');
+                fb.innerHTML = `<strong>Başarılı!</strong> ${cName} girişi yapıldı (Saat: ${eTime}).`;
                 if (inputEl) inputEl.value = '';
                 setTimeout(() => window.location.reload(), 1500);
             } else if (data.status === 'already_inside') {
                 fb.classList.add('alert-warning');
-                fb.innerHTML = `<strong>Bilgi:</strong> ${data.message}`;
+                fb.innerHTML = `<strong>Bilgi:</strong> ${escapeHtml(data.message)}`;
             } else {
                 fb.classList.add('alert-danger');
-                fb.innerHTML = `<strong>Hata:</strong> ${data.message || 'Giriş yapılamadı.'}`;
+                fb.innerHTML = `<strong>Hata:</strong> ${escapeHtml(data.message || 'Giriş yapılamadı.')}`;
             }
         });
+}
+
+function submitCheckin(identifier, isQr) {
+    if (typeof identifier === 'string') {
+        const inputEl = document.getElementById('checkin-quick-input') || document.getElementById('quick-input');
+        if (inputEl) inputEl.value = identifier;
+        submitQuickCheckin(isQr !== undefined ? isQr : true);
+    } else {
+        submitQuickCheckin();
+    }
 }
 
 function doCheckout(checkinId) {

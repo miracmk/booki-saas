@@ -577,12 +577,64 @@
         if (badge) badge.classList.add('d-none');
     }
 
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function sanitizeFeedbackHtml(html) {
+        if (typeof html !== 'string') return '';
+        const temp = document.createElement('template');
+        temp.innerHTML = html;
+        const allowedTags = new Set(['B', 'I', 'EM', 'STRONG', 'SPAN', 'DIV', 'BR', 'BUTTON', 'SMALL', 'P']);
+        const allowedAttrs = new Set(['class', 'style', 'type', 'onclick']);
+
+        function sanitizeNode(node) {
+            const children = Array.from(node.childNodes);
+            for (const child of children) {
+                if (child.nodeType === Node.ELEMENT_NODE) {
+                    if (!allowedTags.has(child.tagName)) {
+                        const textNode = document.createTextNode(child.textContent || '');
+                        node.replaceChild(textNode, child);
+                    } else {
+                        Array.from(child.attributes).forEach(attr => {
+                            const attrName = attr.name.toLowerCase();
+                            const attrVal = attr.value.trim().toLowerCase();
+                            if (!allowedAttrs.has(attrName) || attrVal.startsWith('javascript:') || (attrName === 'onclick' && !/^triggerNativeCamera\(\)$/.test(attr.value.trim()))) {
+                                child.removeAttribute(attr.name);
+                            }
+                        });
+                        sanitizeNode(child);
+                    }
+                } else if (child.nodeType === Node.COMMENT_NODE) {
+                    node.removeChild(child);
+                }
+            }
+        }
+        sanitizeNode(temp.content);
+        return temp.content;
+    }
+
     function showFeedback(msg, cls) {
         if (feedbackTimeout) clearTimeout(feedbackTimeout);
         const fb = document.getElementById('kiosk-feedback');
         if (!fb) return;
         fb.className = 'alert ' + cls + ' mb-3 py-2 py-sm-3 fw-semibold rounded-3 shadow-sm text-start';
-        fb.innerHTML = msg;
+        fb.innerHTML = '';
+        if (typeof msg === 'string') {
+            if (msg.includes('<') && (msg.includes('<div') || msg.includes('<strong>') || msg.includes('<button') || msg.includes('<br>'))) {
+                fb.appendChild(sanitizeFeedbackHtml(msg));
+            } else {
+                fb.textContent = msg;
+            }
+        } else if (msg instanceof Node) {
+            fb.appendChild(msg);
+        }
         fb.classList.remove('d-none');
         feedbackTimeout = setTimeout(() => {
             fb.classList.add('d-none');
@@ -655,7 +707,7 @@
                     </div>
                 `, 'alert-warning');
             } else {
-                showFeedback('Kamera başlatılamadı: ' + errStr, 'alert-danger');
+                showFeedback('Kamera başlatılamadı: ' + escapeHtml(errStr), 'alert-danger');
             }
         });
     }
@@ -692,7 +744,7 @@
     function onQrCodeScanned(qrText) {
         haptic();
         playSuccessBeep();
-        showFeedback(`📷 QR Kod Okundu: <strong>${qrText.substring(0, 28)}...</strong>`, 'alert-info');
+        showFeedback(`📷 QR Kod Okundu: <strong>${escapeHtml(qrText.substring(0, 28))}...</strong>`, 'alert-info');
 
         // Automatically Check-in or Check-out
         submitKioskAction(qrText);

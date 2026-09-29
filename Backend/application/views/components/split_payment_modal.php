@@ -177,6 +177,13 @@
 </div>
 
 <script>
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 const SplitPaymentModal = {
     modalInstance: null,
     entityType: 'adisyon',
@@ -188,6 +195,7 @@ const SplitPaymentModal = {
     paymentTypeLabels: {
         'cash': 'Nakit',
         'credit_card': 'Kredi Kartı',
+        'card': 'Kredi Kartı',
         'transfer': 'Havale / EFT',
         'discount': 'İndirim',
         'complimentary': 'İkram',
@@ -398,7 +406,7 @@ const SplitPaymentModal = {
                 <td class="text-muted fw-bold">${index + 1}</td>
                 <td><span class="badge bg-secondary">${this.paymentTypeLabels[p.payment_type] || p.payment_type}</span></td>
                 <td class="fw-bold text-success">₺${amount.toFixed(2)}</td>
-                <td class="small text-muted text-truncate" style="max-width: 150px;">${p.note || '-'}</td>
+                <td class="small text-muted text-truncate" style="max-width: 150px;">${escapeHtml(p.note || '-')}</td>
                 <td class="text-end">
                     <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" onclick="SplitPaymentModal.removePaymentLine(${p.id})">
                         <i class="fas fa-trash"></i>
@@ -432,9 +440,12 @@ const SplitPaymentModal = {
 
         const formData = new FormData();
         formData.append('csrf_token', '<?= vars('csrf_token') ?>');
+        formData.append('entity_id', this.entityId);
         formData.append('adisyon_id', this.entityId);
+        formData.append('entity_type', this.entityType);
         formData.append('amount', amount);
         formData.append('payment_type', type);
+        formData.append('notes', note);
         formData.append('note', note);
 
         try {

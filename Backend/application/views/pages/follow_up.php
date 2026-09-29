@@ -63,21 +63,83 @@
             <div class="card mb-4 border-info">
                 <div class="card-body bg-light-info py-2 px-3">
                     <div class="row align-items-center">
-                        <div class="col-md-4 mb-2 mb-md-0">
+                        <div class="col-md-3 mb-2 mb-md-0">
                             <strong><i class="fas fa-shield-alt text-primary me-1"></i> Anti-Spam (Rebook)</strong>
                             <p class="mb-0 small text-muted">Geleceğe aktif randevusu olan müşteriye randevu yenileme mesajı gitmez.</p>
                         </div>
-                        <div class="col-md-4 mb-2 mb-md-0">
+                        <div class="col-md-3 mb-2 mb-md-0">
                             <strong><i class="fas fa-moon text-indigo me-1"></i> Sessiz Saatler</strong>
                             <p class="mb-0 small text-muted">21:00 - 09:00 arası takip durur, ertesi sabah saat 09:30'a ötelenir.</p>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3 mb-2 mb-md-0">
                             <strong><i class="fas fa-user-slash text-danger me-1"></i> KVKK Opt-Out</strong>
                             <p class="mb-0 small text-muted">Müşteri RED/DUR yazarsa tıbbi reaksiyon hariç bildirimler kesilir.</p>
+                        </div>
+                        <div class="col-md-3">
+                            <strong><i class="fas fa-cogs text-success me-1"></i> Hizmet Bazlı Takip</strong>
+                            <p class="mb-0 small text-muted">Her hizmet kendi takip gereklilik seviyesini (Kritik / Standart / Opsiyonel) tanımlar.</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- ============ Service-Level Follow-Up Summary ============ -->
+            <?php $svc_follow_up_stats = vars('service_follow_up_stats') ?: []; ?>
+            <?php if (!empty($svc_follow_up_stats)): ?>
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="fw-light mb-0"><i class="fas fa-clipboard-check text-primary me-2"></i>Hizmet Bazlı Takip Gerekliliği</h5>
+                </div>
+                <div class="card-body py-2">
+                    <div class="row g-2">
+                        <div class="col-md-3 col-6">
+                            <div class="d-flex align-items-center p-2 rounded bg-danger bg-opacity-10">
+                                <i class="fas fa-exclamation-triangle text-danger me-2 fs-5"></i>
+                                <div>
+                                    <div class="fw-bold"><?= (int)($svc_follow_up_stats['critical'] ?? 0) ?></div>
+                                    <small class="text-muted">Kritik (Tıbbi)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="d-flex align-items-center p-2 rounded bg-primary bg-opacity-10">
+                                <i class="fas fa-check-circle text-primary me-2 fs-5"></i>
+                                <div>
+                                    <div class="fw-bold"><?= (int)($svc_follow_up_stats['standard'] ?? 0) ?></div>
+                                    <small class="text-muted">Standart (Varsayılan Açık)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="d-flex align-items-center p-2 rounded bg-secondary bg-opacity-10">
+                                <i class="fas fa-toggle-off text-secondary me-2 fs-5"></i>
+                                <div>
+                                    <div class="fw-bold"><?= (int)($svc_follow_up_stats['optional'] ?? 0) ?></div>
+                                    <small class="text-muted">Opsiyonel (Marketing)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="d-flex align-items-center p-2 rounded bg-success bg-opacity-10">
+                                <i class="fas fa-bell text-success me-2 fs-5"></i>
+                                <div>
+                                    <div class="fw-bold"><?= (int)($svc_follow_up_stats['required_total'] ?? 0) ?></div>
+                                    <small class="text-muted">Takip Zorunlu Hizmet</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php if (!empty($svc_follow_up_stats['categories'])): ?>
+                    <div class="mt-2 pt-2 border-top">
+                        <small class="text-muted me-2">Kategoriler:</small>
+                        <?php foreach ($svc_follow_up_stats['categories'] as $cat => $cnt): ?>
+                            <span class="badge bg-light text-dark border me-1"><?= e($cat) ?> (<?= $cnt ?>)</span>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <!-- ============ Follow-Up Rules List ============ -->
             <div class="card mb-4 shadow-sm">

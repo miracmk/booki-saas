@@ -73,7 +73,10 @@
             "slot_interval": 60,
             "attendants_number": 15,
             "color": "#ef4444",
-            "description": "Müzik ve ışık eşliğinde 15 kişilik yüksek tempolu kondisyon bisikleti sınıfı."
+            "description": "Müzik ve ışık eşliğinde 15 kişilik yüksek tempolu kondisyon bisikleti sınıfı.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "CrossFit WOD (Workout of the Day)",
@@ -83,7 +86,10 @@
             "slot_interval": 60,
             "attendants_number": 12,
             "color": "#f97316",
-            "description": "Günün antrenmanı: Olimpik halter, jimnastik ve metabolik kondisyon."
+            "description": "Günün antrenmanı: Olimpik halter, jimnastik ve metabolik kondisyon.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Zumba Fitness Dans Dersi",
@@ -93,7 +99,10 @@
             "slot_interval": 60,
             "attendants_number": 20,
             "color": "#ec4899",
-            "description": "Latin müzikleri eşliğinde kalori yaktıran eğlenceli dans kardiyo dersi."
+            "description": "Latin müzikleri eşliğinde kalori yaktıran eğlenceli dans kardiyo dersi.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Vinyasa Yoga & Meditasyon",
@@ -103,7 +112,10 @@
             "slot_interval": 60,
             "attendants_number": 15,
             "color": "#10b981",
-            "description": "Nefes ile hareketin senkronize aktığı esneklik ve denge pratiği."
+            "description": "Nefes ile hareketin senkronize aktığı esneklik ve denge pratiği.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Birebir GYM Antrenör Seansı",
@@ -113,7 +125,10 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#3b82f6",
-            "description": "Salonda hedefe yönelik serbest ağırlık ve makine koçluğu."
+            "description": "Salonda hedefe yönelik serbest ağırlık ve makine koçluğu.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Fitness Seviye & Vücut Ölçümü",
@@ -123,7 +138,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#6366f1",
-            "description": "Tanita/InBody vücut analizi ve gelişim grafiği değerlendirmesi."
+            "description": "Tanita/InBody vücut analizi ve gelişim grafiği değerlendirmesi.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

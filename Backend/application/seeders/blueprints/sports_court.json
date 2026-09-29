@@ -70,7 +70,10 @@
             "duration": 60,
             "price": 1200,
             "attendants_number": 4,
-            "description": "4 kişilik standart padel maçı süresi"
+            "description": "4 kişilik standart padel maçı süresi",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Tenis Kortu Gündüz Slotu (60 Dk)",
@@ -78,7 +81,10 @@
             "duration": 60,
             "price": 800,
             "attendants_number": 2,
-            "description": "Gündüz saatleri tenis kortu rezervasyonu"
+            "description": "Gündüz saatleri tenis kortu rezervasyonu",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Halı Saha 1 Saatlik Maç Slotu",
@@ -86,7 +92,10 @@
             "duration": 60,
             "price": 2000,
             "attendants_number": 14,
-            "description": "14 kişilik 1 saatlik halı saha maçı"
+            "description": "14 kişilik 1 saatlik halı saha maçı",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

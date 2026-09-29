@@ -65,7 +65,10 @@
             "duration": 60,
             "price": 3000,
             "color": "#6366f1",
-            "description": "Hedef pazar analizi ve büyüme yol haritası belirleme."
+            "description": "Hedef pazar analizi ve büyüme yol haritası belirleme.",
+            "follow_up_required": false,
+            "follow_up_category": "asset_delivery",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Süreç İyileştirme Çalıştayı (2 Saat)",
@@ -73,7 +76,10 @@
             "duration": 120,
             "price": 6000,
             "color": "#8b5cf6",
-            "description": "Departman içi iş akışı optimizasyonu çalıştayı."
+            "description": "Departman içi iş akışı optimizasyonu çalıştayı.",
+            "follow_up_required": false,
+            "follow_up_category": "asset_delivery",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

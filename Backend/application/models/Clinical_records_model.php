@@ -16,9 +16,12 @@ class Clinical_records_model extends App_Model
         }
 
         $now = date('Y-m-d H:i:s');
+        $is_confidential = isset($data['is_confidential']) ? ((in_array($data['is_confidential'], [1, '1', true, 'true', 'on'], true)) ? 1 : 0) : 1;
+        $id_appointments = !empty($data['id_appointments']) ? (int) $data['id_appointments'] : null;
+
         $record = [
             'id_users_customer' => (int) $data['id_users_customer'],
-            'id_appointments' => !empty($data['id_appointments']) ? (int) $data['id_appointments'] : null,
+            'id_appointments' => $id_appointments,
             'id_users_provider' => (int) $data['id_users_provider'],
             'record_type' => $data['record_type'] ?? 'soap_note',
             'subjective' => $data['subjective'] ?? null,
@@ -26,13 +29,55 @@ class Clinical_records_model extends App_Model
             'assessment' => $data['assessment'] ?? null,
             'plan' => $data['plan'] ?? null,
             'attachments_json' => !empty($data['attachments']) ? json_encode($data['attachments']) : null,
-            'is_confidential' => isset($data['is_confidential']) ? (int) $data['is_confidential'] : 1,
+            'is_confidential' => $is_confidential,
             'created_at' => $now,
             'updated_at' => $now,
         ];
 
         $this->db->insert('clinical_records', $record);
         return $this->db->insert_id();
+    }
+
+    /**
+     * Get single clinical record by ID with complete patient, provider, and appointment details.
+     */
+    public function get_record_by_id(int $id): ?array
+    {
+        $record = $this->db
+            ->select('cr.*, c.first_name as patient_first_name, c.last_name as patient_last_name, c.phone_number as patient_phone, c.phone_number, c.phone_number as phone, p.first_name as provider_first_name, p.last_name as provider_last_name, p.first_name as doc_first_name, p.last_name as doc_last_name, a.start_datetime as appointment_start_datetime, a.end_datetime as appointment_end_datetime, a.start_datetime as appointment_date')
+            ->from('clinical_records cr')
+            ->join('users c', 'c.id = cr.id_users_customer', 'left')
+            ->join('users p', 'p.id = cr.id_users_provider', 'left')
+            ->join('appointments a', 'a.id = cr.id_appointments', 'left')
+            ->where('cr.id', $id)
+            ->get()
+            ->row_array();
+
+        if (!$record) {
+            return null;
+        }
+
+        $record['attachments'] = !empty($record['attachments_json']) ? json_decode($record['attachments_json'], true) : [];
+
+        return $record;
+    }
+
+    /**
+     * Get recent appointments for patient for quick linking to clinical charting notes.
+     */
+    public function get_patient_appointments(int $customer_id, int $limit = 50): array
+    {
+        return $this->db
+            ->select('a.id, a.start_datetime, a.end_datetime, a.id_services, a.id_users_provider, a.notes, a.is_unavailability, s.name as service_name, p.first_name as provider_first_name, p.last_name as provider_last_name')
+            ->from('appointments a')
+            ->join('services s', 's.id = a.id_services', 'left')
+            ->join('users p', 'p.id = a.id_users_provider', 'left')
+            ->where('a.id_users_customer', $customer_id)
+            ->where('a.is_unavailability', 0)
+            ->order_by('a.start_datetime DESC')
+            ->limit($limit)
+            ->get()
+            ->result_array();
     }
 
     /**

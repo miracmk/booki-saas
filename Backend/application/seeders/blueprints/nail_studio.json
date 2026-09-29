@@ -76,7 +76,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Freze uçlarıyla kütikül temizliği, tırnak şekillendirme ve 3-4 hafta kalıcı oje."
+            "description": "Freze uçlarıyla kütikül temizliği, tırnak şekillendirme ve 3-4 hafta kalıcı oje.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Jel Protez Tırnak (Sıfır Set)",
@@ -86,7 +89,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#d946ef",
-            "description": "Şablon ile tırnak uzatma, mimari jel oluşturma ve tek renk kalıcı oje."
+            "description": "Şablon ile tırnak uzatma, mimari jel oluşturma ve tek renk kalıcı oje.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Protez Tırnak Bakımı (Refill / Dolgu)",
@@ -96,7 +102,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#a855f7",
-            "description": "3-4 hafta önce yapılmış protez tırnakların dip dolgusu ve yenilenmesi."
+            "description": "3-4 hafta önce yapılmış protez tırnakların dip dolgusu ve yenilenmesi.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Medikal Kuru Pedikür & Kalıcı Oje",
@@ -106,7 +115,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#8b5cf6",
-            "description": "Podolojik frezelerle topuk ve tırnak bakımı, kalıcı oje uygulaması."
+            "description": "Podolojik frezelerle topuk ve tırnak bakımı, kalıcı oje uygulaması.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "SPA Pedikür & Parafin Nem Bakımı",
@@ -116,7 +128,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#06b6d4",
-            "description": "Deniz tuzu peeling, masaj, sıcak parafin banyosu ve oje sürümü."
+            "description": "Deniz tuzu peeling, masaj, sıcak parafin banyosu ve oje sürümü.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Tırnak Çıkarma & Güçlendirici Bakım",
@@ -126,7 +141,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#64748b",
-            "description": "Zarar vermeden freze ile tırnak temizleme ve keratin vitamin maskesi."
+            "description": "Zarar vermeden freze ile tırnak temizleme ve keratin vitamin maskesi.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Nail Art - Seviye 1 (French / Baby Boomer)",
@@ -136,7 +154,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#f43f5e",
-            "description": "Tüm tırnaklara klasik/renkli french veya degrade ombré tasarımı."
+            "description": "Tüm tırnaklara klasik/renkli french veya degrade ombré tasarımı.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Nail Art - Seviye 2 (Serbest El Çizimi / 3D)",
@@ -146,7 +167,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#e11d48",
-            "description": "Kişiye özel illüstrasyon, mermer deseni, swarovski taş & 3D figürler."
+            "description": "Kişiye özel illüstrasyon, mermer deseni, swarovski taş & 3D figürler.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

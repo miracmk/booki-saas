@@ -76,7 +76,10 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#ef4444",
-            "description": "Hedefe yönelik (kilo verme, kas kazanımı, güç) birebir 60 dakikalık koçluk."
+            "description": "Hedefe yönelik (kilo verme, kas kazanımı, güç) birebir 60 dakikalık koçluk.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Fonksiyonel & HIIT Antrenmanı",
@@ -86,7 +89,10 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#f97316",
-            "description": "Metabolik hızlandırıcı, çeviklik ve dayanıklılık odaklı yüksek yoğunluklu seans."
+            "description": "Metabolik hızlandırıcı, çeviklik ve dayanıklılık odaklı yüksek yoğunluklu seans.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Kuvvet & Hipertrofi Koçluğu",
@@ -96,7 +102,10 @@
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#dc2626",
-            "description": "Serbest ağırlıklar ve makinelerle doğru formda kuvvet artışı çalışması."
+            "description": "Serbest ağırlıklar ve makinelerle doğru formda kuvvet artışı çalışması.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Postür & Hareket Analizi (İlk Seans)",
@@ -106,7 +115,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#3b82f6",
-            "description": "FMS hareket taraması, eklem hareket açıklığı ve omurga postür tespiti."
+            "description": "FMS hareket taraması, eklem hareket açıklığı ve omurga postür tespiti.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "InBody Vücut Analizi & Ölçüm",
@@ -116,7 +128,10 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#2563eb",
-            "description": "Yağ, kas, su oranı, bazal metabolizma hızı ve çevre ölçümleri."
+            "description": "Yağ, kas, su oranı, bazal metabolizma hızı ve çevre ölçümleri.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Düet PT (2 Kişilik Özel Seans)",
@@ -126,7 +141,10 @@
             "slot_interval": 60,
             "attendants_number": 2,
             "color": "#8b5cf6",
-            "description": "Partneriniz veya arkadaşınızla birlikte 1 antrenör eşliğinde antrenman."
+            "description": "Partneriniz veya arkadaşınızla birlikte 1 antrenör eşliğinde antrenman.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Sporcu Beslenmesi & Makro Planlama",
@@ -136,7 +154,10 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#10b981",
-            "description": "Antrenman programına entegre kalori ve makro besin planı."
+            "description": "Antrenman programına entegre kalori ve makro besin planı.",
+            "follow_up_required": false,
+            "follow_up_category": "retention_marketing",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [

@@ -66,7 +66,10 @@
             "duration": 60,
             "price": 1400,
             "attendants_number": 6,
-            "description": "2-6 kişilik macera ve bulmaca temalı kaçış deneyimi"
+            "description": "2-6 kişilik macera ve bulmaca temalı kaçış deneyimi",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Multiplayer VR Arena Seansı (45 Dk)",
@@ -74,7 +77,10 @@
             "duration": 45,
             "price": 1000,
             "attendants_number": 4,
-            "description": "Kablosuz VR başlıklarıyla 4 kişilik ortak görev oyunu"
+            "description": "Kablosuz VR başlıklarıyla 4 kişilik ortak görev oyunu",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         },
         {
             "name": "Seramik Çömlek & Tornalama Atölyesi (90 Dk)",
@@ -82,7 +88,10 @@
             "duration": 90,
             "price": 1250,
             "attendants_number": 8,
-            "description": "Kil şekillendirme ve seramik torna eğitimi (tüm malzemeler dahil)"
+            "description": "Kil şekillendirme ve seramik torna eğitimi (tüm malzemeler dahil)",
+            "follow_up_required": false,
+            "follow_up_category": "review_nps",
+            "follow_up_priority": "optional"
         }
     ],
     "stations": [
