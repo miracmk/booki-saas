@@ -8,21 +8,21 @@
     },
     "terminology": {
         "customer": "Müşteri",
-        "provider": "Berber / Usta",
+        "provider": "Berber \/ Usta",
         "appointment": "Randevu",
         "service": "Traş & Bakım",
         "station": "Koltuk",
-        "product": "Saç / Sakal Bakım Ürünü",
+        "product": "Saç \/ Sakal Bakım Ürünü",
         "order": "Kasa Satışı",
         "reservation": "Randevu",
         "membership": "VIP Üyelik",
         "package": "Bakım Paketi",
         "catalog": "Hizmet Kataloğu",
-        "branch": "Şube / Dükkan",
+        "branch": "Şube \/ Dükkan",
         "customer_label": "Müşteri",
-        "provider_label": "Stilist / Kuaför",
+        "provider_label": "Stilist \/ Kuaför",
         "appointment_label": "Randevu",
-        "station_label": "Koltuk / Yıkama Ünitesi",
+        "station_label": "Koltuk \/ Yıkama Ünitesi",
         "service_label": "Hizmet"
     },
     "enabled_modules": [
@@ -79,7 +79,21 @@
             "description": "Yıkama, saç analizi, makas & makine kesimi ve şekillendirici uygulama.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Sakal Tasarımı & Sıcak Havlu",
@@ -92,7 +106,21 @@
             "description": "Ustura sakal tıraşı, sıcak havlu kompresi, buhar ve sakal yağı masajı.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Saç + Sakal Full Bakım",
@@ -102,10 +130,24 @@
             "slot_interval": 15,
             "attendants_number": 1,
             "color": "#2563eb",
-            "description": "Komple saç kesimi, sakal tıraşı, yüz maskesi ve kulak/burun ağdası.",
+            "description": "Komple saç kesimi, sakal tıraşı, yüz maskesi ve kulak\/burun ağdası.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Kadın Saç Kesimi & Tasarım",
@@ -118,7 +160,21 @@
             "description": "Yüz tipine uygun kişiye özel kesim, yıkama ve fön.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Profesyonel Fön & Şekillendirme",
@@ -131,7 +187,21 @@
             "description": "Kırık fön, düz fön veya maşa dalgası.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Dip Boya & Yıkama",
@@ -144,10 +214,24 @@
             "description": "Doğal ve parlak renk pigmentleriyle dip tazeleme.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
-            "name": "Balyaj / Ombre / Brushlight",
+            "name": "Balyaj \/ Ombre \/ Brushlight",
             "category": "Renklendirme & Boya",
             "duration": 150,
             "price": 2800,
@@ -157,7 +241,21 @@
             "description": "Açma, tonlama, boyama ve cila işlemleri dahil komple renk değişimi.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Keratin Bakım & Botox",
@@ -170,7 +268,21 @@
             "description": "Yıpranmış saç tellerini onaran, elektriklenmeyi önleyen yoğun keratin yüklemesi.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Brezilya Fönü (Kalıcı Düzleştirme)",
@@ -183,7 +295,21 @@
             "description": "4-6 ay kalıcı pürüzsüzlük ve ipeksi parlaklık.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         }
     ],
     "stations": [
@@ -255,7 +381,7 @@
             "unit": "tüp"
         },
         {
-            "name": "Oksidan Krem Losyon (20/30 Vol)",
+            "name": "Oksidan Krem Losyon (20\/30 Vol)",
             "sku": "SARF-BRB-06",
             "cost_price": 0.2,
             "sale_price": 0,
@@ -348,7 +474,7 @@
         },
         {
             "service_name": "Dip Boya & Yıkama",
-            "product_name": "Oksidan Krem Losyon (20/30 Vol)",
+            "product_name": "Oksidan Krem Losyon (20\/30 Vol)",
             "quantity_used": 60,
             "unit": "ml",
             "notes": "60ml oksidan"
@@ -361,42 +487,42 @@
             "notes": "Boya durulama havlusu"
         },
         {
-            "service_name": "Balyaj / Ombre / Brushlight",
+            "service_name": "Balyaj \/ Ombre \/ Brushlight",
             "product_name": "Tek Kullanımlık Kesim & Boya Önlüğü",
             "quantity_used": 1,
             "unit": "adet",
             "notes": "Boya pelerini"
         },
         {
-            "service_name": "Balyaj / Ombre / Brushlight",
+            "service_name": "Balyaj \/ Ombre \/ Brushlight",
             "product_name": "Tek Kullanımlık Nitril Boya Eldiveni",
             "quantity_used": 2,
             "unit": "çift",
             "notes": "Açma ve boyama eldivenleri"
         },
         {
-            "service_name": "Balyaj / Ombre / Brushlight",
+            "service_name": "Balyaj \/ Ombre \/ Brushlight",
             "product_name": "Toz Saç Açıcı (Bleach Powder)",
             "quantity_used": 80,
             "unit": "gr",
             "notes": "80gr açıcı toz"
         },
         {
-            "service_name": "Balyaj / Ombre / Brushlight",
-            "product_name": "Oksidan Krem Losyon (20/30 Vol)",
+            "service_name": "Balyaj \/ Ombre \/ Brushlight",
+            "product_name": "Oksidan Krem Losyon (20\/30 Vol)",
             "quantity_used": 120,
             "unit": "ml",
             "notes": "120ml oksidan"
         },
         {
-            "service_name": "Balyaj / Ombre / Brushlight",
+            "service_name": "Balyaj \/ Ombre \/ Brushlight",
             "product_name": "Profesyonel Saç Boyası (Tüp 60ml)",
             "quantity_used": 1,
             "unit": "tüp",
-            "notes": "1 tüp cila/tonlama boyası"
+            "notes": "1 tüp cila\/tonlama boyası"
         },
         {
-            "service_name": "Balyaj / Ombre / Brushlight",
+            "service_name": "Balyaj \/ Ombre \/ Brushlight",
             "product_name": "Tek Kullanımlık Non-Woven Havlu (Büyük)",
             "quantity_used": 2,
             "unit": "adet",
@@ -442,7 +568,7 @@
                     "Kadın Saç Kesimi & Tasarım",
                     "Profesyonel Fön & Şekillendirme",
                     "Dip Boya & Yıkama",
-                    "Balyaj / Ombre / Brushlight",
+                    "Balyaj \/ Ombre \/ Brushlight",
                     "Keratin Bakım & Botox"
                 ],
                 "stations": [
@@ -570,7 +696,7 @@
                 "time": "13:00",
                 "provider_idx": 1,
                 "customer_idx": 1,
-                "service_name": "Balyaj / Ombre / Brushlight",
+                "service_name": "Balyaj \/ Ombre \/ Brushlight",
                 "station_idx": 3,
                 "status": "completed",
                 "payment_status": "collected",
@@ -713,7 +839,7 @@
                 "time": "15:00",
                 "provider_idx": 1,
                 "customer_idx": 8,
-                "service_name": "Balyaj / Ombre / Brushlight",
+                "service_name": "Balyaj \/ Ombre \/ Brushlight",
                 "station_idx": 3,
                 "status": "reserved",
                 "payment_status": "pending",
@@ -741,11 +867,11 @@
         "greeting_style": "Merhaba, Kuaför & Saç Tasarım asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Müşteri",
-            "Berber / Usta",
+            "Berber \/ Usta",
             "Randevu",
             "Traş & Bakım",
             "Koltuk",
-            "Saç / Sakal Bakım Ürünü",
+            "Saç \/ Sakal Bakım Ürünü",
             "Kasa Satışı",
             "Randevu"
         ],
@@ -945,7 +1071,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman / Estetisyen",
+            "name": "Uzman \/ Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -957,13 +1083,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa / POS",
+            "name": "Kasa \/ POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo / Envanter",
+            "name": "Depo \/ Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -988,7 +1114,7 @@
             "last_name": "Demo",
             "email": "demo-barber-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman / Estetisyen"
+            "job_title": "Uzman \/ Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -1002,14 +1128,14 @@
             "last_name": "Demo",
             "email": "demo-barber-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa / POS"
+            "job_title": "Kasa \/ POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-barber-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo / Envanter"
+            "job_title": "Depo \/ Envanter"
         }
     },
     "roles": [

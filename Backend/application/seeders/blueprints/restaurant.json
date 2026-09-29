@@ -8,21 +8,21 @@
     },
     "terminology": {
         "customer": "Misafir",
-        "provider": "Garson / Servis Personeli",
+        "provider": "Garson \/ Servis Personeli",
         "appointment": "Masa Rezervasyonu",
         "service": "Menü & Deneyim",
-        "station": "Masa / Bölüm",
+        "station": "Masa \/ Bölüm",
         "product": "Yiyecek & İçecek",
-        "order": "Adisyon / Masa Siparişi",
+        "order": "Adisyon \/ Masa Siparişi",
         "reservation": "Masa Rezervasyonu",
         "membership": "Müdavim Kulübü",
-        "package": "Fix Menü / Tadım Paketi",
+        "package": "Fix Menü \/ Tadım Paketi",
         "catalog": "Restoran Menüsü & Gruplar",
-        "branch": "Restoran / Şube",
+        "branch": "Restoran \/ Şube",
         "customer_label": "Misafir",
-        "provider_label": "Garson / Şef",
+        "provider_label": "Garson \/ Şef",
         "appointment_label": "Masa Rezervasyonu",
-        "station_label": "Masa / Bölüm",
+        "station_label": "Masa \/ Bölüm",
         "service_label": "Menü & Rezervasyon"
     },
     "enabled_modules": [
@@ -75,7 +75,21 @@
             "description": "2-4 kişilik ana salon veya bahçe masa rezervasyonu.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Şefin Tadım Menüsü (5 Aşamalı)",
@@ -88,7 +102,21 @@
             "description": "Mevsimlik lezzetlerden oluşan 5 aşamalı imza şef tadım menüsü.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "VIP Salon Özel Kutlama & Akşam Yemeği",
@@ -101,7 +129,21 @@
             "description": "10 kişiye kadar özel kapalı VIP salon tahsisi ve özel garson servisi.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Hafta Sonu Serpme Kahvaltı Rezervasyonu",
@@ -114,7 +156,21 @@
             "description": "Organik serpme kahvaltı ve sınırsız çay servisi eşliğinde masa rezervasyonu.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         }
     ],
     "stations": [
@@ -202,12 +258,12 @@
         "greeting_style": "Merhaba, Restoran, Kafe & Bistro asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Misafir",
-            "Garson / Servis Personeli",
+            "Garson \/ Servis Personeli",
             "Masa Rezervasyonu",
             "Menü & Deneyim",
-            "Masa / Bölüm",
+            "Masa \/ Bölüm",
             "Yiyecek & İçecek",
-            "Adisyon / Masa Siparişi",
+            "Adisyon \/ Masa Siparişi",
             "Masa Rezervasyonu"
         ],
         "forbidden_terms": [
@@ -316,7 +372,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Masa / Bölüm Doluluğu",
+                    "label": "Canlı Masa \/ Bölüm Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -370,7 +426,7 @@
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Masa / Bölüm Durumu",
+                    "label": "Masa \/ Bölüm Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }

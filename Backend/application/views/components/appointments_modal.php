@@ -70,10 +70,73 @@
 
                                 <div class="row">
                                     <div class="col-12">
-                                        <!-- Step 1: Zaman Seçimi -->
+                                        <!-- Step 1: Müşteri Bilgileri & Paket Durumu -->
                                         <fieldset class="sf-step mb-4" data-step="1">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label fw-bold text-dark mb-0">
+                                                    <span class="badge bg-primary rounded-circle me-1">1</span>
+                                                    <?= lang('customer_details_title') ?>
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button id="new-customer" class="btn btn-outline-secondary" type="button">
+                                                        <i class="fas fa-plus me-1"></i><?= lang('new') ?>
+                                                    </button>
+                                                    <button id="select-customer" class="btn btn-outline-primary" type="button">
+                                                        <i class="fas fa-search me-1"></i><span><?= lang('select') ?></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <input id="filter-existing-customers" placeholder="<?= lang('type_to_filter_customers') ?>" style="display: none;" class="form-control mb-3">
+                                            <div id="existing-customers-list" style="display: none;" class="mb-3"></div>
+
+                                            <input id="customer-id" type="hidden">
+
+                                            <div class="row g-2">
+                                                <div class="col-md-6 mb-2">
+                                                    <label for="first-name" class="form-label small text-muted">
+                                                        <?= lang('first_name') ?><?= $require_first_name ? ' <span class="text-danger">*</span>' : '' ?>
+                                                    </label>
+                                                    <input type="text" id="first-name" class="<?= $require_first_name ? 'required' : '' ?> form-control" maxlength="100"/>
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <label for="last-name" class="form-label small text-muted">
+                                                        <?= lang('last_name') ?><?= $require_last_name ? ' <span class="text-danger">*</span>' : '' ?>
+                                                    </label>
+                                                    <input type="text" id="last-name" class="<?= $require_last_name ? 'required' : '' ?> form-control" maxlength="120"/>
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <label for="phone-number" class="form-label small text-muted">
+                                                        <?= lang('phone_number') ?><?= $require_phone_number ? ' <span class="text-danger">*</span>' : '' ?>
+                                                    </label>
+                                                    <input type="text" id="phone-number" maxlength="60" class="<?= $require_phone_number ? 'required' : '' ?> form-control"/>
+                                                </div>
+                                                <div class="col-md-6 mb-2">
+                                                    <label for="email" class="form-label small text-muted">
+                                                        <?= lang('email') ?><?= $require_email ? ' <span class="text-danger">*</span>' : '' ?>
+                                                    </label>
+                                                    <input type="text" id="email" class="<?= $require_email ? 'required' : '' ?> form-control" maxlength="120"/>
+                                                </div>
+                                                <div class="col-12 mb-2 d-none">
+                                                    <select id="language" class="form-select required">
+                                                        <?php foreach (vars('available_languages') as $available_language): ?>
+                                                            <option value="<?= $available_language ?>"><?= ucfirst($available_language) ?></option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                    <input type="text" id="address" class="form-control" maxlength="120"/>
+                                                    <select id="city" class="form-select"><option value="">-</option></select>
+                                                    <input type="text" id="state" class="form-control" maxlength="120"/>
+                                                    <input type="text" id="zip-code" class="form-control" maxlength="120"/>
+                                                    <textarea id="customer-notes" rows="2" class="form-control"></textarea>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+
+                                        <!-- Step 2: Zaman Seçimi -->
+                                        <fieldset class="sf-step mb-4" data-step="2">
                                             <label class="form-label fw-bold text-dark mb-2">
-                                                <span class="badge bg-primary rounded-circle me-1">1</span>
+                                                <span class="badge bg-primary rounded-circle me-1">2</span>
                                                 Tarih & Saat Aralığı
                                             </label>
                                             <div class="row g-2">
@@ -92,11 +155,11 @@
                                             </div>
                                         </fieldset>
 
-                                        <!-- Step 2: Hizmet & Ek Hizmetler (Add-ons) -->
-                                        <fieldset class="sf-step mb-4" data-step="2">
+                                        <!-- Step 3: Hizmet & Ek Hizmetler (Add-ons) -->
+                                        <fieldset class="sf-step mb-4" data-step="3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <label for="select-service" class="form-label fw-bold text-dark mb-0">
-                                                    <span class="badge bg-primary rounded-circle me-1">2</span>
+                                                    <span class="badge bg-primary rounded-circle me-1">3</span>
                                                     <?= lang('service') ?>
                                                     <span class="text-danger">*</span>
                                                 </label>
@@ -151,6 +214,31 @@
 
                                             <div id="salonflora-first-availability-results" class="mt-2 d-none"></div>
 
+                                            <!-- Müşteri Paket / Seans Bakiyesi & Tahsilat Tercihi -->
+                                            <div id="service-package-selector" class="border border-success rounded p-3 bg-success bg-opacity-10 mt-2 mb-2 d-none">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span class="small fw-bold text-success">
+                                                        <i class="fas fa-box-open me-1"></i>Müşteri Paket / Seans Bakiyesi
+                                                    </span>
+                                                    <span class="badge bg-success" id="active-pkg-badge">Aktif Paket Bulundu</span>
+                                                </div>
+                                                <div class="form-check p-2 bg-white rounded border border-success-subtle mb-2">
+                                                    <input class="form-check-input ms-1 me-2" type="radio" name="appointment_billing_mode" id="billing-mode-package" value="package" checked>
+                                                    <label class="form-check-label fw-bold text-success cursor-pointer" for="billing-mode-package">
+                                                        📦 Paketten Düşüm Yap (<span id="pkg-sessions-count">Kalan: - Seans</span> - 0.00 ₺)
+                                                    </label>
+                                                    <div class="small text-muted ms-4" id="pkg-expiry-text">Geçerlilik: Süresiz</div>
+                                                </div>
+                                                <div class="form-check p-2 bg-white rounded border">
+                                                    <input class="form-check-input ms-1 me-2" type="radio" name="appointment_billing_mode" id="billing-mode-regular" value="regular">
+                                                    <label class="form-check-label text-dark fw-semibold cursor-pointer" for="billing-mode-regular">
+                                                        💳 Normal Satış / Yeni Tahsilat (<span id="pkg-regular-price-text">0.00 ₺</span> Liste Fiyatı)
+                                                    </label>
+                                                    <div class="small text-muted ms-4">Paket bakiyesinden düşülmez, standart ücret faturaya eklenir.</div>
+                                                </div>
+                                                <input type="hidden" id="active-customer-package-id" value="">
+                                            </div>
+
                                             <!-- Dynamic Service Add-ons Container -->
                                             <div id="service-addons-selector" class="border rounded p-3 bg-light bg-opacity-50 mt-2 mb-2 d-none">
                                                 <label class="form-label small fw-bold text-secondary mb-2">
@@ -182,10 +270,10 @@
                                             </div>
                                         </fieldset>
 
-                                        <!-- Step 3: Uzman / Personel -->
-                                        <fieldset class="sf-step mb-4" data-step="3">
+                                        <!-- Step 4: Uzman / Personel -->
+                                        <fieldset class="sf-step mb-4" data-step="4">
                                             <label for="select-provider" class="form-label fw-bold text-dark">
-                                                <span class="badge bg-primary rounded-circle me-1">3</span>
+                                                <span class="badge bg-primary rounded-circle me-1">4</span>
                                                 <?= lang('provider') ?>
                                                 <span class="text-danger">*</span>
                                             </label>
@@ -193,11 +281,11 @@
                                             <div class="form-text text-muted sf-provider-hint"></div>
                                         </fieldset>
 
-                                        <!-- Step 4: İstasyon / Oda -->
-                                        <fieldset class="sf-step mb-4" data-step="4">
+                                        <!-- Step 5: İstasyon / Oda -->
+                                        <fieldset class="sf-step mb-4" data-step="5">
                                             <div class="salonflora-station-panel">
                                                 <label for="salonflora-station-select" class="form-label fw-bold text-dark">
-                                                    <span class="badge bg-primary rounded-circle me-1">4</span>
+                                                    <span class="badge bg-primary rounded-circle me-1">5</span>
                                                     İstasyon / Oda
                                                     <small class="text-muted salonflora-station-mode fw-normal"></small>
                                                 </label>
@@ -357,68 +445,6 @@
                                     </div>
                                 </div>
                             </fieldset>
-
-                            <!-- Step 5: Müşteri Bilgileri -->
-                            <fieldset class="sf-step" data-step="5">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="mb-0 fw-bold text-dark">
-                                        <span class="badge bg-primary rounded-circle me-1">5</span>
-                                        <?= lang('customer_details_title') ?>
-                                    </h5>
-                                    <div class="btn-group btn-group-sm">
-                                        <button id="new-customer" class="btn btn-outline-secondary" type="button">
-                                            <i class="fas fa-plus me-1"></i><?= lang('new') ?>
-                                        </button>
-                                        <button id="select-customer" class="btn btn-outline-primary" type="button">
-                                            <i class="fas fa-search me-1"></i><span><?= lang('select') ?></span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <input id="filter-existing-customers" placeholder="<?= lang('type_to_filter_customers') ?>" style="display: none;" class="form-control mb-3">
-                                <div id="existing-customers-list" style="display: none;" class="mb-3"></div>
-
-                                <input id="customer-id" type="hidden">
-
-                                <div class="row g-2">
-                                    <div class="col-md-6 mb-2">
-                                        <label for="first-name" class="form-label small text-muted">
-                                            <?= lang('first_name') ?><?= $require_first_name ? ' <span class="text-danger">*</span>' : '' ?>
-                                        </label>
-                                        <input type="text" id="first-name" class="<?= $require_first_name ? 'required' : '' ?> form-control" maxlength="100"/>
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        <label for="last-name" class="form-label small text-muted">
-                                            <?= lang('last_name') ?><?= $require_last_name ? ' <span class="text-danger">*</span>' : '' ?>
-                                        </label>
-                                        <input type="text" id="last-name" class="<?= $require_last_name ? 'required' : '' ?> form-control" maxlength="120"/>
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        <label for="phone-number" class="form-label small text-muted">
-                                            <?= lang('phone_number') ?><?= $require_phone_number ? ' <span class="text-danger">*</span>' : '' ?>
-                                        </label>
-                                        <input type="text" id="phone-number" maxlength="60" class="<?= $require_phone_number ? 'required' : '' ?> form-control"/>
-                                    </div>
-                                    <div class="col-md-6 mb-2">
-                                        <label for="email" class="form-label small text-muted">
-                                            <?= lang('email') ?><?= $require_email ? ' <span class="text-danger">*</span>' : '' ?>
-                                        </label>
-                                        <input type="text" id="email" class="<?= $require_email ? 'required' : '' ?> form-control" maxlength="120"/>
-                                    </div>
-                                    <div class="col-12 mb-2 d-none">
-                                        <select id="language" class="form-select required">
-                                            <?php foreach (vars('available_languages') as $available_language): ?>
-                                                <option value="<?= $available_language ?>"><?= ucfirst($available_language) ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                        <input type="text" id="address" class="form-control" maxlength="120"/>
-                                        <select id="city" class="form-select"><option value="">-</option></select>
-                                        <input type="text" id="state" class="form-control" maxlength="120"/>
-                                        <input type="text" id="zip-code" class="form-control" maxlength="120"/>
-                                        <textarea id="customer-notes" rows="2" class="form-control"></textarea>
-                                    </div>
-                                </div>
-                            </fieldset>
                         </form>
                     </div>
 
@@ -466,6 +492,14 @@
                                 <div class="d-flex justify-content-between small text-muted mb-1">
                                     <span>Ek Hizmetler</span>
                                     <span id="summary-addons-price">+0.00 ₺</span>
+                                </div>
+                                <div class="d-flex justify-content-between small text-primary mb-1 d-none" id="summary-package-row">
+                                    <span><i class="fas fa-box-open me-1"></i>Paket Kullanımı</span>
+                                    <span class="badge bg-primary text-white" id="summary-package-badge">1 Seans Düştü (0.00 ₺)</span>
+                                </div>
+                                <div class="d-flex justify-content-between small text-muted mb-1 d-none" id="summary-package-remaining-row">
+                                    <span>Kalan Paket Seansı</span>
+                                    <span class="fw-semibold text-dark" id="summary-package-remaining">0</span>
                                 </div>
                                 <div class="d-flex justify-content-between small text-success mb-2 d-none" id="summary-discount-row">
                                     <span>Paket / Üyelik İndirimi</span>

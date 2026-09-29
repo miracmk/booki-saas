@@ -1,27 +1,27 @@
 {
     "industry": {
         "code": "psychology_dietitian_clinic",
-        "name": "Diyetisyen / Psikolog & Danışmanlık",
+        "name": "Diyetisyen \/ Psikolog & Danışmanlık",
         "icon": "🧠",
         "service_type": "provider",
         "description": "Psikologlar, diyetisyenler, fizyoterapistler ve beslenme uzmanları için EHR klinik charting, anamnez takibi, online telehealth görüşme ve seans paketleri paketi."
     },
     "terminology": {
         "customer": "Danışan",
-        "provider": "Psikolog / Diyetisyen",
-        "appointment": "Seans / Görüşme",
-        "service": "Terapi / Beslenme Seansı",
+        "provider": "Psikolog \/ Diyetisyen",
+        "appointment": "Seans \/ Görüşme",
+        "service": "Terapi \/ Beslenme Seansı",
         "station": "Görüşme Odası",
-        "product": "Takviye Gıda / Analiz Kiti",
+        "product": "Takviye Gıda \/ Analiz Kiti",
         "order": "Danışmanlık Protokolü",
         "reservation": "Seans Randevusu",
         "membership": "Aylık Takip Programı",
         "package": "Çoklu Seans Paketi",
         "catalog": "Seans & Protokol Kataloğu",
-        "branch": "Merkez / Şube",
+        "branch": "Merkez \/ Şube",
         "customer_label": "Danışan",
-        "provider_label": "Uzman / Danışman",
-        "appointment_label": "Seans / Terapi",
+        "provider_label": "Uzman \/ Danışman",
+        "appointment_label": "Seans \/ Terapi",
         "station_label": "Görüşme Odası",
         "service_label": "Seans & Danışmanlık Türü"
     },
@@ -54,7 +54,7 @@
             "description": "Kilo yönetimi, sporcu beslenmesi ve kronik hastalıklarda beslenme"
         },
         {
-            "name": "Online / Telehealth Seansları",
+            "name": "Online \/ Telehealth Seansları",
             "description": "Görüntülü online terapi ve uzaktan beslenme takibi"
         }
     ],
@@ -69,7 +69,22 @@
             "follow_up_required": true,
             "follow_up_category": "medical_protocol",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "7 days"
+            "follow_up_delay_override": "7 days",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "slot_interval": 15,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "İlk Beslenme Değerlendirmesi & Anamnez (60 Dk)",
@@ -81,11 +96,26 @@
             "follow_up_required": true,
             "follow_up_category": "medical_protocol",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "7 days"
+            "follow_up_delay_override": "7 days",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "slot_interval": 15,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Online Terapi Görüşmesi (50 Dk)",
-            "category": "Online / Telehealth Seansları",
+            "category": "Online \/ Telehealth Seansları",
             "duration": 50,
             "price": 1600,
             "attendants_number": 1,
@@ -93,7 +123,22 @@
             "follow_up_required": true,
             "follow_up_category": "medical_protocol",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "7 days"
+            "follow_up_delay_override": "7 days",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "slot_interval": 15,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         }
     ],
     "stations": [
@@ -111,17 +156,17 @@
     "family": "health_clinical",
     "business_type": "psychology_dietitian_clinic",
     "ai_policy": {
-        "brand_name": "Diyetisyen / Psikolog & Danışmanlık",
+        "brand_name": "Diyetisyen \/ Psikolog & Danışmanlık",
         "tone": "formal_empathetic",
         "language": "tr",
-        "greeting_style": "Merhaba, Diyetisyen / Psikolog & Danışmanlık asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "greeting_style": "Merhaba, Diyetisyen \/ Psikolog & Danışmanlık asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Danışan",
-            "Psikolog / Diyetisyen",
-            "Seans / Görüşme",
-            "Terapi / Beslenme Seansı",
+            "Psikolog \/ Diyetisyen",
+            "Seans \/ Görüşme",
+            "Terapi \/ Beslenme Seansı",
             "Görüşme Odası",
-            "Takviye Gıda / Analiz Kiti",
+            "Takviye Gıda \/ Analiz Kiti",
             "Danışmanlık Protokolü",
             "Seans Randevusu"
         ],
@@ -132,7 +177,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Danışan' ve 'Terapi / Beslenme Seansı' terminolojisini kullan.",
+            "Her zaman 'Danışan' ve 'Terapi \/ Beslenme Seansı' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -219,7 +264,7 @@
             "kpis": [
                 {
                     "key": "today_appointments",
-                    "label": "Bugünkü Seans / Görüşmelar",
+                    "label": "Bugünkü Seans \/ Görüşmelar",
                     "icon": "calendar-check",
                     "color": "primary"
                 },
@@ -244,7 +289,7 @@
             ],
             "quick_actions": [
                 {
-                    "label": "+ Yeni Seans / Görüşme",
+                    "label": "+ Yeni Seans \/ Görüşme",
                     "route": "calendar",
                     "icon": "calendar-plus",
                     "class": "btn-primary"
@@ -279,7 +324,7 @@
                 },
                 {
                     "key": "my_completed_tasks",
-                    "label": "Tamamlanan Seans / Görüşmelar",
+                    "label": "Tamamlanan Seans \/ Görüşmelar",
                     "icon": "check-circle",
                     "color": "success"
                 },
@@ -321,7 +366,7 @@
         },
         {
             "slug": "doctor",
-            "name": "Hekim / Doktor",
+            "name": "Hekim \/ Doktor",
             "icon": "user-md",
             "description": "Hasta muayenesi, SOAP ve reçete"
         },
@@ -339,7 +384,7 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa / Tahsilat",
+            "name": "Kasa \/ Tahsilat",
             "icon": "cash-register",
             "description": "Fatura ve ödeme işlemleri"
         }
@@ -364,7 +409,7 @@
             "last_name": "Demo",
             "email": "demo-psychology_dietitian_clinic-doctor@kibusiness.co",
             "role_slug": "doctor",
-            "job_title": "Hekim / Doktor"
+            "job_title": "Hekim \/ Doktor"
         },
         "nurse": {
             "first_name": "Hemşire",
@@ -385,7 +430,7 @@
             "last_name": "Demo",
             "email": "demo-psychology_dietitian_clinic-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa / Tahsilat"
+            "job_title": "Kasa \/ Tahsilat"
         }
     },
     "roles": [

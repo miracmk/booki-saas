@@ -25,9 +25,11 @@ class Services_model extends App_Model
     protected array $casts = [
         'id' => 'integer',
         'price' => 'float',
+        'tax_rate' => 'float',
         'attendants_number' => 'integer',
         'is_private' => 'boolean',
         'id_service_categories' => 'integer',
+        'follow_up_required' => 'boolean',
     ];
 
     /**
@@ -47,8 +49,20 @@ class Services_model extends App_Model
         'isPrivate' => 'is_private',
         'serviceCategoryId' => 'id_service_categories',
         'accessType' => 'access_type',
+        'serviceNature' => 'service_nature',
+        'taxRate' => 'tax_rate',
+        'validHoursStart' => 'valid_hours_start',
+        'validHoursEnd' => 'valid_hours_end',
+        'dailyCapacity' => 'daily_capacity',
         'passValidityDays' => 'pass_validity_days',
         'totalPasses' => 'total_passes',
+        'providerDurations' => 'provider_durations',
+        'followUpRequired' => 'follow_up_required',
+        'followUpCategory' => 'follow_up_category',
+        'followUpPriority' => 'follow_up_priority',
+        'followUpDelayOverride' => 'follow_up_delay_override',
+        'followUpMessageOverride' => 'follow_up_message_override',
+        'crmFollowUpRules' => 'crm_follow_up_rules',
     ];
 
     /**
@@ -109,25 +123,36 @@ class Services_model extends App_Model
             }
         }
 
-        // Make sure the duration value is valid.
-        if (!empty($service['duration'])) {
-            if ((int) $service['duration'] < EVENT_MINIMUM_DURATION) {
+        // Dynamic validation based on service_nature
+        $nature = $service['service_nature'] ?? $service['access_type'] ?? 'duration';
+        $requires_duration = in_array($nature, ['duration', 'packaged', 'quantity_timed', 'provider_custom_duration'], true);
+
+        // Make sure the duration value is valid for time-based services.
+        if ($requires_duration) {
+            if (isset($service['duration']) && (int) $service['duration'] < EVENT_MINIMUM_DURATION) {
                 throw new InvalidArgumentException(
                     'The service duration cannot be less than ' . EVENT_MINIMUM_DURATION . ' minutes long.',
                 );
             }
-        }
-
-        // Make sure the slot_interval value is valid.
-        if (!empty($service['slot_interval']) && (int) $service['slot_interval'] < 1) {
-            throw new InvalidArgumentException('The service slot interval must be at least 1 minute.');
-        }
-
-        // Validate the attendants number value.
-        if (empty($service['attendants_number']) || (int) $service['attendants_number'] < 1) {
-            throw new InvalidArgumentException(
-                'The provided attendants number is invalid: ' . $service['attendants_number'],
-            );
+            if (!empty($service['slot_interval']) && (int) $service['slot_interval'] < 1) {
+                throw new InvalidArgumentException('The service slot interval must be at least 1 minute.');
+            }
+            if (empty($service['attendants_number']) || (int) $service['attendants_number'] < 1) {
+                throw new InvalidArgumentException(
+                    'The provided attendants number is invalid: ' . ($service['attendants_number'] ?? ''),
+                );
+            }
+        } else {
+            // For non-timed services, populate safe fallbacks so DB constraints don't fail
+            if (empty($service['duration'])) {
+                $service['duration'] = 0;
+            }
+            if (empty($service['slot_interval'])) {
+                $service['slot_interval'] = 15;
+            }
+            if (empty($service['attendants_number'])) {
+                $service['attendants_number'] = 1;
+            }
         }
     }
 
@@ -261,6 +286,12 @@ class Services_model extends App_Model
         }
 
         $this->cast($service);
+
+        if (!empty($service['provider_durations']) && is_string($service['provider_durations'])) {
+            $service['provider_durations'] = json_decode($service['provider_durations'], true) ?: [];
+        } elseif (empty($service['provider_durations'])) {
+            $service['provider_durations'] = [];
+        }
 
         return $service;
     }
@@ -568,6 +599,33 @@ class Services_model extends App_Model
 
         if (array_key_exists('accessType', $service)) {
             $decoded_resource['access_type'] = $service['accessType'];
+        }
+
+        if (array_key_exists('serviceNature', $service)) {
+            $decoded_resource['service_nature'] = $service['serviceNature'];
+            if (!isset($decoded_resource['access_type'])) {
+                $decoded_resource['access_type'] = $service['serviceNature'];
+            }
+        }
+
+        if (array_key_exists('taxRate', $service)) {
+            $decoded_resource['tax_rate'] = (float) $service['taxRate'];
+        }
+
+        if (array_key_exists('validHoursStart', $service)) {
+            $decoded_resource['valid_hours_start'] = $service['validHoursStart'];
+        }
+
+        if (array_key_exists('validHoursEnd', $service)) {
+            $decoded_resource['valid_hours_end'] = $service['validHoursEnd'];
+        }
+
+        if (array_key_exists('dailyCapacity', $service)) {
+            $decoded_resource['daily_capacity'] = !empty($service['dailyCapacity']) ? (int) $service['dailyCapacity'] : null;
+        }
+
+        if (array_key_exists('crmFollowUpRules', $service)) {
+            $decoded_resource['crm_follow_up_rules'] = is_array($service['crmFollowUpRules']) ? json_encode($service['crmFollowUpRules']) : $service['crmFollowUpRules'];
         }
 
         if (array_key_exists('passValidityDays', $service)) {

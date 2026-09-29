@@ -35,6 +35,14 @@ class Appointments extends App_Controller
         'id_users_provider',
         'id_users_customer',
         'id_services',
+        'id_stations',
+        'custom_duration_minutes',
+        'price_override',
+        'payment_status',
+        'payment_method',
+        'payment_amount',
+        'id_customer_packages',
+        'package_consumed',
         'consumables_cost',
         'gross_profit',
         'consumables_deducted',
@@ -60,6 +68,55 @@ class Appointments extends App_Controller
         $this->load->library('availability');
         $this->load->model('services_model');
         $this->load->model('providers_model');
+        $this->load->model('packages_model');
+    }
+
+    /**
+     * Get active package for a customer and service.
+     */
+    public function get_customer_package(): void
+    {
+        try {
+            method('get');
+
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            check('customer_id', 'numeric');
+            check('service_id', 'numeric');
+
+            $customer_id = (int) request('customer_id');
+            $service_id = (int) request('service_id');
+
+            if ($customer_id <= 0 || $service_id <= 0) {
+                json_response(['has_package' => false, 'package' => null]);
+                return;
+            }
+
+            $package = $this->packages_model->get_active_for_customer_service($customer_id, $service_id);
+
+            if ($package) {
+                $service = $this->services_model->find($service_id);
+                $remaining = max(0, (int) $package['total_sessions'] - (int) $package['used_sessions']);
+                json_response([
+                    'has_package' => ($remaining > 0),
+                    'package' => [
+                        'id' => (int) $package['id'],
+                        'package_name' => !empty($package['name']) ? $package['name'] : (($service['name'] ?? 'Hizmet') . ' Paketi'),
+                        'total_sessions' => (int) $package['total_sessions'],
+                        'used_sessions' => (int) $package['used_sessions'],
+                        'remaining_sessions' => $remaining,
+                        'unit_price' => (float) ($package['unit_price'] ?? 0),
+                        'expires_at' => !empty($package['expires_at']) ? date('d.m.Y', strtotime($package['expires_at'])) : null,
+                    ],
+                ]);
+            } else {
+                json_response(['has_package' => false, 'package' => null]);
+            }
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
     }
 
     /**
@@ -220,6 +277,18 @@ class Appointments extends App_Controller
 
             $appointment_id = $this->appointments_model->save($appointment);
 
+            if (!empty($appointment['id_customer_packages'])) {
+                $pkg_id = (int) $appointment['id_customer_packages'];
+                $this->packages_model->consume_session($pkg_id, $appointment_id);
+                $this->db->update('appointments', [
+                    'id_customer_packages' => $pkg_id,
+                    'package_consumed' => 1,
+                    'payment_method' => 'package',
+                    'payment_status' => 'completed',
+                    'payment_amount' => 0.00,
+                ], ['id' => $appointment_id]);
+            }
+
             $appointment = $this->appointments_model->find($appointment_id);
 
             $this->webhooks_client->trigger(WEBHOOK_APPOINTMENT_SAVE, $appointment);
@@ -311,6 +380,21 @@ class Appointments extends App_Controller
             }
 
             $appointment_id = $this->appointments_model->save($appointment);
+
+            if (!empty($appointment['id_customer_packages'])) {
+                $pkg_id = (int) $appointment['id_customer_packages'];
+                $existing = $this->db->get_where('customer_package_sessions', ['id_appointments' => $appointment_id])->num_rows();
+                if ($existing === 0) {
+                    $this->packages_model->consume_session($pkg_id, $appointment_id);
+                    $this->db->update('appointments', [
+                        'id_customer_packages' => $pkg_id,
+                        'package_consumed' => 1,
+                        'payment_method' => 'package',
+                        'payment_status' => 'completed',
+                        'payment_amount' => 0.00,
+                    ], ['id' => $appointment_id]);
+                }
+            }
 
             json_response([
                 'success' => true,

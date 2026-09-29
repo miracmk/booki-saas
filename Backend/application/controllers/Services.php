@@ -33,15 +33,39 @@ class Services extends App_Controller
         'is_private',
         'id_service_categories',
         'access_type',
+        'service_nature',
+        'tax_rate',
+        'valid_hours_start',
+        'valid_hours_end',
+        'daily_capacity',
         'pass_validity_days',
         'total_passes',
+        'provider_durations',
+        'follow_up_required',
+        'follow_up_category',
+        'follow_up_priority',
+        'follow_up_delay_override',
+        'follow_up_message_override',
+        'crm_follow_up_rules',
         'providers',
     ];
     public array $optional_service_fields = [
         'id_service_categories' => null,
         'access_type' => 'duration',
+        'service_nature' => 'duration',
+        'tax_rate' => 20.00,
+        'valid_hours_start' => '09:00',
+        'valid_hours_end' => '18:00',
+        'daily_capacity' => null,
         'pass_validity_days' => 1,
         'total_passes' => 1,
+        'provider_durations' => null,
+        'follow_up_required' => 0,
+        'follow_up_category' => null,
+        'follow_up_priority' => 'optional',
+        'follow_up_delay_override' => null,
+        'follow_up_message_override' => null,
+        'crm_follow_up_rules' => null,
     ];
 
     /**
@@ -141,6 +165,9 @@ class Services extends App_Controller
             // Include provider IDs for each service
             foreach ($services as &$service) {
                 $service['providers'] = $this->services_model->get_provider_ids($service['id']);
+                if (!empty($service['provider_durations']) && is_string($service['provider_durations'])) {
+                    $service['provider_durations'] = json_decode($service['provider_durations'], true) ?: [];
+                }
             }
 
             json_response($services);
@@ -164,6 +191,10 @@ class Services extends App_Controller
             check('service', 'array');
 
             $service = request('service');
+
+            if (isset($service['provider_durations']) && is_array($service['provider_durations'])) {
+                $service['provider_durations'] = json_encode($service['provider_durations'], JSON_UNESCAPED_UNICODE);
+            }
 
             $this->services_model->only($service, $this->allowed_service_fields);
 
@@ -228,6 +259,10 @@ class Services extends App_Controller
             check('service', 'array');
 
             $service = request('service');
+
+            if (isset($service['provider_durations']) && is_array($service['provider_durations'])) {
+                $service['provider_durations'] = json_encode($service['provider_durations'], JSON_UNESCAPED_UNICODE);
+            }
 
             $this->services_model->only($service, $this->allowed_service_fields);
 

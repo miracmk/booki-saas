@@ -19,6 +19,23 @@ App.Pages.Services = (function () {
     const $name = $('#name');
     const $duration = $('#duration');
     const $accessType = $('#access-type');
+    const $serviceNature = $('#service-nature');
+    const $taxRate = $('#tax-rate');
+    const $totalPasses = $('#total-passes');
+    const $validHoursStart = $('#valid-hours-start');
+    const $validHoursEnd = $('#valid-hours-end');
+    const $dailyCapacity = $('#daily-capacity');
+    const $passValidityDays = $('#pass-validity-days');
+    const $multiPassQuotaType = $('#multi-pass-quota-type');
+    const $multiPassQuotaNumber = $('#multi-pass-quota-number');
+    const $sectionTimedSettings = $('#section-timed-settings');
+    const $packageSessionsContainer = $('#package-sessions-container');
+    const $durationContainer = $('#duration-container');
+    const $durationLabel = $('#duration-label');
+    const $sectionDailyPassSettings = $('#section-daily-pass-settings');
+    const $sectionMultiPassSettings = $('#section-multi-pass-settings');
+    const $sectionProviders = $('#section-providers');
+    const $priceUnitLabel = $('#price-unit-label');
     const $price = $('#price');
     const $currency = $('#currency');
     const $serviceCategoryId = $('#service-category-id');
@@ -31,6 +48,7 @@ App.Pages.Services = (function () {
     const $color = $('#color');
     let filterResults = {};
     let filterLimit = 20;
+    let serviceFollowUpRules = [];
 
     /**
      * Add page event listeners.
@@ -120,13 +138,23 @@ App.Pages.Services = (function () {
             $('#select-all-providers, #select-none-providers').prop('disabled', false);
 
             // Default values
-            $name.val('Service');
-            $duration.val('30');
+            $serviceNature.val('duration');
+            applyServiceNature('duration');
+            $taxRate.val('20.00');
+            $name.val('Yeni Hizmet');
+            $duration.val('60');
             $price.val('0');
-            $currency.val('');
+            $currency.val('₺');
             $serviceCategoryId.val('');
             $slotInterval.val('15');
             $attendantsNumber.val('1');
+            $totalPasses.val('10');
+            $validHoursStart.val('09:00');
+            $validHoursEnd.val('18:00');
+            $dailyCapacity.val('');
+            $passValidityDays.val('30');
+            serviceFollowUpRules = [];
+            renderFollowUpRules();
         });
 
         /**
@@ -149,28 +177,72 @@ App.Pages.Services = (function () {
          * Event: Save Service Button "Click"
          */
         $services.on('click', '#save-service', () => {
+            const nature = $serviceNature.val() || 'duration';
+            const isFollowUp = Number($('#follow-up-required').prop('checked'));
             const service = {
                 name: $name.val(),
-                duration: $duration.val(),
-                accessType: $accessType.val() || 'duration',
+                service_nature: nature,
+                access_type: nature,
+                accessType: nature,
+                tax_rate: $taxRate.val() || '20.00',
                 price: $price.val(),
                 currency: $currency.val(),
                 description: $description.val(),
                 location: $location.val(),
                 color: App.Components.ColorSelection.getColor($color),
-                slot_interval: $slotInterval.val(),
-                attendants_number: $attendantsNumber.val(),
                 is_private: Number($isPrivate.prop('checked')),
                 id_service_categories: $serviceCategoryId.val() || undefined,
+                follow_up_required: isFollowUp,
+                follow_up_category: isFollowUp ? $('#follow-up-category').val() : null,
+                follow_up_priority: isFollowUp ? $('#follow-up-priority').val() : 'optional',
+                follow_up_delay_override: isFollowUp ? ($('#follow-up-delay-override').val() || '24 hours') : null,
+                follow_up_message_override: isFollowUp ? ($('#follow-up-message-override').val() || '') : null,
             };
 
-            // Include service providers.
-            service.providers = [];
-            $('#service-providers input:checkbox').each((index, checkboxEl) => {
-                if ($(checkboxEl).prop('checked')) {
-                    service.providers.push($(checkboxEl).attr('data-id'));
+            if (['duration', 'packaged', 'quantity_timed', 'provider_custom_duration'].includes(nature)) {
+                service.duration = $duration.val();
+                service.slot_interval = $slotInterval.val();
+                service.attendants_number = $attendantsNumber.val();
+                if (nature === 'packaged' || nature === 'quantity_timed') {
+                    service.total_passes = $totalPasses.val() || 10;
                 }
-            });
+            } else if (nature === 'daily_pass') {
+                service.duration = 480;
+                service.slot_interval = 60;
+                service.attendants_number = 1;
+                service.valid_hours_start = $validHoursStart.val() || '09:00';
+                service.valid_hours_end = $validHoursEnd.val() || '18:00';
+                service.daily_capacity = $dailyCapacity.val() || null;
+            } else if (nature === 'multi_pass') {
+                service.duration = 0;
+                service.slot_interval = 60;
+                service.attendants_number = 1;
+                service.pass_validity_days = $passValidityDays.val() || 30;
+                if ($multiPassQuotaType.val() === 'fixed') {
+                    service.total_passes = $multiPassQuotaNumber.val() || 30;
+                } else {
+                    service.total_passes = 0; // unlimited
+                }
+            }
+
+            // Include service providers and per-provider durations if applicable
+            service.providers = [];
+            const providerDurations = {};
+            if (['duration', 'packaged', 'quantity_timed', 'provider_custom_duration'].includes(nature)) {
+                $('#service-providers .provider-checkbox').each((index, checkboxEl) => {
+                    if ($(checkboxEl).prop('checked')) {
+                        const pid = $(checkboxEl).attr('data-id');
+                        service.providers.push(pid);
+                        if (nature === 'provider_custom_duration') {
+                            const customDur = Number($(`.provider-duration-input[data-provider-id="${pid}"]`).val());
+                            providerDurations[pid] = (customDur && customDur > 0) ? customDur : Number($duration.val() || 60);
+                        }
+                    }
+                });
+            }
+            if (nature === 'provider_custom_duration') {
+                service.provider_durations = providerDurations;
+            }
 
             if ($id.val() !== '') {
                 service.id = $id.val();
@@ -379,10 +451,57 @@ App.Pages.Services = (function () {
             }, () => {
                 loadConsumables(serviceId);
                 App.Layouts.Backend.displayNotification('Sarf malzeme reçeteden çıkarıldı.');
-            }).fail((xhr) => {
-                const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Sarf malzeme reçeteden çıkarılamadı.';
-                alert(msg);
             });
+        });
+
+        // Service nature change
+        $serviceNature.on('change', () => {
+            applyServiceNature($serviceNature.val());
+        });
+
+        // Multi pass quota type change
+        $multiPassQuotaType.on('change', function () {
+            if ($(this).val() === 'fixed') {
+                $multiPassQuotaNumber.show();
+            } else {
+                $multiPassQuotaNumber.hide();
+            }
+        });
+
+        // Follow-up required toggle
+        $services.on('change', '#follow-up-required', function () {
+            if ($(this).prop('checked')) {
+                $('#follow-up-config-body').slideDown(200);
+            } else {
+                $('#follow-up-config-body').slideUp(200);
+            }
+        });
+
+        // Quick delay buttons
+        $services.on('click', '.btn-quick-delay', function () {
+            $('#follow-up-delay-override').val($(this).data('delay'));
+        });
+
+        // Follow-up template pills
+        $services.on('click', '.btn-template-pill', function () {
+            const type = $(this).data('type');
+            if (type === 'medication') {
+                $('#follow-up-category').val('medical_protocol');
+                $('#follow-up-priority').val('critical');
+                $('#follow-up-delay-override').val('2 hours');
+                $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} işlemi sonrası doktorunuzun/uzmanınızın reçete ettiği ilaç ve destek ürünlerini saatinde almayı lütfen unutmayınız. Acil danışma veya sorularınız için kliniğimize ulaşabilirsiniz.');
+            } else if (type === 'photo') {
+                $('#follow-up-category').val('photo_checkin');
+                $('#follow-up-priority').val('standard');
+                $('#follow-up-delay-override').val('24 hours');
+                $('#follow-up-message-override').val('Merhaba {{customer_name}}, {{service_name}} uygulamasının üzerinden 24 saat geçti. Cildinizdeki iyileşme sürecini ve doku durumunu takip edebilmemiz için lütfen işlem bölgesinin güncel bir fotoğrafını bu mesaja yanıt olarak iletir misiniz?');
+            } else if (type === 'soap') {
+                $('#follow-up-category').val('medical_reaction');
+                $('#follow-up-priority').val('critical');
+                $('#follow-up-delay-override').val('24 hours');
+                $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} tedaviniz sonrasında genel durumunuz nasıl? Herhangi bir ağrı, şişlik veya beklenmeyen bir reaksiyon hissediyor musunuz? (1: Çok İyiyim, 2: Hekimime Danışmak İstiyorum)');
+            }
+            App.Layouts.Backend.displayNotification('Şablon mesaj ve parametreler yüklendi.');
         });
     }
 
@@ -417,6 +536,154 @@ App.Pages.Services = (function () {
     }
 
     /**
+     * Dynamically adjusts form fields and visibility based on selected service nature.
+     *
+     * @param {String} nature The service nature key.
+     */
+    function applyServiceNature(nature) {
+        nature = nature || 'duration';
+        $accessType.val(nature);
+
+        switch (nature) {
+            case 'duration':
+                $sectionTimedSettings.show();
+                $packageSessionsContainer.hide();
+                $totalPasses.removeClass('required');
+                $durationContainer.show();
+                $durationLabel.text(lang('duration_minutes') || 'Süre (Dakika)');
+                $duration.addClass('required').prop('min', vars('event_minimum_duration') || 5);
+                $slotInterval.addClass('required');
+                $attendantsNumber.addClass('required');
+                $sectionDailyPassSettings.hide();
+                $sectionMultiPassSettings.hide();
+                $sectionProviders.show();
+                $('.provider-custom-duration-container').hide();
+                $priceUnitLabel.text('(Toplam Fiyat)');
+                break;
+
+            case 'packaged':
+            case 'quantity_timed':
+                $sectionTimedSettings.show();
+                $packageSessionsContainer.show();
+                $totalPasses.addClass('required');
+                $durationContainer.show();
+                $durationLabel.text('Seans Başına Süre (Dakika)');
+                $duration.addClass('required').prop('min', vars('event_minimum_duration') || 5);
+                $slotInterval.addClass('required');
+                $attendantsNumber.addClass('required');
+                $sectionDailyPassSettings.hide();
+                $sectionMultiPassSettings.hide();
+                $sectionProviders.show();
+                $('.provider-custom-duration-container').hide();
+                $priceUnitLabel.text('(Paket Toplam Satış Fiyatı)');
+                break;
+
+            case 'provider_custom_duration':
+                $sectionTimedSettings.show();
+                $packageSessionsContainer.hide();
+                $totalPasses.removeClass('required');
+                $durationContainer.show();
+                $durationLabel.text('Varsayılan Süre (Dakika)');
+                $duration.addClass('required').prop('min', vars('event_minimum_duration') || 5);
+                $slotInterval.addClass('required');
+                $attendantsNumber.addClass('required');
+                $sectionDailyPassSettings.hide();
+                $sectionMultiPassSettings.hide();
+                $sectionProviders.show();
+                $('.provider-custom-duration-container').show();
+                $priceUnitLabel.text('(Toplam Fiyat)');
+                break;
+
+            case 'daily_pass':
+                $sectionTimedSettings.hide();
+                $packageSessionsContainer.hide();
+                $totalPasses.removeClass('required');
+                $duration.removeClass('required');
+                $slotInterval.removeClass('required');
+                $attendantsNumber.removeClass('required');
+                $sectionDailyPassSettings.show();
+                $sectionMultiPassSettings.hide();
+                $sectionProviders.hide();
+                $('.provider-custom-duration-container').hide();
+                $priceUnitLabel.text('(Günlük Giriş Ücreti)');
+                break;
+
+            case 'multi_pass':
+                $sectionTimedSettings.hide();
+                $packageSessionsContainer.hide();
+                $totalPasses.removeClass('required');
+                $duration.removeClass('required');
+                $slotInterval.removeClass('required');
+                $attendantsNumber.removeClass('required');
+                $sectionDailyPassSettings.hide();
+                $sectionMultiPassSettings.show();
+                $sectionProviders.hide();
+                $('.provider-custom-duration-container').hide();
+                $priceUnitLabel.text('(Abonelik / Pass Satış Fiyatı)');
+                break;
+        }
+    }
+
+    /**
+     * Render the table of CRM follow-up automation rules.
+     */
+    function renderFollowUpRules() {
+        const $tbody = $('#service-follow-up-table tbody');
+        $tbody.empty();
+
+        if (!serviceFollowUpRules || !serviceFollowUpRules.length) {
+            $tbody.html('<tr class="text-muted text-center py-3"><td colspan="5">Kayıtlı takip kuralı bulunamadı.</td></tr>');
+            return;
+        }
+
+        const triggerLabels = {
+            'appointment_completed': '<span class="badge bg-primary">Randevu Tamamlandığında</span>',
+            'package_near_expiry': '<span class="badge bg-warning text-dark">Paket Bitimine 1 Seans Kala</span>',
+            'service_purchased': '<span class="badge bg-info text-dark">Satın Alındığında</span>',
+            'checkin_done': '<span class="badge bg-secondary">Check-in Yapıldığında</span>',
+        };
+
+        const delayLabels = {
+            'immediate': 'Hemen',
+            '2_hours': '2 Saat Sonra',
+            '24_hours': '24 Saat Sonra',
+            '3_days': '3 Gün Sonra',
+            '1_week': '1 Hafta Sonra',
+            '30_days': '30 Gün Sonra',
+        };
+
+        const channelLabels = {
+            'sms': '<i class="fas fa-comment-sms text-primary me-1"></i>SMS',
+            'whatsapp': '<i class="fab fa-whatsapp text-success me-1"></i>WhatsApp',
+            'email': '<i class="fas fa-envelope text-info me-1"></i>E-Posta',
+        };
+
+        const actionLabels = {
+            'review_nps': '⭐ Memnuniyet & NPS Anketi',
+            'renewal_reminder': '🔄 Paket Yenileme & Teklif',
+            'tag_vip': '🏷️ "VIP" Etiketi Ekle',
+            'aftercare_safety': '🩺 Bakım Sonrası Talimatları',
+        };
+
+        serviceFollowUpRules.forEach((rule, idx) => {
+            const tr = `
+                <tr>
+                    <td>${triggerLabels[rule.trigger] || rule.trigger}</td>
+                    <td><span class="badge bg-light text-dark border">${delayLabels[rule.delay] || rule.delay}</span></td>
+                    <td>${channelLabels[rule.channel] || rule.channel}</td>
+                    <td class="fw-semibold text-dark">${actionLabels[rule.action] || rule.action}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-follow-up" data-index="${idx}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            $tbody.append(tr);
+        });
+    }
+
+    /**
      * Validates a service record.
      *
      * @return {Boolean} Returns the validation result.
@@ -426,10 +693,10 @@ App.Pages.Services = (function () {
         $services.find('.form-message').removeClass('alert-danger').hide();
 
         try {
-            // Validate required fields.
+            // Validate required fields that are visible.
             let missingRequired = false;
 
-            $services.find('.required').each((index, requiredField) => {
+            $services.find('.required:visible').each((index, requiredField) => {
                 if (!$(requiredField).val()) {
                     $(requiredField).addClass('is-invalid');
                     missingRequired = true;
@@ -440,10 +707,12 @@ App.Pages.Services = (function () {
                 throw new Error(lang('fields_are_required'));
             }
 
-            // Validate the duration.
-            if (Number($duration.val()) < vars('event_minimum_duration')) {
-                $duration.addClass('is-invalid');
-                throw new Error(lang('invalid_duration'));
+            const nature = $serviceNature.val() || 'duration';
+            if (['duration', 'quantity_timed'].includes(nature)) {
+                if (Number($duration.val()) < (vars('event_minimum_duration') || 5)) {
+                    $duration.addClass('is-invalid');
+                    throw new Error(lang('invalid_duration'));
+                }
             }
 
             return true;
@@ -478,10 +747,21 @@ App.Pages.Services = (function () {
         $('#select-all-providers, #select-none-providers').prop('disabled', true);
         $('#service-providers a').remove();
 
-        // Reset Addons & Consumables
+        // Reset Addons & Consumables & Follow-ups
         $('#service-addons-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="4">Ek hizmet bulunamadı.</td></tr>');
         $('#service-consumables-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
         $('#service-consumables-summary').hide();
+        $('#follow-up-required').prop('checked', false).prop('disabled', true);
+        $('#follow-up-config-body').hide();
+        $('#follow-up-category').val('medical_reaction').prop('disabled', true);
+        $('#follow-up-priority').val('standard').prop('disabled', true);
+        $('#follow-up-delay-override').val('24 hours').prop('disabled', true);
+        $('#follow-up-message-override').val('').prop('disabled', true);
+        $('.provider-duration-input').val('').prop('disabled', true);
+        $('.provider-custom-duration-container').hide();
+
+        $serviceNature.val('duration');
+        applyServiceNature('duration');
 
         App.Components.ColorSelection.disable($color);
     }
@@ -496,13 +776,33 @@ App.Pages.Services = (function () {
         $id.val(service.id);
         $name.val(service.name);
         $duration.val(service.duration);
-        $accessType.val(service.access_type || service.accessType || 'duration');
+        
+        const nature = service.service_nature || service.access_type || service.accessType || 'duration';
+        $serviceNature.val(nature);
+        $accessType.val(nature);
+        applyServiceNature(nature);
+
+        $taxRate.val(service.tax_rate !== undefined && service.tax_rate !== null ? service.tax_rate : '20.00');
         $price.val(service.price);
-        $currency.val(service.currency);
+        $currency.val(service.currency || '₺');
         $description.val(service.description);
         $location.val(service.location);
-        $slotInterval.val(service.slot_interval);
-        $attendantsNumber.val(service.attendants_number);
+        $slotInterval.val(service.slot_interval || 15);
+        $attendantsNumber.val(service.attendants_number || 1);
+        $totalPasses.val(service.total_passes || 10);
+        $validHoursStart.val(service.valid_hours_start || '09:00');
+        $validHoursEnd.val(service.valid_hours_end || '18:00');
+        $dailyCapacity.val(service.daily_capacity || '');
+        $passValidityDays.val(service.pass_validity_days || '30');
+
+        if (service.total_passes && Number(service.total_passes) > 0) {
+            $multiPassQuotaType.val('fixed');
+            $multiPassQuotaNumber.val(service.total_passes).show();
+        } else {
+            $multiPassQuotaType.val('unlimited');
+            $multiPassQuotaNumber.hide();
+        }
+
         $isPrivate.prop('checked', service.is_private);
         App.Components.ColorSelection.setColor($color, service.color);
 
@@ -512,6 +812,37 @@ App.Pages.Services = (function () {
         // Load Addons & Consumables for this service
         loadAddons(service.id);
         loadConsumables(service.id);
+
+        // Native follow-up engine fields
+        const isFollowUpReq = !!(Number(service.follow_up_required) || service.followUpRequired);
+        $('#follow-up-required').prop('checked', isFollowUpReq);
+        if (isFollowUpReq) {
+            $('#follow-up-config-body').show();
+        } else {
+            $('#follow-up-config-body').hide();
+        }
+        $('#follow-up-category').val(service.follow_up_category || service.followUpCategory || 'medical_reaction');
+        $('#follow-up-priority').val(service.follow_up_priority || service.followUpPriority || 'standard');
+        $('#follow-up-delay-override').val(service.follow_up_delay_override || service.followUpDelayOverride || '24 hours');
+        $('#follow-up-message-override').val(service.follow_up_message_override || service.followUpMessageOverride || '');
+
+        // Populate per-provider custom durations
+        let pDurs = {};
+        try {
+            pDurs = typeof service.provider_durations === 'string'
+                ? JSON.parse(service.provider_durations)
+                : (service.provider_durations || service.providerDurations || {});
+        } catch (e) {
+            pDurs = {};
+        }
+        $('.provider-duration-input').each(function () {
+            const pid = $(this).attr('data-provider-id');
+            if (pDurs && pDurs[pid]) {
+                $(this).val(pDurs[pid]);
+            } else {
+                $(this).val(service.duration || 60);
+            }
+        });
 
         // Display providers
         $('#service-providers a').remove();

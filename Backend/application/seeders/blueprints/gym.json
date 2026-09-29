@@ -1,862 +1,941 @@
 {
-    "industry": {
-        "code": "gym",
-        "name": "Spor Salonu / Fitness & GYM",
-        "icon": "💪",
-        "service_type": "station",
-        "description": "Fitness salonları, CrossFit box'ları, spinning stüdyoları, grup dersleri ve üyelik turnike/QR geçiş yönetim paketi."
+  "industry": {
+    "code": "gym",
+    "name": "Spor Salonu / Fitness & GYM",
+    "icon": "💪",
+    "service_type": "station",
+    "description": "Fitness salonları, CrossFit box'ları, spinning stüdyoları, grup dersleri ve üyelik turnike/QR geçiş yönetim paketi."
+  },
+  "terminology": {
+    "customer": "Üye / Sporcu",
+    "provider": "Antrenör / Eğitmen",
+    "appointment": "Ders / Antrenman",
+    "service": "Grup Dersi / PT Seansı",
+    "station": "Stüdyo / Alan",
+    "product": "Spor Takviyesi / Ekipman",
+    "order": "Üye Satışı",
+    "reservation": "Ders Rezervasyonu",
+    "membership": "Salon Üyeliği",
+    "package": "Ders / Seans Paketi",
+    "catalog": "Dersler & Program Kataloğu",
+    "branch": "Şube / Tesis",
+    "customer_label": "Üye",
+    "provider_label": "Antrenör / Grup Eğitmeni",
+    "appointment_label": "Ders / Seans",
+    "station_label": "Stüdyo / Salon Alanı",
+    "service_label": "Ders / Aktivite"
+  },
+  "enabled_modules": [
+    "appointments",
+    "calendar",
+    "stations",
+    "packages",
+    "memberships",
+    "adisyon",
+    "finance",
+    "expenses",
+    "checkin",
+    "inventory",
+    "reviews",
+    "marketing",
+    "loyalty",
+    "staff_commissions"
+  ],
+  "default_settings": {
+    "business_type": "fitness",
+    "slot_interval": 60,
+    "future_booking_limit": 14,
+    "require_phone_number": true,
+    "session_deviation_tolerance_minutes": 10,
+    "currency_symbol": "₺",
+    "currency_code": "TRY"
+  },
+  "service_categories": [
+    {
+      "name": "Grup Kardiyo & Kondisyon",
+      "description": "Spinning, HIIT, CrossFit ve fonksiyonel grup sınıfları"
     },
-    "terminology": {
-        "customer": "Üye / Sporcu",
-        "provider": "Antrenör / Eğitmen",
-        "appointment": "Ders / Antrenman",
-        "service": "Grup Dersi / PT Seansı",
-        "station": "Stüdyo / Alan",
-        "product": "Spor Takviyesi / Ekipman",
-        "order": "Üye Satışı",
-        "reservation": "Ders Rezervasyonu",
-        "membership": "Salon Üyeliği",
-        "package": "Ders / Seans Paketi",
-        "catalog": "Dersler & Program Kataloğu",
-        "branch": "Şube / Tesis",
-        "customer_label": "Üye",
-        "provider_label": "Antrenör / Grup Eğitmeni",
-        "appointment_label": "Ders / Seans",
-        "station_label": "Stüdyo / Salon Alanı",
-        "service_label": "Ders / Aktivite"
+    {
+      "name": "Mind & Body Dersleri",
+      "description": "Hatha Yoga, Vinyasa Flow ve Zumba dans fitness"
     },
-    "enabled_modules": [
-        "appointments",
-        "calendar",
-        "stations",
-        "packages",
-        "memberships",
-        "adisyon",
-        "finance",
-        "expenses",
-        "checkin",
-        "inventory",
-        "reviews",
-        "marketing",
-        "loyalty",
-        "staff_commissions"
-    ],
-    "default_settings": {
-        "business_type": "fitness",
-        "slot_interval": 60,
-        "future_booking_limit": 14,
-        "require_phone_number": true,
-        "session_deviation_tolerance_minutes": 10,
-        "currency_symbol": "₺",
-        "currency_code": "TRY"
+    {
+      "name": "Birebir Eğitmenlik & Ölçüm",
+      "description": "GYM içi 1-e-1 personal training ve yağ-kas ölçümü"
+    }
+  ],
+  "services": [
+    {
+      "name": "Spinning & Kardiyo Dersi (45 Dk)",
+      "service_nature": "duration",
+      "access_type": "duration",
+      "duration": 45,
+      "price": 250,
+      "tax_rate": 20,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#ef4444",
+      "description": "Yüksek tempolu grup spinning seansı. Antrenör eşliğinde kalori yakımı.",
+      "crm_follow_up_rules": [
+        {
+          "trigger": "appointment_completed",
+          "delay": "3_days",
+          "channel": "sms",
+          "action": "review_nps",
+          "message": "Spinning dersi sonrası enerjin nasıl? Puanlamak için tıkla: {review_link}"
+        }
+      ]
     },
-    "service_categories": [
+    {
+      "name": "Birebir GYM Antrenör Seansı (60 Dk)",
+      "service_nature": "duration",
+      "access_type": "duration",
+      "duration": 60,
+      "price": 750,
+      "tax_rate": 20,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#f97316",
+      "description": "Kişiye özel antrenman programı ile birebir uzman koçluk desteği.",
+      "crm_follow_up_rules": [
         {
-            "name": "Grup Kardiyo & Kondisyon",
-            "description": "Spinning, HIIT, CrossFit ve fonksiyonel grup sınıfları"
-        },
-        {
-            "name": "Mind & Body Dersleri",
-            "description": "Hatha Yoga, Vinyasa Flow ve Zumba dans fitness"
-        },
-        {
-            "name": "Birebir Eğitmenlik & Ölçüm",
-            "description": "GYM içi 1-e-1 personal training ve yağ-kas ölçümü"
+          "trigger": "appointment_completed",
+          "delay": "24_hours",
+          "channel": "whatsapp",
+          "action": "aftercare_safety",
+          "message": "Antrenman sonrası kas toparlanması için bol protein ve su almayı unutmayın!"
         }
-    ],
-    "services": [
+      ]
+    },
+    {
+      "name": "10 Seanslık Özel Antrenör (PT) Paketi",
+      "service_nature": "packaged",
+      "access_type": "packaged",
+      "duration": 60,
+      "total_passes": 10,
+      "pass_validity_days": 90,
+      "price": 6500,
+      "tax_rate": 20,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#eab308",
+      "description": "10 seanslık birebir PT antrenman paketi. Takvimde her seans 60 dakika bloklar.",
+      "crm_follow_up_rules": [
         {
-            "name": "Spinning & Kardiyo Dersi (45 Dk)",
-            "category": "Grup Kardiyo & Kondisyon",
-            "duration": 45,
-            "price": 250,
-            "slot_interval": 60,
-            "attendants_number": 15,
-            "color": "#ef4444",
-            "description": "Müzik ve ışık eşliğinde 15 kişilik yüksek tempolu kondisyon bisikleti sınıfı.",
-            "follow_up_required": false,
-            "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+          "trigger": "package_near_expiry",
+          "delay": "immediate",
+          "channel": "whatsapp",
+          "action": "renewal_reminder",
+          "message": "Tebrikler! 10 seanslık hedefine ulaşıyorsun. Son 1 seansın kaldı, yenilemek için tıkla."
         },
         {
-            "name": "CrossFit WOD (Workout of the Day)",
-            "category": "Grup Kardiyo & Kondisyon",
-            "duration": 60,
-            "price": 300,
-            "slot_interval": 60,
-            "attendants_number": 12,
-            "color": "#f97316",
-            "description": "Günün antrenmanı: Olimpik halter, jimnastik ve metabolik kondisyon.",
-            "follow_up_required": false,
-            "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
-        },
-        {
-            "name": "Zumba Fitness Dans Dersi",
-            "category": "Mind & Body Dersleri",
-            "duration": 50,
-            "price": 200,
-            "slot_interval": 60,
-            "attendants_number": 20,
-            "color": "#ec4899",
-            "description": "Latin müzikleri eşliğinde kalori yaktıran eğlenceli dans kardiyo dersi.",
-            "follow_up_required": false,
-            "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
-        },
-        {
-            "name": "Vinyasa Yoga & Meditasyon",
-            "category": "Mind & Body Dersleri",
-            "duration": 60,
-            "price": 220,
-            "slot_interval": 60,
-            "attendants_number": 15,
-            "color": "#10b981",
-            "description": "Nefes ile hareketin senkronize aktığı esneklik ve denge pratiği.",
-            "follow_up_required": false,
-            "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
-        },
-        {
-            "name": "Birebir GYM Antrenör Seansı",
-            "category": "Birebir Eğitmenlik & Ölçüm",
-            "duration": 60,
-            "price": 750,
-            "slot_interval": 60,
-            "attendants_number": 1,
-            "color": "#3b82f6",
-            "description": "Salonda hedefe yönelik serbest ağırlık ve makine koçluğu.",
-            "follow_up_required": false,
-            "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
-        },
-        {
-            "name": "Fitness Seviye & Vücut Ölçümü",
-            "category": "Birebir Eğitmenlik & Ölçüm",
-            "duration": 30,
-            "price": 350,
-            "slot_interval": 30,
-            "attendants_number": 1,
-            "color": "#6366f1",
-            "description": "Tanita/InBody vücut analizi ve gelişim grafiği değerlendirmesi.",
-            "follow_up_required": false,
-            "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+          "trigger": "service_purchased",
+          "delay": "immediate",
+          "channel": "whatsapp",
+          "action": "tag_vip",
+          "message": "PT Paketin hesabına tanımlandı!"
         }
-    ],
-    "stations": [
+      ],
+      "package_total_count": 10
+    },
+    {
+      "name": "Üyelik Başvuru & Manyetik Turnike Bilekliği",
+      "service_nature": "duration",
+      "access_type": "duration",
+      "duration": 15,
+      "total_passes": 1,
+      "price": 200,
+      "tax_rate": 20,
+      "slot_interval": 15,
+      "attendants_number": 1,
+      "color": "#64748b",
+      "description": "Salona girişlerde kullanılan akıllı RFID bileklik ve sporcu sağlık dosyası bedeli. Randevu slotu kaplamaz.",
+      "crm_follow_up_rules": []
+    },
+    {
+      "name": "Günlük Tesis, GYM & Islak Alan Kullanım Pass",
+      "service_nature": "daily_pass",
+      "access_type": "daily_pass",
+      "duration": 480,
+      "price": 350,
+      "tax_rate": 20,
+      "valid_hours_start": "07:00",
+      "valid_hours_end": "23:00",
+      "daily_capacity": 100,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#3b82f6",
+      "description": "07:00-23:00 saatleri arasında sınırsız kardiyo, ağırlık alanı, sauna ve havuz kullanımı. Personel atanmaz.",
+      "crm_follow_up_rules": [
         {
-            "name": "Spinning Stüdyosu",
-            "notes": "15 adet Stages SC3 profesyonel spin bike, club ses ve ışık sistemi"
-        },
-        {
-            "name": "CrossFit & Fonksiyonel Box",
-            "notes": "12 kişilik rig istasyonu, halter barları, bumper plakalar"
-        },
-        {
-            "name": "Grup Egzersiz Stüdyosu (Ayna Salon)",
-            "notes": "20 kişilik parke zemin, step tahtaları, dambıllar"
-        },
-        {
-            "name": "Vücut Analiz & Danışma Ofisi",
-            "notes": "InBody tartı, bilgisayar ve danışmanlık masası"
+          "trigger": "appointment_completed",
+          "delay": "24_hours",
+          "channel": "sms",
+          "action": "review_nps",
+          "message": "Bugünkü antrenmanın nasıldı? Salonumuzu puanlayın: {review_link}"
         }
-    ],
-    "demo": {
-        "admin": {
-            "first_name": "Volkan",
-            "last_name": "Şen",
-            "email": "demo-gym-admin@kibusiness.co",
-            "phone_number": "05432137000",
-            "notes": "Fitness Kulüp Müdürü"
-        },
-        "providers": [
-            {
-                "first_name": "Mert",
-                "last_name": "Özcan",
-                "email": "demo-gym-uzman1@kibusiness.co",
-                "phone_number": "05432137000",
-                "notes": "Head Coach & CrossFit Seviye 2",
-                "commission_type": "fixed",
-                "commission_value": 250,
-                "services": [
-                    "CrossFit WOD (Workout of the Day)",
-                    "Birebir GYM Antrenör Seansı",
-                    "Fitness Seviye & Vücut Ölçümü"
-                ],
-                "stations": [
-                    "CrossFit & Fonksiyonel Box",
-                    "Vücut Analiz & Danışma Ofisi"
-                ]
-            },
-            {
-                "first_name": "İlayda",
-                "last_name": "Toprak",
-                "email": "demo-gym-uzman2@kibusiness.co",
-                "phone_number": "05432137000",
-                "notes": "Spinning & Zumba Master Trainer",
-                "commission_type": "fixed",
-                "commission_value": 200,
-                "services": [
-                    "Spinning & Kardiyo Dersi (45 Dk)",
-                    "Zumba Fitness Dans Dersi"
-                ],
-                "stations": [
-                    "Spinning Stüdyosu",
-                    "Grup Egzersiz Stüdyosu (Ayna Salon)"
-                ]
-            },
-            {
-                "first_name": "Ece",
-                "last_name": "Yıldırım",
-                "email": "demo-gym-uzman3@kibusiness.co",
-                "phone_number": "05432137000",
-                "notes": "Yoga & Mobilite Eğitmeni (RYT-500)",
-                "commission_type": "fixed",
-                "commission_value": 200,
-                "services": [
-                    "Vinyasa Yoga & Meditasyon",
-                    "Fitness Seviye & Vücut Ölçümü"
-                ],
-                "stations": [
-                    "Grup Egzersiz Stüdyosu (Ayna Salon)",
-                    "Vücut Analiz & Danışma Ofisi"
-                ]
-            }
+      ]
+    },
+    {
+      "name": "1 Aylık Sınırsız GYM & Fitness Üyeliği",
+      "service_nature": "multi_pass",
+      "access_type": "multi_pass",
+      "duration": 0,
+      "pass_validity_days": 30,
+      "total_passes": 0,
+      "price": 1800,
+      "tax_rate": 20,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#10b981",
+      "description": "30 gün boyunca geçerli sınırsız tesis kullanımı, grup dersleri ve soyunma odası erişimi.",
+      "crm_follow_up_rules": [
+        {
+          "trigger": "package_near_expiry",
+          "delay": "3_days",
+          "channel": "whatsapp",
+          "action": "renewal_reminder",
+          "message": "GYM üyeliğinin bitmesine 3 gün kaldı! Kampanyalı fiyattan yenilemek için tıkla."
+        }
+      ]
+    },
+    {
+      "name": "Yıllık 50 Girişlik Flexi-GYM Pass",
+      "service_nature": "multi_pass",
+      "access_type": "multi_pass",
+      "duration": 0,
+      "pass_validity_days": 365,
+      "total_passes": 50,
+      "price": 8500,
+      "tax_rate": 20,
+      "slot_interval": 60,
+      "attendants_number": 1,
+      "color": "#8b5cf6",
+      "description": "1 yıl içinde dilediğin zaman kullanabileceğin 50 girişlik esnek salon hakkı.",
+      "crm_follow_up_rules": [
+        {
+          "trigger": "package_near_expiry",
+          "delay": "immediate",
+          "channel": "whatsapp",
+          "action": "renewal_reminder",
+          "message": "Kalan giriş adediniz: 2. Yeni dönem paketinizi avantajla rezerve edin."
+        }
+      ]
+    }
+  ],
+  "stations": [
+    {
+      "name": "Spinning Stüdyosu",
+      "notes": "15 adet Stages SC3 profesyonel spin bike, club ses ve ışık sistemi"
+    },
+    {
+      "name": "CrossFit & Fonksiyonel Box",
+      "notes": "12 kişilik rig istasyonu, halter barları, bumper plakalar"
+    },
+    {
+      "name": "Grup Egzersiz Stüdyosu (Ayna Salon)",
+      "notes": "20 kişilik parke zemin, step tahtaları, dambıllar"
+    },
+    {
+      "name": "Vücut Analiz & Danışma Ofisi",
+      "notes": "InBody tartı, bilgisayar ve danışmanlık masası"
+    }
+  ],
+  "demo": {
+    "admin": {
+      "first_name": "Volkan",
+      "last_name": "Şen",
+      "email": "demo-gym-admin@kibusiness.co",
+      "phone_number": "05432137000",
+      "notes": "Fitness Kulüp Müdürü"
+    },
+    "providers": [
+      {
+        "first_name": "Mert",
+        "last_name": "Özcan",
+        "email": "demo-gym-uzman1@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Head Coach & CrossFit Seviye 2",
+        "commission_type": "fixed",
+        "commission_value": 250,
+        "services": [
+          "CrossFit WOD (Workout of the Day)",
+          "Birebir GYM Antrenör Seansı",
+          "Fitness Seviye & Vücut Ölçümü"
         ],
-        "customers": [
-            {
-                "first_name": "Berk",
-                "last_name": "Kaya",
-                "email": "demo-gym-musteri1@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "CrossFit müdavimi, yıllık üye"
-            },
-            {
-                "first_name": "Tuğba",
-                "last_name": "Arslan",
-                "email": "demo-gym-musteri2@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Spinning derslerini kaçırmaz"
-            },
-            {
-                "first_name": "Cem",
-                "last_name": "Güneş",
-                "email": "demo-gym-musteri3@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Birebir antrenman alıyor"
-            },
-            {
-                "first_name": "Dilara",
-                "last_name": "Öztürk",
-                "email": "demo-gym-musteri4@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Yoga ve meditasyon tutkunu"
-            },
-            {
-                "first_name": "Murat",
-                "last_name": "Çelik",
-                "email": "demo-gym-musteri5@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Akşam CrossFit WOD seansı"
-            },
-            {
-                "first_name": "Aslı",
-                "last_name": "Demirtaş",
-                "email": "demo-gym-musteri6@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Zumba ve grup kardiyo"
-            },
-            {
-                "first_name": "Onur",
-                "last_name": "Sezer",
-                "email": "demo-gym-musteri7@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Vücut analizi ve gelişim takibi"
-            },
-            {
-                "first_name": "Defne",
-                "last_name": "Kılıç",
-                "email": "demo-gym-musteri8@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Spinning ve yoga kombini"
-            },
-            {
-                "first_name": "Serkan",
-                "last_name": "Aydın",
-                "email": "demo-gym-musteri9@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Kuvvet antrenmanı"
-            },
-            {
-                "first_name": "Havva",
-                "last_name": "Yıldız",
-                "email": "demo-gym-musteri10@kibusiness.co",
-                "phone_number": "05062505562",
-                "city": "Bursa",
-                "notes": "Sabah kardiyo seansları"
-            }
-        ],
-        "appointments": [
-            {
-                "day_offset": -3,
-                "time": "18:00",
-                "provider_idx": 0,
-                "customer_idx": 0,
-                "service_name": "CrossFit WOD (Workout of the Day)",
-                "station_idx": 1,
-                "status": "completed",
-                "payment_status": "collected",
-                "payment_method": "virtual_pos"
-            },
-            {
-                "day_offset": -3,
-                "time": "19:00",
-                "provider_idx": 1,
-                "customer_idx": 1,
-                "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
-                "station_idx": 0,
-                "status": "completed",
-                "payment_status": "collected",
-                "payment_method": "physical_pos"
-            },
-            {
-                "day_offset": -2,
-                "time": "10:00",
-                "provider_idx": 2,
-                "customer_idx": 3,
-                "service_name": "Vinyasa Yoga & Meditasyon",
-                "station_idx": 2,
-                "status": "completed",
-                "payment_status": "collected",
-                "payment_method": "virtual_pos"
-            },
-            {
-                "day_offset": -2,
-                "time": "14:00",
-                "provider_idx": 0,
-                "customer_idx": 2,
-                "service_name": "Birebir GYM Antrenör Seansı",
-                "station_idx": 1,
-                "status": "completed",
-                "payment_status": "collected",
-                "payment_method": "cash"
-            },
-            {
-                "day_offset": -1,
-                "time": "18:30",
-                "provider_idx": 1,
-                "customer_idx": 5,
-                "service_name": "Zumba Fitness Dans Dersi",
-                "station_idx": 2,
-                "status": "completed",
-                "payment_status": "collected",
-                "payment_method": "physical_pos"
-            },
-            {
-                "day_offset": -1,
-                "time": "19:00",
-                "provider_idx": 0,
-                "customer_idx": 4,
-                "service_name": "CrossFit WOD (Workout of the Day)",
-                "station_idx": 1,
-                "status": "completed",
-                "payment_status": "collected",
-                "payment_method": "virtual_pos"
-            },
-            {
-                "day_offset": 0,
-                "time": "09:00",
-                "provider_idx": 2,
-                "customer_idx": 3,
-                "service_name": "Vinyasa Yoga & Meditasyon",
-                "station_idx": 2,
-                "status": "confirmed",
-                "payment_status": "collected",
-                "payment_method": "virtual_pos"
-            },
-            {
-                "day_offset": 0,
-                "time": "12:00",
-                "provider_idx": 0,
-                "customer_idx": 6,
-                "service_name": "Fitness Seviye & Vücut Ölçümü",
-                "station_idx": 3,
-                "status": "confirmed",
-                "payment_status": "pending",
-                "payment_method": "cash"
-            },
-            {
-                "day_offset": 0,
-                "time": "18:00",
-                "provider_idx": 0,
-                "customer_idx": 0,
-                "service_name": "CrossFit WOD (Workout of the Day)",
-                "station_idx": 1,
-                "status": "confirmed",
-                "payment_status": "collected",
-                "payment_method": "virtual_pos"
-            },
-            {
-                "day_offset": 0,
-                "time": "19:00",
-                "provider_idx": 1,
-                "customer_idx": 7,
-                "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
-                "station_idx": 0,
-                "status": "confirmed",
-                "payment_status": "pending",
-                "payment_method": "physical_pos"
-            },
-            {
-                "day_offset": 1,
-                "time": "14:00",
-                "provider_idx": 0,
-                "customer_idx": 8,
-                "service_name": "Birebir GYM Antrenör Seansı",
-                "station_idx": 1,
-                "status": "confirmed",
-                "payment_status": "pending",
-                "payment_method": "physical_pos"
-            },
-            {
-                "day_offset": 1,
-                "time": "18:30",
-                "provider_idx": 1,
-                "customer_idx": 5,
-                "service_name": "Zumba Fitness Dans Dersi",
-                "station_idx": 2,
-                "status": "confirmed",
-                "payment_status": "pending",
-                "payment_method": "cash"
-            },
-            {
-                "day_offset": 1,
-                "time": "19:00",
-                "provider_idx": 1,
-                "customer_idx": 1,
-                "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
-                "station_idx": 0,
-                "status": "confirmed",
-                "payment_status": "pending",
-                "payment_method": "physical_pos"
-            },
-            {
-                "day_offset": 2,
-                "time": "10:00",
-                "provider_idx": 2,
-                "customer_idx": 3,
-                "service_name": "Vinyasa Yoga & Meditasyon",
-                "station_idx": 2,
-                "status": "reserved",
-                "payment_status": "pending",
-                "payment_method": "virtual_pos"
-            },
-            {
-                "day_offset": 2,
-                "time": "18:00",
-                "provider_idx": 0,
-                "customer_idx": 4,
-                "service_name": "CrossFit WOD (Workout of the Day)",
-                "station_idx": 1,
-                "status": "reserved",
-                "payment_status": "pending",
-                "payment_method": "physical_pos"
-            },
-            {
-                "day_offset": 3,
-                "time": "19:00",
-                "provider_idx": 1,
-                "customer_idx": 9,
-                "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
-                "station_idx": 0,
-                "status": "reserved",
-                "payment_status": "pending",
-                "payment_method": "virtual_pos"
-            }
+        "stations": [
+          "CrossFit & Fonksiyonel Box",
+          "Vücut Analiz & Danışma Ofisi"
         ]
-    },
-    "family": "sports_fitness",
-    "business_type": "gym",
-    "ai_policy": {
-        "brand_name": "Spor Salonu / Fitness & GYM",
-        "tone": "friendly_professional",
-        "language": "tr",
-        "greeting_style": "Merhaba, Spor Salonu / Fitness & GYM asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
-        "allowed_terms": [
-            "Üye / Sporcu",
-            "Antrenör / Eğitmen",
-            "Ders / Antrenman",
-            "Grup Dersi / PT Seansı",
-            "Stüdyo / Alan",
-            "Spor Takviyesi / Ekipman",
-            "Üye Satışı",
-            "Ders Rezervasyonu"
+      },
+      {
+        "first_name": "İlayda",
+        "last_name": "Toprak",
+        "email": "demo-gym-uzman2@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Spinning & Zumba Master Trainer",
+        "commission_type": "fixed",
+        "commission_value": 200,
+        "services": [
+          "Spinning & Kardiyo Dersi (45 Dk)",
+          "Zumba Fitness Dans Dersi"
         ],
-        "forbidden_terms": [
-            "garantili sonuç",
-            "yüzde yüz kesin",
-            "hukuki taahhüt",
-            "tıbbi teşhis"
-        ],
-        "do_rules": [
-            "Her zaman 'Üye / Sporcu' ve 'Grup Dersi / PT Seansı' terminolojisini kullan.",
-            "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
-            "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
-        ],
-        "dont_rules": [
-            "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
-            "Onaysız veri silme veya para iadesi işlemi yapma.",
-            "Tıbbi reçete veya hukuki kesin taahhüt verme."
-        ],
-        "business_rules": {
-            "allow_online_booking": true,
-            "max_advance_days": 60,
-            "require_phone": true
-        },
-        "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
-        "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
-        "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
-        "escalation_rules": {
-            "medical": {
-                "trigger_keywords": [
-                    "ilaç",
-                    "yan etki",
-                    "alerji",
-                    "kanama",
-                    "enfeksiyon",
-                    "ağrı"
-                ],
-                "action": "escalate_to_doctor"
-            },
-            "legal": {
-                "trigger_keywords": [
-                    "dava",
-                    "ihtarname",
-                    "avukat",
-                    "tazminat",
-                    "mahkeme"
-                ],
-                "action": "escalate_to_lawyer"
-            },
-            "payment": {
-                "trigger_keywords": [
-                    "fazla çekim",
-                    "dolandırıcılık",
-                    "itiraz",
-                    "chargeback"
-                ],
-                "action": "escalate_to_manager"
-            },
-            "angry_customer": {
-                "trigger_keywords": [
-                    "şikayetçiyim",
-                    "berbat",
-                    "dava edeceğim",
-                    "rezalet",
-                    "tüketici hakem"
-                ],
-                "action": "escalate_to_owner"
-            },
-            "uncertainty": {
-                "threshold": 0.65,
-                "action": "escalate_to_staff"
-            }
-        },
-        "allowed_actions": [
-            "search_customers",
-            "get_customer",
-            "list_appointments",
-            "get_services",
-            "check_availability"
-        ],
-        "approval_required_actions": [
-            "propose_appointment_create",
-            "propose_appointment_update",
-            "propose_appointment_cancel",
-            "propose_customer_update"
-        ],
-        "forbidden_actions": [
-            "direct_delete_customer",
-            "direct_refund_payment",
-            "change_security_settings"
+        "stations": [
+          "Spinning Stüdyosu",
+          "Grup Egzersiz Stüdyosu (Ayna Salon)"
         ]
-    },
-    "dashboard": {
-        "owner": {
-            "kpis": [
-                {
-                    "key": "today_appointments",
-                    "label": "Bugünkü Ders / Antrenmanlar",
-                    "icon": "calendar-check",
-                    "color": "primary"
-                },
-                {
-                    "key": "today_revenue",
-                    "label": "Bugünkü Hasılat",
-                    "icon": "wallet",
-                    "color": "success"
-                },
-                {
-                    "key": "active_sessions",
-                    "label": "Canlı Stüdyo / Alan Doluluğu",
-                    "icon": "door-open",
-                    "color": "info"
-                },
-                {
-                    "key": "customer_growth",
-                    "label": "Yeni Üye / Sporcular",
-                    "icon": "user-plus",
-                    "color": "warning"
-                }
-            ],
-            "quick_actions": [
-                {
-                    "label": "+ Yeni Ders / Antrenman",
-                    "route": "calendar",
-                    "icon": "calendar-plus",
-                    "class": "btn-primary"
-                },
-                {
-                    "label": "+ Yeni Üye / Sporcu",
-                    "route": "customers",
-                    "icon": "user-plus",
-                    "class": "btn-success"
-                },
-                {
-                    "label": "⚡ Hızlı Satış",
-                    "route": "pos",
-                    "icon": "cash-register",
-                    "class": "btn-warning"
-                },
-                {
-                    "label": "📊 Günlük Rapor",
-                    "route": "reports",
-                    "icon": "chart-line",
-                    "class": "btn-info"
-                }
-            ]
-        },
-        "staff": {
-            "kpis": [
-                {
-                    "key": "my_today_appointments",
-                    "label": "Bugünkü Programım",
-                    "icon": "calendar-day",
-                    "color": "primary"
-                },
-                {
-                    "key": "my_completed_tasks",
-                    "label": "Tamamlanan Ders / Antrenmanlar",
-                    "icon": "check-circle",
-                    "color": "success"
-                },
-                {
-                    "key": "my_station_status",
-                    "label": "Stüdyo / Alan Durumu",
-                    "icon": "door-open",
-                    "color": "info"
-                }
-            ],
-            "quick_actions": [
-                {
-                    "label": "📅 Takvimim",
-                    "route": "calendar",
-                    "icon": "calendar",
-                    "class": "btn-primary"
-                },
-                {
-                    "label": "+ Üye / Sporcu Notu Ekle",
-                    "route": "customers",
-                    "icon": "file-alt",
-                    "class": "btn-outline-primary"
-                }
-            ]
-        }
-    },
-    "demo_roles": [
-        {
-            "slug": "owner",
-            "name": "Kulüp Sahibi (Owner)",
-            "icon": "crown",
-            "description": "Tesis ve finans tam yetkilisi"
-        },
-        {
-            "slug": "manager",
-            "name": "Tesis Müdürü",
-            "icon": "user-tie",
-            "description": "Salon ve ekip operasyonu"
-        },
-        {
-            "slug": "trainer",
-            "name": "Personal Trainer (PT)",
-            "icon": "dumbbell",
-            "description": "Birebir antrenman ve danışan takibi"
-        },
-        {
-            "slug": "group_instructor",
-            "name": "Grup Dersi Eğitmeni",
-            "icon": "users",
-            "description": "Stüdyo ve grup seansları"
-        },
-        {
-            "slug": "reception",
-            "name": "Danışma / Turnike",
-            "icon": "id-card",
-            "description": "Üye girişi ve check-in"
-        },
-        {
-            "slug": "cashier",
-            "name": "Kasiyer",
-            "icon": "cash-register",
-            "description": "Paket ve üyelik satışı"
-        }
+      },
+      {
+        "first_name": "Ece",
+        "last_name": "Yıldırım",
+        "email": "demo-gym-uzman3@kibusiness.co",
+        "phone_number": "05432137000",
+        "notes": "Yoga & Mobilite Eğitmeni (RYT-500)",
+        "commission_type": "fixed",
+        "commission_value": 200,
+        "services": [
+          "Vinyasa Yoga & Meditasyon",
+          "Fitness Seviye & Vücut Ölçümü"
+        ],
+        "stations": [
+          "Grup Egzersiz Stüdyosu (Ayna Salon)",
+          "Vücut Analiz & Danışma Ofisi"
+        ]
+      }
     ],
-    "demo_users": {
-        "owner": {
-            "first_name": "Kulüp",
-            "last_name": "Demo",
-            "email": "demo-gym-owner@kibusiness.co",
-            "role_slug": "owner",
-            "job_title": "Kulüp Sahibi (Owner)"
-        },
-        "manager": {
-            "first_name": "Tesis",
-            "last_name": "Demo",
-            "email": "demo-gym-manager@kibusiness.co",
-            "role_slug": "manager",
-            "job_title": "Tesis Müdürü"
-        },
-        "trainer": {
-            "first_name": "Personal",
-            "last_name": "Demo",
-            "email": "demo-gym-trainer@kibusiness.co",
-            "role_slug": "trainer",
-            "job_title": "Personal Trainer (PT)"
-        },
-        "group_instructor": {
-            "first_name": "Grup",
-            "last_name": "Demo",
-            "email": "demo-gym-group_instructor@kibusiness.co",
-            "role_slug": "group_instructor",
-            "job_title": "Grup Dersi Eğitmeni"
-        },
-        "reception": {
-            "first_name": "Danışma",
-            "last_name": "Demo",
-            "email": "demo-gym-reception@kibusiness.co",
-            "role_slug": "reception",
-            "job_title": "Danışma / Turnike"
-        },
-        "cashier": {
-            "first_name": "Kasiyer",
-            "last_name": "Demo",
-            "email": "demo-gym-cashier@kibusiness.co",
-            "role_slug": "cashier",
-            "job_title": "Kasiyer"
-        }
-    },
-    "roles": [
-        "owner",
-        "manager",
-        "reception",
-        "trainer",
-        "group_instructor",
-        "cashier"
+    "customers": [
+      {
+        "first_name": "Berk",
+        "last_name": "Kaya",
+        "email": "demo-gym-musteri1@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "CrossFit müdavimi, yıllık üye"
+      },
+      {
+        "first_name": "Tuğba",
+        "last_name": "Arslan",
+        "email": "demo-gym-musteri2@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Spinning derslerini kaçırmaz"
+      },
+      {
+        "first_name": "Cem",
+        "last_name": "Güneş",
+        "email": "demo-gym-musteri3@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Birebir antrenman alıyor"
+      },
+      {
+        "first_name": "Dilara",
+        "last_name": "Öztürk",
+        "email": "demo-gym-musteri4@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Yoga ve meditasyon tutkunu"
+      },
+      {
+        "first_name": "Murat",
+        "last_name": "Çelik",
+        "email": "demo-gym-musteri5@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Akşam CrossFit WOD seansı"
+      },
+      {
+        "first_name": "Aslı",
+        "last_name": "Demirtaş",
+        "email": "demo-gym-musteri6@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Zumba ve grup kardiyo"
+      },
+      {
+        "first_name": "Onur",
+        "last_name": "Sezer",
+        "email": "demo-gym-musteri7@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Vücut analizi ve gelişim takibi"
+      },
+      {
+        "first_name": "Defne",
+        "last_name": "Kılıç",
+        "email": "demo-gym-musteri8@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Spinning ve yoga kombini"
+      },
+      {
+        "first_name": "Serkan",
+        "last_name": "Aydın",
+        "email": "demo-gym-musteri9@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Kuvvet antrenmanı"
+      },
+      {
+        "first_name": "Havva",
+        "last_name": "Yıldız",
+        "email": "demo-gym-musteri10@kibusiness.co",
+        "phone_number": "05062505562",
+        "city": "Bursa",
+        "notes": "Sabah kardiyo seansları"
+      }
     ],
-    "navigation": [
-        {
-            "group": "dashboard",
-            "id": "nav_dashboard",
-            "label": "Dashboard",
-            "route": "dashboard",
-            "enabled": true
-        },
-        {
-            "group": "operations",
-            "id": "nav_operations",
-            "label": "Operasyon",
-            "route": "calendar",
-            "enabled": true
-        },
-        {
-            "group": "crm",
-            "id": "nav_crm",
-            "label": "CRM & Müşteriler",
-            "route": "customers",
-            "enabled": true
-        },
-        {
-            "group": "catalog",
-            "id": "nav_catalog",
-            "label": "Katalog",
-            "route": "catalog",
-            "enabled": true
-        },
-        {
-            "group": "resources",
-            "id": "nav_resources",
-            "label": "Kaynaklar",
-            "route": "stations",
-            "enabled": true
-        },
-        {
-            "group": "team",
-            "id": "nav_team",
-            "label": "Ekip",
-            "route": "users",
-            "enabled": true
-        },
-        {
-            "group": "finance",
-            "id": "nav_finance",
-            "label": "Satış & Finans",
-            "route": "finance",
-            "enabled": true
-        },
-        {
-            "group": "marketing",
-            "id": "nav_marketing",
-            "label": "Pazarlama",
-            "route": "marketing",
-            "enabled": true
-        },
-        {
-            "group": "vertical",
-            "id": "nav_vertical",
-            "label": "Sektörel Modüller",
-            "route": "verticals",
-            "enabled": true
-        },
-        {
-            "group": "reports",
-            "id": "nav_reports",
-            "label": "Raporlar",
-            "route": "reports",
-            "enabled": true
-        },
-        {
-            "group": "ai",
-            "id": "nav_ai",
-            "label": "AI Copilot",
-            "route": "ai_agent",
-            "enabled": true
-        },
-        {
-            "group": "settings",
-            "id": "nav_settings",
-            "label": "Ayarlar",
-            "route": "settings",
-            "enabled": true
-        }
+    "appointments": [
+      {
+        "day_offset": -3,
+        "time": "18:00",
+        "provider_idx": 0,
+        "customer_idx": 0,
+        "service_name": "CrossFit WOD (Workout of the Day)",
+        "station_idx": 1,
+        "status": "completed",
+        "payment_status": "collected",
+        "payment_method": "virtual_pos"
+      },
+      {
+        "day_offset": -3,
+        "time": "19:00",
+        "provider_idx": 1,
+        "customer_idx": 1,
+        "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
+        "station_idx": 0,
+        "status": "completed",
+        "payment_status": "collected",
+        "payment_method": "physical_pos"
+      },
+      {
+        "day_offset": -2,
+        "time": "10:00",
+        "provider_idx": 2,
+        "customer_idx": 3,
+        "service_name": "Vinyasa Yoga & Meditasyon",
+        "station_idx": 2,
+        "status": "completed",
+        "payment_status": "collected",
+        "payment_method": "virtual_pos"
+      },
+      {
+        "day_offset": -2,
+        "time": "14:00",
+        "provider_idx": 0,
+        "customer_idx": 2,
+        "service_name": "Birebir GYM Antrenör Seansı",
+        "station_idx": 1,
+        "status": "completed",
+        "payment_status": "collected",
+        "payment_method": "cash"
+      },
+      {
+        "day_offset": -1,
+        "time": "18:30",
+        "provider_idx": 1,
+        "customer_idx": 5,
+        "service_name": "Zumba Fitness Dans Dersi",
+        "station_idx": 2,
+        "status": "completed",
+        "payment_status": "collected",
+        "payment_method": "physical_pos"
+      },
+      {
+        "day_offset": -1,
+        "time": "19:00",
+        "provider_idx": 0,
+        "customer_idx": 4,
+        "service_name": "CrossFit WOD (Workout of the Day)",
+        "station_idx": 1,
+        "status": "completed",
+        "payment_status": "collected",
+        "payment_method": "virtual_pos"
+      },
+      {
+        "day_offset": 0,
+        "time": "09:00",
+        "provider_idx": 2,
+        "customer_idx": 3,
+        "service_name": "Vinyasa Yoga & Meditasyon",
+        "station_idx": 2,
+        "status": "confirmed",
+        "payment_status": "collected",
+        "payment_method": "virtual_pos"
+      },
+      {
+        "day_offset": 0,
+        "time": "12:00",
+        "provider_idx": 0,
+        "customer_idx": 6,
+        "service_name": "Fitness Seviye & Vücut Ölçümü",
+        "station_idx": 3,
+        "status": "confirmed",
+        "payment_status": "pending",
+        "payment_method": "cash"
+      },
+      {
+        "day_offset": 0,
+        "time": "18:00",
+        "provider_idx": 0,
+        "customer_idx": 0,
+        "service_name": "CrossFit WOD (Workout of the Day)",
+        "station_idx": 1,
+        "status": "confirmed",
+        "payment_status": "collected",
+        "payment_method": "virtual_pos"
+      },
+      {
+        "day_offset": 0,
+        "time": "19:00",
+        "provider_idx": 1,
+        "customer_idx": 7,
+        "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
+        "station_idx": 0,
+        "status": "confirmed",
+        "payment_status": "pending",
+        "payment_method": "physical_pos"
+      },
+      {
+        "day_offset": 1,
+        "time": "14:00",
+        "provider_idx": 0,
+        "customer_idx": 8,
+        "service_name": "Birebir GYM Antrenör Seansı",
+        "station_idx": 1,
+        "status": "confirmed",
+        "payment_status": "pending",
+        "payment_method": "physical_pos"
+      },
+      {
+        "day_offset": 1,
+        "time": "18:30",
+        "provider_idx": 1,
+        "customer_idx": 5,
+        "service_name": "Zumba Fitness Dans Dersi",
+        "station_idx": 2,
+        "status": "confirmed",
+        "payment_status": "pending",
+        "payment_method": "cash"
+      },
+      {
+        "day_offset": 1,
+        "time": "19:00",
+        "provider_idx": 1,
+        "customer_idx": 1,
+        "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
+        "station_idx": 0,
+        "status": "confirmed",
+        "payment_status": "pending",
+        "payment_method": "physical_pos"
+      },
+      {
+        "day_offset": 2,
+        "time": "10:00",
+        "provider_idx": 2,
+        "customer_idx": 3,
+        "service_name": "Vinyasa Yoga & Meditasyon",
+        "station_idx": 2,
+        "status": "reserved",
+        "payment_status": "pending",
+        "payment_method": "virtual_pos"
+      },
+      {
+        "day_offset": 2,
+        "time": "18:00",
+        "provider_idx": 0,
+        "customer_idx": 4,
+        "service_name": "CrossFit WOD (Workout of the Day)",
+        "station_idx": 1,
+        "status": "reserved",
+        "payment_status": "pending",
+        "payment_method": "physical_pos"
+      },
+      {
+        "day_offset": 3,
+        "time": "19:00",
+        "provider_idx": 1,
+        "customer_idx": 9,
+        "service_name": "Spinning & Kardiyo Dersi (45 Dk)",
+        "station_idx": 0,
+        "status": "reserved",
+        "payment_status": "pending",
+        "payment_method": "virtual_pos"
+      }
     ]
+  },
+  "family": "sports_fitness",
+  "business_type": "gym",
+  "ai_policy": {
+    "brand_name": "Spor Salonu / Fitness & GYM",
+    "tone": "friendly_professional",
+    "language": "tr",
+    "greeting_style": "Merhaba, Spor Salonu / Fitness & GYM asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+    "allowed_terms": [
+      "Üye / Sporcu",
+      "Antrenör / Eğitmen",
+      "Ders / Antrenman",
+      "Grup Dersi / PT Seansı",
+      "Stüdyo / Alan",
+      "Spor Takviyesi / Ekipman",
+      "Üye Satışı",
+      "Ders Rezervasyonu"
+    ],
+    "forbidden_terms": [
+      "garantili sonuç",
+      "yüzde yüz kesin",
+      "hukuki taahhüt",
+      "tıbbi teşhis"
+    ],
+    "do_rules": [
+      "Her zaman 'Üye / Sporcu' ve 'Grup Dersi / PT Seansı' terminolojisini kullan.",
+      "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
+      "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
+    ],
+    "dont_rules": [
+      "Kullanıcının yetkisi olmayan verilere erişmesine izin verme.",
+      "Onaysız veri silme veya para iadesi işlemi yapma.",
+      "Tıbbi reçete veya hukuki kesin taahhüt verme."
+    ],
+    "business_rules": {
+      "allow_online_booking": true,
+      "max_advance_days": 60,
+      "require_phone": true
+    },
+    "cancellation_policy": "Randevudan en geç 4 saat öncesine kadar ücretsiz iptal edilebilir.",
+    "refund_policy": "İadeler yönetici onayı sonrasında 3 iş günü içinde orijinal ödeme yöntemine yapılır.",
+    "discount_policy": "Yalnızca aktif kampanyalar ve yönetici yetkisi dahilinde indirim uygulanabilir.",
+    "escalation_rules": {
+      "medical": {
+        "trigger_keywords": [
+          "ilaç",
+          "yan etki",
+          "alerji",
+          "kanama",
+          "enfeksiyon",
+          "ağrı"
+        ],
+        "action": "escalate_to_doctor"
+      },
+      "legal": {
+        "trigger_keywords": [
+          "dava",
+          "ihtarname",
+          "avukat",
+          "tazminat",
+          "mahkeme"
+        ],
+        "action": "escalate_to_lawyer"
+      },
+      "payment": {
+        "trigger_keywords": [
+          "fazla çekim",
+          "dolandırıcılık",
+          "itiraz",
+          "chargeback"
+        ],
+        "action": "escalate_to_manager"
+      },
+      "angry_customer": {
+        "trigger_keywords": [
+          "şikayetçiyim",
+          "berbat",
+          "dava edeceğim",
+          "rezalet",
+          "tüketici hakem"
+        ],
+        "action": "escalate_to_owner"
+      },
+      "uncertainty": {
+        "threshold": 0.65,
+        "action": "escalate_to_staff"
+      }
+    },
+    "allowed_actions": [
+      "search_customers",
+      "get_customer",
+      "list_appointments",
+      "get_services",
+      "check_availability"
+    ],
+    "approval_required_actions": [
+      "propose_appointment_create",
+      "propose_appointment_update",
+      "propose_appointment_cancel",
+      "propose_customer_update"
+    ],
+    "forbidden_actions": [
+      "direct_delete_customer",
+      "direct_refund_payment",
+      "change_security_settings"
+    ]
+  },
+  "dashboard": {
+    "owner": {
+      "kpis": [
+        {
+          "key": "today_appointments",
+          "label": "Bugünkü Ders / Antrenmanlar",
+          "icon": "calendar-check",
+          "color": "primary"
+        },
+        {
+          "key": "today_revenue",
+          "label": "Bugünkü Hasılat",
+          "icon": "wallet",
+          "color": "success"
+        },
+        {
+          "key": "active_sessions",
+          "label": "Canlı Stüdyo / Alan Doluluğu",
+          "icon": "door-open",
+          "color": "info"
+        },
+        {
+          "key": "customer_growth",
+          "label": "Yeni Üye / Sporcular",
+          "icon": "user-plus",
+          "color": "warning"
+        }
+      ],
+      "quick_actions": [
+        {
+          "label": "+ Yeni Ders / Antrenman",
+          "route": "calendar",
+          "icon": "calendar-plus",
+          "class": "btn-primary"
+        },
+        {
+          "label": "+ Yeni Üye / Sporcu",
+          "route": "customers",
+          "icon": "user-plus",
+          "class": "btn-success"
+        },
+        {
+          "label": "⚡ Hızlı Satış",
+          "route": "pos",
+          "icon": "cash-register",
+          "class": "btn-warning"
+        },
+        {
+          "label": "📊 Günlük Rapor",
+          "route": "reports",
+          "icon": "chart-line",
+          "class": "btn-info"
+        }
+      ]
+    },
+    "staff": {
+      "kpis": [
+        {
+          "key": "my_today_appointments",
+          "label": "Bugünkü Programım",
+          "icon": "calendar-day",
+          "color": "primary"
+        },
+        {
+          "key": "my_completed_tasks",
+          "label": "Tamamlanan Ders / Antrenmanlar",
+          "icon": "check-circle",
+          "color": "success"
+        },
+        {
+          "key": "my_station_status",
+          "label": "Stüdyo / Alan Durumu",
+          "icon": "door-open",
+          "color": "info"
+        }
+      ],
+      "quick_actions": [
+        {
+          "label": "📅 Takvimim",
+          "route": "calendar",
+          "icon": "calendar",
+          "class": "btn-primary"
+        },
+        {
+          "label": "+ Üye / Sporcu Notu Ekle",
+          "route": "customers",
+          "icon": "file-alt",
+          "class": "btn-outline-primary"
+        }
+      ]
+    }
+  },
+  "demo_roles": [
+    {
+      "slug": "owner",
+      "name": "Kulüp Sahibi (Owner)",
+      "icon": "crown",
+      "description": "Tesis ve finans tam yetkilisi"
+    },
+    {
+      "slug": "manager",
+      "name": "Tesis Müdürü",
+      "icon": "user-tie",
+      "description": "Salon ve ekip operasyonu"
+    },
+    {
+      "slug": "trainer",
+      "name": "Personal Trainer (PT)",
+      "icon": "dumbbell",
+      "description": "Birebir antrenman ve danışan takibi"
+    },
+    {
+      "slug": "group_instructor",
+      "name": "Grup Dersi Eğitmeni",
+      "icon": "users",
+      "description": "Stüdyo ve grup seansları"
+    },
+    {
+      "slug": "reception",
+      "name": "Danışma / Turnike",
+      "icon": "id-card",
+      "description": "Üye girişi ve check-in"
+    },
+    {
+      "slug": "cashier",
+      "name": "Kasiyer",
+      "icon": "cash-register",
+      "description": "Paket ve üyelik satışı"
+    }
+  ],
+  "demo_users": {
+    "owner": {
+      "first_name": "Kulüp",
+      "last_name": "Demo",
+      "email": "demo-gym-owner@kibusiness.co",
+      "role_slug": "owner",
+      "job_title": "Kulüp Sahibi (Owner)"
+    },
+    "manager": {
+      "first_name": "Tesis",
+      "last_name": "Demo",
+      "email": "demo-gym-manager@kibusiness.co",
+      "role_slug": "manager",
+      "job_title": "Tesis Müdürü"
+    },
+    "trainer": {
+      "first_name": "Personal",
+      "last_name": "Demo",
+      "email": "demo-gym-trainer@kibusiness.co",
+      "role_slug": "trainer",
+      "job_title": "Personal Trainer (PT)"
+    },
+    "group_instructor": {
+      "first_name": "Grup",
+      "last_name": "Demo",
+      "email": "demo-gym-group_instructor@kibusiness.co",
+      "role_slug": "group_instructor",
+      "job_title": "Grup Dersi Eğitmeni"
+    },
+    "reception": {
+      "first_name": "Danışma",
+      "last_name": "Demo",
+      "email": "demo-gym-reception@kibusiness.co",
+      "role_slug": "reception",
+      "job_title": "Danışma / Turnike"
+    },
+    "cashier": {
+      "first_name": "Kasiyer",
+      "last_name": "Demo",
+      "email": "demo-gym-cashier@kibusiness.co",
+      "role_slug": "cashier",
+      "job_title": "Kasiyer"
+    }
+  },
+  "roles": [
+    "owner",
+    "manager",
+    "reception",
+    "trainer",
+    "group_instructor",
+    "cashier"
+  ],
+  "navigation": [
+    {
+      "group": "dashboard",
+      "id": "nav_dashboard",
+      "label": "Dashboard",
+      "route": "dashboard",
+      "enabled": true
+    },
+    {
+      "group": "operations",
+      "id": "nav_operations",
+      "label": "Operasyon",
+      "route": "calendar",
+      "enabled": true
+    },
+    {
+      "group": "crm",
+      "id": "nav_crm",
+      "label": "CRM & Müşteriler",
+      "route": "customers",
+      "enabled": true
+    },
+    {
+      "group": "catalog",
+      "id": "nav_catalog",
+      "label": "Katalog",
+      "route": "catalog",
+      "enabled": true
+    },
+    {
+      "group": "resources",
+      "id": "nav_resources",
+      "label": "Kaynaklar",
+      "route": "stations",
+      "enabled": true
+    },
+    {
+      "group": "team",
+      "id": "nav_team",
+      "label": "Ekip",
+      "route": "users",
+      "enabled": true
+    },
+    {
+      "group": "finance",
+      "id": "nav_finance",
+      "label": "Satış & Finans",
+      "route": "finance",
+      "enabled": true
+    },
+    {
+      "group": "marketing",
+      "id": "nav_marketing",
+      "label": "Pazarlama",
+      "route": "marketing",
+      "enabled": true
+    },
+    {
+      "group": "vertical",
+      "id": "nav_vertical",
+      "label": "Sektörel Modüller",
+      "route": "verticals",
+      "enabled": true
+    },
+    {
+      "group": "reports",
+      "id": "nav_reports",
+      "label": "Raporlar",
+      "route": "reports",
+      "enabled": true
+    },
+    {
+      "group": "ai",
+      "id": "nav_ai",
+      "label": "AI Copilot",
+      "route": "ai_agent",
+      "enabled": true
+    },
+    {
+      "group": "settings",
+      "id": "nav_settings",
+      "label": "Ayarlar",
+      "route": "settings",
+      "enabled": true
+    }
+  ]
 }

@@ -500,6 +500,18 @@ App.Components.AppointmentsModal = (function () {
                 price_override: $priceOverride.val() !== '' ? $priceOverride.val() : null,
             };
 
+            // Package consumption check
+            const isPackageMode = $('#billing-mode-package').is(':checked') && !$('#service-package-selector').hasClass('d-none');
+            const activePackageId = $('#active-customer-package-id').val();
+            if (isPackageMode && activePackageId) {
+                appointment.id_customer_packages = parseInt(activePackageId, 10);
+                appointment.package_consumed = 1;
+                appointment.price_override = 0.00;
+                appointment.payment_method = 'package';
+                appointment.payment_status = 'completed';
+                appointment.payment_amount = 0.00;
+            }
+
             if ($appointmentId.val() !== '') {
                 // Set the id value, only if we are editing an appointment.
                 appointment.id = $appointmentId.val();
@@ -717,6 +729,8 @@ App.Components.AppointmentsModal = (function () {
             }
 
             $selectCustomer.trigger('click'); // Hide the list.
+            checkCustomerPackage();
+            stepController.lockFrom(3); // Customer picked (Step 1) -> Unlock Step 2 (Zaman)
             updateLiveSummary();
         });
 
@@ -820,8 +834,18 @@ App.Components.AppointmentsModal = (function () {
             const endDateTimeObject = new Date(startDateTimeObject.getTime() + duration * 60000);
             App.Utils.UI.setDateTimePickerValue($endDatetime, endDateTimeObject);
 
-            // Update the providers select box.
+            // Provider custom duration mapping
+            let providerDurations = {};
+            if (service && (service.providerDurations || service.provider_durations)) {
+                try {
+                    const raw = service.providerDurations || service.provider_durations;
+                    providerDurations = typeof raw === 'string' ? JSON.parse(raw) : (raw || {});
+                } catch (e) {
+                    providerDurations = {};
+                }
+            }
 
+            // Update the providers select box.
             vars('available_providers').forEach((provider) => {
                 provider.services.forEach((providerServiceId) => {
                     if (
@@ -840,7 +864,12 @@ App.Components.AppointmentsModal = (function () {
 
                     // If the current provider is able to provide the selected service, add him to the list box.
                     if (Number(providerServiceId) === Number(serviceId)) {
-                        $selectProvider.append(new Option(provider.first_name + ' ' + provider.last_name, provider.id));
+                        let providerName = provider.first_name + ' ' + provider.last_name;
+                        const pCustom = providerDurations ? providerDurations[provider.id] : null;
+                        if (pCustom && Number(pCustom) > 0) {
+                            providerName += ' (' + pCustom + ' dk)';
+                        }
+                        $selectProvider.append(new Option(providerName, provider.id));
                     }
                 });
 
@@ -849,10 +878,14 @@ App.Components.AppointmentsModal = (function () {
                 }
             });
 
-            // Salon Flora customization - sequential booking form: a service is now picked, so unlock step 3
-            // (hizmet sağlayıcı). Steps 4 (istasyon) and 5 (müşteri) reset back to locked - the provider list
-            // just changed, so any previously-selected provider/station may no longer be valid.
-            stepController.lockFrom(4);
+            // Check if active package exists for this customer and service
+            checkCustomerPackage();
+
+            // Load addons for this service
+            loadServiceAddons(serviceId);
+
+            // Step 3 (Hizmet) completed -> unlock Step 4 (Hizmet Sağlayıcı). Step 5 (İstasyon) locked.
+            stepController.lockFrom(5);
         });
 
         /**
@@ -861,17 +894,52 @@ App.Components.AppointmentsModal = (function () {
         $selectProvider.on('change', () => {
             updateTimezone();
 
-            // Salon Flora customization - refresh the station options for the newly selected provider. Only
-            // meaningful once an appointment is being booked/edited (the panel is shown either way, filtered to
-            // an empty state if the provider has no stations).
+            // Handle provider-custom duration if defined for the selected service
+            const pId = $selectProvider.val();
+            const sId = $selectService.val();
+            const selectedService = (vars('available_services') || []).find((s) => Number(s.id) === Number(sId));
+            let pDurations = {};
+            if (selectedService && (selectedService.providerDurations || selectedService.provider_durations)) {
+                try {
+                    const raw = selectedService.providerDurations || selectedService.provider_durations;
+                    pDurations = typeof raw === 'string' ? JSON.parse(raw) : (raw || {});
+                } catch(e) {}
+            }
+
+            if (pDurations && pDurations[pId] && Number(pDurations[pId]) > 0) {
+                const customDur = Number(pDurations[pId]);
+                $customDuration.val(customDur);
+                const startDateTimeObject = App.Utils.UI.getDateTimePickerValue($startDatetime);
+                if (startDateTimeObject) {
+                    let totalAddonsDuration = 0;
+                    $('.addon-checkbox:checked').each(function () {
+                        totalAddonsDuration += Number($(this).data('duration') || 0);
+                    });
+                    const endDateTimeObject = new Date(startDateTimeObject.getTime() + (customDur + totalAddonsDuration) * 60000);
+                    App.Utils.UI.setDateTimePickerValue($endDatetime, endDateTimeObject);
+                }
+            } else if (selectedService && !$appointmentId.val()) {
+                $customDuration.val('');
+                const startDateTimeObject = App.Utils.UI.getDateTimePickerValue($startDatetime);
+                if (startDateTimeObject) {
+                    let totalAddonsDuration = 0;
+                    $('.addon-checkbox:checked').each(function () {
+                        totalAddonsDuration += Number($(this).data('duration') || 0);
+                    });
+                    const endDateTimeObject = new Date(startDateTimeObject.getTime() + (Number(selectedService.duration) + totalAddonsDuration) * 60000);
+                    App.Utils.UI.setDateTimePickerValue($endDatetime, endDateTimeObject);
+                }
+            }
+
+            // Refresh station options
             updateStationOptions();
 
-            // Salon Flora customization - sequential booking form: a provider is now picked, so unlock step 4
-            // (istasyon). Step 5 (müşteri) only unlocks once a station is actually chosen (see the station
-            // select's own 'change' handler).
+            // Step 4 (Hizmet Sağlayıcı) completed -> unlock Step 5 (İstasyon)
             if ($selectProvider.val()) {
-                stepController.lockFrom(5);
+                stepController.lockFrom(6);
             }
+
+            updateLiveSummary();
         });
 
         /**
@@ -894,6 +962,25 @@ App.Components.AppointmentsModal = (function () {
             $customField3.val('');
             $customField4.val('');
             $customField5.val('');
+
+            $('#customer-context-banner').addClass('d-none');
+            $('#active-customer-package-id').val('');
+            $('#service-package-selector').addClass('d-none');
+            stepController.lockFrom(2);
+            updateLiveSummary();
+        });
+
+        // Customer manual typing unlocks Step 2 (Zaman)
+        $firstName.add($lastName).add($phoneNumber).on('input', () => {
+            if ($firstName.val().trim() || $phoneNumber.val().trim()) {
+                stepController.lockFrom(3);
+            }
+            updateLiveSummary();
+        });
+
+        // Radio change listener for package vs regular billing mode
+        $('input[name="appointment_billing_mode"]').on('change', () => {
+            updateLiveSummary();
         });
 
         /**
@@ -1081,7 +1168,7 @@ App.Components.AppointmentsModal = (function () {
                     const newEnd = new Date(selectedDates[0].getTime() + totalMins * 60000);
                     App.Utils.UI.setDateTimePickerValue($endDatetime, newEnd);
 
-                    stepController.lockFrom(3);
+                    stepController.lockFrom(4);
                     updateStationOptions($stationSelect.val());
                     updateLiveSummary();
                 }
@@ -1102,7 +1189,7 @@ App.Components.AppointmentsModal = (function () {
                     }
                 }
 
-                stepController.lockFrom(3);
+                stepController.lockFrom(4);
                 updateStationOptions($stationSelect.val());
                 updateLiveSummary();
             },
@@ -1307,6 +1394,12 @@ App.Components.AppointmentsModal = (function () {
             displayCustomerContext(appointment.customer);
         }
 
+        if (appointment.id_customer_packages || Number(appointment.package_consumed)) {
+            $('#summary-package-row').removeClass('d-none');
+            $('#summary-package-badge').text('Paketten Düşüldü (0.00 ₺)');
+            $('#summary-package-remaining-row').addClass('d-none');
+        }
+
         // Load and display session consumables & costs
         loadAppointmentConsumables(appointment.id);
 
@@ -1453,6 +1546,16 @@ App.Components.AppointmentsModal = (function () {
         $('#summary-provider-station').text(providerName + ' · ' + stationText);
 
         // 5. Pricing
+        const isPackageMode = $('#billing-mode-package').is(':checked') && !$('#service-package-selector').hasClass('d-none');
+        if (isPackageMode) {
+            basePrice = 0.00;
+            $('#summary-package-row').removeClass('d-none');
+            $('#summary-package-remaining-row').removeClass('d-none');
+        } else {
+            $('#summary-package-row').addClass('d-none');
+            $('#summary-package-remaining-row').addClass('d-none');
+        }
+
         const totalPrice = basePrice + totalAddonsPrice;
         $('#summary-base-price').text(basePrice.toFixed(2) + ' ₺');
         $('#summary-addons-price').text('+' + totalAddonsPrice.toFixed(2) + ' ₺');
@@ -1466,6 +1569,53 @@ App.Components.AppointmentsModal = (function () {
             $('#summary-status-badge').text('Yeni Randevu').removeClass('bg-dark').addClass('bg-primary');
             $('#summary-fast-actions').addClass('d-none');
         }
+    }
+
+    /**
+     * Check if the selected customer has an active package for the selected service.
+     */
+    function checkCustomerPackage() {
+        const customerId = $customerId.val();
+        const serviceId = $selectService.val();
+        const $packageSelector = $('#service-package-selector');
+
+        if (!customerId || !serviceId) {
+            $packageSelector.addClass('d-none');
+            $('#active-customer-package-id').val('');
+            $('#summary-package-row').addClass('d-none');
+            $('#summary-package-remaining-row').addClass('d-none');
+            updateLiveSummary();
+            return;
+        }
+
+        const service = (vars('available_services') || []).find((s) => Number(s.id) === Number(serviceId));
+        const listPrice = service ? Number(service.price).toFixed(2) : '0.00';
+        $('#pkg-regular-price-text').text(listPrice + ' ₺');
+
+        $.get(App.Utils.Url.siteUrl('appointments/get_customer_package'), {
+            customer_id: customerId,
+            service_id: serviceId
+        }).done((response) => {
+            if (response && response.has_package && response.package) {
+                const pkg = response.package;
+                $('#active-customer-package-id').val(pkg.id);
+                $('#pkg-sessions-count').text('Kalan: ' + pkg.remaining_sessions + ' Seans');
+                $('#pkg-expiry-text').text(pkg.expires_at ? ('Geçerlilik: ' + pkg.expires_at) : 'Geçerlilik: Süresiz');
+                $('#summary-package-remaining').text(pkg.remaining_sessions + ' seans');
+                $('#billing-mode-package').prop('checked', true);
+                $packageSelector.removeClass('d-none');
+            } else {
+                $packageSelector.addClass('d-none');
+                $('#active-customer-package-id').val('');
+                $('#billing-mode-regular').prop('checked', true);
+            }
+            updateLiveSummary();
+        }).fail(() => {
+            $packageSelector.addClass('d-none');
+            $('#active-customer-package-id').val('');
+            $('#billing-mode-regular').prop('checked', true);
+            updateLiveSummary();
+        });
     }
 
     /**

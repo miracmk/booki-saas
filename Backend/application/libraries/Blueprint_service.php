@@ -171,6 +171,7 @@ class Blueprint_service
                 $cat_id = isset($srv['category']) && isset($category_map[$srv['category']]) ? $category_map[$srv['category']] : null;
                 $existing_srv = $this->CI->db->get_where('services', ['name' => $srv['name']])->row_array();
 
+                $srv_nature = $srv['service_nature'] ?? $srv['access_type'] ?? 'duration';
                 $srv_data = [
                     'name' => $srv['name'],
                     'duration' => $srv['duration'] ?? 30,
@@ -181,6 +182,21 @@ class Blueprint_service
                     'slot_interval' => $srv['slot_interval'] ?? 15,
                     'attendants_number' => $srv['attendants_number'] ?? 1,
                     'id_service_categories' => $cat_id,
+                    'service_nature' => $srv_nature,
+                    'access_type' => $srv['access_type'] ?? $srv_nature,
+                    'tax_rate' => $srv['tax_rate'] ?? 20.00,
+                    'total_passes' => $srv['total_passes'] ?? 1,
+                    'pass_validity_days' => $srv['pass_validity_days'] ?? 1,
+                    'valid_hours_start' => $srv['valid_hours_start'] ?? '09:00',
+                    'valid_hours_end' => $srv['valid_hours_end'] ?? '18:00',
+                    'daily_capacity' => $srv['daily_capacity'] ?? null,
+                    'provider_durations' => !empty($srv['provider_durations']) ? (is_array($srv['provider_durations']) ? json_encode($srv['provider_durations']) : $srv['provider_durations']) : null,
+                    'follow_up_required' => !empty($srv['follow_up_required']) ? 1 : 0,
+                    'follow_up_category' => $srv['follow_up_category'] ?? null,
+                    'follow_up_priority' => $srv['follow_up_priority'] ?? 'optional',
+                    'follow_up_delay_override' => $srv['follow_up_delay_override'] ?? null,
+                    'follow_up_message_override' => $srv['follow_up_message_override'] ?? null,
+                    'crm_follow_up_rules' => !empty($srv['crm_follow_up_rules']) ? (is_array($srv['crm_follow_up_rules']) ? json_encode($srv['crm_follow_up_rules'], JSON_UNESCAPED_UNICODE) : $srv['crm_follow_up_rules']) : null,
                 ];
 
                 if ($existing_srv) {

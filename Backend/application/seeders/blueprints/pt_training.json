@@ -7,7 +7,7 @@
         "description": "Birebir personal trainer, fonksiyonel antrenman, vücut geliştirme, postür analizi ve sporcu beslenmesi takip sistemi."
     },
     "terminology": {
-        "customer": "Sporcu / Danışan",
+        "customer": "Sporcu \/ Danışan",
         "provider": "Personal Trainer",
         "appointment": "Birebir Antrenman",
         "service": "Özel PT Seansı",
@@ -18,12 +18,12 @@
         "membership": "Aylık PT Üyeliği",
         "package": "Birebir Seans Paketi",
         "catalog": "Antrenman & Program Kataloğu",
-        "branch": "Stüdyo / Tesis",
-        "customer_label": "Sporcu / Danışan",
+        "branch": "Stüdyo \/ Tesis",
+        "customer_label": "Sporcu \/ Danışan",
         "provider_label": "Personal Trainer (PT)",
-        "appointment_label": "Antrenman / Seans",
-        "station_label": "Antrenman Alanı / Stüdyo",
-        "service_label": "Ders / Program"
+        "appointment_label": "Antrenman \/ Seans",
+        "station_label": "Antrenman Alanı \/ Stüdyo",
+        "service_label": "Ders \/ Program"
     },
     "enabled_modules": [
         "appointments",
@@ -79,7 +79,21 @@
             "description": "Hedefe yönelik (kilo verme, kas kazanımı, güç) birebir 60 dakikalık koçluk.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Fonksiyonel & HIIT Antrenmanı",
@@ -92,7 +106,21 @@
             "description": "Metabolik hızlandırıcı, çeviklik ve dayanıklılık odaklı yüksek yoğunluklu seans.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Kuvvet & Hipertrofi Koçluğu",
@@ -105,7 +133,21 @@
             "description": "Serbest ağırlıklar ve makinelerle doğru formda kuvvet artışı çalışması.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Postür & Hareket Analizi (İlk Seans)",
@@ -118,7 +160,21 @@
             "description": "FMS hareket taraması, eklem hareket açıklığı ve omurga postür tespiti.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "InBody Vücut Analizi & Ölçüm",
@@ -131,7 +187,21 @@
             "description": "Yağ, kas, su oranı, bazal metabolizma hızı ve çevre ölçümleri.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Düet PT (2 Kişilik Özel Seans)",
@@ -144,7 +214,21 @@
             "description": "Partneriniz veya arkadaşınızla birlikte 1 antrenör eşliğinde antrenman.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Sporcu Beslenmesi & Makro Planlama",
@@ -157,7 +241,21 @@
             "description": "Antrenman programına entegre kalori ve makro besin planı.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         }
     ],
     "stations": [
@@ -510,7 +608,7 @@
         "language": "tr",
         "greeting_style": "Merhaba, PT Antrenman & Kişisel Koçluk asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
-            "Sporcu / Danışan",
+            "Sporcu \/ Danışan",
             "Personal Trainer",
             "Birebir Antrenman",
             "Özel PT Seansı",
@@ -526,7 +624,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Sporcu / Danışan' ve 'Özel PT Seansı' terminolojisini kullan.",
+            "Her zaman 'Sporcu \/ Danışan' ve 'Özel PT Seansı' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -631,7 +729,7 @@
                 },
                 {
                     "key": "customer_growth",
-                    "label": "Yeni Sporcu / Danışanlar",
+                    "label": "Yeni Sporcu \/ Danışanlar",
                     "icon": "user-plus",
                     "color": "warning"
                 }
@@ -644,7 +742,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Yeni Sporcu / Danışan",
+                    "label": "+ Yeni Sporcu \/ Danışan",
                     "route": "customers",
                     "icon": "user-plus",
                     "class": "btn-success"
@@ -692,7 +790,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Sporcu / Danışan Notu Ekle",
+                    "label": "+ Sporcu \/ Danışan Notu Ekle",
                     "route": "customers",
                     "icon": "file-alt",
                     "class": "btn-outline-primary"
@@ -727,7 +825,7 @@
         },
         {
             "slug": "reception",
-            "name": "Danışma / Turnike",
+            "name": "Danışma \/ Turnike",
             "icon": "id-card",
             "description": "Üye girişi ve check-in"
         },
@@ -772,7 +870,7 @@
             "last_name": "Demo",
             "email": "demo-pt_training-reception@kibusiness.co",
             "role_slug": "reception",
-            "job_title": "Danışma / Turnike"
+            "job_title": "Danışma \/ Turnike"
         },
         "cashier": {
             "first_name": "Kasiyer",

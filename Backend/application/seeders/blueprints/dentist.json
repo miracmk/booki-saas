@@ -16,14 +16,14 @@
         "order": "Tedavi Sözleşmesi",
         "reservation": "Hasta Randevusu",
         "membership": "Yıllık Diş Bakım Planı",
-        "package": "Ortodonti / İmplant Paketi",
+        "package": "Ortodonti \/ İmplant Paketi",
         "catalog": "Tedavi & İşlem Kataloğu",
-        "branch": "Klinik / Şube",
+        "branch": "Klinik \/ Şube",
         "customer_label": "Hasta",
         "provider_label": "Diş Hekimi (Dt.)",
-        "appointment_label": "Randevu / Tedavi",
-        "station_label": "Diş Üniti / Röntgen",
-        "service_label": "Tedavi / İşlem"
+        "appointment_label": "Randevu \/ Tedavi",
+        "station_label": "Diş Üniti \/ Röntgen",
+        "service_label": "Tedavi \/ İşlem"
     },
     "enabled_modules": [
         "appointments",
@@ -80,7 +80,21 @@
             "follow_up_required": true,
             "follow_up_category": "aftercare_safety",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "24 hours",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Ultrasonik Diş Taşı Temizliği & Polisaj",
@@ -94,7 +108,21 @@
             "follow_up_required": true,
             "follow_up_category": "aftercare_safety",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "24 hours",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Estetik Kompozit Dolgu (Tek Diş)",
@@ -108,10 +136,24 @@
             "follow_up_required": true,
             "follow_up_category": "aftercare_safety",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "24 hours",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
-            "name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+            "name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
             "category": "Restoratif & Endodonti",
             "duration": 60,
             "price": 2800,
@@ -122,21 +164,54 @@
             "follow_up_required": true,
             "follow_up_category": "aftercare_safety",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "24 hours",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Dental İmplant Cerrahisi (Tek Üye)",
             "category": "Cerrahi & İmplantoloji",
             "duration": 60,
+            "provider_durations": {
+                "1": 45,
+                "2": 60
+            },
             "price": 14000,
             "slot_interval": 60,
             "attendants_number": 1,
             "color": "#8b5cf6",
-            "description": "Titanyum implant yerleşimi ve primer stabilizasyon dikişi.",
-            "follow_up_required": true,
-            "follow_up_category": "medical_reaction",
+            "description": "Titanyum implant yerleşimi ve primer stabilizasyon dikişi. Hekime göre esnek cerrahi süresi.",
+            "follow_up_required": 1,
+            "follow_up_category": "medical_protocol",
             "follow_up_priority": "critical",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "6",
+            "follow_up_message_override": "İmplant operasyonu sonrası hekiminizin reçete ettiği antibiyotik ve ağrı kesici ilaçlarınızı saatinde almayı unutmayınız.",
+            "service_nature": "provider_custom_duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "6_hours",
+                    "channel": "sms",
+                    "action": "medical_protocol",
+                    "message": "İmplant operasyonu sonrası hekiminizin reçete ettiği antibiyotik ve ağrı kesici ilaçlarınızı saatinde almayı unutmayınız."
+                }
+            ]
         },
         {
             "name": "Cerrahi 20'lik Yaş Diş Çekimi",
@@ -147,10 +222,25 @@
             "attendants_number": 1,
             "color": "#7c3aed",
             "description": "Gömülü veya yarı gömülü 20 yaş dişinin kemik cerrahisiyle çekimi.",
-            "follow_up_required": true,
+            "follow_up_required": 1,
             "follow_up_category": "medical_reaction",
             "follow_up_priority": "critical",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "24",
+            "follow_up_message_override": "Diş çekimi sonrası tamponu 30 dakika sıkıca ısırınız. Kanama, şiddetli ağrı veya ateş durumunda hemen bizi arayınız.",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "24_hours",
+                    "channel": "sms",
+                    "action": "medical_reaction",
+                    "message": "Diş çekimi sonrası tamponu 30 dakika sıkıca ısırınız. Kanama, şiddetli ağrı veya ateş durumunda hemen bizi arayınız."
+                }
+            ]
         },
         {
             "name": "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)",
@@ -160,11 +250,25 @@
             "slot_interval": 30,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Lazer/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma.",
+            "description": "Lazer\/LED ışık aktivasyonlu jel ile 3-4 tona kadar kalıcı beyazlatma.",
             "follow_up_required": true,
             "follow_up_category": "aftercare_safety",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "24 hours",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Şeffaf Plak (Invisalign) Kontrol Seansı",
@@ -178,7 +282,21 @@
             "follow_up_required": true,
             "follow_up_category": "aftercare_safety",
             "follow_up_priority": "standard",
-            "follow_up_delay_override": "24 hours"
+            "follow_up_delay_override": "24 hours",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         }
     ],
     "stations": [
@@ -246,7 +364,7 @@
             "unit": "ampul"
         },
         {
-            "name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)",
+            "name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2\/A3)",
             "sku": "SARF-DNT-06",
             "cost_price": 120,
             "sale_price": 0,
@@ -374,7 +492,7 @@
         },
         {
             "service_name": "Estetik Kompozit Dolgu (Tek Diş)",
-            "product_name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2/A3)",
+            "product_name": "Nano-Hibrit Kompozit Dolgu Tüpü (A2\/A3)",
             "quantity_used": 0.2,
             "unit": "tüp",
             "notes": "0.2 tüp dolgu materyali"
@@ -387,35 +505,35 @@
             "notes": "El aletleri poşeti"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
             "product_name": "Nitril Muayene Eldiveni (Mavisi)",
             "quantity_used": 2,
             "unit": "çift",
             "notes": "Hekim ve asistan eldiveni"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
             "product_name": "Tek Kullanımlık Hasta Önlüğü & Ataş",
             "quantity_used": 1,
             "unit": "adet",
             "notes": "Hasta önlüğü"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
             "product_name": "Dental Lokal Anestezi Ampulü (Artikain)",
             "quantity_used": 2,
             "unit": "ampul",
             "notes": "Çift doz anestezi"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
             "product_name": "Tükürük Emici Cerrahi Uç (Aspiratör)",
             "quantity_used": 2,
             "unit": "adet",
             "notes": "Kök kanalı ve cerrahi aspiratör"
         },
         {
-            "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+            "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
             "product_name": "Otoklav Sterilizasyon Poşeti & İndikatör",
             "quantity_used": 2,
             "unit": "adet",
@@ -436,7 +554,7 @@
                 "last_name": "Yılmaz",
                 "email": "demo-dentist-uzman1@kibusiness.co",
                 "phone_number": "05432137000",
-                "notes": "Ağız, Diş ve Çene Cerrahisi / İmplantoloji",
+                "notes": "Ağız, Diş ve Çene Cerrahisi \/ İmplantoloji",
                 "commission_type": "percentage",
                 "commission_value": 45,
                 "services": [
@@ -460,7 +578,7 @@
                     "Detaylı Diş Muayenesi & Teşhis",
                     "Ultrasonik Diş Taşı Temizliği & Polisaj",
                     "Estetik Kompozit Dolgu (Tek Diş)",
-                    "Kanal Tedavisi (Tek Kök / Çok Kök)",
+                    "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
                     "Klinik Tipi Ofis Diş Beyazlatma (Bleaching)"
                 ],
                 "stations": [
@@ -583,7 +701,7 @@
                 "time": "14:00",
                 "provider_idx": 1,
                 "customer_idx": 1,
-                "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+                "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
                 "station_idx": 1,
                 "status": "completed",
                 "payment_status": "collected",
@@ -660,7 +778,7 @@
                 "time": "14:00",
                 "provider_idx": 1,
                 "customer_idx": 8,
-                "service_name": "Kanal Tedavisi (Tek Kök / Çok Kök)",
+                "service_name": "Kanal Tedavisi (Tek Kök \/ Çok Kök)",
                 "station_idx": 1,
                 "status": "confirmed",
                 "payment_status": "pending",
@@ -958,7 +1076,7 @@
         },
         {
             "slug": "doctor",
-            "name": "Hekim / Doktor",
+            "name": "Hekim \/ Doktor",
             "icon": "user-md",
             "description": "Hasta muayenesi, SOAP ve reçete"
         },
@@ -976,7 +1094,7 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa / Tahsilat",
+            "name": "Kasa \/ Tahsilat",
             "icon": "cash-register",
             "description": "Fatura ve ödeme işlemleri"
         }
@@ -1001,7 +1119,7 @@
             "last_name": "Demo",
             "email": "demo-dentist-doctor@kibusiness.co",
             "role_slug": "doctor",
-            "job_title": "Hekim / Doktor"
+            "job_title": "Hekim \/ Doktor"
         },
         "nurse": {
             "first_name": "Hemşire",
@@ -1022,7 +1140,7 @@
             "last_name": "Demo",
             "email": "demo-dentist-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa / Tahsilat"
+            "job_title": "Kasa \/ Tahsilat"
         }
     },
     "roles": [

@@ -7,22 +7,22 @@
         "description": "Reformer aletli pilates, Cadillac, Tower, hamile pilatesi ve mat grup dersleri için istasyon, kontenjan ve paket yönetim sistemi."
     },
     "terminology": {
-        "customer": "Danışan / Üye",
+        "customer": "Danışan \/ Üye",
         "provider": "Pilates Eğitmeni",
         "appointment": "Pilates Seansı",
-        "service": "Reformer / Mat Seansı",
-        "station": "Reformer Cihazı / Stüdyo",
-        "product": "Pilates Çorabı / Ekipman",
+        "service": "Reformer \/ Mat Seansı",
+        "station": "Reformer Cihazı \/ Stüdyo",
+        "product": "Pilates Çorabı \/ Ekipman",
         "order": "Seans Satışı",
         "reservation": "Ders Rezervasyonu",
         "membership": "Stüdyo Üyeliği",
-        "package": "10lu / 20li Seans Paketi",
+        "package": "10lu \/ 20li Seans Paketi",
         "catalog": "Dersler & Seans Kataloğu",
-        "branch": "Stüdyo / Şube",
-        "customer_label": "Üye / Danışan",
+        "branch": "Stüdyo \/ Şube",
+        "customer_label": "Üye \/ Danışan",
         "provider_label": "Pilates Eğitmeni",
-        "appointment_label": "Ders / Seans",
-        "station_label": "Reformer Cihazı / Salon",
+        "appointment_label": "Ders \/ Seans",
+        "station_label": "Reformer Cihazı \/ Salon",
         "service_label": "Ders Tipi"
     },
     "enabled_modules": [
@@ -75,7 +75,21 @@
             "description": "Kişiye özel postür ve hedefe göre eğitmenle 1-e-1 reformer seansı.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Düet Reformer (2 Kişilik Ders)",
@@ -88,7 +102,21 @@
             "description": "Arkadaşınız veya eşinizle 2 reformer cihazında eşzamanlı ders.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Grup Reformer Dersi (4 Kişilik)",
@@ -101,7 +129,21 @@
             "description": "Maksimum 4 kişilik sınıfta dinamik reformer akışı (kişi başı fiyat).",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Klinik Reformer & Omurga Terapisi",
@@ -111,10 +153,24 @@
             "slot_interval": 50,
             "attendants_number": 1,
             "color": "#ec4899",
-            "description": "Fizik tedavi onaylı, skolyoz ve bel/boyun fıtığı için medikal protokol.",
+            "description": "Fizik tedavi onaylı, skolyoz ve bel\/boyun fıtığı için medikal protokol.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Hamile (Prenatal) Pilatesi",
@@ -127,7 +183,21 @@
             "description": "Gebelikte pelvik taban kuvvetlendirme, nefes ve sırt rahatlatma.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Mat Pilates & Core (Grup 8 Kişi)",
@@ -140,7 +210,21 @@
             "description": "Minder üzerinde çember, top ve elastik bantlarla tüm vücut güçlendirme.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Stretching & Esneklik Seansı",
@@ -153,7 +237,21 @@
             "description": "Kas boyunu uzatan, hareket kabiliyetini artıran derin esnetme.",
             "follow_up_required": false,
             "follow_up_category": "retention_marketing",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         }
     ],
     "stations": [
@@ -514,12 +612,12 @@
         "language": "tr",
         "greeting_style": "Merhaba, Pilates & Reformer Stüdyosu asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
-            "Danışan / Üye",
+            "Danışan \/ Üye",
             "Pilates Eğitmeni",
             "Pilates Seansı",
-            "Reformer / Mat Seansı",
-            "Reformer Cihazı / Stüdyo",
-            "Pilates Çorabı / Ekipman",
+            "Reformer \/ Mat Seansı",
+            "Reformer Cihazı \/ Stüdyo",
+            "Pilates Çorabı \/ Ekipman",
             "Seans Satışı",
             "Ders Rezervasyonu"
         ],
@@ -530,7 +628,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Danışan / Üye' ve 'Reformer / Mat Seansı' terminolojisini kullan.",
+            "Her zaman 'Danışan \/ Üye' ve 'Reformer \/ Mat Seansı' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -629,13 +727,13 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Reformer Cihazı / Stüdyo Doluluğu",
+                    "label": "Canlı Reformer Cihazı \/ Stüdyo Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
                 {
                     "key": "customer_growth",
-                    "label": "Yeni Danışan / Üyelar",
+                    "label": "Yeni Danışan \/ Üyelar",
                     "icon": "user-plus",
                     "color": "warning"
                 }
@@ -648,7 +746,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Yeni Danışan / Üye",
+                    "label": "+ Yeni Danışan \/ Üye",
                     "route": "customers",
                     "icon": "user-plus",
                     "class": "btn-success"
@@ -683,7 +781,7 @@
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Reformer Cihazı / Stüdyo Durumu",
+                    "label": "Reformer Cihazı \/ Stüdyo Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -696,7 +794,7 @@
                     "class": "btn-primary"
                 },
                 {
-                    "label": "+ Danışan / Üye Notu Ekle",
+                    "label": "+ Danışan \/ Üye Notu Ekle",
                     "route": "customers",
                     "icon": "file-alt",
                     "class": "btn-outline-primary"
@@ -731,7 +829,7 @@
         },
         {
             "slug": "reception",
-            "name": "Danışma / Turnike",
+            "name": "Danışma \/ Turnike",
             "icon": "id-card",
             "description": "Üye girişi ve check-in"
         },
@@ -776,7 +874,7 @@
             "last_name": "Demo",
             "email": "demo-pilates_studio-reception@kibusiness.co",
             "role_slug": "reception",
-            "job_title": "Danışma / Turnike"
+            "job_title": "Danışma \/ Turnike"
         },
         "cashier": {
             "first_name": "Kasiyer",

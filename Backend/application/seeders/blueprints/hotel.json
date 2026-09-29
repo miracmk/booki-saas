@@ -1,29 +1,29 @@
 {
     "industry": {
         "code": "hotel",
-        "name": "Otel & Butik Konaklama / Resort",
+        "name": "Otel & Butik Konaklama \/ Resort",
         "icon": "🏨",
         "service_type": "station",
         "description": "Butik oteller, tatil köyleri, oda konaklama, otel içi SPA & masaj, havalimanı VIP transfer ve toplantı salonu yönetim sistemi."
     },
     "terminology": {
         "customer": "Misafir",
-        "provider": "Resepsiyonist / Kat Görevlisi",
-        "appointment": "Oda Giriş / Çıkış (Check-in)",
-        "service": "Konaklama / Ekstra Hizmet",
-        "station": "Oda / Suit",
-        "product": "Minibar / Oda Servisi",
-        "order": "Folyo / Oda Hesabı",
+        "provider": "Resepsiyonist \/ Kat Görevlisi",
+        "appointment": "Oda Giriş \/ Çıkış (Check-in)",
+        "service": "Konaklama \/ Ekstra Hizmet",
+        "station": "Oda \/ Suit",
+        "product": "Minibar \/ Oda Servisi",
+        "order": "Folyo \/ Oda Hesabı",
         "reservation": "Oda Rezervasyonu",
         "membership": "Sadakat Programı",
-        "package": "Tatil / Konaklama Paketi",
+        "package": "Tatil \/ Konaklama Paketi",
         "catalog": "Oda Tipleri & Ekstra Hizmetler",
-        "branch": "Otel / Tesis",
-        "customer_label": "Misafir / Konuk",
-        "provider_label": "Resepsiyonist / Concierge",
+        "branch": "Otel \/ Tesis",
+        "customer_label": "Misafir \/ Konuk",
+        "provider_label": "Resepsiyonist \/ Concierge",
         "appointment_label": "Rezervasyon",
-        "station_label": "Oda / Salon / Alan",
-        "service_label": "Konaklama / Hizmet"
+        "station_label": "Oda \/ Salon \/ Alan",
+        "service_label": "Konaklama \/ Hizmet"
     },
     "enabled_modules": [
         "appointments",
@@ -76,7 +76,21 @@
             "description": "Queen size yatak, şehir manzarası, açık büfe kahvaltı ve ücretsiz Wi-Fi.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Deluxe Teraslı Suite Oda (Gecelik)",
@@ -89,7 +103,21 @@
             "description": "King size yatak, jakuzili özel teras, mini bar ve premium karşılama ikramları.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Kral Dairesi (Presidential Suite)",
@@ -102,7 +130,21 @@
             "description": "Panoramik manzara, 2 yatak odası, özel salon, sauna ve 24 saat butler hizmeti.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Otel SPA Rahatlatıcı Masaj (50 Dk)",
@@ -115,7 +157,21 @@
             "description": "Yorgunluk giderici aromatik bitki yağlarıyla tüm vücut masajı.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "VIP Havalimanı Karşılama & Transfer",
@@ -125,10 +181,24 @@
             "slot_interval": 60,
             "attendants_number": 4,
             "color": "#8b5cf6",
-            "description": "Mercedes Vito VIP araç ile Sabiha Gökçen / Yeni Havalimanı özel transferi.",
+            "description": "Mercedes Vito VIP araç ile Sabiha Gökçen \/ Yeni Havalimanı özel transferi.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         },
         {
             "name": "Toplantı Salonu Kiralama (Yarım Gün)",
@@ -141,7 +211,21 @@
             "description": "20 kişilik toplantı salonu, projeksiyon, ses sistemi ve coffee break ikramları.",
             "follow_up_required": false,
             "follow_up_category": "review_nps",
-            "follow_up_priority": "optional"
+            "follow_up_priority": "optional",
+            "service_nature": "duration",
+            "access_type": "duration",
+            "tax_rate": 20,
+            "total_passes": 1,
+            "pass_validity_days": 1,
+            "crm_follow_up_rules": [
+                {
+                    "trigger": "appointment_completed",
+                    "delay": "3_days",
+                    "channel": "sms",
+                    "action": "review_nps",
+                    "message": "Merhaba {customer_name}, hizmetimizden memnun kaldınız mı? Puanlamak için tıklayın: {review_link}"
+                }
+            ]
         }
     ],
     "stations": [
@@ -483,18 +567,18 @@
     "family": "hospitality",
     "business_type": "hotel",
     "ai_policy": {
-        "brand_name": "Otel & Butik Konaklama / Resort",
+        "brand_name": "Otel & Butik Konaklama \/ Resort",
         "tone": "friendly_professional",
         "language": "tr",
-        "greeting_style": "Merhaba, Otel & Butik Konaklama / Resort asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
+        "greeting_style": "Merhaba, Otel & Butik Konaklama \/ Resort asistanıyım. Size randevu, hizmet ve operasyonel konularda nasıl yardımcı olabilirim?",
         "allowed_terms": [
             "Misafir",
-            "Resepsiyonist / Kat Görevlisi",
-            "Oda Giriş / Çıkış (Check-in)",
-            "Konaklama / Ekstra Hizmet",
-            "Oda / Suit",
-            "Minibar / Oda Servisi",
-            "Folyo / Oda Hesabı",
+            "Resepsiyonist \/ Kat Görevlisi",
+            "Oda Giriş \/ Çıkış (Check-in)",
+            "Konaklama \/ Ekstra Hizmet",
+            "Oda \/ Suit",
+            "Minibar \/ Oda Servisi",
+            "Folyo \/ Oda Hesabı",
             "Oda Rezervasyonu"
         ],
         "forbidden_terms": [
@@ -504,7 +588,7 @@
             "tıbbi teşhis"
         ],
         "do_rules": [
-            "Her zaman 'Misafir' ve 'Konaklama / Ekstra Hizmet' terminolojisini kullan.",
+            "Her zaman 'Misafir' ve 'Konaklama \/ Ekstra Hizmet' terminolojisini kullan.",
             "Randevuları doğrulamadan doğrudan onaylama; propose_* araçlarıyla yönetici onayına sun.",
             "Yetki kapsamın dışındaki finansal ve hassas talepleri insan personele eskalasyon yap."
         ],
@@ -591,7 +675,7 @@
             "kpis": [
                 {
                     "key": "today_appointments",
-                    "label": "Bugünkü Oda Giriş / Çıkış (Check-in)lar",
+                    "label": "Bugünkü Oda Giriş \/ Çıkış (Check-in)lar",
                     "icon": "calendar-check",
                     "color": "primary"
                 },
@@ -603,7 +687,7 @@
                 },
                 {
                     "key": "active_sessions",
-                    "label": "Canlı Oda / Suit Doluluğu",
+                    "label": "Canlı Oda \/ Suit Doluluğu",
                     "icon": "door-open",
                     "color": "info"
                 },
@@ -616,7 +700,7 @@
             ],
             "quick_actions": [
                 {
-                    "label": "+ Yeni Oda Giriş / Çıkış (Check-in)",
+                    "label": "+ Yeni Oda Giriş \/ Çıkış (Check-in)",
                     "route": "calendar",
                     "icon": "calendar-plus",
                     "class": "btn-primary"
@@ -651,13 +735,13 @@
                 },
                 {
                     "key": "my_completed_tasks",
-                    "label": "Tamamlanan Oda Giriş / Çıkış (Check-in)lar",
+                    "label": "Tamamlanan Oda Giriş \/ Çıkış (Check-in)lar",
                     "icon": "check-circle",
                     "color": "success"
                 },
                 {
                     "key": "my_station_status",
-                    "label": "Oda / Suit Durumu",
+                    "label": "Oda \/ Suit Durumu",
                     "icon": "door-open",
                     "color": "info"
                 }
@@ -693,7 +777,7 @@
         },
         {
             "slug": "professional",
-            "name": "Uzman / Estetisyen",
+            "name": "Uzman \/ Estetisyen",
             "icon": "magic",
             "description": "Hizmet ve seans uygulamaları"
         },
@@ -705,13 +789,13 @@
         },
         {
             "slug": "cashier",
-            "name": "Kasa / POS",
+            "name": "Kasa \/ POS",
             "icon": "cash-register",
             "description": "Ödeme ve adisyon takibi"
         },
         {
             "slug": "inventory",
-            "name": "Depo / Envanter",
+            "name": "Depo \/ Envanter",
             "icon": "boxes",
             "description": "Sarf malzeme ve ürün takibi"
         }
@@ -736,7 +820,7 @@
             "last_name": "Demo",
             "email": "demo-hotel-professional@kibusiness.co",
             "role_slug": "professional",
-            "job_title": "Uzman / Estetisyen"
+            "job_title": "Uzman \/ Estetisyen"
         },
         "reception": {
             "first_name": "Resepsiyon",
@@ -750,14 +834,14 @@
             "last_name": "Demo",
             "email": "demo-hotel-cashier@kibusiness.co",
             "role_slug": "cashier",
-            "job_title": "Kasa / POS"
+            "job_title": "Kasa \/ POS"
         },
         "inventory": {
             "first_name": "Depo",
             "last_name": "Demo",
             "email": "demo-hotel-inventory@kibusiness.co",
             "role_slug": "inventory",
-            "job_title": "Depo / Envanter"
+            "job_title": "Depo \/ Envanter"
         }
     },
     "roles": [
