@@ -68,3 +68,9 @@ apps/**/.dart_tool/
 *.msix
 *.dmg
 *.exe
+
+# Local environment data
+data/
+/data/
+docker-compose.yml
+.env*
