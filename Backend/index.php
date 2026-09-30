@@ -140,6 +140,7 @@ switch (ENVIRONMENT) {
         ini_set('display_errors', 1);
         break;
 
+    case 'demo':
     case 'testing':
     case 'production':
         ini_set('display_errors', 0);
