@@ -261,9 +261,6 @@ if (!function_exists('method')) {
         /** @var App_Controller $CI */
         $CI = &get_instance();
 
-        if (function_exists('is_cli') && $CI->input->is_cli_request()) {
-            return;
-        }
 
         $current_method = $CI->input->method();
         $curr = strtolower((string) $current_method);
