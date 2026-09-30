@@ -83,6 +83,7 @@ class Whatsapp_bridge
     {
         $t = strtolower(trim($tenant));
         if ($t === 'demo' || str_starts_with($t, 'demo-') || str_contains($t, '_sb') || str_contains($t, '-sb') || $t === 'booki-demo') {
+        if ($t === 'salonflora' || $t === 'guzellik' || $t === 'demo-guzellik' || $t === 'guzellik-bookiapp' || str_contains($t, 'guzellik')) {
             return 'salonflora';
         }
 

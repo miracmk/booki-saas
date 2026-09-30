@@ -93,11 +93,8 @@ class Ai_llm_client
                 }
             }
 
-            // Neither provider available
-            return [
-                'type' => 'reply',
-                'text' => 'Üzgünüm, AI Asistan şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.',
-            ];
+            // Neither external cloud provider available - use BooKi Platform AI Fallback
+            return $this->generate_fallback_response($messages, $context);
         } catch (Throwable $e) {
             log_message('error', 'Ai_llm_client::chat - ' . $e->getMessage());
 
@@ -432,5 +429,65 @@ PROMPT;
 
             return null;
         }
+    }
+
+    /**
+     * BooKi Platform AI Fallback for appointment booking chat.
+     */
+    protected function generate_fallback_response(array $messages, array $context): array
+    {
+        $last_msg = '';
+        for ($i = count($messages) - 1; $i >= 0; $i--) {
+            if (($messages[$i]['role'] ?? '') === 'user') {
+                $last_msg = trim((string) ($messages[$i]['content'] ?? ''));
+                break;
+            }
+        }
+
+        $services = $context['services'] ?? [];
+        $providers = $context['providers'] ?? [];
+        $q = mb_strtolower($last_msg, 'UTF-8');
+
+        // Greeting
+        if (preg_match('/(merhaba|selam|günaydın|gunaydin|iyi günler|iyi akşamlar|hey)/u', $q) || mb_strlen($q) < 5) {
+            return [
+                'type' => 'reply',
+                'text' => "Merhaba! Randevu asistanınıza hoş geldiniz. Size en uygun randevuyu oluşturmak, hizmet ve fiyat detaylarını sunmak için buradayım. Hangi hizmetimizle ilgileniyorsunuz?",
+            ];
+        }
+
+        // Services & Prices
+        if (preg_match('/(hizmet|fiyat|ücret|ucret|ne kadar|fiyatlar|hizmetler|menü|seans)/u', $q)) {
+            $text = "Güncel hizmet ve fiyat listemiz:\n\n";
+            foreach (array_slice($services, 0, 10) as $s) {
+                $currency = $s['currency'] ?? 'TL';
+                $text .= "• " . ($s['name'] ?? 'Hizmet') . " (" . ($s['duration'] ?? 30) . " dk) — " . ($s['price'] ?? 0) . " " . $currency . "\n";
+            }
+            $text .= "\nRandevu almak istediğiniz hizmeti ve tercih ettiğiniz tarihi belirtebilirsiniz.";
+            return [
+                'type' => 'reply',
+                'text' => $text,
+            ];
+        }
+
+        // Staff inquiry
+        if (preg_match('/(personel|uzman|çalışan|calisan|ekip|kuaför)/u', $q)) {
+            $text = "Hizmet veren uzmanlarımız:\n\n";
+            foreach ($providers as $p) {
+                $name = trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''));
+                $text .= "• " . $name . "\n";
+            }
+            $text .= "\nRandevunuz için dilediğiniz uzmanı seçebilirsiniz.";
+            return [
+                'type' => 'reply',
+                'text' => $text,
+            ];
+        }
+
+        // Default booking assistance
+        return [
+            'type' => 'reply',
+            'text' => "Talebinizi aldım. Randevunuzu planlamak için lütfen almak istediğiniz hizmeti, tercih ettiğiniz günü ve saati paylaşınız. Size hemen en uygun seansı ayıralım.",
+        ];
     }
 }

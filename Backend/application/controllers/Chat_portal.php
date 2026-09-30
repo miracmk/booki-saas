@@ -322,6 +322,11 @@ class Chat_portal extends App_Controller
             $context = tenant_context();
             $tenant_key = Whatsapp_bridge::resolve_tenant_key($context['subdomain'] ?? 'salonflora');
             $res = $bridge->session_start($tenant_key);
+            $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+            $webhook_url = 'https://' . ($context['subdomain'] ?? 'guzellik') . '-' . $app_domain . '/index.php/whatsapp/bridge_inbound';
+            $res = $bridge->session_start($tenant_key, [
+                'webhookUrl' => $webhook_url,
+            ]);
             json_response(['status' => 'success', 'result' => $res]);
         } catch (Throwable $e) {
             json_exception($e);

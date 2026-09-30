@@ -138,8 +138,13 @@ class Chat_portal_model extends App_Model
      */
     private function get_whatsapp_threads(?string $search = null): array
     {
+        if (!$this->db->table_exists('whatsapp_messages')) {
+            return [];
+        }
+
         $sql = "
             SELECT m1.*, u.first_name, u.last_name, u.email as user_email, u.id as matched_user_id
+            SELECT m1.*
             FROM ea_whatsapp_messages m1
             INNER JOIN (
                 SELECT wa_id, MAX(id) as max_id
@@ -153,9 +158,37 @@ class Chat_portal_model extends App_Model
 
         $rows = $this->db->query($sql)->result_array();
         $threads = [];
+        $seen_norm_phones = [];
 
         foreach ($rows as $r) {
             $name = trim(($r['first_name'] ?? '') . ' ' . ($r['last_name'] ?? ''));
+            $raw_phone = preg_replace('/\D+/', '', (string) $r['wa_id']);
+            $norm_phone = (strlen($raw_phone) > 10) ? substr($raw_phone, -10) : $raw_phone;
+
+            if (!empty($norm_phone) && isset($seen_norm_phones[$norm_phone])) {
+                continue; // Prevent duplicate threads for different format variations (0543... vs 90543...)
+            }
+            if (!empty($norm_phone)) {
+                $seen_norm_phones[$norm_phone] = true;
+            }
+
+            // Find matching user (prefer customer role id_roles = 3, strictly 1 row)
+            $matched_user = null;
+            if (!empty($r['id_users'])) {
+                $matched_user = $this->db->where('id', (int) $r['id_users'])->limit(1)->get('users')->row_array();
+            }
+            if (!$matched_user && !empty($norm_phone)) {
+                $matched_user = $this->db->select('id, first_name, last_name, email, phone_number')
+                    ->from('users')
+                    ->like('phone_number', $norm_phone)
+                    ->order_by('CASE WHEN id_roles = 3 THEN 0 ELSE 1 END', 'ASC')
+                    ->order_by('id', 'ASC')
+                    ->limit(1)
+                    ->get()
+                    ->row_array();
+            }
+
+            $name = trim(($matched_user['first_name'] ?? '') . ' ' . ($matched_user['last_name'] ?? ''));
             if (empty($name)) {
                 $name = '+' . ltrim($r['wa_id'], '+');
             }
@@ -187,6 +220,7 @@ class Chat_portal_model extends App_Model
                 'handoff_status' => $handoff_active ? 'human_handoff' : 'ai_active',
                 'phone' => '+' . ltrim($r['wa_id'], '+'),
                 'customer_id' => $r['matched_user_id'] ?? null,
+                'customer_id' => $matched_user['id'] ?? null,
             ];
         }
 
@@ -555,19 +589,75 @@ class Chat_portal_model extends App_Model
         }
 
         if ($channel === 'instagram') {
+            $this->load->model('messaging_settings_model');
+            $settings = $this->messaging_settings_model->get_settings();
+            $api_sent = false;
+            $error_message = null;
+
+            if (!empty($settings['instagram_access_token'])) {
+                try {
+                    $page_id = $settings['instagram_account_id'] ?? 'me';
+                    $url = "https://graph.facebook.com/v20.0/{$page_id}/messages";
+                    $payload = [
+                        'recipient' => ['id' => $thread_id],
+                        'message' => ['text' => $text],
+                    ];
+                    $ch = curl_init();
+                    curl_setopt_array($ch, [
+                        CURLOPT_URL => $url,
+                        CURLOPT_POST => true,
+                        CURLOPT_POSTFIELDS => json_encode($payload),
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_TIMEOUT => 10,
+                        CURLOPT_HTTPHEADER => [
+                            'Authorization: Bearer ' . $settings['instagram_access_token'],
+                            'Content-Type: application/json',
+                        ],
+                    ]);
+                    $res = curl_exec($ch);
+                    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+                    if ($http_code === 200) {
+                        $api_sent = true;
+                    } else {
+                        $error_message = "HTTP {$http_code}: " . $res;
+                    }
+                } catch (Throwable $e) {
+                    $error_message = $e->getMessage();
+                }
+            }
+
             $this->db->insert('instagram_messages', [
                 'instagram_user_id' => $thread_id,
                 'direction' => 'out',
                 'message' => $text,
                 'status' => 'sent',
+                'status' => $api_sent ? 'delivered' : 'sent',
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
+
+            if (!$api_sent && !empty($settings['instagram_access_token'])) {
+                return [
+                    'status' => 'warning',
+                    'message' => 'Mesaj kaydedildi ancak Instagram DM iletimi tamamlanamadı: ' . ($error_message ?: 'Bilinmeyen hata'),
+                ];
+            }
 
             return ['status' => 'success', 'message' => 'Mesaj Instagram DM ile gönderildi.'];
         }
 
         if ($channel === 'telegram') {
+            if (!class_exists('Telegram_client', false)) {
+                $this->load->library('telegram_client');
+            }
+            $api_sent = false;
+            try {
+                $api_sent = $this->telegram_client->send_message($thread_id, $text);
+            } catch (Throwable $e) {
+                log_message('error', 'Chat_portal Telegram send error: ' . $e->getMessage());
+            }
+
             $this->db->insert('telegram_messages', [
                 'chat_id' => $thread_id,
                 'direction' => 'out',
@@ -576,6 +666,14 @@ class Chat_portal_model extends App_Model
             ]);
 
             return ['status' => 'success', 'message' => 'Mesaj Telegram ile gönderildi.'];
+            if (!$api_sent) {
+                return [
+                    'status' => 'warning',
+                    'message' => 'Mesaj veritabanına kaydedildi ancak Telegram API iletimi başarısız oldu (bot ayarlarını kontrol ediniz).'
+                ];
+            }
+
+            return ['status' => 'success', 'message' => 'Mesaj Telegram botu üzerinden başarıyla iletildi.'];
         }
 
         if ($channel === 'widget') {
@@ -584,10 +682,12 @@ class Chat_portal_model extends App_Model
                 'direction' => 'out',
                 'message' => $text,
                 'status' => 'sent',
+                'status' => 'delivered',
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
 
             return ['status' => 'success', 'message' => 'Mesaj Web Chat ile gönderildi.'];
+            return ['status' => 'success', 'message' => 'Mesaj Web Chat Widget ziyaretçisine iletildi.'];
         }
 
         throw new InvalidArgumentException('Bilinmeyen kanal: ' . $channel);

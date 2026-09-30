@@ -13,6 +13,7 @@ import {
   SignedContractResponse,
 } from "@shared/legalTypes";
 import { DEFAULT_LEGAL_TEMPLATES } from "./defaultTemplates";
+import { SECTOR_ONAM_CATALOG } from "./sectorOnamCatalog";
 import { ContractCompilerService } from "./contractCompiler.service";
 import { LegalComplianceEngine } from "./complianceEngine";
 import { AuditChainService } from "./auditChainService";
@@ -52,7 +53,7 @@ export class ContractEngineService {
    * Compiles contract template with contextual data.
    */
   public static compileContract(templateId: string, bookingContext: BookingContextData): string {
-    const template = DEFAULT_LEGAL_TEMPLATES[templateId as DocumentType];
+    const template = DEFAULT_LEGAL_TEMPLATES[templateId as DocumentType] || SECTOR_ONAM_CATALOG[templateId];
     const markdown = template ? template.bodyTemplateMarkdown : `# SÖZLEŞME\n\n{{CUSTOMER_FULL_NAME}} ile {{TENANT_NAME}} arasındaki hizmet anlaşması.`;
     return ContractCompilerService.compile(markdown, bookingContext);
   }
@@ -90,9 +91,12 @@ export class ContractEngineService {
     request: SignContractRequest,
     clientMeta: { ipAddress: string; userAgent: string; host: string; protocol: string }
   ): Promise<SignedContractResponse> {
-    const template = DEFAULT_LEGAL_TEMPLATES[request.docType];
+    const template =
+      (request.templateId && SECTOR_ONAM_CATALOG[request.templateId]) ||
+      DEFAULT_LEGAL_TEMPLATES[request.docType] ||
+      SECTOR_ONAM_CATALOG[request.docType];
     if (!template) {
-      throw new Error(`Sözleşme şablonu bulunamadı: ${request.docType}`);
+      throw new Error(`Sözleşme şablonu bulunamadı: ${request.templateId || request.docType}`);
     }
 
     if (!request.acceptedTerms) {
@@ -333,7 +337,9 @@ export class ContractEngineService {
     const allRecords = Array.from(this.contractsById.values());
     for (const record of allRecords) {
       if (record.customerId === customerId) {
-        const template = DEFAULT_LEGAL_TEMPLATES[record.documentType as DocumentType];
+        const template =
+          DEFAULT_LEGAL_TEMPLATES[record.documentType as DocumentType] ||
+          SECTOR_ONAM_CATALOG[record.documentType];
         let expiresAt: string | undefined;
         if (template?.validityDays) {
           const signedTime = new Date(record.signedAtUtc).getTime();

@@ -383,6 +383,23 @@
                                             </div>
                                         </div>
 
+                                        <!-- Dijital Onam & Hizmet Sözleşmeleri Paneli -->
+                                        <div class="mb-4" id="appointment-consents-panel">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label fw-bold text-dark mb-0">
+                                                    <i class="fas fa-file-signature text-danger me-1"></i>Hizmet Sözleşmeleri & Dijital Onam
+                                                </label>
+                                                <span class="badge bg-light text-secondary border small" id="appt-consents-summary-badge">0 / 0 İmzalandı</span>
+                                            </div>
+                                            <div class="border rounded p-3 bg-light" id="appointment-consents-container">
+                                                <div id="appointment-consents-list">
+                                                    <div class="text-muted text-center py-2 small">
+                                                        <i class="fas fa-spinner fa-spin me-1"></i>Onam formları kontrol ediliyor...
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Tahsilat Paneli -->
                                         <div class="mb-4 salonflora-payment-panel d-none">
                                             <label class="form-label fw-bold text-dark">
@@ -571,6 +588,105 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
                 <button type="button" class="btn btn-sm btn-warning fw-semibold" id="btn-save-appt-consumable-submit">
                     <i class="fas fa-plus me-1"></i>Seansa Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+<!-- Modal: İmzalı Onam Formu & Sözleşme Detay Görüntüleyici -->
+<div class="modal fade" id="modal-view-signed-consent" tabindex="-1" style="z-index: 1075;">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-light border-bottom py-3">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0 text-dark" id="view-signed-consent-title">
+                        <i class="fas fa-file-signature text-success me-2"></i>İmzalı Onam Formu & Sözleşme
+                    </h5>
+                    <div class="small text-muted mt-1" id="view-signed-consent-meta">
+                        <i class="fas fa-check-circle text-success me-1"></i>Hukuken Geçerli Elektronik Belge (6100 Sayılı HMK m. 199)
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="p-3 bg-white rounded border shadow-sm mb-3" id="view-signed-consent-content" style="line-height: 1.6; max-height: 400px; overflow-y: auto;">
+                    <!-- Derlenmiş metin -->
+                </div>
+
+                <div class="card border rounded bg-light p-3" id="view-signed-consent-signature-box">
+                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-signature text-primary me-2"></i>İmza & Elektronik Delil Kaydı</h6>
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <table class="table table-sm table-borderless small mb-0">
+                                <tr><th width="35%">İmzacı:</th><td id="view-sig-name">-</td></tr>
+                                <tr><th>İmza Zamanı:</th><td id="view-sig-time">-</td></tr>
+                                <tr><th>IP Adresi:</th><td id="view-sig-ip">-</td></tr>
+                                <tr><th>İmza Tipi:</th><td id="view-sig-type">-</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-5 text-center border-start">
+                            <div class="small text-muted mb-1">Biyometrik / Kanvas İmza Görseli:</div>
+                            <div id="view-sig-image-container" class="p-2 bg-white rounded border d-inline-block">
+                                <img id="view-sig-image" src="" alt="İmza" style="max-height: 80px; max-width: 100%;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top py-2 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print();">
+                    <i class="fas fa-print me-1"></i>Resmi Çıktı / PDF Al
+                </button>
+                <button type="button" class="btn btn-primary btn-sm px-4" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Danışana Tabletten/Ekranda İmzalat (Staff Fast Sign) -->
+<div class="modal fade" id="modal-staff-sign-consent" tabindex="-1" style="z-index: 1080;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow border-0">
+            <div class="modal-header bg-light border-bottom py-3">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0 text-dark">
+                        <i class="fas fa-signature text-danger me-2"></i>Danışan Dijital İmzası Al
+                    </h5>
+                    <small class="text-muted" id="staff-sign-consent-subtitle">Lütfen işlem öncesinde danışana metni okutup onayını alınız.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="staff-sign-waiver-id" value="">
+                <div class="p-3 bg-light rounded border mb-3 small" id="staff-sign-consent-preview" style="max-height: 180px; overflow-y: auto;">
+                    <!-- Canlı derlenmiş metin -->
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark d-flex justify-content-between align-items-center mb-1">
+                        <span>Danışan İmzası (Dokunmatik / Fare ile İmzalayın):</span>
+                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-2" id="btn-clear-staff-canvas">
+                            <i class="fas fa-eraser me-1"></i>Temizle
+                        </button>
+                    </label>
+                    <div class="border rounded bg-white" style="cursor: crosshair;">
+                        <canvas id="staff-signature-canvas" width="650" height="150" style="width: 100%; height: 150px; display: block; touch-action: none;"></canvas>
+                    </div>
+                    <div class="form-text small text-muted">
+                        Danışan parmağı veya kalemiyle imzalayabilir. İmza zaman damgası ve IP kaydıyla güvenli şekilde saklanacaktır.
+                    </div>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="staff-sign-confirm-check" checked>
+                    <label class="form-check-label fw-semibold small text-dark" for="staff-sign-confirm-check">
+                        Danışan bilgilendirme metnini okudu, anladı ve hür iradesiyle imzaladı.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top py-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-success btn-sm px-4 fw-semibold" id="btn-save-staff-signature-submit">
+                    <i class="fas fa-check-circle me-1"></i>İmzayı Onayla & Kaydet
                 </button>
             </div>
         </div>

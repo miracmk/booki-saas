@@ -12,6 +12,8 @@ import PricingPage from "./pages/PricingPage";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import ContactPage from "./pages/ContactPage";
 import LegalPage from "./pages/LegalPage";
+import { LegalDemoPage } from "./pages/LegalDemoPage";
+import { ContractVerificationPage } from "./pages/ContractVerificationPage";
 
 function Router() {
   return (
@@ -36,6 +38,13 @@ function Router() {
 
       {/* Contact & Demo Booking */}
       <Route path="/iletisim" component={ContactPage} />
+
+      {/* Legal & Onam Formları Catalog */}
+      <Route path="/onam-formlari" component={LegalDemoPage} />
+      <Route path="/sozlesmeler" component={LegalDemoPage} />
+      <Route path="/legal-demo" component={LegalDemoPage} />
+      <Route path="/v/:hash" component={ContractVerificationPage} />
+      <Route path="/dogrula/:hash" component={ContractVerificationPage} />
 
       {/* Legal Pages */}
       <Route path="/privacy" component={LegalPage} />

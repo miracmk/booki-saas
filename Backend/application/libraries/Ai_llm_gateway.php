@@ -95,6 +95,23 @@ class Ai_llm_gateway
      */
     public function get_api_key(string $provider): ?string
     {
+        $engine_type = $this->get_setting_safely('ai_engine_type') ?: 'booki';
+        if ($engine_type === 'byok') {
+            $byok_provider = strtolower(trim((string) $this->get_setting_safely('ai_byok_provider')));
+            if ($byok_provider === 'chatgpt' || $byok_provider === 'gpt') {
+                $byok_provider = 'openai';
+            }
+            if ($byok_provider === 'claude') {
+                $byok_provider = 'anthropic';
+            }
+            if ($byok_provider === $provider) {
+                $byok_key = $this->get_setting_safely('ai_byok_api_key');
+                if (!empty($byok_key)) {
+                    return $byok_key;
+                }
+            }
+        }
+
         $keys = [
             'google' => ['google_ai_key', 'gemini_api_key', 'GEMINI_API_KEY', 'GOOGLE_AI_KEY'],
             'groq' => ['groq_api_key', 'GROQ_API_KEY'],
@@ -120,6 +137,14 @@ class Ai_llm_gateway
      */
     public function get_active_provider(): string
     {
+        $engine_type = $this->get_setting_safely('ai_engine_type') ?: 'booki';
+        if ($engine_type === 'byok') {
+            $byok_provider = strtolower(trim((string) $this->get_setting_safely('ai_byok_provider')));
+            if (!empty($byok_provider)) {
+                return $byok_provider;
+            }
+        }
+
         $provider = $this->get_setting_safely('ai_provider');
         if (empty($provider)) {
             $provider = 'auto';

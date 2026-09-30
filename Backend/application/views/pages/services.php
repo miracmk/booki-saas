@@ -776,9 +776,14 @@
                             </h5>
                             <small class="text-muted">Bu hizmet alındığında danışanın dijital veya fiziksel onaylaması gereken feragatname, KVKK ve uygulama sözleşmeleri.</small>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-danger px-3 fw-semibold" id="btn-add-contract-modal">
-                            <i class="fas fa-plus me-1"></i>Yeni Sözleşme Şablonu Ekle
-                        </button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary px-3 fw-semibold shadow-sm" id="btn-catalog-contract-modal">
+                                <i class="fas fa-layer-group me-1"></i>Sektörel Şablon Kataloğundan Ekle
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger px-3 fw-semibold shadow-sm" id="btn-add-contract-modal">
+                                <i class="fas fa-plus me-1"></i>Özel Şablon Ekle
+                            </button>
+                        </div>
                     </div>
 
                     <div class="table-responsive rounded border mb-3">
@@ -963,16 +968,16 @@
 
 <!-- Modal: Yeni Sözleşme / Onam Formu Şablonu Ekle -->
 <div class="modal fade" id="modal-contract-form" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-file-contract text-danger me-2"></i>Yeni Sözleşme / Onam Şablonu Ekle</h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title"><i class="fas fa-file-contract text-danger me-2"></i>Özel Sözleşme & Dijital Onam Şablonu Ekle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Sözleşme / Onam Başlığı *</label>
-                    <input type="text" class="form-control" id="contract-title-input" placeholder="Örn: Lazer Epilasyon Bilgilendirilmiş Onam ve Hizmet Sözleşmesi">
+                    <input type="text" class="form-control" id="contract-title-input" placeholder="Örn: Medikal Klasik Cilt Bakımı Bilgilendirilmiş Onam ve Hizmet Sözleşmesi">
                 </div>
                 <div class="mb-3">
                     <div class="form-check form-switch">
@@ -981,33 +986,131 @@
                     </div>
                     <div class="form-text small text-muted">Danışanın randevu öncesinde onaylaması zorunlu tutulur.</div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Sözleşme / Onam Metni *</label>
-                    <textarea class="form-control" id="contract-content-input" rows="5" placeholder="İşbu sözleşme kapsamında danışan işlem şartlarını, olası geçici reaksiyonları ve bakım kurallarını kabul eder..."></textarea>
+                
+                <div class="mb-2">
+                    <label class="form-label fw-semibold d-flex justify-content-between align-items-center mb-1">
+                        <span>Sözleşme / Onam Metni * (HTML / Metin)</span>
+                        <small class="text-muted">Müşteriye özel değişkenler için aşağıdaki etiketleri tıklayın:</small>
+                    </label>
+                    <div class="d-flex flex-wrap gap-1 mb-2 p-2 bg-light rounded border">
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{CUSTOMER_FULL_NAME}}">+ Danışan Adı</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{CUSTOMER_PHONE}}">+ Telefon</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{CUSTOMER_MASKED_TCKN}}">+ TCKN</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{SERVICE_NAME}}">+ Hizmet Adı</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{PROVIDER_NAME}}">+ Uzman / Hekim</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{APPOINTMENT_DATE_TIME}}">+ Randevu Tarih & Saat</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{SERVICE_PRICE}}">+ Fiyat</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{TENANT_NAME}}">+ İşletme / Merkez</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 btn-contract-var" data-var="{{SYSTEM_DATE}}">+ Günün Tarihi</button>
+                    </div>
+                    <textarea class="form-control font-monospace small" id="contract-content-input" rows="8" placeholder="İşbu sözleşme kapsamında danışan {{CUSTOMER_FULL_NAME}}, {{TENANT_NAME}} bünyesinde gerçekleştirilecek {{SERVICE_NAME}} işlemi şartlarını, bakım talimatlarını ve olası geçici reaksiyonları kabul eder..."></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-danger" id="btn-save-contract-submit">Şablonu Oluştur & Hizmete Bağla</button>
+                <button type="button" class="btn btn-danger" id="btn-save-contract-submit">
+                    <i class="fas fa-check me-1"></i>Şablonu Oluştur & Hizmete Bağla
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal: Sözleşme Metni Önizleme -->
+<!-- Modal: Sektörel Hazır Onam Şablon Kataloğu -->
+<div class="modal fade" id="modal-catalog-contract" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark mb-0">
+                        <i class="fas fa-layer-group text-primary me-2"></i>Sektörel Yasal Onam ve Sözleşme Şablonları Kataloğu
+                    </h5>
+                    <small class="text-muted">Türk Dermatoloji Derneği, Sağlıkta Kalite Standartları ve Resmi Mevzuata Tam Uyumlu Hazır Şablonlar</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="catalog-search-input" placeholder="Şablon adı, işlem veya sektör ara (örn: Cilt Bakımı, Lazer, Botoks, Diş, KVKK)...">
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" id="catalog-category-filter">
+                            <option value="">-- Tüm Sektörler & Kategoriler --</option>
+                            <option value="Cilt Bakımı & Medikal Estetik">Cilt Bakımı & Medikal Estetik</option>
+                            <option value="Lazer Epilasyon">Lazer Epilasyon</option>
+                            <option value="Medikal Estetik">Medikal Estetik & Dolgu</option>
+                            <option value="Kalıcı Makyaj & Güzellik">Kalıcı Makyaj & Microblading</option>
+                            <option value="Kuaför & Saç Hizmetleri">Kuaför & Saç Bakımı</option>
+                            <option value="Diş Hekimliği">Diş Hekimliği (İDO)</option>
+                            <option value="Klinik & Cerrahi">Klinik & Cerrahi</option>
+                            <option value="Konaklama & Turizm">Konaklama & Turizm</option>
+                            <option value="Otomotiv & Servis">Otomotiv & Servis</option>
+                            <option value="Yasal & KVKK">Yasal & KVKK</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3" id="catalog-templates-container" style="max-height: 520px; overflow-y: auto;">
+                    <div class="text-center py-5 text-muted col-12">
+                        <i class="fas fa-spinner fa-spin fa-2x mb-2"></i><br>Katalog yükleniyor...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Sözleşme Metni Gelişmiş Önizleme -->
 <div class="modal fade" id="modal-contract-preview" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="contract-preview-title"><i class="fas fa-file-alt text-primary me-2"></i>Sözleşme Önizleme</h5>
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark mb-0" id="contract-preview-title">
+                        <i class="fas fa-file-signature text-primary me-2"></i>Sözleşme & Onam Önizleme
+                    </h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small mt-1">
+                        <i class="fas fa-shield-alt me-1"></i>KVKK & 6502 TKHK Uyumlu Dijital Format
+                    </span>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="p-3 bg-light rounded border font-monospace small" id="contract-preview-body" style="white-space: pre-wrap; max-height: 450px; overflow-y: auto;">
+            <div class="modal-body p-4">
+                <ul class="nav nav-pills mb-3" id="preview-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-1 px-3 fw-semibold" id="tab-preview-live" data-bs-toggle="pill" data-bs-target="#pane-preview-live" type="button" role="tab">
+                            <i class="fas fa-user-check me-1 text-success"></i>Müşteri Canlı Görünümü (Doldurulmuş)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-1 px-3 fw-semibold" id="tab-preview-raw" data-bs-toggle="pill" data-bs-target="#pane-preview-raw" type="button" role="tab">
+                            <i class="fas fa-code me-1 text-primary"></i>Ham Şablon & Değişkenler
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="preview-tab-content">
+                    <div class="tab-pane fade show active" id="pane-preview-live" role="tabpanel">
+                        <div class="p-4 bg-white rounded border shadow-sm" id="contract-preview-body" style="max-height: 480px; overflow-y: auto; line-height: 1.6;">
+                            <!-- Canlı derlenmiş HTML buraya gelecek -->
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="pane-preview-raw" role="tabpanel">
+                        <div class="p-3 bg-light rounded border font-monospace small" id="contract-preview-raw" style="white-space: pre-wrap; max-height: 480px; overflow-y: auto;">
+                            <!-- Ham metin buraya gelecek -->
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            <div class="modal-footer bg-light d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" onclick="window.print();">
+                    <i class="fas fa-print me-1"></i>Yazdır
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Kapat</button>
             </div>
         </div>
     </div>

@@ -226,7 +226,7 @@ App.Pages.Reports = (function () {
     }
 
     function initializeAnalytics() {
-        $('#analytics-fetch-btn').on('click', () => {
+        function fetchAnalytics() {
             const dateFrom = $('#analytics-date-from').val();
             const dateTo = $('#analytics-date-to').val();
             const groupBy = $('#analytics-group-by').val();
@@ -245,7 +245,7 @@ App.Pages.Reports = (function () {
                 group_by: groupBy
             }).done((res) => {
                 $revTbody.empty();
-                const series = res.series || [];
+                const series = res.series || res.trend || [];
                 if (!series.length) {
                     $revTbody.html('<tr><td colspan="4" class="text-center text-muted py-3">Bu aralıkta ciro kaydı bulunamadı.</td></tr>');
                     return;
@@ -254,16 +254,22 @@ App.Pages.Reports = (function () {
                     $revTbody.append(
                         $('<tr/>', {
                             html: [
-                                $('<td/>', {class: 'fw-semibold', text: s.period || s.date || '-'}),
-                                $('<td/>', {class: 'text-center', text: s.appointments_count || 0}),
-                                $('<td/>', {class: 'text-end fw-bold text-success', text: formatCurrency(s.total_revenue || 0)}),
-                                $('<td/>', {class: 'text-end text-muted', text: formatCurrency(s.total_payout || 0)})
+                                $('<td/>', {class: 'fw-semibold', text: s.period || s.key || s.date || '-'}),
+                                $('<td/>', {class: 'text-center', text: s.appointments_count || s.session_count || 0}),
+                                $('<td/>', {class: 'text-end fw-bold text-success', text: formatCurrency(s.total_revenue || s.gross || 0)}),
+                                $('<td/>', {class: 'text-end text-muted', text: formatCurrency(s.total_payout || s.payout || 0)})
                             ]
                         })
                     );
                 });
-            }).fail((err) => {
-                $error.removeClass('d-none').text('Ciro verileri alınırken bir hata oluştu.');
+            }).fail((xhr) => {
+                let msg = 'Ciro verileri alınırken bir hata oluştu.';
+                try {
+                    const r = JSON.parse(xhr.responseText);
+                    if (r && r.message) msg = r.message;
+                } catch(e) {}
+                $error.removeClass('d-none').text(msg);
+                $revTbody.html('<tr><td colspan="4" class="text-center text-danger py-3">Veri alınamadı.</td></tr>');
             });
 
             // Utilization report
@@ -278,7 +284,8 @@ App.Pages.Reports = (function () {
                     return;
                 }
                 providers.forEach((p) => {
-                    const rate = parseFloat(p.utilization_rate || 0);
+                    const rawRate = p.utilization_rate !== undefined ? p.utilization_rate : (p.utilization_pct !== undefined ? p.utilization_pct : 0);
+                    const rate = parseFloat(rawRate || 0);
                     $utTbody.append(
                         $('<tr/>', {
                             html: [
@@ -296,7 +303,19 @@ App.Pages.Reports = (function () {
                         })
                     );
                 });
+            }).fail(() => {
+                $utTbody.html('<tr><td colspan="4" class="text-center text-danger py-3">Personel doluluk verisi alınırken bir hata oluştu.</td></tr>');
             });
+        }
+
+        $('#analytics-fetch-btn').on('click', fetchAnalytics);
+
+        // Akordeon açıldığında henüz yüklenmemişse otomatik yükle
+        $('#headingAnalytics button').on('click', function() {
+            const $revTbody = $('#analytics-revenue-table tbody');
+            if ($revTbody.text().includes('Analiz Et')) {
+                setTimeout(fetchAnalytics, 150);
+            }
         });
     }
 

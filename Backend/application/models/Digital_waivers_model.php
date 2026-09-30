@@ -53,12 +53,29 @@ class Digital_waivers_model extends App_Model
             'signer_email' => $data['signer_email'] ?? null,
             'signer_phone' => $data['signer_phone'] ?? null,
             'signature_data' => $data['signature_data'],
+            'compiled_content_html' => $data['compiled_content_html'] ?? null,
+            'signature_type' => $data['signature_type'] ?? 'canvas_biometric',
             'ip_address' => $data['ip_address'] ?? ($this->input->ip_address() ?: '127.0.0.1'),
             'signed_at' => $now,
         ];
 
         $this->db->insert('waiver_signatures', $sig);
         return $this->db->insert_id();
+    }
+
+    /**
+     * Get all signed waivers for a specific appointment.
+     */
+    public function get_appointment_signatures(int $appointment_id): array
+    {
+        return $this->db
+            ->select('s.*, w.title as waiver_title, w.is_mandatory')
+            ->from('waiver_signatures s')
+            ->join('digital_waivers w', 'w.id = s.id_waivers', 'left')
+            ->where('s.id_appointments', $appointment_id)
+            ->order_by('s.signed_at', 'ASC')
+            ->get()
+            ->result_array();
     }
 
     /**

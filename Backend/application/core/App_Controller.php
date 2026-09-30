@@ -237,6 +237,12 @@ class App_Controller extends CI_Controller
             if (preg_match('/^([a-z0-9-]+)-' . $app_domain_pattern . '$/', $host, $matches)
                 || preg_match('/^([a-z0-9-]+)\.' . $app_domain_pattern . '$/', $host, $matches)) {
                 $tenant = $this->db->get_where('tenants', ['subdomain' => $matches[1]])->row_array();
+                $sub = $matches[1];
+                $tenant = $this->db->group_start()
+                    ->where('subdomain', $sub)
+                    ->or_where('subdomain', $sub . '-bookiapp')
+                    ->group_end()
+                    ->get('tenants')->row_array();
             }
         }
 
@@ -579,6 +585,11 @@ class App_Controller extends CI_Controller
             'admins' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
             'secretaries' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
             'providers' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'hr' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'attendance' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'leaves' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'payroll' => ['module' => null, 'action' => 'view', 'resource' => 'financial_reports'],
+            'ess' => ['module' => null, 'action' => 'view', 'resource' => 'user_settings'],
             'customers' => ['module' => 'customers', 'action' => 'view', 'resource' => 'customers'],
             'services' => ['module' => 'services', 'action' => 'view', 'resource' => 'services'],
             'service_categories' => ['module' => 'services', 'action' => 'view', 'resource' => 'services'],

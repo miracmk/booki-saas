@@ -533,19 +533,87 @@ class Services extends App_Controller
                 abort(403, 'Forbidden');
             }
 
+            $this->load->library('legal_catalog');
+            $this->legal_catalog->ensure_seeded_templates();
+
+            $service = $this->services_model->find($service_id);
+            $service_name = $service['name'] ?? '';
+            $category_name = '';
+            if (!empty($service['id_service_categories'])) {
+                $category = $this->service_categories_model->find((int)$service['id_service_categories']);
+                $category_name = $category['name'] ?? '';
+            }
+
             $waivers = $this->db->table_exists('digital_waivers') 
-                ? $this->db->order_by('title', 'ASC')->get('digital_waivers')->result_array() 
+                ? $this->db->order_by('id', 'ASC')->get('digital_waivers')->result_array() 
                 : [];
 
+            $linked_count = 0;
             foreach ($waivers as &$waiver) {
                 $service_ids_str = (string) ($waiver['applicable_service_ids'] ?? '');
                 $service_ids = array_filter(array_map('trim', explode(',', $service_ids_str)));
                 $waiver['is_linked'] = in_array((string) $service_id, $service_ids, true);
+                if ($waiver['is_linked']) {
+                    $linked_count++;
+                }
             }
 
-            json_response(['success' => true, 'contracts' => $waivers]);
+            // If no contracts are linked yet, auto-link suggested ones or provide suggestions
+            $suggested = $this->legal_catalog->get_suggested_templates_for_service($service_name, $category_name);
+
+            // Auto-link priority matches if 0 contracts linked
+            if ($linked_count === 0 && !empty($waivers)) {
+                foreach ($waivers as &$w) {
+                    $w_title_lower = mb_strtolower($w['title'], 'UTF-8');
+                    $s_name_lower = mb_strtolower($service_name, 'UTF-8');
+                    $c_name_lower = mb_strtolower($category_name, 'UTF-8');
+                    
+                    if ((strpos($s_name_lower, 'cilt') !== false || strpos($c_name_lower, 'cilt') !== false) && strpos($w_title_lower, 'cilt') !== false) {
+                        $w['is_linked'] = true;
+                        $linked_count++;
+                        $this->link_contract_internal((int)$w['id'], $service_id);
+                    } elseif ((strpos($s_name_lower, 'lazer') !== false || strpos($c_name_lower, 'lazer') !== false) && strpos($w_title_lower, 'lazer') !== false) {
+                        $w['is_linked'] = true;
+                        $linked_count++;
+                        $this->link_contract_internal((int)$w['id'], $service_id);
+                    } elseif ((strpos($s_name_lower, 'botoks') !== false || strpos($s_name_lower, 'dolgu') !== false) && strpos($w_title_lower, 'botoks') !== false) {
+                        $w['is_linked'] = true;
+                        $linked_count++;
+                        $this->link_contract_internal((int)$w['id'], $service_id);
+                    } elseif ((strpos($s_name_lower, 'makyaj') !== false || strpos($s_name_lower, 'microblading') !== false) && strpos($w_title_lower, 'makyaj') !== false) {
+                        $w['is_linked'] = true;
+                        $linked_count++;
+                        $this->link_contract_internal((int)$w['id'], $service_id);
+                    }
+                }
+            }
+
+            json_response([
+                'success' => true,
+                'contracts' => $waivers,
+                'suggested_codes' => array_keys($suggested),
+            ]);
         } catch (Throwable $e) {
             json_exception($e);
+        }
+    }
+
+    /**
+     * Internal helper to link contract
+     */
+    private function link_contract_internal(int $contract_id, int $service_id): void
+    {
+        $waiver = $this->db->get_where('digital_waivers', ['id' => $contract_id])->row_array();
+        if ($waiver) {
+            $service_ids_str = (string) ($waiver['applicable_service_ids'] ?? '');
+            $service_ids = array_filter(array_map('trim', explode(',', $service_ids_str)));
+            if (!in_array((string)$service_id, $service_ids, true)) {
+                $service_ids[] = (string)$service_id;
+                $this->db->update('digital_waivers', [
+                    'applicable_service_ids' => implode(',', array_values($service_ids)),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ], ['id' => $contract_id]);
+            }
         }
     }
 
@@ -635,4 +703,140 @@ class Services extends App_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Get pre-built sector legal catalog.
+     */
+    public function get_legal_catalog(): void
+    {
+        try {
+            method('get');
+            if (cannot('view', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->load->library('legal_catalog');
+            $catalog = $this->legal_catalog->get_catalog();
+
+            json_response(['success' => true, 'catalog' => array_values($catalog)]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Import a template from legal catalog and link to service.
+     */
+    public function import_catalog_template(): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $template_code = trim($data['code'] ?? '');
+            $service_id = (int) ($data['service_id'] ?? 0);
+
+            $this->load->library('legal_catalog');
+            $catalog = $this->legal_catalog->get_catalog();
+
+            if (!isset($catalog[$template_code])) {
+                throw new InvalidArgumentException('Seçilen şablon katalogda bulunamadı.');
+            }
+
+            $tpl = $catalog[$template_code];
+            $now = date('Y-m-d H:i:s');
+
+            // Check if title exists
+            $existing = $this->db->get_where('digital_waivers', ['title' => $tpl['title']])->row_array();
+            if ($existing) {
+                $contract_id = (int)$existing['id'];
+                if ($service_id > 0) {
+                    $this->link_contract_internal($contract_id, $service_id);
+                }
+            } else {
+                $record = [
+                    'title' => $tpl['title'],
+                    'content_html' => $tpl['content_html'],
+                    'is_mandatory' => $tpl['is_mandatory'],
+                    'applicable_service_ids' => $service_id > 0 ? (string)$service_id : '',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                $this->db->insert('digital_waivers', $record);
+                $contract_id = $this->db->insert_id();
+            }
+
+            json_response(['success' => true, 'contract_id' => $contract_id]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Preview a contract template with sample or personalized placeholders.
+     */
+    public function preview_contract(int $contract_id, int $service_id = 0): void
+    {
+        try {
+            method('get');
+            if (cannot('view', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+
+            $waiver = $this->db->get_where('digital_waivers', ['id' => $contract_id])->row_array();
+            if (!$waiver) {
+                throw new InvalidArgumentException('Sözleşme şablonu bulunamadı.');
+            }
+
+            $this->load->library('legal_catalog');
+
+            $service_name = 'Medikal Klasik Cilt Bakımı';
+            $category_name = 'Cilt Bakımı & Yenileme';
+            $price = 1500.00;
+
+            if ($service_id > 0) {
+                $service = $this->services_model->find($service_id);
+                if ($service) {
+                    $service_name = $service['name'];
+                    $price = (float)$service['price'];
+                    if (!empty($service['id_service_categories'])) {
+                        $cat = $this->service_categories_model->find((int)$service['id_service_categories']);
+                        if ($cat) $category_name = $cat['name'];
+                    }
+                }
+            }
+
+            $sample_context = [
+                'customer_full_name' => 'Ayşe Yılmaz',
+                'customer_phone' => '0532 987 65 43',
+                'customer_email' => 'ayse.yilmaz@example.com',
+                'customer_tckn' => '12345678901',
+                'service_name' => $service_name,
+                'service_category' => $category_name,
+                'service_price' => $price,
+                'provider_name' => 'Uzm. Estetisyen Zeynep Kaya',
+                'appointment_date' => date('d.m.Y', strtotime('+1 day')),
+                'appointment_time' => '14:30',
+                'appointment_datetime' => date('d.m.Y', strtotime('+1 day')) . ' 14:30',
+                'tenant_name' => setting('company_name') ?: 'BooKi Güzellik ve Yaşam Merkezi',
+                'tenant_legal_name' => setting('company_name') ?: 'BooKi Güzellik ve Sağlık Hizmetleri Tic. Ltd. Şti.',
+            ];
+
+            $rendered_html = $this->legal_catalog->compile($waiver['content_html'], $sample_context);
+
+            json_response([
+                'success' => true,
+                'contract' => $waiver,
+                'raw_content' => $waiver['content_html'],
+                'rendered_html' => $rendered_html,
+                'sample_context' => $sample_context,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }
+

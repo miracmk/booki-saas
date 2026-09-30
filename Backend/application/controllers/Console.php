@@ -5501,6 +5501,7 @@ class Console extends App_Controller
     public function configure_demo_messaging(): void
     {
         echo PHP_EOL . "=== BooKi SaaS: Configuring WhatsApp & Telegram for All Demo Tenants ===" . PHP_EOL;
+        echo PHP_EOL . "=== BooKi SaaS: Configuring Messaging (Only guzellik connected, others clean) ===" . PHP_EOL;
 
         $this->load->library('sandbox_manager');
         $this->load->model('messaging_settings_model');
@@ -5511,9 +5512,17 @@ class Console extends App_Controller
         // Fetch all demo tenant rows from master
         $tenants = $this->db->where_in('subdomain', $demo_sectors)->get('tenants')->result_array();
 
+        // Real Meta credentials from environment
+        $meta_user_token = getenv('META_USER_TOKEN') ?: null;
+        $meta_page_id = getenv('META_PAGE_ID_BOOKI') ?: '1363515286838382';
+        $meta_waba_id = getenv('META_WABA_ID_BOOKI') ?: '1595071658829377';
+        $meta_phone_id = getenv('META_WABA_PHONE_ID_BOOKI') ?: '1306088429257880';
+
         foreach ($tenants as $tenant) {
             $subdomain = $tenant['subdomain'];
             echo "Configuring master demo tenant '{$subdomain}'... ";
+            $is_guzellik = ($subdomain === 'demo-guzellik' || str_contains($subdomain, 'guzellik'));
+            echo "Configuring demo tenant '{$subdomain}' (" . ($is_guzellik ? 'CONNECTED' : 'DISCONNECTED/SELF-SETUP') . ")... ";
             $this->connect_tenant($tenant);
 
             $this->messaging_settings_model->save_settings([
@@ -5533,6 +5542,38 @@ class Console extends App_Controller
                 'ai_reply_whatsapp_enabled' => 1,
                 'ai_reply_telegram_enabled' => 1,
             ]);
+            if ($is_guzellik) {
+                // Keep ONLY guzellik pre-connected with official and bridge channels
+                $this->messaging_settings_model->save_settings([
+                    'whatsapp_mode' => 'unofficial',
+                    'whatsapp_notifications_enabled' => 1,
+                    'whatsapp_unofficial_status' => 'connected',
+                    'whatsapp_unofficial_name' => 'BooKi Demo',
+                    'whatsapp_business_phone_display' => '+90 501 592 5562',
+                    'whatsapp_bridge_url' => 'http://booki-wa:3000',
+                    'whatsapp_bridge_secret' => null, // falls back to WA_BRIDGE_SECRET env
+                    'whatsapp_phone_number_id' => $meta_phone_id,
+                    'whatsapp_access_token' => $meta_user_token,
+                    'whatsapp_waba_id' => $meta_waba_id,
+                    'telegram_notifications_enabled' => 1,
+                    'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                    'instagram_notifications_enabled' => 1,
+                    'instagram_account_id' => $meta_page_id,
+                    'instagram_access_token' => $meta_user_token,
+                    'smtp_host' => 'mail.kibusiness.co',
+                    'smtp_port' => 587,
+                    'smtp_crypto' => 'tls',
+                    'smtp_user' => 'reservation@kibusiness.co',
+                    'smtp_pass' => 'pvNB0c0JQ6X89UMnYw07',
+                    'smtp_from_name' => 'BooKi Güzellik',
+                    'smtp_from_address' => 'reservation@kibusiness.co',
+                    'email_notifications_enabled' => 1,
+                    'default_notification_channels' => 'whatsapp,telegram,email',
+                    'default_notification_channel' => 'whatsapp',
+                    'reminder_notifications_enabled' => 1,
+                    'ai_reply_whatsapp_enabled' => 1,
+                    'ai_reply_telegram_enabled' => 1,
+                ]);
 
             setting([
                 'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
@@ -5543,6 +5584,56 @@ class Console extends App_Controller
                 'ai_reply_whatsapp_enabled' => '1',
                 'customer_notifications' => '1',
             ]);
+                setting([
+                    'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                    'telegram_bot_username' => 'bookidemobot',
+                    'telegram_notifications_enabled' => '1',
+                    'ai_reply_telegram_enabled' => '1',
+                    'ai_reply_whatsapp_enabled' => '1',
+                    'customer_notifications' => '1',
+                ]);
+            } else {
+                // Clear all dummy / pre-connected credentials for other demo verticals
+                $this->messaging_settings_model->save_settings([
+                    'whatsapp_mode' => 'unofficial',
+                    'whatsapp_notifications_enabled' => 0,
+                    'whatsapp_unofficial_status' => 'disconnected',
+                    'whatsapp_unofficial_name' => null,
+                    'whatsapp_business_phone_display' => null,
+                    'whatsapp_bridge_url' => 'http://booki-wa:3000',
+                    'whatsapp_bridge_secret' => null,
+                    'whatsapp_phone_number_id' => null,
+                    'whatsapp_access_token' => null,
+                    'whatsapp_waba_id' => null,
+                    'telegram_notifications_enabled' => 0,
+                    'telegram_bot_token' => null,
+                    'instagram_notifications_enabled' => 0,
+                    'instagram_account_id' => null,
+                    'instagram_access_token' => null,
+                    'smtp_host' => null,
+                    'smtp_port' => null,
+                    'smtp_crypto' => null,
+                    'smtp_user' => null,
+                    'smtp_pass' => null,
+                    'smtp_from_name' => null,
+                    'smtp_from_address' => null,
+                    'email_notifications_enabled' => 0,
+                    'default_notification_channels' => 'email',
+                    'default_notification_channel' => 'email',
+                    'reminder_notifications_enabled' => 0,
+                    'ai_reply_whatsapp_enabled' => 0,
+                    'ai_reply_telegram_enabled' => 0,
+                ]);
+
+                setting([
+                    'telegram_bot_token' => null,
+                    'telegram_bot_username' => null,
+                    'telegram_notifications_enabled' => '0',
+                    'ai_reply_telegram_enabled' => '0',
+                    'ai_reply_whatsapp_enabled' => '0',
+                    'customer_notifications' => '0',
+                ]);
+            }
 
             echo "Done!" . PHP_EOL;
         }
@@ -5564,6 +5655,7 @@ class Console extends App_Controller
             $parent = $parent_tenants[$slot['tenant_subdomain']] ?? null;
             if (!$parent) continue;
 
+            $is_guzellik = ($slot['tenant_subdomain'] === 'demo-guzellik' || str_contains($slot['tenant_subdomain'], 'guzellik'));
             $fake_tenant = $parent;
             $fake_tenant['db_name'] = $slot_db;
             $this->connect_tenant($fake_tenant);
@@ -5585,6 +5677,37 @@ class Console extends App_Controller
                 'ai_reply_whatsapp_enabled' => 1,
                 'ai_reply_telegram_enabled' => 1,
             ]);
+            if ($is_guzellik) {
+                $this->messaging_settings_model->save_settings([
+                    'whatsapp_mode' => 'unofficial',
+                    'whatsapp_notifications_enabled' => 1,
+                    'whatsapp_unofficial_status' => 'connected',
+                    'whatsapp_unofficial_name' => 'BooKi Demo',
+                    'whatsapp_business_phone_display' => '+90 501 592 5562',
+                    'whatsapp_bridge_url' => 'http://booki-wa:3000',
+                    'whatsapp_bridge_secret' => null,
+                    'whatsapp_phone_number_id' => $meta_phone_id,
+                    'whatsapp_access_token' => $meta_user_token,
+                    'whatsapp_waba_id' => $meta_waba_id,
+                    'telegram_notifications_enabled' => 1,
+                    'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                    'instagram_notifications_enabled' => 1,
+                    'instagram_account_id' => $meta_page_id,
+                    'instagram_access_token' => $meta_user_token,
+                    'smtp_host' => 'mail.kibusiness.co',
+                    'smtp_port' => 587,
+                    'smtp_crypto' => 'tls',
+                    'smtp_user' => 'reservation@kibusiness.co',
+                    'smtp_pass' => 'pvNB0c0JQ6X89UMnYw07',
+                    'smtp_from_name' => 'BooKi Güzellik',
+                    'smtp_from_address' => 'reservation@kibusiness.co',
+                    'email_notifications_enabled' => 1,
+                    'default_notification_channels' => 'whatsapp,telegram,email',
+                    'default_notification_channel' => 'whatsapp',
+                    'reminder_notifications_enabled' => 1,
+                    'ai_reply_whatsapp_enabled' => 1,
+                    'ai_reply_telegram_enabled' => 1,
+                ]);
 
             setting([
                 'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
@@ -5595,6 +5718,55 @@ class Console extends App_Controller
                 'ai_reply_whatsapp_enabled' => '1',
                 'customer_notifications' => '1',
             ]);
+                setting([
+                    'telegram_bot_token' => '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4',
+                    'telegram_bot_username' => 'bookidemobot',
+                    'telegram_notifications_enabled' => '1',
+                    'ai_reply_telegram_enabled' => '1',
+                    'ai_reply_whatsapp_enabled' => '1',
+                    'customer_notifications' => '1',
+                ]);
+            } else {
+                $this->messaging_settings_model->save_settings([
+                    'whatsapp_mode' => 'unofficial',
+                    'whatsapp_notifications_enabled' => 0,
+                    'whatsapp_unofficial_status' => 'disconnected',
+                    'whatsapp_unofficial_name' => null,
+                    'whatsapp_business_phone_display' => null,
+                    'whatsapp_bridge_url' => 'http://booki-wa:3000',
+                    'whatsapp_bridge_secret' => null,
+                    'whatsapp_phone_number_id' => null,
+                    'whatsapp_access_token' => null,
+                    'whatsapp_waba_id' => null,
+                    'telegram_notifications_enabled' => 0,
+                    'telegram_bot_token' => null,
+                    'instagram_notifications_enabled' => 0,
+                    'instagram_account_id' => null,
+                    'instagram_access_token' => null,
+                    'smtp_host' => null,
+                    'smtp_port' => null,
+                    'smtp_crypto' => null,
+                    'smtp_user' => null,
+                    'smtp_pass' => null,
+                    'smtp_from_name' => null,
+                    'smtp_from_address' => null,
+                    'email_notifications_enabled' => 0,
+                    'default_notification_channels' => 'email',
+                    'default_notification_channel' => 'email',
+                    'reminder_notifications_enabled' => 0,
+                    'ai_reply_whatsapp_enabled' => 0,
+                    'ai_reply_telegram_enabled' => 0,
+                ]);
+
+                setting([
+                    'telegram_bot_token' => null,
+                    'telegram_bot_username' => null,
+                    'telegram_notifications_enabled' => '0',
+                    'ai_reply_telegram_enabled' => '0',
+                    'ai_reply_whatsapp_enabled' => '0',
+                    'customer_notifications' => '0',
+                ]);
+            }
 
             echo "  - Slot {$slot_db} updated." . PHP_EOL;
         }

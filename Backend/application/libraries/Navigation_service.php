@@ -58,7 +58,7 @@ class Navigation_service
             'crm' => ['title' => "{$customer_label} & CRM", 'icon' => 'fas fa-user-friends', 'items' => []],
             'catalog' => ['title' => $catalog_label, 'icon' => 'fas fa-layer-group', 'items' => []],
             'resources' => ['title' => 'Kaynaklar', 'icon' => 'fas fa-door-open', 'items' => []],
-            'team' => ['title' => 'Ekip', 'icon' => 'fas fa-user-tie', 'items' => []],
+            'team' => ['title' => 'Ekip & İK', 'icon' => 'fas fa-users-cog', 'items' => []],
             'finance' => ['title' => 'Satış & Finans', 'icon' => 'fas fa-wallet', 'items' => []],
             'marketing' => ['title' => 'Pazarlama & Mesajlaşma', 'icon' => 'fas fa-comments-dollar', 'items' => []],
             'vertical' => ['title' => 'Vertical Modülleri', 'icon' => 'fas fa-shapes', 'items' => []],
@@ -348,16 +348,86 @@ class Navigation_service
             'mobile_visibility' => false,
         ];
 
-        // 6. EKİP
+        // 6. EKİP & İNSAN KAYNAKLARI (HRMS)
+        $items[] = [
+            'id' => 'nav_hr',
+            'label' => 'Personel & Özlük',
+            'icon' => 'fas fa-users-cog',
+            'route' => 'hr',
+            'group' => 'team',
+            'order' => 1,
+            'module' => null,
+            'permission' => ['view', 'users'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
         $items[] = [
             'id' => 'nav_providers',
             'label' => $terms['provider'],
             'icon' => 'fas fa-user-tie',
             'route' => 'providers',
             'group' => 'team',
-            'order' => 1,
+            'order' => 2,
             'module' => 'services',
             'permission' => ['view', 'users'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_attendance',
+            'label' => 'PDKS & Vardiya',
+            'icon' => 'fas fa-clock',
+            'route' => 'attendance',
+            'group' => 'team',
+            'order' => 3,
+            'module' => null,
+            'permission' => ['view', 'users'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_leaves',
+            'label' => 'İzin Yönetimi',
+            'icon' => 'fas fa-calendar-check',
+            'route' => 'leaves',
+            'group' => 'team',
+            'order' => 4,
+            'module' => null,
+            'permission' => ['view', 'users'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_payroll',
+            'label' => 'Bordro & Maaş',
+            'icon' => 'fas fa-money-check-alt',
+            'route' => 'payroll',
+            'group' => 'team',
+            'order' => 5,
+            'module' => null,
+            'permission' => ['view', 'financial_reports'],
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => false,
+        ];
+
+        $items[] = [
+            'id' => 'nav_ess',
+            'label' => 'Personel Portalı (ESS)',
+            'icon' => 'fas fa-id-card-clip',
+            'route' => 'ess',
+            'group' => 'team',
+            'order' => 6,
+            'module' => null,
+            'permission' => ['view', 'user_settings'],
             'children' => [],
             'badge' => null,
             'mobile_visibility' => true,

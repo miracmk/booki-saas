@@ -534,9 +534,40 @@ $route['api/v1/verticals/experience/tickets/issue']['post'] = 'api/v1/verticals_
 $route['api/v1/verticals/experience/tickets']['post'] = 'api/v1/verticals_api_v1/issue_event_ticket';
 $route['api/v1/verticals/experience/tickets/validate']['post'] = 'api/v1/verticals_api_v1/validate_event_ticket';
 
+$route['verticals/hospitality_checkin'] = 'verticals/hospitality_checkin';
+$route['verticals/hospitality_checkout'] = 'verticals/hospitality_checkout';
+$route['verticals/hospitality_tape_chart'] = 'verticals/hospitality_tape_chart';
+$route['verticals/hospitality_run_night_audit'] = 'verticals/hospitality_run_night_audit';
+$route['verticals/hospitality_save_room_type'] = 'verticals/hospitality_save_room_type';
+$route['verticals/hospitality_save_rate_plan'] = 'verticals/hospitality_save_rate_plan';
+$route['verticals/hospitality_housekeeping_task_update'] = 'verticals/hospitality_housekeeping_task_update';
+$route['verticals/hospitality_create_housekeeping_task'] = 'verticals/hospitality_create_housekeeping_task';
+$route['verticals/hospitality_maintenance_ticket'] = 'verticals/hospitality_maintenance_ticket';
+$route['verticals/hospitality_resolve_maintenance'] = 'verticals/hospitality_resolve_maintenance';
+$route['verticals/hospitality_kbs_export'] = 'verticals/hospitality_kbs_export';
+$route['verticals/hospitality_ical_export/(:num)'] = 'verticals/hospitality_ical_export/$1';
+$route['verticals/hospitality_ical_sync'] = 'verticals/hospitality_ical_sync';
+$route['verticals/hospitality_apply_property_template'] = 'verticals/hospitality_apply_property_template';
+
+$route['api/v1/verticals/hospitality/rooms']['get'] = 'api/v1/verticals_api_v1/get_hotel_rooms';
 $route['api/v1/verticals/hospitality/room_status']['post'] = 'api/v1/verticals_api_v1/update_room_status';
 $route['api/v1/verticals/hospitality/charges']['post'] = 'api/v1/verticals_api_v1/add_room_charge';
 $route['api/v1/verticals/hospitality/guest_preferences/(:num)']['post'] = 'api/v1/verticals_api_v1/save_guest_preferences/$1';
+$route['api/v1/verticals/hospitality/tape_chart']['get'] = 'api/v1/verticals_api_v1/get_tape_chart';
+$route['api/v1/verticals/hospitality/checkin']['post'] = 'api/v1/verticals_api_v1/express_checkin';
+$route['api/v1/verticals/hospitality/checkout']['post'] = 'api/v1/verticals_api_v1/express_checkout';
+$route['api/v1/verticals/hospitality/night_audit']['post'] = 'api/v1/verticals_api_v1/run_night_audit';
+$route['api/v1/verticals/hospitality/room_types']['get'] = 'api/v1/verticals_api_v1/get_room_types';
+$route['api/v1/verticals/hospitality/room_types']['post'] = 'api/v1/verticals_api_v1/save_room_type';
+$route['api/v1/verticals/hospitality/property_templates']['get'] = 'api/v1/verticals_api_v1/get_property_templates';
+$route['api/v1/verticals/hospitality/apply_template']['post'] = 'api/v1/verticals_api_v1/apply_property_template';
+$route['api/v1/verticals/hospitality/housekeeping']['get'] = 'api/v1/verticals_api_v1/get_housekeeping_board';
+$route['api/v1/verticals/hospitality/housekeeping/update']['post'] = 'api/v1/verticals_api_v1/update_housekeeping_task';
+$route['api/v1/verticals/hospitality/maintenance']['post'] = 'api/v1/verticals_api_v1/create_maintenance_ticket';
+$route['api/v1/verticals/hospitality/maintenance/resolve']['post'] = 'api/v1/verticals_api_v1/resolve_maintenance_ticket';
+$route['api/v1/verticals/hospitality/kbs/export']['get'] = 'api/v1/verticals_api_v1/export_kbs';
+$route['api/v1/verticals/hospitality/ical/(:num)']['get'] = 'api/v1/verticals_api_v1/export_room_ical/$1';
+$route['api/v1/verticals/hospitality/ical/sync']['post'] = 'api/v1/verticals_api_v1/sync_room_ical';
 
 $route['verticals/education'] = 'verticals/education';
 $route['education'] = 'verticals/education';
@@ -621,5 +652,17 @@ $route['chat_portal/api_qr_start'] = 'chat_portal/api_qr_start';
 $route['inbox'] = 'chat_portal/index';
 $route['messages'] = 'chat_portal/index';
 
+// Enterprise HRMS Aliases
+$route['ik'] = 'hr/index';
+$route['pdks'] = 'attendance/index';
+$route['izinler'] = 'leaves/index';
+$route['bordro'] = 'payroll/index';
+$route['personel_portali'] = 'ess/index';
+
+// Online Consent / Waiver Signing
+$route['consents/sign/(:any)'] = 'consents/sign/$1';
+$route['consents/submit_signature/(:any)'] = 'consents/submit_signature/$1';
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */
+
