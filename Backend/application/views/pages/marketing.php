@@ -4,310 +4,199 @@
 
 <div class="container-fluid backend-page py-3 px-md-4" style="max-width: 1400px;" id="marketing-page">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0 fw-light">
-      <i class="fas fa-bullhorn me-2 text-primary"></i>
-      <?= vars('page_title') ?>
-    </h4>
-    <div class="btn-toolbar" role="toolbar">
+    <div>
+      <h4 class="mb-0 fw-bold text-dark">
+        <i class="fas fa-bullhorn me-2 text-primary"></i>
+        Pazarlama & Reklam Merkezi
+      </h4>
+      <div class="text-muted small mt-1">Google Ads, Meta Ads (Instagram/Facebook), Dönüşüm Takibi ve Müşteri Havuzu</div>
+    </div>
+    <div class="btn-toolbar gap-2" role="toolbar">
       <?php if (vars('initials')['can_add']): ?>
-        <button class="btn btn-outline-secondary me-2" id="refresh-all-segments" title="Tüm segment boyutlarını yeniden hesapla">
-          <i class="fas fa-sync-alt me-1"></i>
-          Segmentleri Güncelle
+        <button class="btn btn-outline-secondary btn-sm" id="btn-assign-customer-segment" title="Müşteriyi Özel Segmente Taşı">
+          <i class="fas fa-user-tag me-1"></i>
+          Segmente Müşteri Ekle
         </button>
-        <button class="btn btn-primary me-2" id="add-segment" title="Yeni segment oluştur">
-          <i class="fas fa-plus me-1"></i>
-          Yeni Segment
-        </button>
-        <button class="btn btn-success" id="add-campaign" title="Yeni kampanya oluştur">
-          <i class="fas fa-paper-plane me-1"></i>
-          Yeni Kampanya
+        <button class="btn btn-primary" id="btn-open-new-campaign" title="Yeni reklam kampanyası oluştur">
+          <i class="fas fa-plus-circle me-1"></i>
+          Yeni Kampanya Oluştur
         </button>
       <?php endif; ?>
     </div>
   </div>
 
+  <?php 
+    $g_conn = vars('google_connected');
+    $m_conn = vars('meta_connected');
+    if (!$g_conn || !$m_conn): 
+  ?>
+  <div class="alert alert-light border border-primary-subtle d-flex align-items-center justify-content-between p-3 mb-3 rounded-3 shadow-sm" role="alert" style="background: #f8fafc;">
+    <div class="d-flex align-items-center gap-3">
+      <div style="font-size:24px; color:#3b82f6; line-height:1;">
+        <i class="fas fa-info-circle"></i>
+      </div>
+      <div>
+        <h6 class="mb-1 fw-bold text-dark" style="font-size:14px;">
+          Google & Meta Reklam ve İletişim Entegrasyonları
+        </h6>
+        <p class="mb-0 text-muted" style="font-size:12.5px;">
+          Google Ads, Meta Ads (Instagram, Facebook), Threads ve WhatsApp Cloud API entegrasyon ayarları <strong>Ayarlar &gt; Entegrasyonlar</strong> sekmesine taşınmıştır. Tek tıkla hesaplarınızı bağlayabilirsiniz.
+        </p>
+      </div>
+    </div>
+    <div class="ms-3">
+      <a href="<?= site_url('settings?tab=integrations#social-settings') ?>" class="btn btn-outline-primary btn-sm fw-bold px-3 py-2 shadow-sm text-nowrap" style="border-radius:8px;">
+        <i class="fas fa-plug me-1"></i> Entegrasyonlar Sayfasına Git
+      </a>
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <!-- Main Navigation Tabs -->
   <ul class="nav nav-tabs mb-3" id="marketing-tabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="segments-tab" data-bs-toggle="tab" data-bs-target="#segments-pane" type="button" role="tab">
-        <i class="fas fa-users me-1"></i>
-        Segmentler
+      <button class="nav-link active fw-semibold" id="campaigns-tab" data-bs-toggle="tab" data-bs-target="#campaigns-pane" type="button" role="tab">
+        <i class="fas fa-ad me-1 text-primary"></i>
+        Kampanyalar (Google & Meta)
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="campaigns-tab" data-bs-toggle="tab" data-bs-target="#campaigns-pane" type="button" role="tab">
-        <i class="fas fa-paper-plane me-1"></i>
-        Kampanyalar
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="integrations-tab" data-bs-toggle="tab" data-bs-target="#integrations-pane" type="button" role="tab">
-        <i class="fab fa-google me-1 text-danger"></i><i class="fab fa-meta me-1 text-primary"></i>
-        Google & Meta Entegrasyonları
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="attributions-tab" data-bs-toggle="tab" data-bs-target="#attributions-pane" type="button" role="tab">
+      <button class="nav-link fw-semibold" id="attributions-tab" data-bs-toggle="tab" data-bs-target="#attributions-pane" type="button" role="tab">
         <i class="fas fa-chart-line me-1 text-success"></i>
-        Dönüşüm & Reklam Atıfları
+        Dönüşümler (Leads & Satışlar)
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="landing-pages-tab" data-bs-toggle="tab" data-bs-target="#landing-pages-pane" type="button" role="tab">
+      <button class="nav-link fw-semibold" id="landing-pages-tab" data-bs-toggle="tab" data-bs-target="#landing-pages-pane" type="button" role="tab">
         <i class="fas fa-laptop-code me-1 text-info"></i>
         Açılış Sayfaları (Landing Pages)
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link fw-semibold" id="segments-tab" data-bs-toggle="tab" data-bs-target="#segments-pane" type="button" role="tab">
+        <i class="fas fa-users-cog me-1 text-secondary"></i>
+        Segmentasyon (Müşteri Havuzu)
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link fw-semibold" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews-pane" type="button" role="tab">
+        <i class="fas fa-star me-1 text-warning"></i>
+        Müşteri Değerlendirmeleri
       </button>
     </li>
   </ul>
 
   <div class="tab-content" id="marketing-tab-content">
-    <!-- 1. Segments Pane -->
-    <div class="tab-pane fade show active" id="segments-pane" role="tabpanel">
+    
+    <!-- 1. CAMPAIGNS PANE (PRIMARY DEFAULT) -->
+    <div class="tab-pane fade show active" id="campaigns-pane" role="tabpanel">
+      <!-- KPI Metric Cards -->
+      <div class="row g-3 mb-3">
+        <div class="col-6 col-md-4 col-xl">
+          <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small fw-bold text-uppercase">Toplam Harcama</span>
+              <span class="badge bg-danger-subtle text-danger"><i class="fas fa-coins"></i></span>
+            </div>
+            <div class="fs-4 fw-bold text-dark mt-2" id="kpi-total-spend">0,00 ₺</div>
+            <div class="small text-muted mt-1"><i class="fab fa-google text-danger me-1"></i> Google + <i class="fab fa-meta text-primary me-1"></i> Meta</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small fw-bold text-uppercase">Gösterimler</span>
+              <span class="badge bg-primary-subtle text-primary"><i class="fas fa-eye"></i></span>
+            </div>
+            <div class="fs-4 fw-bold text-primary mt-2" id="kpi-total-impressions">0</div>
+            <div class="small text-muted mt-1">Reklam Görüntülenme</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small fw-bold text-uppercase">Tıklama & TBM</span>
+              <span class="badge bg-info-subtle text-info"><i class="fas fa-mouse-pointer"></i></span>
+            </div>
+            <div class="fs-4 fw-bold text-info mt-2" id="kpi-total-clicks">0</div>
+            <div class="small text-muted mt-1">Ort. TBM: <strong id="kpi-avg-cpc">0,00 ₺</strong></div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small fw-bold text-uppercase">Dönüşümler (Lead)</span>
+              <span class="badge bg-success-subtle text-success"><i class="fas fa-check-circle"></i></span>
+            </div>
+            <div class="fs-4 fw-bold text-success mt-2" id="kpi-total-conversions">0</div>
+            <div class="small text-muted mt-1">Randevu & Form Başarısı</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-xl">
+          <div class="card border-0 shadow-sm p-3 h-100 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-muted small fw-bold text-uppercase">Ortalama ROAS</span>
+              <span class="badge bg-warning-subtle text-warning"><i class="fas fa-chart-line"></i></span>
+            </div>
+            <div class="fs-4 fw-bold text-dark mt-2" id="kpi-avg-roas">0.00x</div>
+            <div class="small text-success mt-1"><i class="fas fa-arrow-trend-up me-1"></i> Reklam Getirisi</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Visualizer & Filter Bar -->
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-3">
+          <div class="row align-items-center g-3">
+            <div class="col-md-6">
+              <div class="d-flex align-items-center gap-2">
+                <span class="fw-bold small text-muted text-uppercase me-2">Platform Filtresi:</span>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-outline-secondary active campaign-filter-btn" data-filter="all">Tümü</button>
+                  <button type="button" class="btn btn-outline-danger campaign-filter-btn" data-filter="google_ads"><i class="fab fa-google me-1"></i> Google Ads</button>
+                  <button type="button" class="btn btn-outline-primary campaign-filter-btn" data-filter="meta_ads"><i class="fab fa-meta me-1"></i> Meta Ads</button>
+                  <button type="button" class="btn btn-outline-dark campaign-filter-btn" data-filter="broadcast"><i class="fas fa-envelope me-1"></i> Yayın / İletişim</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <div class="d-inline-flex align-items-center gap-3 small text-muted">
+                <div><span class="badge rounded-circle p-1 bg-danger me-1">&nbsp;</span> Google Ads: <strong id="bar-google-spend">0 ₺</strong></div>
+                <div><span class="badge rounded-circle p-1 bg-primary me-1">&nbsp;</span> Meta Ads: <strong id="bar-meta-spend">0 ₺</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campaigns Table -->
       <div class="card border-0 shadow-sm">
         <div class="table-responsive">
-          <table class="table table-hover mb-0" id="segments-table">
-            <thead>
+          <table class="table table-hover align-middle mb-0" id="campaigns-table">
+            <thead class="table-light">
               <tr>
-                <th>Ad</th>
-                <th>Tür</th>
-                <th>Kural</th>
-                <th class="text-center">Üye Sayısı</th>
+                <th style="min-width: 220px;">Kampanya & Platform</th>
+                <th>Tür / Reklam Grubu</th>
+                <th class="text-end">Günlük Bütçe</th>
+                <th class="text-center">Gösterim</th>
+                <th class="text-center">Tıklama</th>
+                <th class="text-center">Ort. TBM</th>
+                <th class="text-end">Harcama</th>
+                <th class="text-center">Dönüşüm</th>
+                <th class="text-center">ROAS</th>
                 <th class="text-center">Durum</th>
-                <th><?= lang('actions') ?></th>
+                <th class="text-end" style="min-width: 140px;"><?= lang('actions') ?></th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+              <!-- Rendered via JS -->
+            </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- 2. Campaigns Pane -->
-    <div class="tab-pane fade" id="campaigns-pane" role="tabpanel">
-      <div class="card border-0 shadow-sm">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0" id="campaigns-table">
-            <thead>
-              <tr>
-                <th>Ad</th>
-                <th>Segment / Tür</th>
-                <th>Kanal</th>
-                <th class="text-center">Bütçe</th>
-                <th class="text-center">Alıcı</th>
-                <th class="text-center">Gönderildi</th>
-                <th class="text-center">Başarısız</th>
-                <th><?= lang('status') ?></th>
-                <th><?= lang('actions') ?></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Google & Meta Integrations Pane -->
-    <div class="tab-pane fade" id="integrations-pane" role="tabpanel">
-      <div class="row">
-        <!-- Google Suite -->
-        <div class="col-lg-6 mb-4">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom py-3">
-              <h5 class="card-title mb-0 d-flex align-items-center">
-                <i class="fab fa-google text-danger fs-4 me-2"></i>
-                Google Pazarlama & Analitik Paketi
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Google Ads (Dönüşüm / Müşteri ID)</label>
-                <input type="text" class="form-control" id="int-google-ads-id" placeholder="Örn: AW-123456789 veya 123-456-7890">
-                <div class="form-text">Google Ads dönüşümlerini ve randevu değerlerini otomatik raporlar.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Google Analytics 4 (GA4 Ölçüm Kimliği)</label>
-                <input type="text" class="form-control" id="int-google-analytics-id" placeholder="Örn: G-XXXXXXXXXX">
-                <div class="form-text">Tüm rezervasyon adımlarını ve sayfa akışlarını GA4 ile izler.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Google Tag Manager (GTM Container ID)</label>
-                <input type="text" class="form-control" id="int-gtm-container-id" placeholder="Örn: GTM-XXXXXXX">
-                <div class="form-text">Özel etiket ve tetikleyiciler için GTM kapsayıcısı enjekte edilir.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Google Search Console Doğrulama Kodu</label>
-                <input type="text" class="form-control" id="int-google-search-console-token" placeholder="Örn: google-site-verification token veya meta içeriği">
-                <div class="form-text">Arama motoru dizinleme ve organik arama analitiği için site mülkiyeti doğrular.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Google Trends Takip Anahtar Kelimeleri</label>
-                <input type="text" class="form-control" id="int-google-trends-keywords" placeholder="Örn: kuaför, cilt bakımı, masaj, rezervasyon">
-                <div class="form-text">Sektörünüzde arama trendlerini ve popülerliği takip eder (virgülle ayırın).</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Google Business Profile (İşletme Profili) ID</label>
-                <input type="text" class="form-control" id="int-google-business-profile-id" placeholder="Örn: locations/123456789">
-                <div class="form-text">Harita ve Google İşletme profilinizden gelen randevu trafiklerini eşler.</div>
-              </div>
-
-              <!-- Trends Live Insights Box -->
-              <div class="p-3 bg-light rounded border mt-4">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold small text-uppercase text-muted"><i class="fas fa-chart-line me-1"></i> Canlı Arama Trendi Özeti</span>
-                  <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none" id="refresh-trends-btn">Yenile</button>
-                </div>
-                <div id="trends-preview" class="small">
-                  <div class="text-muted">Trend verileri yükleniyor...</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Meta Suite -->
-        <div class="col-lg-6 mb-4">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom py-3">
-              <h5 class="card-title mb-0 d-flex align-items-center">
-                <i class="fab fa-meta text-primary fs-4 me-2"></i>
-                Meta (Facebook & Instagram) Paketi
-              </h5>
-            </div>
-            <div class="card-body">
-              <div class="mb-3">
-                <label class="form-label fw-bold">Meta Pixel Kimliği (Pixel ID)</label>
-                <input type="text" class="form-control" id="int-meta-pixel-id" placeholder="Örn: 1234567890123456">
-                <div class="form-text">Rezervasyon sayfalarında PageView ve Schedule olaylarını otomatik tetikler.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Meta Dönüşümler API (CAPI) Erişim Jetonu</label>
-                <textarea class="form-control" id="int-meta-capi-token" rows="2" placeholder="EAA..."></textarea>
-                <div class="form-text">iOS 14+ ve reklam engelleyicileri aşarak sunucu taraflı güvenli dönüşüm gönderir.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Meta Reklam Hesabı ID (Ad Account ID)</label>
-                <input type="text" class="form-control" id="int-meta-ad-account-id" placeholder="Örn: act_123456789">
-                <div class="form-text">Kampanya bütçesi ve tıklama atıflarını bağlar.</div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label fw-bold">Meta Sayfa / Instagram İşletme ID</label>
-                <input type="text" class="form-control" id="int-meta-page-id" placeholder="Örn: 987654321">
-                <div class="form-text">İşletme sayfası ve Instagram profil senkronizasyonu.</div>
-              </div>
-              <div class="mb-4">
-                <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" id="int-meta-status-sync-enabled">
-                  <label class="form-check-label fw-bold" for="int-meta-status-sync-enabled">
-                    Otomatik Durum & Promosyon Gönderi Senkronizasyonu
-                  </label>
-                </div>
-                <div class="form-text">Yeni kampanyaları ve açılan randevu boşluklarını otomatik olarak Meta hikaye/durumunda paylaşır.</div>
-              </div>
-
-              <!-- Meta Status Sync Box -->
-              <div class="p-3 bg-light rounded border">
-                <h6 class="fw-bold mb-2"><i class="fab fa-instagram text-danger me-1"></i> Meta Hikaye / Durum Senkronizasyonu</h6>
-                <p class="small text-muted mb-2">Profilinizde hemen paylaşılacak promosyon veya randevu duyurusu metnini test edin:</p>
-                <div class="input-group mb-2">
-                  <input type="text" class="form-control form-control-sm" id="meta-status-text" value="Bu haftaya özel seçili hizmetlerimizde %20 indirim! Hemen randevu alın.">
-                  <button class="btn btn-sm btn-outline-primary" type="button" id="sync-meta-status-btn">
-                    <i class="fas fa-paper-plane me-1"></i> Şimdi Yayınla
-                  </button>
-                </div>
-                <div id="meta-status-result" class="small text-success d-none"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Live Google & Meta API Console (GA4 Realtime + Ads Management) -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="mb-0 fw-bold">
-              <i class="fas fa-satellite-dish text-primary me-2"></i>
-              Canlı Google & Meta API Konsolu
-            </h6>
-            <small class="text-muted">GA4 Gerçek Zamanlı Trafik, Google Ads & Meta Marketing API Kampanya Durumları</small>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-sm btn-outline-primary" id="btn-fetch-remote-campaigns">
-              <i class="fas fa-sync-alt me-1"></i> Reklamları Çek
-            </button>
-            <button class="btn btn-sm btn-outline-success" id="btn-test-connections">
-              <i class="fas fa-plug me-1"></i> Bağlantıları Test Et
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="row g-3 mb-3">
-            <!-- GA4 Realtime Monitor -->
-            <div class="col-lg-4">
-              <div class="p-3 bg-light rounded border h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold small text-uppercase text-muted"><i class="fab fa-google text-danger me-1"></i> GA4 Canlı Ziyaretçi</span>
-                  <span class="badge bg-success" id="ga4-active-badge">Canlı</span>
-                </div>
-                <div class="display-5 fw-bold text-primary mb-2" id="ga4-active-users">--</div>
-                <div class="small text-muted mb-2">Şu an sitede aktif kullanıcı sayısı</div>
-                <ul class="list-group list-group-flush small" id="ga4-active-pages">
-                  <li class="list-group-item bg-transparent px-0 py-1 text-muted">Veriler yükleniyor...</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Unified Google & Meta Ads Performance -->
-            <div class="col-lg-8">
-              <div class="p-3 bg-light rounded border h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="fw-bold small text-uppercase text-muted"><i class="fas fa-ad text-primary me-1"></i> Aktif Reklam Kampanyaları & ROAS</span>
-                  <span class="small text-muted" id="remote-ads-last-sync">Son güncelleme: --</span>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-sm table-hover mb-0 align-middle" id="remote-campaigns-table">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Platform</th>
-                        <th>Kampanya Adı</th>
-                        <th>Durum</th>
-                        <th>Harcama</th>
-                        <th>Tıklama</th>
-                        <th>Dönüşüm / ROAS</th>
-                        <th class="text-end">İşlem</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td colspan="7" class="text-center text-muted py-3">Kampanyaları listelemek için "Reklamları Çek" butonuna basınız.</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Connection Test Results Box -->
-          <div id="connection-test-results" class="d-none alert alert-info mb-0"></div>
-        </div>
-      </div>
-
-      <!-- Save Integrations Action Bar -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <span class="text-muted small">
-            <i class="fas fa-shield-alt text-success me-1"></i>
-            Tüm entegrasyon anahtarları kiracı veritabanında güvenli şekilde saklanır.
-          </span>
-          <button type="button" class="btn btn-primary px-4" id="save-integrations">
-            <i class="fas fa-save me-1"></i>
-            Entegrasyonları Kaydet
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. Attribution & Customer Extraction Pane -->
+    <!-- 2. ATTRIBUTIONS PANE (DÖNÜŞÜMLER) -->
     <div class="tab-pane fade" id="attributions-pane" role="tabpanel">
       <!-- KPI Overview Cards -->
       <div class="row g-3 mb-4">
@@ -334,9 +223,9 @@
         </div>
         <div class="col-md-3">
           <div class="card border-0 shadow-sm p-3">
-            <div class="text-muted small text-uppercase fw-bold">Atfedilen Gelir</div>
+            <div class="text-muted small text-uppercase fw-bold">Atfedilen Toplam Gelir</div>
             <div class="fs-3 fw-bold text-primary mt-1" id="attr-stat-revenue">0,00 ₺</div>
-            <div class="small text-muted mt-1"><i class="fas fa-wallet me-1"></i> Satış Değeri</div>
+            <div class="small text-muted mt-1"><i class="fas fa-wallet me-1"></i> Tamamlanan Satış Değeri</div>
           </div>
         </div>
       </div>
@@ -344,25 +233,28 @@
       <!-- Attributions Table Card -->
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-bold">
-            <i class="fas fa-user-secret me-2 text-primary"></i>
-            Reklam Ziyaretçileri, Tıklama Saatleri & Çıkarılan Müşteri Kimlikleri
-          </h6>
+          <div>
+            <h6 class="mb-0 fw-bold">
+              <i class="fas fa-user-secret me-2 text-primary"></i>
+              Google & Meta Reklam Ziyaretçileri, Tıklama Kaynakları ve Lead Dönüşümleri
+            </h6>
+            <small class="text-muted">Gelen müşterilerin hangi reklam kampanyasından, anahtar kelimeden veya reklam setinden geldiği takip edilir.</small>
+          </div>
           <button class="btn btn-sm btn-outline-secondary" id="refresh-attributions-btn">
             <i class="fas fa-sync-alt me-1"></i> Listeyi Yenile
           </button>
         </div>
         <div class="table-responsive">
           <table class="table table-hover mb-0" id="attributions-table">
-            <thead>
+            <thead class="table-light">
               <tr>
-                <th>Kaynak / Reklam</th>
-                <th>Tıklama Saati</th>
-                <th>Çıkarılan Müşteri Kimliği</th>
+                <th>Kaynak & Platform</th>
+                <th>Tıklama Zamanı</th>
+                <th>Müşteri / Lead Bilgisi</th>
                 <th>Heatmap & Etkileşim</th>
-                <th>Kampanya / UTM</th>
+                <th>Kampanya / UTM / Keyword</th>
                 <th class="text-center">Dönüşüm & Gelir</th>
-                <th><?= lang('actions') ?></th>
+                <th class="text-end"><?= lang('actions') ?></th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -371,14 +263,35 @@
       </div>
     </div>
 
-    <!-- 5. Landing Pages Pane -->
+    <!-- 3. LANDING PAGES PANE (AÇILIŞ SAYFALARI) -->
     <div class="tab-pane fade" id="landing-pages-pane" role="tabpanel">
+      <!-- Cookie Consent Banner Notice -->
+      <div class="card border-0 shadow-sm mb-3 bg-light-subtle">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-3">
+            <div class="fs-3 text-warning"><i class="fas fa-cookie-bite"></i></div>
+            <div>
+              <div class="fw-bold">KVKK & Çerez Onay Bildirimi (Cookie Consent) Entegre</div>
+              <div class="small text-muted">Açılış sayfalarında ve online rezervasyonda ziyaretçilere otomatik çerez onay bildirimi sunulur, pikseller onay sonrasında tetiklenir.</div>
+            </div>
+          </div>
+          <div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-semibold">
+              <i class="fas fa-shield-alt me-1"></i> KVKK & GDPR Uyumlu Aktif
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-bold">
-            <i class="fas fa-laptop-code me-2 text-info"></i>
-            Özel Kampanya Açılış Sayfaları (Landing Pages)
-          </h6>
+          <div>
+            <h6 class="mb-0 fw-bold">
+              <i class="fas fa-laptop-code me-2 text-info"></i>
+              Kampanyaya Özel Açılış Sayfaları (Landing Pages)
+            </h6>
+            <small class="text-muted">Özel URL uzantıları (slug), Meta Pixel, Google Tag Manager ve UTM parametreleri ile yüksek dönüşüm sağlayan sayfalar.</small>
+          </div>
           <?php if (vars('initials')['can_add']): ?>
             <button class="btn btn-sm btn-primary" id="add-landing-page">
               <i class="fas fa-plus me-1"></i> Yeni Açılış Sayfası Ekle
@@ -386,17 +299,17 @@
           <?php endif; ?>
         </div>
         <div class="table-responsive">
-          <table class="table table-hover mb-0" id="landing-pages-table">
-            <thead>
+          <table class="table table-hover mb-0 align-middle" id="landing-pages-table">
+            <thead class="table-light">
               <tr>
-                <th>Başlık</th>
+                <th>Sayfa Başlığı</th>
                 <th>Slug (URL)</th>
                 <th>Bağlı Hizmet</th>
                 <th class="text-center">Ziyaret</th>
                 <th class="text-center">Dönüşüm</th>
                 <th class="text-center">Dönüşüm Oranı</th>
                 <th class="text-center">Durum</th>
-                <th><?= lang('actions') ?></th>
+                <th class="text-end"><?= lang('actions') ?></th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -404,24 +317,450 @@
         </div>
       </div>
     </div>
+
+    <!-- 4. SEGMENTS PANE (SEGMENTASYON & MÜŞTERİ HAVUZU) -->
+    <div class="tab-pane fade" id="segments-pane" role="tabpanel">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h6 class="mb-0 fw-bold">Müşteri Segmentleri & Özel Hedefleme Havuzları</h6>
+          <small class="text-muted">Müşterilerinizi kural bazlı (VIP, Pasif, Doğum Günü) veya özel listelere ayırarak reklam ve duyurularınızda hedef kitle olarak kullanın.</small>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm" id="refresh-all-segments">
+            <i class="fas fa-sync-alt me-1"></i> Segmentleri Yenile
+          </button>
+          <button class="btn btn-primary btn-sm" id="add-segment">
+            <i class="fas fa-plus me-1"></i> Yeni Segment
+          </button>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" id="segments-table">
+            <thead class="table-light">
+              <tr>
+                <th>Segment Adı</th>
+                <th>Tür</th>
+                <th>Kural / Koşul</th>
+                <th class="text-center">Müşteri Sayısı</th>
+                <th class="text-center">Durum</th>
+                <th class="text-end"><?= lang('actions') ?></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. REVIEWS PANE (MÜŞTERİ DEĞERLENDİRMELERİ & RANDEVUBURADA) -->
+    <div class="tab-pane fade" id="reviews-pane" role="tabpanel">
+      <div class="alert alert-info border-0 shadow-sm d-flex align-items-center justify-content-between p-3 mb-3 rounded-3" style="background:#eff6ff;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="font-size:24px; color:#2563eb; line-height:1;">
+            <i class="fas fa-store"></i>
+          </div>
+          <div>
+            <h6 class="mb-1 fw-bold text-dark" style="font-size:14px;">
+              RandevuBurada Vitrin Yorum Entegrasyonu
+            </h6>
+            <p class="mb-0 text-muted" style="font-size:12.5px;">
+              İşletmenize gelen gerçek müşteri değerlendirmelerini onaylayabilir ve tercihinize göre <strong>RandevuBurada Vitrin Profilinizde</strong> yayınlanmasını sağlayabilirsiniz.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h6 class="mb-0 fw-bold">
+            <i class="fas fa-comments text-primary me-2"></i>
+            Müşteri Yorumları & Değerlendirmeler
+          </h6>
+          <span class="badge bg-secondary-subtle text-secondary px-3 py-1">Toplam: <?= count($reviews ?? []) ?> Değerlendirme</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0" id="reviews-table">
+            <thead class="table-light">
+              <tr>
+                <th>Müşteri</th>
+                <th>Puan</th>
+                <th>Yorum Metni</th>
+                <th>Hizmet / Uzman</th>
+                <th>Tarih</th>
+                <th class="text-center">RandevuBurada'da Yayınla</th>
+                <th class="text-center">Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (empty($reviews)): ?>
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">Henüz müşteri değerlendirmesi bulunmamaktadır.</td>
+                </tr>
+              <?php else: ?>
+                <?php foreach ($reviews as $rev): ?>
+                  <tr>
+                    <td class="fw-semibold">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold" style="width:34px; height:34px; font-size:12px;">
+                          <?= mb_substr($rev['customer_name_display'] ?? 'M', 0, 1) ?>
+                        </div>
+                        <div>
+                          <div><?= e($rev['customer_name_display'] ?? 'Anonim') ?></div>
+                          <small class="text-muted">Randevu #<?= $rev['appointment_id'] ?></small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="text-warning">
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                          <i class="<?= $i <= (int)($rev['rating'] ?? 0) ? 'fas' : 'far' ?> fa-star"></i>
+                        <?php endfor; ?>
+                        <span class="ms-1 fw-bold text-dark"><?= (int)($rev['rating'] ?? 0) ?>/5</span>
+                      </div>
+                    </td>
+                    <td style="max-width: 300px;">
+                      <div class="text-truncate" title="<?= e($rev['comment'] ?? 'Puanlama yapıldı, yorum yazılmadı.') ?>">
+                        <?= e($rev['comment'] ?? 'Puanlama yapıldı, yorum yazılmadı.') ?>
+                      </div>
+                    </td>
+                    <td class="small">
+                      <div><strong class="text-dark"><?= e($rev['service_name'] ?? 'Hizmet') ?></strong></div>
+                      <span class="text-muted"><?= e($rev['provider_name_display'] ?? '') ?></span>
+                    </td>
+                    <td class="small text-muted">
+                      <?= !empty($rev['created_at']) ? date('d.m.Y H:i', strtotime($rev['created_at'])) : '-' ?>
+                    </td>
+                    <td class="text-center">
+                      <div class="form-check form-switch d-inline-block">
+                        <input class="form-check-input review-toggle-randevuburada" type="checkbox" role="switch" data-review-id="<?= $rev['id'] ?>" <?= !empty($rev['publish_to_randevuburada']) ? 'checked' : '' ?>>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <?php if ($rev['status'] === 'published'): ?>
+                        <span class="badge bg-success">Onaylandı</span>
+                      <?php elseif ($rev['status'] === 'pending'): ?>
+                        <span class="badge bg-warning text-dark">Beklemede</span>
+                      <?php else: ?>
+                        <span class="badge bg-secondary"><?= e($rev['status']) ?></span>
+                      <?php endif; ?>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- Segment Modal (Preserved) -->
+<!-- ========================================== -->
+<!-- MODAL: YENİ REKLAM KAMPANYASI (GOOGLE & META) -->
+<!-- ========================================== -->
+<div class="modal fade" id="new-campaign-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header border-bottom bg-light py-3">
+        <h5 class="modal-title fw-bold text-dark" id="new-campaign-modal-title">
+          <i class="fas fa-bullhorn text-primary me-2"></i>
+          Yeni Reklam Kampanyası Oluştur
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <!-- Two distinct tabs for Google Ads & Meta Ads -->
+        <ul class="nav nav-tabs nav-fill bg-light px-3 pt-2 border-bottom" id="campaign-platform-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold py-3" id="tab-btn-google-ads" data-bs-toggle="tab" data-bs-target="#tab-pane-google-ads" type="button" role="tab">
+              <i class="fab fa-google text-danger fs-5 me-2"></i>
+              Google Ads Kampanyası
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold py-3" id="tab-btn-meta-ads" data-bs-toggle="tab" data-bs-target="#tab-pane-meta-ads" type="button" role="tab">
+              <i class="fab fa-meta text-primary fs-5 me-2"></i>
+              Meta Ads (Instagram & Facebook)
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content p-4" id="campaign-platform-content">
+          <!-- 1. GOOGLE ADS TAB -->
+          <div class="tab-pane fade show active" id="tab-pane-google-ads" role="tabpanel">
+            <form id="google-ads-form">
+              <div class="row g-3">
+                <div class="col-md-7">
+                  <label class="form-label fw-bold">Kampanya Adı <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="g-campaign-name" placeholder="Örn: Google - Arama Ağı Cilt Bakımı & Lazer" required>
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label fw-bold">Kampanya Türü</label>
+                  <select class="form-select" id="g-campaign-type">
+                    <option value="search">Arama Ağı (Search Ads)</option>
+                    <option value="display">Görüntülü Reklam Ağı (Display)</option>
+                    <option value="pmax">Performance Max (Maksimum Performans)</option>
+                    <option value="video">YouTube Video Kampanyası</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Reklam Grubu Adı</label>
+                  <input type="text" class="form-control" id="g-ad-group-name" placeholder="Örn: Cilt Bakımı Randevu">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Teklif Stratejisi</label>
+                  <select class="form-select" id="g-bidding-strategy">
+                    <option value="maximize_conversions">Dönüşümleri En Üst Düzeye Çıkar (Maximize Conversions)</option>
+                    <option value="maximize_clicks">Tıklamaları En Üst Düzeye Çıkar (Maximize Clicks)</option>
+                    <option value="target_cpa">Hedef EBM / CPA (Dönüşüm Başına Maliyet)</option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold">Hedef Anahtar Kelimeler (Keywords)</label>
+                  <textarea class="form-control font-monospace small" id="g-keywords" rows="3" placeholder="Örn:&#10;kuaför randevu&#10;&quot;en iyi cilt bakımı&quot;&#10;[lazer epilasyon istanbul]"></textarea>
+                  <div class="form-text">Geniş eşleme için düz metin, sıralı eşleme için tırnak ("kelime"), tam eşleme için köşeli parantez ([kelime]) kullanın. Her satıra bir anahtar kelime yazın.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Reklam Başlığı 1 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="g-headline-1" placeholder="Örn: Profesyonel Cilt & Saç Bakımı" required maxlength="30">
+                  <div class="form-text">Maks 30 karakter</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Reklam Başlığı 2</label>
+                  <input type="text" class="form-control" id="g-headline-2" placeholder="Örn: Şimdi Online Randevu Alın" maxlength="30">
+                  <div class="form-text">Maks 30 karakter</div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold">Reklam Açıklaması <span class="text-danger">*</span></label>
+                  <textarea class="form-control" id="g-description" rows="2" placeholder="Uzman kadromuz ile güzelliğinizi ve sağlığınızı ön planda tutun. İlk randevunuza özel indirim fırsatı." maxlength="90" required></textarea>
+                  <div class="form-text">Maks 90 karakter</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Günlük Bütçe (₺) <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <input type="number" step="10" min="50" class="form-control" id="g-budget" value="250" required>
+                    <span class="input-group-text">₺ / gün</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Nihai Hedef URL</label>
+                  <input type="text" class="form-control" id="g-target-url" placeholder="https://isletmeniz.com/ veya /p/landing-sayfasi">
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- 2. META ADS TAB -->
+          <div class="tab-pane fade" id="tab-pane-meta-ads" role="tabpanel">
+            <form id="meta-ads-form">
+              <div class="row g-3">
+                <div class="col-md-7">
+                  <label class="form-label fw-bold">Kampanya Adı <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="m-campaign-name" placeholder="Örn: Meta - Instagram Reels & Hikayeler Bahar İndirimi" required>
+                </div>
+                <div class="col-md-5">
+                  <label class="form-label fw-bold">Kampanya Amacı (Objective)</label>
+                  <select class="form-select" id="m-objective">
+                    <option value="leads">Potansiyel Müşteriler (Leads & Randevu)</option>
+                    <option value="traffic">Trafik (Web Sitesi Ziyaretleri)</option>
+                    <option value="sales">Satışlar (Dönüşümler)</option>
+                    <option value="engagement">Etkileşim (Mesaj & Beğeni)</option>
+                    <option value="awareness">Bilinirlik (Erişim & Gösterim)</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Reklam Seti Adı</label>
+                  <input type="text" class="form-control" id="m-adset-name" placeholder="Örn: Kadınlar 20-45 İstanbul">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Reklam Yerleşimleri (Placements)</label>
+                  <select class="form-select" id="m-placements">
+                    <option value="advantage_plus">Advantage+ Yerleşimler (Önerilen - Otomatik)</option>
+                    <option value="instagram_reels_stories">Instagram Reels & Hikayeler</option>
+                    <option value="instagram_feed">Sadece Instagram Akışı</option>
+                    <option value="facebook_feed">Sadece Facebook Akışı</option>
+                  </select>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold">Hedef Kitle (Demografi, Lokasyon & İlgi Alanları)</label>
+                  <input type="text" class="form-control" id="m-audience" placeholder="Örn: Kadınlar 20-50, Güzellik, Saç Modelleri, Cilt Sağlığı (İstanbul +20km)">
+                  <div class="form-text">Meta Marketing API kitle parametreleri ile doğrudan hedeflenir.</div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-bold">Reklam Ana Metni (Primary Text) <span class="text-danger">*</span></label>
+                  <textarea class="form-control" id="m-primary-text" rows="3" placeholder="Kendinizi şımartmanın tam zamanı! Şimdi randevunuzu oluşturun, ilk seansınıza özel %20 indirim kazanın." required></textarea>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Reklam Başlığı <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="m-headline" placeholder="Örn: İlk Randevunuza Özel %20 İndirim" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Eylem Çağrısı (CTA Butonu)</label>
+                  <select class="form-select" id="m-cta">
+                    <option value="BOOK_NOW">Randevu Al (Book Now)</option>
+                    <option value="APPLY_NOW">Şimdi Başvur</option>
+                    <option value="CONTACT_US">Bize Ulaşın</option>
+                    <option value="LEARN_MORE">Daha Fazla Bilgi Al</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Günlük Bütçe (₺) <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <input type="number" step="10" min="50" class="form-control" id="m-budget" value="200" required>
+                    <span class="input-group-text">₺ / gün</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold">Açılış / Randevu Sayfası URL</label>
+                  <input type="text" class="form-control" id="m-target-url" placeholder="https://isletmeniz.com/ veya /p/kampanya">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-primary" id="btn-save-campaign-draft">
+            <i class="fas fa-file-alt me-1"></i> Taslak Olarak Kaydet
+          </button>
+          <button type="button" class="btn btn-success" id="btn-publish-campaign">
+            <i class="fas fa-paper-plane me-1"></i> Yayınla ve Başlat
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: KAMPANYA METRİKLERİNİ DÜZENLE -->
+<!-- ========================================== -->
+<div class="modal fade" id="campaign-metrics-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold">
+          <i class="fas fa-sliders-h text-primary me-2"></i>
+          Kampanya Metriklerini Düzenle
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-metric-campaign-id">
+        <div class="mb-3">
+          <label class="form-label fw-bold">Kampanya Adı</label>
+          <input type="text" class="form-control bg-light" id="edit-metric-campaign-name" readonly>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label fw-bold">Gösterim (Impressions)</label>
+            <input type="number" class="form-control" id="edit-metric-impressions">
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-bold">Tıklama (Clicks)</label>
+            <input type="number" class="form-control" id="edit-metric-clicks">
+          </div>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label fw-bold">Harcama (Spend ₺)</label>
+            <input type="number" step="0.01" class="form-control" id="edit-metric-spend">
+          </div>
+          <div class="col-6">
+            <label class="form-label fw-bold">Dönüşüm (Leads / Satış)</label>
+            <input type="number" class="form-control" id="edit-metric-conversions">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">ROAS (Reklam Getirisi Katsayısı)</label>
+          <input type="number" step="0.01" class="form-control" id="edit-metric-roas" placeholder="Örn: 3.85">
+        </div>
+      </div>
+      <div class="modal-footer border-top">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+        <button type="button" class="btn btn-primary" id="btn-save-metrics">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: SEGMENET'E MÜŞTERİ TAŞI / EKLE -->
+<!-- ========================================== -->
+<div class="modal fade" id="assign-customer-segment-modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold">
+          <i class="fas fa-user-plus text-primary me-2"></i>
+          Müşteriyi Özel Segmente Ekle
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-3">Mevcut bir müşteriyi seçerek potansiyel müşteri havuzunuzdaki özel bir segmente atayabilirsiniz.</p>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Müşteri Seçin <span class="text-danger">*</span></label>
+          <select class="form-select" id="assign-customer-id">
+            <option value="">-- Müşteri Seçin --</option>
+            <?php foreach ($customers ?? [] as $c): ?>
+              <option value="<?= $c['id'] ?>">
+                <?= e(($c['first_name'] ?? '') . ' ' . ($c['last_name'] ?? '')) ?> 
+                <?= !empty($c['phone_number']) ? ' (' . e($c['phone_number']) . ')' : '' ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold">Hedef Segment <span class="text-danger">*</span></label>
+          <select class="form-select" id="assign-segment-id">
+            <option value="">-- Segment Seçin --</option>
+            <?php foreach ($segments ?? [] as $s): ?>
+              <option value="<?= $s['id'] ?>"><?= e($s['name']) ?> (<?= e($s['type']) ?>)</option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer border-top">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-assign-customer">Segmente Ekle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: SEGMENT OLUŞTUR / DÜZENLE -->
+<!-- ========================================== -->
 <div class="modal fade" id="segment-modal" tabindex="-1">
   <div class="modal-dialog">
-    <div class="modal-content">
+    <div class="modal-content shadow-lg border-0">
       <div class="modal-header">
-        <h5 class="modal-title" id="segment-modal-title">Yeni Segment</h5>
+        <h5 class="modal-title fw-bold" id="segment-modal-title">Yeni Segment</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label">Ad</label>
+          <label class="form-label fw-bold">Ad</label>
           <input type="text" class="form-control" id="segment-name" placeholder="Örn: VIP Müşteriler">
         </div>
         <div class="mb-3">
-          <label class="form-label">Tür</label>
+          <label class="form-label fw-bold">Tür</label>
           <select class="form-select" id="segment-type">
             <option value="vip">VIP (asgari randevu sayısı)</option>
             <option value="inactive">Pasif (uzun süredir randevu yok)</option>
@@ -431,25 +770,24 @@
           </select>
         </div>
         <div id="segment-rule-vip" class="mb-3 d-none">
-          <label class="form-label">Asgari randevu sayısı</label>
+          <label class="form-label fw-bold">Asgari randevu sayısı</label>
           <input type="number" class="form-control" id="rule-min-appointments" min="1" value="5">
         </div>
         <div id="segment-rule-inactive" class="mb-3 d-none">
-          <label class="form-label">Pasif gün sayısı</label>
+          <label class="form-label fw-bold">Pasif gün sayısı</label>
           <input type="number" class="form-control" id="rule-inactive-days" min="1" value="60">
         </div>
         <div id="segment-rule-birthday" class="mb-3 d-none">
-          <label class="form-label">Kutlama öncesi gün</label>
+          <label class="form-label fw-bold">Kutlama öncesi gün</label>
           <input type="number" class="form-control" id="rule-days-ahead" min="0" value="14">
-          <div class="form-text">Doğum tarihi, müşteri kaydının «Özel Alan 1» sütununda tutulur.</div>
         </div>
         <div id="segment-rule-custom" class="mb-3 d-none">
-          <label class="form-label">Müşteri ID'leri (virgülle ayırın)</label>
+          <label class="form-label fw-bold">Müşteri ID'leri (virgülle ayırın)</label>
           <textarea class="form-control" id="rule-customer-ids" rows="3" placeholder="1, 2, 3"></textarea>
         </div>
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" id="segment-enabled" checked>
-          <label class="form-check-label" for="segment-enabled">Aktif</label>
+          <label class="form-check-label fw-bold" for="segment-enabled">Aktif</label>
         </div>
       </div>
       <div class="modal-footer">
@@ -460,102 +798,14 @@
   </div>
 </div>
 
-<!-- Campaign Modal (Expanded) -->
-<div class="modal fade" id="campaign-modal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="campaign-modal-title">Yeni Kampanya</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Ad</label>
-            <input type="text" class="form-control" id="campaign-name" placeholder="Örn: Yılbaşı İndirimi">
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Kampanya Türü</label>
-            <select class="form-select" id="campaign-type">
-              <option value="broadcast">Müşteri Segmenti Yayını</option>
-              <option value="google_ads">Google Ads Reklam Kampanyası</option>
-              <option value="meta_ads">Meta (Facebook/Instagram) Reklam Kampanyası</option>
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6 mb-3" id="campaign-segment-group">
-            <label class="form-label">Hedef Segment</label>
-            <select class="form-select" id="campaign-segment"></select>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Kanal</label>
-            <select class="form-select" id="campaign-channel">
-              <option value="email">E-posta</option>
-              <option value="sms">SMS</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="telegram">Telegram</option>
-              <option value="google_ads">Google Ads</option>
-              <option value="meta_ads">Meta Ads</option>
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Bütçe (₺)</label>
-            <input type="number" step="0.01" class="form-control" id="campaign-budget" placeholder="Örn: 1500.00">
-          </div>
-          <div class="col-md-6 mb-3">
-            <label class="form-label">Hedef / Açılış Sayfası URL</label>
-            <input type="text" class="form-control" id="campaign-target-url" placeholder="Örn: /p/sonbahar-bakimi veya tam link">
-          </div>
-        </div>
-        <div class="mb-3" id="campaign-subject-group">
-          <label class="form-label">Konu (sadece e-posta)</label>
-          <input type="text" class="form-control" id="campaign-subject" placeholder="Örn: Özel fırsat">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Mesaj / Reklam Metni</label>
-          <textarea class="form-control" id="campaign-message" rows="5" placeholder="Merge alanları: {{customer_name}}, {{company_name}}"></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('cancel') ?></button>
-        <button type="button" class="btn btn-primary" id="save-campaign">Kaydet</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Send Modal (Preserved) -->
-<div class="modal fade" id="send-modal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Kampanya Gönderimi</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="alert alert-warning mb-0" id="send-alert">Bu işlem geri alınamaz. Alıcı listesi kampanyanın hedef segmentine göre hazırlanacak ve mesajlar seçilen kanaldan gönderilecektir.</div>
-        <div class="progress mt-3 d-none" id="send-progress-container">
-          <div class="progress-bar" id="send-progress-bar" style="width: 0%">0%</div>
-        </div>
-        <p class="mt-2 mb-0 text-muted" id="send-status">Gönderim başlatılıyor...</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= lang('cancel') ?></button>
-        <button type="button" class="btn btn-success" id="confirm-send">Gönderimi Başlat</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Landing Page Modal -->
+<!-- ========================================== -->
+<!-- MODAL: AÇILIŞ SAYFASI (LANDING PAGE) -->
+<!-- ========================================== -->
 <div class="modal fade" id="landing-page-modal" tabindex="-1">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+    <div class="modal-content shadow-lg border-0">
       <div class="modal-header">
-        <h5 class="modal-title" id="landing-page-modal-title">Yeni Açılış Sayfası</h5>
+        <h5 class="modal-title fw-bold" id="landing-page-modal-title">Yeni Açılış Sayfası</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -593,7 +843,21 @@
         </div>
         <div class="mb-3">
           <label class="form-label fw-bold">Sayfa İçeriği & Kampanya Detayları</label>
-          <textarea class="form-control" id="landing-content" rows="5" placeholder="Kampanyanızın avantajlarını, kullanılan ürünleri ve randevu detaylarını açıklayın..."></textarea>
+          <textarea class="form-control" id="landing-content" rows="4" placeholder="Kampanyanızın avantajlarını, kullanılan ürünleri ve randevu detaylarını açıklayın..."></textarea>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small">Sayfaya Özel Meta Pixel ID</label>
+            <input type="text" class="form-control form-control-sm" id="landing-meta-pixel" placeholder="Örn: 1234567890">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold small">Sayfaya Özel GTM ID</label>
+            <input type="text" class="form-control form-control-sm" id="landing-gtm-id" placeholder="Örn: GTM-XXXXXX">
+          </div>
+        </div>
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="landing-cookie-consent" checked>
+          <label class="form-check-label fw-bold" for="landing-cookie-consent">KVKK & Çerez Onay Çubuğunu Göster</label>
         </div>
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" id="landing-is-active" checked>
@@ -608,17 +872,17 @@
   </div>
 </div>
 
-<!-- Attribution Heatmap Detail Modal -->
+<!-- ========================================== -->
+<!-- MODAL: ATTRIBUTION DETAY & HEATMAP -->
+<!-- ========================================== -->
 <div class="modal fade" id="attribution-modal" tabindex="-1">
   <div class="modal-dialog modal-lg">
-    <div class="modal-content">
+    <div class="modal-content shadow-lg border-0">
       <div class="modal-header">
-        <h5 class="modal-title"><i class="fas fa-mouse me-2 text-primary"></i> Reklam Ziyaretçi & Heatmap İncelemesi</h5>
+        <h5 class="modal-title fw-bold"><i class="fas fa-mouse me-2 text-primary"></i> Reklam Ziyaretçi & Heatmap İncelemesi</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body" id="attribution-modal-body">
-        <!-- populated via js -->
-      </div>
+      <div class="modal-body" id="attribution-modal-body"></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
       </div>
@@ -637,19 +901,11 @@
     landing_pages: <?= json_encode($landing_pages ?? []) ?>,
     attributions: <?= json_encode($attributions ?? []) ?>,
     services: <?= json_encode($services ?? []) ?>,
+    reviews: <?= json_encode($reviews ?? []) ?>,
+    customers: <?= json_encode($customers ?? []) ?>,
     integrations: <?= json_encode($integrations ?? []) ?>,
     initials: <?= json_encode(script_vars('initials')) ?>
   });
-  var EWA = {
-    segment_selected_id: <?= json_encode((int) (isset($segments[0]) ? $segments[0]['id'] : 0)) ?>,
-    segments_map: <?= json_encode(array_combine(
-        array_map(static fn($s) => (string) $s['id'], $segments ?? []),
-        $segments ?? []
-    )) ?>,
-    campaigns: <?= json_encode($campaigns ?? []) ?>,
-    prime_data: <?= json_encode(array_filter(array_column($segments ?? [], 'rules'))) ?>,
-    initials: <?= json_encode(script_vars('initials')) ?>
-  };
 </script>
 <script src="<?= asset_url('assets/js/pages/marketing.js') ?>"></script>
 

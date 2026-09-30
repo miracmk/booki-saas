@@ -68,9 +68,18 @@ services:
       GOOGLE_SYNC_FEATURE: "${GOOGLE_SYNC_FEATURE:-TRUE}"
       GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      # Meta (Facebook, Instagram & WhatsApp Business) Ekosistem Entegrasyonu
+      META_APP_ID: "${META_APP_ID:-2105963786682423}"
+      META_APP_SECRET: "${META_APP_SECRET:-4pQwmkphQ0EfFkHbBOimXhN7l1U}"
+      META_USER_TOKEN: "${META_USER_TOKEN:-}"
+      META_PAGE_ID_BOOKI: "${META_PAGE_ID_BOOKI:-1363515286838382}"
+      META_PAGE_ID_RANDEVUBURADA: "${META_PAGE_ID_RANDEVUBURADA:-1356512154205638}"
+      META_AD_ACCOUNT_BOOKI: "${META_AD_ACCOUNT_BOOKI:-2121452975121968}"
+      META_WABA_ID_BOOKI: "${META_WABA_ID_BOOKI:-1595071658829377}"
+      META_WABA_PHONE_ID_BOOKI: "${META_WABA_PHONE_ID_BOOKI:-1306088429257880}"
       # JS/CSS cache-busting token (see application/config/app.php) - bump on every deploy that
       # changes a JS/CSS file.
-      ASSET_VERSION: "prod-20260929-1325"
+      ASSET_VERSION: "prod-20260930-0945"
     volumes:
       - /opt/ki-ecosystem/booki/files:/var/www/html/storage
     networks:

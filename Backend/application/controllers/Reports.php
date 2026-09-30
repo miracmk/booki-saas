@@ -379,6 +379,58 @@ class Reports extends App_Controller
     }
 
     /**
+     * Pre-configured 1-click downloadable report templates.
+     */
+    public function download_template(): void
+    {
+        try {
+            method('get');
+
+            if (cannot('view', PRIV_REPORTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $template = (string) request('template', 'gun_sonu');
+            $today = date('Y-m-d');
+            $first_of_month = date('Y-m-01');
+
+            switch ($template) {
+                case 'aylik_muhasebe':
+                    $_GET['start_date'] = $first_of_month;
+                    $_GET['end_date'] = date('Y-m-t');
+                    $_GET['columns'] = 'date,time,appointment_id,customer_name,service_name,effective_price,payment_status,payment_method,payment_amount,payment_balance,is_invoiced';
+                    break;
+                case 'personel_prim':
+                    $_GET['start_date'] = $first_of_month;
+                    $_GET['end_date'] = $today;
+                    $_GET['columns'] = 'date,provider_name,service_name,customer_name,effective_minutes,service_list_price,payout,early_exit_justification';
+                    break;
+                case 'hizmet_karlilik':
+                    $_GET['start_date'] = date('Y-m-d', strtotime('-30 days'));
+                    $_GET['end_date'] = $today;
+                    $_GET['columns'] = 'date,service_name,provider_name,service_list_price,effective_price,effective_minutes,payment_status';
+                    break;
+                case 'odeme_tahsilat':
+                    $_GET['start_date'] = $first_of_month;
+                    $_GET['end_date'] = $today;
+                    $_GET['columns'] = 'date,time,customer_name,payment_method,payment_status,payment_amount,payment_balance,is_invoiced';
+                    break;
+                case 'gun_sonu':
+                default:
+                    $_GET['start_date'] = $today;
+                    $_GET['end_date'] = $today;
+                    $_GET['columns'] = 'appointment_id,time,customer_name,customer_phone,provider_name,service_name,service_list_price,payment_status,payment_method,payment_amount,is_invoiced';
+                    break;
+            }
+
+            $this->export_csv();
+        } catch (Throwable $e) {
+            log_message('error', 'Reports::download_template - ' . $e->getMessage());
+            show_error($e->getMessage(), 400);
+        }
+    }
+
+    /**
      * Validate analytics request parameters and return parsed filters.
      *
      * Faz 3.6 - Helper for get_revenue_report(), get_utilization_report(), get_retention_report().

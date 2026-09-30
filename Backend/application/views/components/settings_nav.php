@@ -1,79 +1,102 @@
-<h4 class="py-3 mb-3 fw-light">
-    <?= lang('settings_center') ?>
-</h4>
+<div class="settings-nav-sidebar pb-4">
+    <div class="d-flex align-items-center justify-content-between pb-2 mb-2 border-bottom">
+        <h6 class="fw-bold mb-0 text-dark small text-uppercase tracking-wider">
+            <i class="fas fa-sliders-h text-primary me-2"></i><?= lang('settings_center') ?>
+        </h6>
+    </div>
 
-<ul id="settings-nav" class="nav flex-column">
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 fw-semibold text-primary" href="<?= site_url('settings') ?>">
-            <i class="fas fa-sliders-h me-2"></i><?= lang('settings_center') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-dark" href="<?= site_url('industry_settings') ?>">
-            <i class="fas fa-shapes me-2 text-warning"></i><?= lang('industry_and_modules') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('settings#business') ?>">
-            <i class="fas fa-building me-2"></i><?= lang('settings_section_business_title') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('settings#booking') ?>">
-            <i class="fas fa-calendar-check me-2"></i><?= lang('settings_section_booking_title') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('settings#communication') ?>">
-            <i class="fas fa-paper-plane me-2"></i><?= lang('settings_section_communication_title') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('follow_up') ?>">
-            <i class="fas fa-route me-2 text-success"></i>Takip Motoru (Follow-Up)
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('settings#integrations') ?>">
-            <i class="fas fa-plug me-2"></i><?= lang('settings_section_integrations_title') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('settings#legal') ?>">
-            <i class="fas fa-balance-scale me-2"></i><?= lang('settings_section_legal_title') ?>
-        </a>
-    </li>
-
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('settings#security') ?>">
-            <i class="fas fa-shield-alt me-2"></i><?= lang('settings_section_security_title') ?>
-        </a>
-    </li>
-
-    <?php if (session('role_slug') === DB_SLUG_ADMIN): ?>
-        <li class="nav-item mb-2">
-            <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('email_template_settings') ?>">
-                <i class="fas fa-envelope-open-text me-2"></i><?= lang('email_templates') ?>
+    <ul id="settings-nav" class="nav flex-column gap-1">
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 fw-semibold text-primary d-flex align-items-center gap-2 <?= uri_string() === 'settings' ? 'active bg-primary bg-opacity-10' : '' ?>" href="<?= site_url('settings') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-sliders-h fa-fw text-primary"></i>
+                <span><?= lang('settings_center') ?></span>
             </a>
         </li>
 
-        <li class="nav-item mb-2">
-            <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('channel_template_settings') ?>">
-                <i class="fas fa-comments me-2"></i><?= lang('channel_templates') ?>
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('industry_settings') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-shapes fa-fw text-warning"></i>
+                <span><?= lang('industry_and_modules') ?></span>
             </a>
         </li>
-    <?php endif; ?>
 
-    <li class="nav-item mb-2">
-        <a class="nav-link px-0 py-2 text-secondary" href="<?= site_url('data_transfer') ?>">
-            <i class="fas fa-file-export me-2"></i><?= lang('data_transfer') ?>
-        </a>
-    </li>
-</ul>
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('randevuburada/profile') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-store fa-fw text-warning"></i>
+                <span>RandevuBurada Vitrin</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('settings#business') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-building fa-fw"></i>
+                <span><?= lang('settings_section_business_title') ?></span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('settings#booking') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-calendar-check fa-fw"></i>
+                <span><?= lang('settings_section_booking_title') ?></span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('settings#communication') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-paper-plane fa-fw"></i>
+                <span><?= lang('settings_section_communication_title') ?></span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('follow_up') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-route fa-fw text-success"></i>
+                <span>Takip Motoru</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('settings#integrations') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-plug fa-fw"></i>
+                <span><?= lang('settings_section_integrations_title') ?></span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('settings#legal') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-balance-scale fa-fw"></i>
+                <span><?= lang('settings_section_legal_title') ?></span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('settings#security') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-shield-alt fa-fw"></i>
+                <span><?= lang('settings_section_security_title') ?></span>
+            </a>
+        </li>
+
+        <?php if (session('role_slug') === DB_SLUG_ADMIN): ?>
+            <li class="nav-item">
+                <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('email_template_settings') ?>" style="font-size: 0.84rem;">
+                    <i class="fas fa-envelope-open-text fa-fw"></i>
+                    <span><?= lang('email_templates') ?></span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('channel_template_settings') ?>" style="font-size: 0.84rem;">
+                    <i class="fas fa-comments fa-fw"></i>
+                    <span><?= lang('channel_templates') ?></span>
+                </a>
+            </li>
+        <?php endif; ?>
+
+        <li class="nav-item">
+            <a class="nav-link px-2.5 py-1.5 rounded-3 text-secondary d-flex align-items-center gap-2" href="<?= site_url('data_transfer') ?>" style="font-size: 0.84rem;">
+                <i class="fas fa-file-export fa-fw"></i>
+                <span><?= lang('data_transfer') ?></span>
+            </a>
+        </li>
+    </ul>
+</div>

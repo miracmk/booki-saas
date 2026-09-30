@@ -193,7 +193,6 @@ class App_Controller extends CI_Controller
             || strtolower((string) $this->router->class) === 'landing'
             || strtolower((string) $this->router->class) === 'customer_onboarding'
             || strtolower((string) $this->router->class) === 'zadarma'
-            || strtolower((string) $this->router->class) === 'meta'
             || strtolower((string) $this->router->class) === 'places_photo'
         ) {
             return;
@@ -257,7 +256,7 @@ class App_Controller extends CI_Controller
             // BooKi (2026-09-19) - Google OAuth central relay: the central app domain receives OAuth
             // callbacks from Google (https://bookiapp.kibusiness.co/google/oauth_callback) and relays
             // them to the originating tenant based on the cryptographic signature in the state parameter.
-            if ($host === $app_domain && strtolower((string) $this->router->class) === 'google'
+            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['google', 'google_integrations'], true)
                 && strtolower((string) $this->router->method) === 'oauth_callback') {
                 return;
             }

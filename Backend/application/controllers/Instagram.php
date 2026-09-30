@@ -340,7 +340,7 @@ class Instagram extends App_Controller
         }
 
         try {
-            $url = "https://graph.facebook.com/v20.0/{$page_id}/messages";
+            $url = "https://graph.facebook.com/v26.0/{$page_id}/messages";
             $payload = [
                 'recipient' => ['id' => $recipient_id],
                 'message' => ['text' => $text],

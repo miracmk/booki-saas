@@ -79,6 +79,8 @@ class Services extends App_Controller
         $this->load->model('providers_model');
         $this->load->model('roles_model');
         $this->load->model('inventory_consumables_model');
+        $this->load->model('branches_model');
+        $this->load->model('digital_waivers_model');
 
         $this->load->library('accounts');
         $this->load->library('timezones');
@@ -113,6 +115,7 @@ class Services extends App_Controller
 
         $providers = $this->providers_model->get();
         $products = $this->db->table_exists('products') ? $this->db->order_by('name', 'ASC')->get('products')->result_array() : [];
+        $branches = $this->db->table_exists('branches') ? $this->branches_model->get() : [];
 
         script_vars([
             'user_id' => $user_id,
@@ -120,6 +123,7 @@ class Services extends App_Controller
             'event_minimum_duration' => EVENT_MINIMUM_DURATION,
             'providers' => filter_sensitive_users_data($providers),
             'products' => $products,
+            'branches' => $branches,
         ]);
 
         html_vars([
@@ -130,6 +134,7 @@ class Services extends App_Controller
             'privileges' => $this->roles_model->get_permissions_by_slug($role_slug),
             'providers' => filter_sensitive_users_data($providers),
             'products' => $products,
+            'branches' => $branches,
         ]);
 
         $this->load->view('pages/services');
@@ -162,9 +167,38 @@ class Services extends App_Controller
 
             $services = $this->services_model->search($keyword, $limit, $offset, $order_by);
 
-            // Include provider IDs for each service
+            // Fetch appointment counts for current month in a single batch
+            $start_month = date('Y-m-01 00:00:00');
+            $end_month = date('Y-m-t 23:59:59');
+            $monthly_counts = [];
+            if ($this->db->table_exists('appointments')) {
+                $counts_query = $this->db->select('id_services, COUNT(*) as app_count')
+                    ->where('start_datetime >=', $start_month)
+                    ->where('start_datetime <=', $end_month)
+                    ->group_by('id_services')
+                    ->get('appointments')
+                    ->result_array();
+                foreach ($counts_query as $row) {
+                    $monthly_counts[$row['id_services']] = (int) $row['app_count'];
+                }
+            }
+
+            // Categories map
+            $categories_by_id = [];
+            if ($this->db->table_exists('service_categories')) {
+                $cats = $this->db->get('service_categories')->result_array();
+                foreach ($cats as $cat) {
+                    $categories_by_id[$cat['id']] = $cat['name'];
+                }
+            }
+
+            // Include provider IDs and statistics for each service
             foreach ($services as &$service) {
                 $service['providers'] = $this->services_model->get_provider_ids($service['id']);
+                $service['providers_count'] = count($service['providers']);
+                $service['monthly_count'] = $monthly_counts[$service['id']] ?? 0;
+                $service['category_name'] = !empty($service['id_service_categories']) ? ($categories_by_id[$service['id_service_categories']] ?? '') : '';
+
                 if (!empty($service['provider_durations']) && is_string($service['provider_durations'])) {
                     $service['provider_durations'] = json_decode($service['provider_durations'], true) ?: [];
                 }
@@ -483,6 +517,120 @@ class Services extends App_Controller
             }
             $this->services_model->delete_required_resource($resource_id);
             json_response(['success' => true]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Get digital waivers / contracts for a service.
+     */
+    public function get_contracts(int $service_id): void
+    {
+        try {
+            method('get');
+            if (cannot('view', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+
+            $waivers = $this->db->table_exists('digital_waivers') 
+                ? $this->db->order_by('title', 'ASC')->get('digital_waivers')->result_array() 
+                : [];
+
+            foreach ($waivers as &$waiver) {
+                $service_ids_str = (string) ($waiver['applicable_service_ids'] ?? '');
+                $service_ids = array_filter(array_map('trim', explode(',', $service_ids_str)));
+                $waiver['is_linked'] = in_array((string) $service_id, $service_ids, true);
+            }
+
+            json_response(['success' => true, 'contracts' => $waivers]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Toggle contract association with a service.
+     */
+    public function toggle_contract_link(): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $service_id = (int) ($data['service_id'] ?? 0);
+            $contract_id = (int) ($data['contract_id'] ?? 0);
+            $link = !empty($data['link']);
+
+            if (!$service_id || !$contract_id) {
+                throw new InvalidArgumentException('Geçersiz hizmet veya sözleşme ID.');
+            }
+
+            $waiver = $this->db->get_where('digital_waivers', ['id' => $contract_id])->row_array();
+            if (!$waiver) {
+                throw new InvalidArgumentException('Sözleşme şablonu bulunamadı.');
+            }
+
+            $service_ids_str = (string) ($waiver['applicable_service_ids'] ?? '');
+            $service_ids = array_filter(array_map('trim', explode(',', $service_ids_str)));
+
+            if ($link) {
+                if (!in_array((string) $service_id, $service_ids, true)) {
+                    $service_ids[] = (string) $service_id;
+                }
+            } else {
+                $service_ids = array_diff($service_ids, [(string) $service_id]);
+            }
+
+            $this->db->update('digital_waivers', [
+                'applicable_service_ids' => implode(',', array_values($service_ids)),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ], ['id' => $contract_id]);
+
+            json_response(['success' => true, 'linked' => $link]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Quick save/create new contract template.
+     */
+    public function save_contract(): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_SERVICES)) {
+                abort(403, 'Forbidden');
+            }
+
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $service_id = (int) ($data['service_id'] ?? 0);
+            $title = trim($data['title'] ?? '');
+            $content_html = trim($data['content_html'] ?? '');
+            $is_mandatory = !empty($data['is_mandatory']) ? 1 : 0;
+
+            if (empty($title)) {
+                throw new InvalidArgumentException('Sözleşme / Onam başlığı zorunludur.');
+            }
+
+            $now = date('Y-m-d H:i:s');
+            $record = [
+                'title' => $title,
+                'content_html' => $content_html ?: '<p>' . htmlspecialchars($title) . ' kapsamında onay metnidir.</p>',
+                'is_mandatory' => $is_mandatory,
+                'applicable_service_ids' => $service_id > 0 ? (string) $service_id : '',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
+            $this->db->insert('digital_waivers', $record);
+            $contract_id = $this->db->insert_id();
+
+            json_response(['success' => true, 'contract_id' => $contract_id]);
         } catch (Throwable $e) {
             json_exception($e);
         }

@@ -106,9 +106,46 @@ class Randevuburada extends App_Controller
             }
         }
 
+        // Synchronize with Master DB ea_tenants table so both RandevuBurada & BooKi are fed from the same source
+        try {
+            $current_tenant_ctx = function_exists('tenant_context') ? tenant_context() : null;
+            $subdomain = $current_tenant_ctx['subdomain'] ?? '';
+
+            if (!empty($subdomain)) {
+                $master_db = $this->load->database('default', true);
+                if ($master_db && $master_db->conn_id) {
+                    $master_update = [
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ];
+                    if (isset($post['company_name'])) {
+                        $master_update['company_name'] = trim((string)$post['company_name']);
+                    }
+                    if (isset($post['company_phone'])) {
+                        $master_update['phone_number'] = trim((string)$post['company_phone']);
+                    }
+                    if (isset($post['company_address'])) {
+                        $master_update['address'] = trim((string)$post['company_address']);
+                    }
+                    if (isset($post['company_description'])) {
+                        $master_update['short_description'] = trim((string)$post['company_description']);
+                    }
+                    if (isset($post['randevuburada_category'])) {
+                        $master_update['category'] = trim((string)$post['randevuburada_category']);
+                    }
+                    if (isset($post['randevuburada_active'])) {
+                        $master_update['marketplace_opt_in'] = (!empty($post['randevuburada_active']) && $post['randevuburada_active'] !== '0') ? 1 : 0;
+                    }
+                    $master_db->where('subdomain', $subdomain)->update('tenants', $master_update);
+                    $master_db->close();
+                }
+            }
+        } catch (Throwable $syncError) {
+            log_message('error', 'RandevuBurada master sync error: ' . $syncError->getMessage());
+        }
+
         json_response([
             'success' => true,
-            'message' => 'RandevuBurada vitrin profili başarıyla güncellendi.'
+            'message' => 'RandevuBurada vitrin profili başarıyla güncellendi ve yayına alındı.'
         ]);
     }
 

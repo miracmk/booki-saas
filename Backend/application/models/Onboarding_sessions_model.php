@@ -361,6 +361,74 @@ class Onboarding_sessions_model extends CI_Model
             }
         }
 
+        // Step 8: Integrations (Google Business, Meta Access Token, WhatsApp)
+        $step8 = $data['step_8'] ?? [];
+        if (!empty($step8['google_business_link'])) {
+            $this->upsert_tenant_setting($tenant_db, 'google_business_link', trim($step8['google_business_link']));
+        }
+        if (!empty($step8['meta_account_link'])) {
+            $this->upsert_tenant_setting($tenant_db, 'meta_account_link', trim($step8['meta_account_link']));
+        }
+        if (!empty($step8['meta_access_token'])) {
+            $meta_token = trim($step8['meta_access_token']);
+            $this->upsert_tenant_setting($tenant_db, 'meta_access_token', $meta_token);
+            $this->upsert_tenant_setting($tenant_db, 'meta_capi_token', $meta_token);
+            $this->upsert_tenant_setting($tenant_db, 'meta_status_sync_enabled', '1');
+
+            $ad_acc = trim($step8['meta_ad_account_id'] ?? getenv('META_AD_ACCOUNT_BOOKI') ?? '2121452975121968');
+            $page_id = trim($step8['meta_page_id'] ?? getenv('META_PAGE_ID_BOOKI') ?? '1363515286838382');
+            $waba_id = trim($step8['whatsapp_waba_id'] ?? getenv('META_WABA_ID_BOOKI') ?? '1595071658829377');
+            $waba_phone_id = trim($step8['whatsapp_phone_number_id'] ?? getenv('META_WABA_PHONE_ID_BOOKI') ?? '1306088429257880');
+
+            $this->upsert_tenant_setting($tenant_db, 'meta_ad_account_id', $ad_acc);
+            $this->upsert_tenant_setting($tenant_db, 'meta_page_id', $page_id);
+
+            // Update messaging settings for WhatsApp Cloud API
+            if ($tenant_db->table_exists('messaging_settings')) {
+                $messaging_row = $tenant_db->get('messaging_settings')->row_array();
+                $msg_data = [
+                    'whatsapp_mode' => 'official',
+                    'whatsapp_access_token' => $meta_token,
+                    'whatsapp_waba_id' => $waba_id,
+                    'whatsapp_phone_number_id' => $waba_phone_id,
+                    'whatsapp_notifications_enabled' => 1,
+                    'updated_at' => $now,
+                ];
+                if ($messaging_row) {
+                    $tenant_db->where('id', $messaging_row['id'])->update('messaging_settings', $msg_data);
+                } else {
+                    $msg_data['created_at'] = $now;
+                    $tenant_db->insert('messaging_settings', $msg_data);
+                }
+            }
+        }
+        if (isset($step8['wa_confirm_enabled'])) {
+            $this->upsert_tenant_setting($tenant_db, 'wa_confirm_enabled', (string) $step8['wa_confirm_enabled']);
+        }
+        if (!empty($step8['wa_reminder_hours'])) {
+            $this->upsert_tenant_setting($tenant_db, 'wa_reminder_hours', (string) $step8['wa_reminder_hours']);
+        }
+        if (!empty($step8['wa_template_text'])) {
+            $this->upsert_tenant_setting($tenant_db, 'wa_template_text', trim($step8['wa_template_text']));
+        }
+
+        // Step 9: Package Recommendation, 7-Day Trial & Subscription
+        $step9 = $data['step_9'] ?? [];
+        $selected_plan = $step9['selected_plan'] ?? 'professional';
+        $trial_active = !empty($step9['start_trial']) ? 1 : 0;
+        $this->upsert_tenant_setting($tenant_db, 'subscription_plan', $selected_plan);
+        $this->upsert_tenant_setting($tenant_db, 'is_trial', (string) $trial_active);
+
+        // Sync plan & trial status back to master DB tenants table
+        $master_updates = [
+            'plan' => ucfirst($selected_plan),
+            'updated_at' => $now,
+        ];
+        if ($trial_active) {
+            $master_updates['trial_ends_at'] = date('Y-m-d 23:59:59', strtotime('+7 days'));
+        }
+        $this->db->where('id', $tenant['id'])->update('tenants', $master_updates);
+
         // Mark onboarding completed in tenant settings
         $this->upsert_tenant_setting($tenant_db, 'onboarding_completed', '1');
         $this->upsert_tenant_setting($tenant_db, 'onboarding_completed_at', $now);

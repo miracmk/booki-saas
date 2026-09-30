@@ -53,6 +53,55 @@ class Erp_manager
     }
 
     /**
+     * Get list of actively connected ERP providers.
+     */
+    public function get_connected_providers(): array
+    {
+        $connected = [];
+
+        // Paraşüt
+        $parasut_id = setting('parasut_client_id', '');
+        $parasut_secret = setting('parasut_client_secret', '');
+        if (!empty($parasut_id) && !empty($parasut_secret)) {
+            $connected['parasut'] = self::PROVIDERS['parasut'];
+        }
+
+        // QuickBooks
+        $qb_id = setting('quickbooks_client_id', '');
+        if (!empty($qb_id)) {
+            $connected['quickbooks'] = self::PROVIDERS['quickbooks'];
+        }
+
+        // Zoho Books
+        $zoho_id = setting('zohobooks_client_id', '');
+        if (!empty($zoho_id)) {
+            $connected['zohobooks'] = self::PROVIDERS['zohobooks'];
+        }
+
+        // Logo
+        $logo_url = setting('logo_api_url', '');
+        $logo_key = setting('logo_app_key', '');
+        if (!empty($logo_url) || !empty($logo_key)) {
+            $connected['logo'] = self::PROVIDERS['logo'];
+        }
+
+        // Mikro
+        $mikro_url = setting('mikro_api_url', '');
+        $mikro_key = setting('mikro_api_key', '');
+        if (!empty($mikro_url) || !empty($mikro_key)) {
+            $connected['mikro'] = self::PROVIDERS['mikro'];
+        }
+
+        // İşbaşı
+        $isbasi_key = setting('isbasi_api_key', '');
+        if (!empty($isbasi_key)) {
+            $connected['isbasi'] = self::PROVIDERS['isbasi'];
+        }
+
+        return $connected;
+    }
+
+    /**
      * Synchronize an internal invoice to the configured or selected ERP system.
      *
      * @param int $invoice_id The local invoice ID.

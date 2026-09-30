@@ -181,6 +181,7 @@ function updateAppointmentStatus(appointmentId, status) {
     const formData = new FormData();
     formData.append('appointment_id', appointmentId);
     formData.append('status', status);
+    formData.append('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
 
     fetch('<?= site_url('randevuburada/update_reservation_status') ?>', {
         method: 'POST',

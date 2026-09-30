@@ -67,6 +67,14 @@ class Staff_commissions_model extends App_Model
             $sale_amount = (float) $item['total_amount'];
             $commission_amount = round($sale_amount * ($commission_rate / 100), 2);
 
+            // Early exit rule: If "Müşteri Haklı (Personel Kusurlu - unjustified)", staff commission is cut (0.00)
+            if (!empty($adisyon['id_appointments'])) {
+                $apt = $this->db->get_where('appointments', ['id' => (int) $adisyon['id_appointments']])->row_array();
+                if ($apt && ($apt['early_exit_justification'] ?? '') === 'unjustified') {
+                    $commission_amount = 0.00;
+                }
+            }
+
             $this->db->insert('staff_commissions', [
                 'id_users_staff' => $staff_id,
                 'id_appointments' => $adisyon['id_appointments'],

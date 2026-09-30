@@ -78,6 +78,20 @@ class Settings_model extends App_Model
     }
 
     /**
+     * Get a setting value by name.
+     *
+     * @param string $name Setting name.
+     * @param mixed|null $default Default value.
+     *
+     * @return mixed Setting value or default.
+     */
+    public function get_setting(string $name, mixed $default = null): mixed
+    {
+        $setting = $this->query()->where('name', $name)->get()->row_array();
+        return $setting['value'] ?? $default;
+    }
+
+    /**
      * Validate the setting data.
      *
      * @param array $setting Associative array with the setting data.

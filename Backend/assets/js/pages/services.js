@@ -11,10 +11,11 @@
 /**
  * Services page.
  *
- * This module implements the functionality of the services page.
+ * Modern responsive table view, custom fields, branch dropdown, and
+ * multi-section editor (Consumables, Add-ons, Follow-up SOAP, Contracts).
  */
 App.Pages.Services = (function () {
-    const $services = $('#services');
+    const $services = $('#services-page');
     const $id = $('#id');
     const $name = $('#name');
     const $duration = $('#duration');
@@ -44,108 +45,89 @@ App.Pages.Services = (function () {
     const $isPrivate = $('#is-private');
     const $location = $('#location');
     const $description = $('#description');
-    const $filterServices = $('#filter-services');
     const $color = $('#color');
-    let filterResults = {};
-    let filterLimit = 20;
+
+    let filterResults = [];
+    let filterLimit = 1000;
     let serviceFollowUpRules = [];
 
     /**
-     * Add page event listeners.
+     * Helper to show a bootstrap modal
      */
-    function addEventListeners() {
-        /**
-         * Event: Filter Services Form "Submit"
-         *
-         * @param {jQuery.Event} event
-         */
-        $services.on('submit', '#filter-services form', (event) => {
-            event.preventDefault();
-            const key = $filterServices.find('.key').val();
-            $filterServices.find('.selected').removeClass('selected');
-            App.Pages.Services.resetForm();
-            App.Pages.Services.filter(key);
-        });
+    function showModal(modalId) {
+        const el = document.getElementById(modalId);
+        if (!el) return;
+        if (window.bootstrap && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(el).show();
+        } else if ($.fn.modal) {
+            $('#' + modalId).modal('show');
+        }
+    }
 
-        /**
-         * Event: Filter Service Row "Click"
-         *
-         * Display the selected service data to the user.
-         */
-        $services.on('click', '.service-row', (event) => {
-            if ($filterServices.find('.filter').prop('disabled')) {
-                $filterServices.find('.results').css('color', '#AAA');
-                return; // exit because we are on edit mode
-            }
+    /**
+     * Helper to hide a bootstrap modal
+     */
+    function hideModal(modalId) {
+        const el = document.getElementById(modalId);
+        if (!el) return;
+        if (window.bootstrap && bootstrap.Modal) {
+            const inst = bootstrap.Modal.getInstance(el) || bootstrap.Modal.getOrCreateInstance(el);
+            if (inst) inst.hide();
+        } else if ($.fn.modal) {
+            $('#' + modalId).modal('hide');
+        }
+    }
 
-            const serviceId = $(event.currentTarget).attr('data-id');
+    /**
+     * HTML escape helper
+     */
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-            const service = filterResults.find((filterResult) => Number(filterResult.id) === Number(serviceId));
+    /**
+     * Switch view to Services Table
+     */
+    function showTableView() {
+        $('#services-table-view').show();
+        $('#services-editor-view').hide();
+        $('#services-page').removeClass('editing');
+    }
 
-            // Add dedicated provider link.
-            const dedicatedUrl = App.Utils.Url.siteUrl('?service=' + encodeURIComponent(service.id));
+    /**
+     * Switch view to Service Detail Editor
+     */
+    function showEditorView(serviceId = null) {
+        $('#services-table-view').hide();
+        $('#services-editor-view').show();
+        $('#services-page').addClass('editing');
 
-            const $link = $('<a/>', {
-                'href': dedicatedUrl,
-                'target': '_blank',
-                'data-bs-toggle': 'tooltip',
-                'title': lang('booking_link'),
-                'aria-label': lang('booking_link'),
-                'html': [
-                    $('<i/>', {
-                        'class': 'fas fa-link',
-                    }),
-                ],
-            });
+        // Select first tab by default
+        const tabEl = document.getElementById('tab-btn-general');
+        if (tabEl && window.bootstrap && bootstrap.Tab) {
+            bootstrap.Tab.getOrCreateInstance(tabEl).show();
+        } else {
+            $('#tab-btn-general').tab('show');
+        }
 
-            $services.find('.record-details h4').find('a').remove().end().append($link);
-            new bootstrap.Tooltip($link[0]);
+        if (!serviceId) {
+            // New Service Mode
+            $('#editor-service-title').html('<i class="fas fa-plus-circle text-primary me-2"></i>Yeni Hizmet Tanımla');
+            $('#editor-service-subtitle').text('Operasyonel model, süre, sarfiyat reçetesi, ek hizmetler ve sözleşmeleri yapılandırın');
+            $('#delete-service').hide();
+            resetForm();
 
-            App.Pages.Services.display(service);
-            $filterServices.find('.selected').removeClass('selected');
-            $(event.currentTarget).addClass('selected');
-            $('#edit-service, #delete-service').prop('disabled', false);
-
-            // Automatically enter edit mode
-            $('#services-page').addClass('editing');
-            $services.find('.add-edit-delete-group').hide();
-            $services.find('.save-cancel-group').show();
-            $services.find('#delete-service').show(); // Show delete button when editing
-            $services.find('.record-details').find('input, select, textarea').prop('disabled', false);
-            $services.find('.record-details .form-label span').prop('hidden', false);
-            $filterServices.find('button').prop('disabled', true);
-            $filterServices.find('.results').css('color', '#AAA');
-            App.Components.ColorSelection.enable($color);
-            $('#service-providers input:checkbox').prop('disabled', false);
-            $('#select-all-providers, #select-none-providers').prop('disabled', false);
-        });
-
-        /**
-         * Event: Add New Service Button "Click"
-         */
-        $services.on('click', '#add-service', () => {
-            App.Pages.Services.resetForm();
-            $('#services-page').addClass('editing');
-            $services.find('.add-edit-delete-group').hide();
-            $services.find('.save-cancel-group').show();
-            $services.find('#delete-service').hide(); // Hide delete button when adding
-            $services.find('.record-details').find('input, select, textarea').prop('disabled', false);
-            $services.find('.record-details .form-label span').prop('hidden', false);
-            $filterServices.find('button').prop('disabled', true);
-            $filterServices.find('.results').css('color', '#AAA');
-            App.Components.ColorSelection.enable($color);
-            $('#service-providers input:checkbox').prop('disabled', false);
-            $('#select-all-providers, #select-none-providers').prop('disabled', false);
-
-            // Default values
+            // Defaults
             $serviceNature.val('duration');
             applyServiceNature('duration');
             $taxRate.val('20.00');
-            $name.val('Yeni Hizmet');
+            $name.val('');
             $duration.val('60');
-            $price.val('0');
+            $price.val('0.00');
             $currency.val('₺');
             $serviceCategoryId.val('');
+            $location.val('');
             $slotInterval.val('15');
             $attendantsNumber.val('1');
             $totalPasses.val('10');
@@ -155,36 +137,247 @@ App.Pages.Services = (function () {
             $passValidityDays.val('30');
             serviceFollowUpRules = [];
             renderFollowUpRules();
+
+            $('#service-addons-table tbody').html('<tr class="text-muted text-center py-4"><td colspan="4">Ek hizmet eklemek için önce hizmeti kaydediniz.</td></tr>');
+            $('#service-consumables-table tbody').html('<tr class="text-muted text-center py-4"><td colspan="6">Sarf reçetesi eklemek için önce hizmeti kaydediniz.</td></tr>');
+            $('#service-consumables-summary').hide();
+            $('#service-contracts-table tbody').html('<tr class="text-muted text-center py-4"><td colspan="5">Sözleşme bağlamak için önce hizmeti kaydediniz.</td></tr>');
+            $('#badge-tab-addons').text('0');
+            $('#badge-tab-consumables').text('0');
+            $('#badge-tab-followup').text('0');
+            $('#badge-tab-contracts').text('0');
+        } else {
+            // Edit Service Mode
+            const service = (filterResults || []).find((s) => Number(s.id) === Number(serviceId));
+            if (service) {
+                $('#editor-service-title').html(`<span class="service-color-pill" style="background-color: ${service.color || '#4338ca'};"></span>${escapeHtml(service.name)}`);
+                $('#editor-service-subtitle').text('Hizmet ID: #' + service.id + ' • ' + (service.category_name || 'Kategorisiz'));
+                $('#delete-service').show();
+                display(service);
+            }
+        }
+    }
+
+    /**
+     * Render the Custom Services Table with all requested fields
+     */
+    function renderServicesTable(services) {
+        const $tbody = $('#services-custom-table tbody');
+        $tbody.empty();
+
+        if (!services || !services.length) {
+            $tbody.html(`
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <i class="fas fa-sparkles fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                        <h6 class="fw-bold">Henüz Kayıtlı Hizmet Bulunamadı</h6>
+                        <p class="small text-muted mb-3">İşletmenizin ilk bakım veya hizmet paketini tanımlayarak başlayın.</p>
+                        <button type="button" class="btn btn-sm btn-primary px-3" id="btn-empty-add-service">
+                            <i class="fas fa-plus me-1"></i>Yeni Hizmet Ekle
+                        </button>
+                    </td>
+                </tr>
+            `);
+            updateKpis([]);
+            return;
+        }
+
+        updateKpis(services);
+
+        const natureLabels = {
+            'duration': '<span class="badge bg-info-subtle text-info border border-info-subtle"><i class="fas fa-clock me-1"></i>Süre Bazlı</span>',
+            'packaged': '<span class="badge bg-warning-subtle text-dark border border-warning-subtle"><i class="fas fa-cubes me-1"></i>Paket Seans</span>',
+            'provider_custom_duration': '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fas fa-users-gear me-1"></i>Uzman Süresi</span>',
+            'daily_pass': '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fas fa-ticket me-1"></i>Günlük Pass</span>',
+            'multi_pass': '<span class="badge bg-purple-subtle text-purple border border-purple-subtle" style="background-color: #ede9fe; color: #6b21a8;"><i class="fas fa-id-card me-1"></i>Çok Girişli</span>',
+        };
+
+        services.forEach((service) => {
+            const color = service.color || '#4338ca';
+            const nature = service.service_nature || service.access_type || 'duration';
+            const natureBadge = natureLabels[nature] || `<span class="badge bg-secondary">${escapeHtml(nature)}</span>`;
+            const catBadge = service.category_name 
+                ? `<span class="badge bg-light text-secondary border me-1">${escapeHtml(service.category_name)}</span>` 
+                : '';
+            const priceFmt = `₺${Number(service.price || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const taxBadge = `<span class="badge bg-light text-muted border" style="font-size:10px;">%${Number(service.tax_rate || 20)} KDV</span>`;
+
+            let durationQuotaText = '';
+            if (nature === 'daily_pass') {
+                durationQuotaText = `<span class="small fw-semibold text-dark"><i class="fas fa-sun text-warning me-1"></i>${service.valid_hours_start || '09:00'} - ${service.valid_hours_end || '18:00'}</span>`;
+            } else if (nature === 'multi_pass') {
+                durationQuotaText = `<span class="small fw-semibold text-dark"><i class="fas fa-repeat text-success me-1"></i>${service.total_passes && Number(service.total_passes) > 0 ? service.total_passes + ' Giriş' : 'Sınırsız'}</span><br><small class="text-muted">${service.pass_validity_days || 30} Gün</small>`;
+            } else if (nature === 'packaged') {
+                durationQuotaText = `<span class="small fw-semibold text-dark"><i class="fas fa-layer-group text-primary me-1"></i>${service.total_passes || 10} Seans</span><br><small class="text-muted">${service.duration || 60} dk/seans</small>`;
+            } else {
+                durationQuotaText = `<span class="small fw-semibold text-dark"><i class="fas fa-clock text-info me-1"></i>${service.duration || 60} dk</span>`;
+            }
+
+            const locationText = service.location && service.location.trim()
+                ? `<span class="badge bg-light text-dark border"><i class="fas fa-map-marker-alt text-danger me-1"></i>${escapeHtml(service.location)}</span>`
+                : '<span class="badge bg-light text-muted border">Tüm Şubeler</span>';
+
+            const monthlyCount = Number(service.monthly_count || 0);
+            const monthlyBadge = `<span class="badge ${monthlyCount > 0 ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-light text-muted border'} px-2 py-1"><i class="fas fa-calendar-check me-1"></i>${monthlyCount} randevu</span>`;
+
+            const providerCount = Number(service.providers_count !== undefined ? service.providers_count : (service.providers ? service.providers.length : 0));
+            const providerBadge = `<span class="badge ${providerCount > 0 ? 'bg-info-subtle text-info border border-info-subtle' : 'bg-light text-muted border'} px-2 py-1"><i class="fas fa-user-check me-1"></i>${providerCount} personel</span>`;
+
+            const statusBadge = service.is_private
+                ? '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Gizli</span>'
+                : '<span class="badge bg-success-subtle text-success border border-success-subtle">Herkese Açık</span>';
+
+            const tr = `
+                <tr data-id="${service.id}" class="service-table-row">
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center">
+                            <span class="service-color-pill" style="background-color: ${color};"></span>
+                            <div>
+                                <span class="fw-bold text-dark fs-6 service-name-link" role="button" data-id="${service.id}">${escapeHtml(service.name)}</span>
+                                <div class="mt-1 d-flex align-items-center gap-1 flex-wrap">
+                                    ${catBadge}
+                                    ${natureBadge}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-dark fs-6">${priceFmt}</div>
+                        <div>${taxBadge}</div>
+                    </td>
+                    <td>${durationQuotaText}</td>
+                    <td>${locationText}</td>
+                    <td>${monthlyBadge}</td>
+                    <td>${providerBadge}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end pe-3">
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-primary btn-edit-service" data-id="${service.id}" title="Düzenle">
+                                <i class="fas fa-edit me-1"></i>Düzenle
+                            </button>
+                            <a href="${App.Utils.Url.siteUrl('?service=' + encodeURIComponent(service.id))}" target="_blank" class="btn btn-outline-secondary" title="Rezervasyon Linki">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-danger btn-delete-service-direct" data-id="${service.id}" data-name="${escapeHtml(service.name)}" title="Sil">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            $tbody.append(tr);
         });
+    }
 
-        /**
-         * Event: Cancel Service Button "Click"
-         *
-         * Cancel add or edit of a service record.
-         */
-        $services.on('click', '#cancel-service', () => {
-            const id = $id.val();
+    /**
+     * Update KPI counters at the top of the table view
+     */
+    function updateKpis(services) {
+        const totalServices = services.length;
+        let totalMonthlyBookings = 0;
+        let totalPriceSum = 0;
+        const providerIdsSet = new Set();
 
-            App.Pages.Services.resetForm();
-            $('#services-page').removeClass('editing');
-
-            if (id !== '') {
-                App.Pages.Services.select(id, true);
+        services.forEach((s) => {
+            totalMonthlyBookings += Number(s.monthly_count || 0);
+            totalPriceSum += Number(s.price || 0);
+            if (Array.isArray(s.providers)) {
+                s.providers.forEach(p => providerIdsSet.add(p));
             }
         });
 
-        /**
-         * Event: Save Service Button "Click"
-         */
-        $services.on('click', '#save-service', () => {
+        const avgPrice = totalServices > 0 ? (totalPriceSum / totalServices) : 0;
+
+        $('#badge-total-services').text(totalServices + ' Hizmet');
+        $('#kpi-total-services').text(totalServices);
+        $('#kpi-monthly-bookings').text(totalMonthlyBookings);
+        $('#kpi-active-providers').text(providerIdsSet.size);
+        $('#kpi-avg-price').text('₺' + avgPrice.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
+    }
+
+    /**
+     * Filter table items client-side
+     */
+    function applyTableFilters() {
+        const searchVal = $('#table-search-input').val().toLowerCase().trim();
+        const catVal = $('#table-category-filter').val();
+        const natureVal = $('#table-nature-filter').val();
+        const branchVal = $('#table-branch-filter').val();
+
+        const filtered = (filterResults || []).filter((s) => {
+            if (searchVal) {
+                const nameMatch = (s.name || '').toLowerCase().includes(searchVal);
+                const descMatch = (s.description || '').toLowerCase().includes(searchVal);
+                const catMatch = (s.category_name || '').toLowerCase().includes(searchVal);
+                if (!nameMatch && !descMatch && !catMatch) return false;
+            }
+            if (catVal && String(s.id_service_categories) !== String(catVal)) {
+                return false;
+            }
+            if (natureVal && (s.service_nature || s.access_type || 'duration') !== natureVal) {
+                return false;
+            }
+            if (branchVal && (s.location || '').trim() !== branchVal.trim()) {
+                return false;
+            }
+            return true;
+        });
+
+        renderServicesTable(filtered);
+    }
+
+    /**
+     * Add page event listeners.
+     */
+    function addEventListeners() {
+        // Table search input
+        $('#table-search-input').on('input', applyTableFilters);
+        $('#table-category-filter, #table-nature-filter, #table-branch-filter').on('change', applyTableFilters);
+
+        // Reset table filters
+        $('#btn-reset-table-filters').on('click', () => {
+            $('#table-search-input').val('');
+            $('#table-category-filter').val('');
+            $('#table-nature-filter').val('');
+            $('#table-branch-filter').val('');
+            renderServicesTable(filterResults);
+        });
+
+        // Add service button click
+        $(document).on('click', '#btn-create-service, #add-service, #btn-empty-add-service', () => {
+            showEditorView(null);
+        });
+
+        // Back to table button
+        $(document).on('click', '#btn-back-to-table, #cancel-service', () => {
+            showTableView();
+        });
+
+        // Edit service button click from table row
+        $(document).on('click', '.btn-edit-service, .service-name-link', function () {
+            const serviceId = $(this).data('id');
+            showEditorView(serviceId);
+        });
+
+        // Direct delete button on table row
+        $(document).on('click', '.btn-delete-service-direct', function () {
+            const serviceId = $(this).data('id');
+            const serviceName = $(this).data('name') || 'bu hizmeti';
+            if (confirm(`"${serviceName}" hizmetini silmek istediğinize emin misiniz?`)) {
+                remove(serviceId);
+            }
+        });
+
+        // Save service button
+        $('#save-service').on('click', () => {
             const nature = $serviceNature.val() || 'duration';
             const isFollowUp = Number($('#follow-up-required').prop('checked'));
             const catVal = $serviceCategoryId.val();
+
             const service = {
                 name: $name.val() ? $name.val().trim() : '',
                 service_nature: nature,
                 access_type: nature,
-                accessType: nature,
                 tax_rate: ($taxRate.val() !== '' && $taxRate.val() !== null) ? Number($taxRate.val()) : 20.00,
                 price: ($price.val() !== '' && $price.val() !== null) ? Number($price.val()) : 0.00,
                 currency: $currency.val() || '₺',
@@ -228,7 +421,7 @@ App.Pages.Services = (function () {
                 }
             }
 
-            // Include service providers and per-provider durations if applicable
+            // Providers & per-provider durations
             service.providers = [];
             const providerDurations = {};
             if (['duration', 'packaged', 'quantity_timed', 'provider_custom_duration'].includes(nature)) {
@@ -251,93 +444,49 @@ App.Pages.Services = (function () {
                 service.id = Number($id.val());
             }
 
-            if (!App.Pages.Services.validate()) {
+            if (!validate()) {
                 return;
             }
 
-            App.Pages.Services.save(service);
+            save(service);
         });
 
-        /**
-         * Event: Edit Service Button "Click"
-         */
-        $services.on('click', '#edit-service', () => {
-            $('#services-page').addClass('editing');
-            $services.find('.add-edit-delete-group').hide();
-            $services.find('.save-cancel-group').show();
-            $services.find('.record-details').find('input, select, textarea').prop('disabled', false);
-            $services.find('.record-details .form-label span').prop('hidden', false);
-            $filterServices.find('button').prop('disabled', true);
-            $filterServices.find('.results').css('color', '#AAA');
-            App.Components.ColorSelection.enable($color);
-            $('#service-providers input:checkbox').prop('disabled', false);
-            $('#select-all-providers, #select-none-providers').prop('disabled', false);
-        });
-
-        /**
-         * Event: Delete Service Button "Click"
-         */
-        $services.on('click', '#delete-service', () => {
+        // Delete button inside editor
+        $('#delete-service').on('click', () => {
             const serviceId = $id.val();
-            const buttons = [
-                {
-                    text: lang('cancel'),
-                    click: (event, messageModal) => {
-                        messageModal.hide();
-                    },
-                },
-                {
-                    text: lang('delete'),
-                    click: (event, messageModal) => {
-                        App.Pages.Services.remove(serviceId);
-                        messageModal.hide();
-                    },
-                },
-            ];
-
-            App.Utils.Message.show(lang('delete_service'), lang('delete_record_prompt'), buttons);
+            if (confirm('Bu hizmet kaydını silmek istediğinize emin misiniz?')) {
+                remove(serviceId);
+            }
         });
 
-        /**
-         * Event: Select All Providers Button "Click"
-         */
-        $services.on('click', '#select-all-providers', () => {
+        // Providers selection buttons
+        $('#select-all-providers').on('click', () => {
             $('#service-providers input:checkbox').prop('checked', true);
         });
 
-        /**
-         * Event: Select None Providers Button "Click"
-         */
-        $services.on('click', '#select-none-providers', () => {
+        $('#select-none-providers').on('click', () => {
             $('#service-providers input:checkbox').prop('checked', false);
         });
 
-        function showModal(modalId) {
-            const el = document.getElementById(modalId);
-            if (!el) return;
-            if (window.bootstrap && bootstrap.Modal) {
-                bootstrap.Modal.getOrCreateInstance(el).show();
-            } else if ($.fn.modal) {
-                $('#' + modalId).modal('show');
-            }
-        }
+        // Service nature change
+        $serviceNature.on('change', () => {
+            applyServiceNature($serviceNature.val());
+        });
 
-        function hideModal(modalId) {
-            const el = document.getElementById(modalId);
-            if (!el) return;
-            if (window.bootstrap && bootstrap.Modal) {
-                const inst = bootstrap.Modal.getInstance(el) || bootstrap.Modal.getOrCreateInstance(el);
-                if (inst) inst.hide();
-            } else if ($.fn.modal) {
-                $('#' + modalId).modal('hide');
+        // Multi pass quota type change
+        $multiPassQuotaType.on('change', function () {
+            if ($(this).val() === 'fixed') {
+                $multiPassQuotaNumber.show();
+            } else {
+                $multiPassQuotaNumber.hide();
             }
-        }
+        });
 
         // Add-on modal opener
-        $services.on('click', '#btn-add-addon-modal', () => {
+        $('#btn-add-addon-modal').on('click', () => {
             const serviceId = $id.val();
             if (!serviceId) {
-                App.Layouts.Backend.displayNotification('Ek hizmet eklemek için önce hizmeti kaydediniz.', 'warning');
+                alert('Ek hizmet eklemek için lütfen önce hizmeti kaydediniz.');
                 return;
             }
             $('#addon-name-input').val('');
@@ -380,7 +529,7 @@ App.Pages.Services = (function () {
         });
 
         // Add-on delete
-        $services.on('click', '.btn-delete-addon', function () {
+        $(document).on('click', '.btn-delete-addon', function () {
             const addonId = $(this).data('id');
             const serviceId = $id.val();
             if (!confirm('Bu ek hizmeti silmek istediğinize emin misiniz?')) return;
@@ -396,10 +545,10 @@ App.Pages.Services = (function () {
         });
 
         // Consumable modal opener
-        $services.on('click', '#btn-add-consumable-modal', () => {
+        $('#btn-add-consumable-modal').on('click', () => {
             const serviceId = $id.val();
             if (!serviceId) {
-                App.Layouts.Backend.displayNotification('Sarf reçetesi eklemek için önce hizmeti kaydediniz.', 'warning');
+                alert('Sarf reçetesi eklemek için lütfen önce hizmeti kaydediniz.');
                 return;
             }
             $('#consumable-product-select').val('');
@@ -445,7 +594,7 @@ App.Pages.Services = (function () {
         });
 
         // Consumable delete
-        $services.on('click', '.btn-delete-consumable', function () {
+        $(document).on('click', '.btn-delete-consumable', function () {
             const recId = $(this).data('id');
             const serviceId = $id.val();
             if (!confirm('Bu sarf malzemeyi reçeteden çıkarmak istediğinize emin misiniz?')) return;
@@ -457,41 +606,25 @@ App.Pages.Services = (function () {
             });
         });
 
-        // Service nature change
-        $serviceNature.on('change', () => {
-            applyServiceNature($serviceNature.val());
-        });
-
-        // Multi pass quota type change
-        $multiPassQuotaType.on('change', function () {
-            if ($(this).val() === 'fixed') {
-                $multiPassQuotaNumber.show();
-            } else {
-                $multiPassQuotaNumber.hide();
-            }
-        });
-
         // Follow-up required toggle
-        $services.on('change', '#follow-up-required', function () {
+        $('#follow-up-required').on('change', function () {
             if ($(this).prop('checked')) {
                 $('#follow-up-config-body').slideDown(200);
-                $('#follow-up-config-body').find('input, select, textarea, button').prop('disabled', false);
                 if (!serviceFollowUpRules || serviceFollowUpRules.length === 0) {
                     syncDefaultFollowUpStep();
                 }
             } else {
                 $('#follow-up-config-body').slideUp(200);
-                $('#follow-up-config-body').find('input, select, textarea, button:not([data-bs-dismiss])').prop('disabled', true);
             }
         });
 
         // Quick delay buttons
-        $services.on('click', '.btn-quick-delay', function () {
+        $(document).on('click', '.btn-quick-delay', function () {
             $('#follow-up-delay-override').val($(this).data('delay'));
         });
 
         // Variable inserter in follow-up step modal
-        $services.on('click', '.btn-insert-var', function () {
+        $(document).on('click', '.btn-insert-var', function () {
             const varTag = $(this).data('var');
             const $ta = $('#follow-up-message-input');
             const cur = $ta.val();
@@ -499,7 +632,7 @@ App.Pages.Services = (function () {
         });
 
         // Open follow-up step modal to add a new step
-        $services.on('click', '#btn-add-follow-up-modal', () => {
+        $('#btn-add-follow-up-modal').on('click', () => {
             $('#modal-follow-up-title').html('<i class="fas fa-plus text-primary me-2"></i>Yeni Takip Adımı Ekle');
             $('#follow-up-rule-index').val('-1');
             $('#follow-up-trigger-select').val('appointment_completed');
@@ -510,8 +643,8 @@ App.Pages.Services = (function () {
             showModal('modal-follow-up-form');
         });
 
-        // Open follow-up step modal to edit an existing step
-        $services.on('click', '.btn-edit-follow-up', function () {
+        // Edit follow-up step
+        $(document).on('click', '.btn-edit-follow-up', function () {
             const idx = Number($(this).data('index'));
             const rule = serviceFollowUpRules[idx];
             if (!rule) return;
@@ -526,7 +659,7 @@ App.Pages.Services = (function () {
         });
 
         // Delete follow-up step
-        $services.on('click', '.btn-delete-follow-up', function () {
+        $(document).on('click', '.btn-delete-follow-up', function () {
             const idx = Number($(this).data('index'));
             serviceFollowUpRules.splice(idx, 1);
             renderFollowUpRules();
@@ -556,13 +689,13 @@ App.Pages.Services = (function () {
         });
 
         // Follow-up template pills
-        $services.on('click', '.btn-template-pill', function () {
+        $(document).on('click', '.btn-template-pill', function () {
             const type = $(this).data('type');
             if (type === 'medication') {
                 $('#follow-up-category').val('medical_protocol');
                 $('#follow-up-priority').val('critical');
                 $('#follow-up-delay-override').val('2 hours');
-                $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} işlemi sonrası doktorunuzun/uzmanınızın reçete ettiği ilaç ve destek ürünlerini saatinde almayı lütfen unutmayınız. Acil danışma veya sorularınız için kliniğimize ulaşabilirsiniz.');
+                $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} işlemi sonrası doktorunuzun/uzmanınızın reçete ettiği ilaç ve destek ürünlerini saatinde almayı lütfen unutmayınız.');
                 serviceFollowUpRules = [
                     {
                         trigger: 'appointment_completed',
@@ -604,7 +737,7 @@ App.Pages.Services = (function () {
                 $('#follow-up-category').val('medical_reaction');
                 $('#follow-up-priority').val('critical');
                 $('#follow-up-delay-override').val('24 hours');
-                $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} tedaviniz sonrasında genel durumunuz nasıl? Herhangi bir ağrı, şişlik veya beklenmeyen bir reaksiyon hissediyor musunuz? (1: Çok İyiyim, 2: Hekimime Danışmak İstiyorum)');
+                $('#follow-up-message-override').val('Sayın {{customer_name}}, {{service_name}} tedaviniz sonrasında genel durumunuz nasıl? Herhangi bir ağrı, şişlik veya beklenmeyen bir reaksiyon hissediyor musunuz?');
                 serviceFollowUpRules = [
                     {
                         trigger: 'appointment_completed',
@@ -625,42 +758,131 @@ App.Pages.Services = (function () {
             renderFollowUpRules();
             App.Layouts.Backend.displayNotification('Şablon takip adımları ve mesajları yüklendi.');
         });
+
+        // Toggle Contract Link
+        $(document).on('change', '.btn-toggle-contract', function () {
+            const serviceId = $id.val();
+            if (!serviceId) {
+                alert('Sözleşme bağlamak için lütfen önce hizmeti kaydedin.');
+                $(this).prop('checked', false);
+                return;
+            }
+            const contractId = $(this).data('contract-id');
+            const isChecked = $(this).prop('checked');
+            const $label = $(this).siblings('label');
+
+            $.ajax({
+                url: App.Utils.Url.siteUrl('services/toggle_contract_link'),
+                type: 'POST',
+                data: {
+                    csrf_token: vars('csrf_token'),
+                    service_id: Number(serviceId),
+                    contract_id: Number(contractId),
+                    link: isChecked ? 1 : 0
+                },
+                success: () => {
+                    if (isChecked) {
+                        $label.html('<span class="text-success fw-bold">Bağlı (Aktif)</span>');
+                        App.Layouts.Backend.displayNotification('Sözleşme bu hizmete bağlandı.');
+                    } else {
+                        $label.text('Bağlı Değil');
+                        App.Layouts.Backend.displayNotification('Sözleşme bağlantısı kaldırıldı.');
+                    }
+                    const currentBadge = Number($('#badge-tab-contracts').text()) || 0;
+                    $('#badge-tab-contracts').text(Math.max(0, currentBadge + (isChecked ? 1 : -1)));
+                },
+                error: () => {
+                    alert('Sözleşme bağlantı durumu güncellenemedi.');
+                    $(this).prop('checked', !isChecked);
+                }
+            });
+        });
+
+        // Contract preview button
+        $(document).on('click', '.btn-preview-contract', function () {
+            const title = $(this).data('title');
+            const content = $(this).data('content');
+            $('#contract-preview-title').html('<i class="fas fa-file-contract text-primary me-2"></i>' + escapeHtml(title));
+            $('#contract-preview-body').html(content || '<p class="text-muted">Metin içeriği bulunmuyor.</p>');
+            showModal('modal-contract-preview');
+        });
+
+        // Add contract modal opener
+        $('#btn-add-contract-modal').on('click', () => {
+            $('#contract-title-input').val('');
+            $('#contract-mandatory-input').prop('checked', true);
+            $('#contract-content-input').val('');
+            showModal('modal-contract-form');
+        });
+
+        // Add contract submit
+        $('#btn-save-contract-submit').on('click', () => {
+            const serviceId = $id.val();
+            const title = $('#contract-title-input').val().trim();
+            const content = $('#contract-content-input').val().trim();
+            const isMandatory = $('#contract-mandatory-input').prop('checked') ? 1 : 0;
+
+            if (!title) {
+                alert('Lütfen sözleşme / onam başlığını girin.');
+                return;
+            }
+
+            $.ajax({
+                url: App.Utils.Url.siteUrl('services/save_contract'),
+                type: 'POST',
+                data: {
+                    csrf_token: vars('csrf_token'),
+                    service_id: Number(serviceId || 0),
+                    title: title,
+                    content_html: content,
+                    is_mandatory: isMandatory
+                },
+                success: () => {
+                    hideModal('modal-contract-form');
+                    App.Layouts.Backend.displayNotification('Yeni sözleşme şablonu oluşturuldu.');
+                    if (serviceId) {
+                        loadContracts(serviceId);
+                    }
+                },
+                error: (xhr) => {
+                    const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Sözleşme kaydedilemedi.';
+                    alert(msg);
+                }
+            });
+        });
     }
 
     /**
      * Save service record to database.
-     *
-     * @param {Object} service Contains the service record data. If an 'id' value is provided
-     * then the update operation is going to be executed.
      */
     function save(service) {
         App.Http.Services.save(service).then((response) => {
-            App.Layouts.Backend.displayNotification(lang('service_saved'));
-            App.Pages.Services.resetForm();
-            $('#services-page').removeClass('editing');
-            $filterServices.find('.key').val('');
-            App.Pages.Services.filter('', response.id, true);
+            App.Layouts.Backend.displayNotification(lang('service_saved') || 'Hizmet başarıyla kaydedildi.');
+            filter('', response.id);
+            showTableView();
+        }).fail((xhr) => {
+            const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Hizmet kaydedilirken bir hata oluştu.';
+            App.Layouts.Backend.displayNotification(msg, 'danger');
         });
     }
 
     /**
      * Delete a service record from database.
-     *
-     * @param {Number} id Record ID to be deleted.
      */
     function remove(id) {
         App.Http.Services.destroy(id).then(() => {
-            App.Layouts.Backend.displayNotification(lang('service_deleted'));
-            App.Pages.Services.resetForm();
-            $('#services-page').removeClass('editing');
-            App.Pages.Services.filter($filterServices.find('.key').val());
+            App.Layouts.Backend.displayNotification(lang('service_deleted') || 'Hizmet silindi.');
+            resetForm();
+            filter('');
+            showTableView();
+        }).fail((xhr) => {
+            const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Hizmet silinirken bir hata oluştu.';
+            App.Layouts.Backend.displayNotification(msg, 'danger');
         });
     }
 
     /**
      * Dynamically adjusts form fields and visibility based on selected service nature.
-     *
-     * @param {String} nature The service nature key.
      */
     function applyServiceNature(nature) {
         nature = nature || 'duration';
@@ -670,7 +892,6 @@ App.Pages.Services = (function () {
             case 'duration':
                 $sectionTimedSettings.show();
                 $packageSessionsContainer.hide();
-                $totalPasses.removeClass('required');
                 $durationContainer.show();
                 $durationLabel.text(lang('duration_minutes') || 'Süre (Dakika)');
                 $duration.addClass('required').prop('min', vars('event_minimum_duration') || 5);
@@ -679,31 +900,29 @@ App.Pages.Services = (function () {
                 $sectionDailyPassSettings.hide();
                 $sectionMultiPassSettings.hide();
                 $sectionProviders.show();
+                $priceUnitLabel.text('(Tek Seans Ücreti)');
                 $('.provider-custom-duration-container').hide();
-                $priceUnitLabel.text('(Toplam Fiyat)');
                 break;
 
             case 'packaged':
-            case 'quantity_timed':
                 $sectionTimedSettings.show();
                 $packageSessionsContainer.show();
                 $totalPasses.addClass('required');
                 $durationContainer.show();
-                $durationLabel.text('Seans Başına Süre (Dakika)');
+                $durationLabel.text('Seans Başı Süre (Dakika)');
                 $duration.addClass('required').prop('min', vars('event_minimum_duration') || 5);
                 $slotInterval.addClass('required');
                 $attendantsNumber.addClass('required');
                 $sectionDailyPassSettings.hide();
                 $sectionMultiPassSettings.hide();
                 $sectionProviders.show();
+                $priceUnitLabel.text('(Toplam Paket Satış Fiyatı)');
                 $('.provider-custom-duration-container').hide();
-                $priceUnitLabel.text('(Paket Toplam Satış Fiyatı)');
                 break;
 
             case 'provider_custom_duration':
                 $sectionTimedSettings.show();
                 $packageSessionsContainer.hide();
-                $totalPasses.removeClass('required');
                 $durationContainer.show();
                 $durationLabel.text('Varsayılan Süre (Dakika)');
                 $duration.addClass('required').prop('min', vars('event_minimum_duration') || 5);
@@ -712,239 +931,134 @@ App.Pages.Services = (function () {
                 $sectionDailyPassSettings.hide();
                 $sectionMultiPassSettings.hide();
                 $sectionProviders.show();
+                $priceUnitLabel.text('(Hizmet Satış Fiyatı)');
                 $('.provider-custom-duration-container').show();
-                $priceUnitLabel.text('(Toplam Fiyat)');
                 break;
 
             case 'daily_pass':
                 $sectionTimedSettings.hide();
-                $packageSessionsContainer.hide();
-                $totalPasses.removeClass('required');
-                $duration.removeClass('required');
-                $slotInterval.removeClass('required');
-                $attendantsNumber.removeClass('required');
                 $sectionDailyPassSettings.show();
                 $sectionMultiPassSettings.hide();
                 $sectionProviders.hide();
-                $('.provider-custom-duration-container').hide();
+                $duration.removeClass('required');
+                $slotInterval.removeClass('required');
+                $attendantsNumber.removeClass('required');
                 $priceUnitLabel.text('(Günlük Giriş Ücreti)');
+                $('.provider-custom-duration-container').hide();
                 break;
 
             case 'multi_pass':
                 $sectionTimedSettings.hide();
-                $packageSessionsContainer.hide();
-                $totalPasses.removeClass('required');
-                $duration.removeClass('required');
-                $slotInterval.removeClass('required');
-                $attendantsNumber.removeClass('required');
                 $sectionDailyPassSettings.hide();
                 $sectionMultiPassSettings.show();
                 $sectionProviders.hide();
+                $duration.removeClass('required');
+                $slotInterval.removeClass('required');
+                $attendantsNumber.removeClass('required');
+                $priceUnitLabel.text('(Kart / Abonelik Satış Fiyatı)');
                 $('.provider-custom-duration-container').hide();
-                $priceUnitLabel.text('(Abonelik / Pass Satış Fiyatı)');
                 break;
         }
     }
 
     /**
-     * Synchronize a default follow-up step based on current template selections.
-     */
-    function syncDefaultFollowUpStep() {
-        const cat = $('#follow-up-category').val() || 'medical_protocol';
-        const msg = $('#follow-up-message-override').val() || '';
-        serviceFollowUpRules = [
-            {
-                trigger: 'appointment_completed',
-                delay: '24_hours',
-                channel: 'whatsapp',
-                action: cat,
-                message: msg || 'Sayın {{customer_name}}, {{service_name}} işlemi sonrası kontrol ve takip mesajınızdır.',
-            }
-        ];
-        renderFollowUpRules();
-    }
-
-    /**
-     * Render the table of CRM follow-up automation rules.
-     */
-    function renderFollowUpRules() {
-        const $tbody = $('#service-follow-up-table tbody');
-        $tbody.empty();
-
-        if (!serviceFollowUpRules || !serviceFollowUpRules.length) {
-            $tbody.html('<tr class="text-muted text-center py-3"><td colspan="5">Kayıtlı takip adımı bulunamadı. "+ Yeni Adım Ekle" butonuna tıklayarak ilk adımı oluşturabilirsiniz.</td></tr>');
-            return;
-        }
-
-        const triggerLabels = {
-            'appointment_completed': '<span class="badge bg-primary">Randevu Tamamlandığında</span>',
-            'package_near_expiry': '<span class="badge bg-warning text-dark">Paket Bitimine 1 Seans Kala</span>',
-            'service_purchased': '<span class="badge bg-info text-dark">Satın Alındığında</span>',
-            'checkin_done': '<span class="badge bg-secondary">Check-in Yapıldığında</span>',
-        };
-
-        const delayLabels = {
-            'immediate': '⚡ Hemen (0 dk)',
-            '2_hours': '⏱️ 2 Saat Sonra',
-            '12_hours': '⏱️ 12 Saat Sonra',
-            '24_hours': '📅 24 Saat Sonra',
-            '48_hours': '📅 48 Saat Sonra',
-            '3_days': '📅 3 Gün Sonra',
-            '1_week': '🗓️ 1 Hafta Sonra',
-            '30_days': '🗓️ 30 Gün Sonra',
-        };
-
-        const channelLabels = {
-            'whatsapp': '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fab fa-whatsapp me-1"></i>WhatsApp</span>',
-            'sms': '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fas fa-comment-sms me-1"></i>SMS</span>',
-            'email': '<span class="badge bg-info-subtle text-info border border-info-subtle"><i class="fas fa-envelope me-1"></i>E-Posta</span>',
-        };
-
-        const actionLabels = {
-            'medical_protocol': '💊 İlaç Kullanımı & Tedavi Protokolü',
-            'medical_reaction': '🩺 Klinik SOAP & Reaksiyon Kontrolü',
-            'photo_checkin': '📸 Cilt/Doku Fotoğraf Durum Kontrolü',
-            'aftercare_safety': '🛡️ Bakım Sonrası Talimatları & Güvenlik',
-            'review_nps': '⭐ Memnuniyet & NPS Anketi',
-            'renewal_reminder': '🔄 Paket Yenileme & Teklif',
-            'tag_vip': '🏷️ "VIP" Etiketi Ekle',
-        };
-
-        serviceFollowUpRules.forEach((rule, idx) => {
-            const tr = `
-                <tr>
-                    <td>
-                        <span class="badge bg-light text-secondary border me-1">Adım ${idx + 1}</span>
-                        ${triggerLabels[rule.trigger] || ('<span class="badge bg-secondary">' + escapeHtml(rule.trigger) + '</span>')}
-                    </td>
-                    <td><span class="badge bg-light text-dark border">${delayLabels[rule.delay] || escapeHtml(rule.delay)}</span></td>
-                    <td>${channelLabels[rule.channel] || ('<span class="badge bg-light text-dark">' + escapeHtml(rule.channel) + '</span>')}</td>
-                    <td>
-                        <div class="fw-semibold text-dark">${actionLabels[rule.action] || escapeHtml(rule.action)}</div>
-                        <div class="small text-muted text-truncate" style="max-width: 280px;" title="${escapeHtml(rule.message || '')}">
-                            ${escapeHtml(rule.message || 'Özel mesaj yok')}
-                        </div>
-                    </td>
-                    <td class="text-end text-nowrap">
-                        <button type="button" class="btn btn-sm btn-outline-primary me-1 btn-edit-follow-up" data-index="${idx}" title="Düzenle">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-follow-up" data-index="${idx}" title="Sil">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            $tbody.append(tr);
-        });
-    }
-
-    /**
-     * Validates a service record.
-     *
-     * @return {Boolean} Returns the validation result.
+     * Check if form is valid
      */
     function validate() {
-        $services.find('.is-invalid').removeClass('is-invalid');
-        $services.find('.form-message').removeClass('alert-danger').hide();
+        $('#services-editor-view .required').removeClass('is-invalid');
+        let isValid = true;
 
-        try {
-            // Validate required fields that are visible.
-            let missingRequired = false;
-
-            $services.find('.required:visible').each((index, requiredField) => {
-                if (!$(requiredField).val()) {
-                    $(requiredField).addClass('is-invalid');
-                    missingRequired = true;
-                }
-            });
-
-            if (missingRequired) {
-                throw new Error(lang('fields_are_required'));
-            }
-
-            const nature = $serviceNature.val() || 'duration';
-            if (['duration', 'quantity_timed'].includes(nature)) {
-                if (Number($duration.val()) < (vars('event_minimum_duration') || 5)) {
-                    $duration.addClass('is-invalid');
-                    throw new Error(lang('invalid_duration'));
-                }
-            }
-
-            return true;
-        } catch (error) {
-            $services.find('.form-message').addClass('alert-danger').text(error.message).show();
-            return false;
+        if (!$name.val() || !$name.val().trim()) {
+            $name.addClass('is-invalid');
+            isValid = false;
         }
+
+        const nature = $serviceNature.val() || 'duration';
+        if (['duration', 'packaged', 'quantity_timed', 'provider_custom_duration'].includes(nature)) {
+            if (!$duration.val() || Number($duration.val()) < (vars('event_minimum_duration') || 5)) {
+                $duration.addClass('is-invalid');
+                isValid = false;
+            }
+        }
+
+        if (nature === 'packaged') {
+            if (!$totalPasses.val() || Number($totalPasses.val()) < 1) {
+                $totalPasses.addClass('is-invalid');
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            App.Layouts.Backend.displayNotification('Lütfen zorunlu alanları eksiksiz doldurunuz.', 'warning');
+        }
+
+        return isValid;
     }
 
     /**
-     * Resets the service tab form back to its initial state.
+     * Reset service form
      */
     function resetForm() {
-        $filterServices.find('.selected').removeClass('selected');
-        $filterServices.find('button').prop('disabled', false);
-        $filterServices.find('.results').css('color', '');
-
-        $services.find('.record-details').find('input, select, textarea').val('').prop('disabled', true);
-        $services.find('.record-details .form-label span').prop('hidden', true);
-        $services.find('.record-details #is-private').prop('checked', false);
-        $services.find('.record-details h4 a').remove();
-
-        $services.find('.add-edit-delete-group').show();
-        $services.find('.save-cancel-group').hide();
-        $('#edit-service, #delete-service').prop('disabled', true);
-
-        $services.find('.record-details .is-invalid').removeClass('is-invalid');
-        $services.find('.record-details .form-message').hide();
-
-        // Reset providers checkboxes
-        $('#service-providers input:checkbox').prop('disabled', true).prop('checked', false);
-        $('#select-all-providers, #select-none-providers').prop('disabled', true);
-        $('#service-providers a').remove();
-
-        // Reset Addons & Consumables & Follow-ups
-        $('#service-addons-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="4">Ek hizmet bulunamadı.</td></tr>');
-        $('#service-consumables-table tbody').html('<tr class="text-muted text-center py-3"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
-        $('#service-consumables-summary').hide();
-        $('#follow-up-required').prop('checked', false).prop('disabled', true);
+        $id.val('');
+        $name.val('');
+        $duration.val('60');
+        $price.val('0.00');
+        $currency.val('₺');
+        $description.val('');
+        $location.val('');
+        $slotInterval.val('15');
+        $attendantsNumber.val('1');
+        $totalPasses.val('10');
+        $isPrivate.prop('checked', false);
+        $serviceCategoryId.val('');
+        $taxRate.val('20.00');
+        $validHoursStart.val('09:00');
+        $validHoursEnd.val('18:00');
+        $dailyCapacity.val('');
+        $passValidityDays.val('30');
+        $multiPassQuotaType.val('unlimited');
+        $multiPassQuotaNumber.hide();
+        App.Components.ColorSelection.setColor($color, '#4338ca');
+        $('#service-providers input:checkbox').prop('checked', false);
+        $('.provider-duration-input').val('60');
+        $('#follow-up-required').prop('checked', false);
         $('#follow-up-config-body').hide();
-        $('#follow-up-category').val('medical_reaction').prop('disabled', true);
-        $('#follow-up-priority').val('standard').prop('disabled', true);
-        $('#follow-up-delay-override').val('24 hours').prop('disabled', true);
-        $('#follow-up-message-override').val('').prop('disabled', true);
+        $('#follow-up-message-override').val('');
         serviceFollowUpRules = [];
         renderFollowUpRules();
-        $('.provider-duration-input').val('').prop('disabled', true);
-        $('.provider-custom-duration-container').hide();
-
-        $serviceNature.val('duration');
         applyServiceNature('duration');
-
-        App.Components.ColorSelection.disable($color);
     }
 
     /**
-     * Display a service record into the service form.
-     *
-     * @param {Object} service Contains the service record data.
+     * Display a specific service in the editor
      */
     function display(service) {
         if (!service) return;
+
         $id.val(service.id);
         $name.val(service.name);
-        $duration.val(service.duration);
-        
-        const nature = service.service_nature || service.access_type || service.accessType || 'duration';
+
+        const nature = service.service_nature || service.access_type || 'duration';
         $serviceNature.val(nature);
-        $accessType.val(nature);
         applyServiceNature(nature);
 
-        $taxRate.val(service.tax_rate !== undefined && service.tax_rate !== null ? service.tax_rate : '20.00');
-        $price.val(service.price);
+        $taxRate.val(service.tax_rate !== null && service.tax_rate !== undefined ? Number(service.tax_rate).toFixed(2) : '20.00');
+        $duration.val(service.duration || 60);
+        $price.val(Number(service.price || 0).toFixed(2));
         $currency.val(service.currency || '₺');
-        $description.val(service.description);
-        $location.val(service.location);
+        $description.val(service.description || '');
+
+        // Location / Branch dropdown binding
+        if (service.location) {
+            const locVal = service.location.trim();
+            if ($location.find('option[value="' + locVal + '"]').length === 0) {
+                $location.append(new Option(locVal, locVal));
+            }
+            $location.val(locVal);
+        } else {
+            $location.val('');
+        }
+
         $slotInterval.val(service.slot_interval || 15);
         $attendantsNumber.val(service.attendants_number || 1);
         $totalPasses.val(service.total_passes || 10);
@@ -961,17 +1075,18 @@ App.Pages.Services = (function () {
             $multiPassQuotaNumber.hide();
         }
 
-        $isPrivate.prop('checked', service.is_private);
-        App.Components.ColorSelection.setColor($color, service.color);
+        $isPrivate.prop('checked', !!Number(service.is_private));
+        App.Components.ColorSelection.setColor($color, service.color || '#4338ca');
 
         const serviceCategoryId = service.id_service_categories !== null ? service.id_service_categories : '';
         $serviceCategoryId.val(serviceCategoryId);
 
-        // Load Addons & Consumables for this service
+        // Submodules: Addons, Consumables, Follow-Up, Contracts
         loadAddons(service.id);
         loadConsumables(service.id);
+        loadContracts(service.id);
 
-        // Native follow-up engine fields
+        // Follow-up setup
         const isFollowUpReq = !!(Number(service.follow_up_required) || service.followUpRequired);
         $('#follow-up-required').prop('checked', isFollowUpReq);
         if (isFollowUpReq) {
@@ -984,7 +1099,6 @@ App.Pages.Services = (function () {
         $('#follow-up-delay-override').val(service.follow_up_delay_override || service.followUpDelayOverride || '24 hours');
         $('#follow-up-message-override').val(service.follow_up_message_override || service.followUpMessageOverride || '');
 
-        // Restore CRM follow-up rules array
         serviceFollowUpRules = [];
         if (Array.isArray(service.crm_follow_up_rules)) {
             serviceFollowUpRules = service.crm_follow_up_rules;
@@ -997,16 +1111,20 @@ App.Pages.Services = (function () {
         }
         renderFollowUpRules();
 
-        if (isFollowUpReq && $('#services-page').hasClass('editing')) {
-            $('#follow-up-config-body').find('input, select, textarea, button').prop('disabled', false);
+        // Providers
+        $('#service-providers input:checkbox').prop('checked', false);
+        if (service.providers && Array.isArray(service.providers)) {
+            service.providers.forEach((pid) => {
+                $('#service-providers input[data-id="' + pid + '"]').prop('checked', true);
+            });
         }
 
-        // Populate per-provider custom durations
+        // Provider custom durations
         let pDurs = {};
         try {
             pDurs = typeof service.provider_durations === 'string'
                 ? JSON.parse(service.provider_durations)
-                : (service.provider_durations || service.providerDurations || {});
+                : (service.provider_durations || {});
         } catch (e) {
             pDurs = {};
         }
@@ -1018,43 +1136,108 @@ App.Pages.Services = (function () {
                 $(this).val(service.duration || 60);
             }
         });
+    }
 
-        // Display providers
-        $('#service-providers a').remove();
-        $('#service-providers input:checkbox').prop('checked', false);
+    /**
+     * Render Follow-Up Steps Table
+     */
+    function renderFollowUpRules() {
+        const $tbody = $('#service-follow-up-table tbody');
+        $tbody.empty();
 
-        if (service.providers) {
-            service.providers.forEach((serviceProviderId) => {
-                const $checkbox = $('#service-providers input[data-id="' + serviceProviderId + '"]');
-
-                if (!$checkbox.length) {
-                    return;
-                }
-
-                $checkbox.prop('checked', true);
-
-                // Add dedicated service-provider link.
-                const dedicatedUrl = App.Utils.Url.siteUrl(
-                    '?service=' + encodeURIComponent(service.id) + '&provider=' + encodeURIComponent(serviceProviderId),
-                );
-
-                const $link = $('<a/>', {
-                    'href': dedicatedUrl,
-                    'target': '_blank',
-                    'data-bs-toggle': 'tooltip',
-                    'title': lang('booking_link'),
-                    'aria-label': lang('booking_link'),
-                    'html': [
-                        $('<i/>', {
-                            'class': 'fas fa-link',
-                        }),
-                    ],
-                });
-
-                $checkbox.parent().append($link);
-                new bootstrap.Tooltip($link[0]);
-            });
+        if (!serviceFollowUpRules || !serviceFollowUpRules.length) {
+            $tbody.html('<tr class="text-muted text-center py-3"><td colspan="5">Kayıtlı takip adımı bulunamadı. "+ Yeni Adım Ekle" butonuna tıklayarak ilk adımı oluşturabilirsiniz.</td></tr>');
+            $('#badge-tab-followup').text('0');
+            return;
         }
+
+        $('#badge-tab-followup').text(serviceFollowUpRules.length);
+
+        const triggerLabels = {
+            'appointment_completed': 'Randevu Tamamlandığında',
+            'package_near_expiry': 'Paket Bitimine 1 Seans Kala',
+            'service_purchased': 'Hizmet Satın Alındığında',
+            'checkin_done': 'Check-in Yapıldığında',
+        };
+
+        const delayLabels = {
+            'immediate': '⚡ Hemen (0 dk)',
+            '2_hours': '⏱️ 2 Saat Sonra',
+            '12_hours': '⏱️ 12 Saat Sonra',
+            '24_hours': '⏱️ 24 Saat Sonra',
+            '48_hours': '⏱️ 48 Saat Sonra',
+            '3_days': '📅 3 Gün Sonra',
+            '1_week': '📅 1 Hafta Sonra',
+            '30_days': '📅 30 Gün Sonra',
+        };
+
+        const channelLabels = {
+            'whatsapp': '<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fab fa-whatsapp me-1"></i>WhatsApp</span>',
+            'sms': '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fas fa-comment-sms me-1"></i>SMS</span>',
+            'email': '<span class="badge bg-info-subtle text-info border border-info-subtle"><i class="fas fa-envelope me-1"></i>E-Posta</span>',
+        };
+
+        const actionLabels = {
+            'medical_protocol': '💊 İlaç Kullanımı & Tedavi Protokolü',
+            'medical_reaction': '🩺 Klinik SOAP & Reaksiyon Kontrolü',
+            'photo_checkin': '📸 Görsel / Fotoğraf Durum Kontrolü',
+            'review_nps': '⭐ Memnuniyet & NPS Anketi',
+            'renewal_reminder': '🔄 Paket Yenileme & Teklif',
+            'tag_vip': '🏷️ "VIP" Etiketi Ekle',
+            'aftercare_safety': '🩺 Bakım Sonrası Talimatları',
+        };
+
+        serviceFollowUpRules.forEach((rule, idx) => {
+            const tr = `
+                <tr>
+                    <td class="ps-3">
+                        <span class="badge bg-light text-secondary border me-1">Adım ${idx + 1}</span>
+                        <span class="fw-semibold text-dark">${triggerLabels[rule.trigger] || escapeHtml(rule.trigger)}</span>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">${delayLabels[rule.delay] || escapeHtml(rule.delay)}</span></td>
+                    <td>${channelLabels[rule.channel] || escapeHtml(rule.channel)}</td>
+                    <td>
+                        <div class="fw-semibold text-dark mb-1">${actionLabels[rule.action] || escapeHtml(rule.action)}</div>
+                        <div class="small text-muted font-monospace bg-light p-1 rounded border">${escapeHtml(rule.message || '(Özel mesaj yok)')}</div>
+                    </td>
+                    <td class="text-end pe-3">
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-primary btn-edit-follow-up" data-index="${idx}" title="Düzenle">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-delete-follow-up" data-index="${idx}" title="Sil">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            $tbody.append(tr);
+        });
+    }
+
+    /**
+     * Default follow-up steps generator
+     */
+    function syncDefaultFollowUpStep() {
+        const cat = $('#follow-up-category').val() || 'medical_protocol';
+        const delay = $('#follow-up-delay-override').val() || '24 hours';
+        let delayKey = '24_hours';
+        if (delay.includes('2 hours')) delayKey = '2_hours';
+        else if (delay.includes('48 hours')) delayKey = '48_hours';
+        else if (delay.includes('3 days')) delayKey = '3_days';
+        else if (delay.includes('0') || delay.includes('Hemen')) delayKey = 'immediate';
+
+        serviceFollowUpRules = [
+            {
+                trigger: 'appointment_completed',
+                delay: delayKey,
+                channel: 'whatsapp',
+                action: cat,
+                message: $('#follow-up-message-override').val() || 'Merhaba {{customer_name}}, {{service_name}} işleminiz sonrasında durumunuzu takip etmek istedik.',
+            }
+        ];
+        renderFollowUpRules();
     }
 
     /**
@@ -1068,16 +1251,18 @@ App.Pages.Services = (function () {
             .done((addons) => {
                 $tbody.empty();
                 if (!addons || !addons.length) {
-                    $tbody.html('<tr class="text-muted text-center py-2"><td colspan="4">Kayıtlı ek hizmet bulunamadı.</td></tr>');
+                    $tbody.html('<tr class="text-muted text-center py-4"><td colspan="4">Kayıtlı ek hizmet bulunamadı.</td></tr>');
+                    $('#badge-tab-addons').text('0');
                     return;
                 }
+                $('#badge-tab-addons').text(addons.length);
                 addons.forEach((addon) => {
                     const tr = `
                         <tr>
-                            <td class="fw-semibold text-dark">${escapeHtml(addon.name)}</td>
+                            <td class="ps-3 fw-semibold text-dark">${escapeHtml(addon.name)}</td>
                             <td>+${addon.duration_minutes || 0} dk</td>
                             <td class="text-primary fw-bold">+${Number(addon.price || 0).toFixed(2)} ₺</td>
-                            <td class="text-end">
+                            <td class="text-end pe-3">
                                 <button type="button" class="btn btn-sm btn-outline-danger btn-delete-addon" data-id="${addon.id}">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
@@ -1088,7 +1273,8 @@ App.Pages.Services = (function () {
                 });
             })
             .fail(() => {
-                $tbody.html('<tr class="text-danger text-center py-2"><td colspan="4">Ek hizmetler yüklenemedi.</td></tr>');
+                $tbody.html('<tr class="text-danger text-center py-4"><td colspan="4">Ek hizmetler yüklenemedi.</td></tr>');
+                $('#badge-tab-addons').text('0');
             });
     }
 
@@ -1107,10 +1293,14 @@ App.Pages.Services = (function () {
                 const summary = response && response.summary ? response.summary : null;
 
                 if (!recipes || !recipes.length) {
-                    $tbody.html('<tr class="text-muted text-center py-2"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
+                    $tbody.html('<tr class="text-muted text-center py-4"><td colspan="6">Reçeteye ekli sarf malzeme bulunamadı.</td></tr>');
                     $summary.hide();
+                    $('#badge-tab-consumables').text('0');
                     return;
                 }
+
+                $('#badge-tab-consumables').text(recipes.length);
+
                 recipes.forEach((rec) => {
                     const unitCost = Number(rec.cost || 0);
                     const totalCost = Number(rec.line_total_cost || (rec.quantity_used * unitCost) || 0);
@@ -1118,12 +1308,12 @@ App.Pages.Services = (function () {
 
                     const tr = `
                         <tr>
-                            <td class="fw-semibold text-dark">${escapeHtml(rec.product_name || 'Ürün #' + rec.id_products)}</td>
+                            <td class="ps-3 fw-semibold text-dark">${escapeHtml(rec.product_name || 'Ürün #' + rec.id_products)}</td>
                             <td><span class="badge bg-light text-dark border">${rec.quantity_used} ${unit}</span></td>
                             <td class="text-muted">₺${unitCost.toFixed(2)}</td>
                             <td class="fw-semibold text-danger">₺${totalCost.toFixed(2)}</td>
                             <td><span class="badge ${Number(rec.stock_quantity) > 0 ? 'bg-success' : 'bg-danger'}">${rec.stock_quantity || 0} ${unit}</span></td>
-                            <td class="text-end">
+                            <td class="text-end pe-3">
                                 <button type="button" class="btn btn-sm btn-outline-danger btn-delete-consumable" data-id="${rec.id}" title="Reçeteden Çıkar">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
@@ -1145,123 +1335,105 @@ App.Pages.Services = (function () {
                 }
             })
             .fail(() => {
-                $tbody.html('<tr class="text-danger text-center py-2"><td colspan="6">Sarf reçetesi yüklenemedi.</td></tr>');
+                $tbody.html('<tr class="text-danger text-center py-4"><td colspan="6">Sarf reçetesi yüklenemedi.</td></tr>');
                 $summary.hide();
+                $('#badge-tab-consumables').text('0');
             });
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    /**
+     * Load digital contracts / waivers for the selected service.
+     */
+    function loadContracts(serviceId) {
+        const $tbody = $('#service-contracts-table tbody');
+        $tbody.html('<tr class="text-muted text-center py-3"><td colspan="5"><i class="fas fa-spinner fa-spin me-2"></i>Sözleşmeler yükleniyor...</td></tr>');
+
+        $.get(App.Utils.Url.siteUrl('services/get_contracts/' + serviceId))
+            .done((res) => {
+                $tbody.empty();
+                const contracts = (res && res.contracts) ? res.contracts : [];
+                let linkedCount = 0;
+
+                if (!contracts.length) {
+                    $tbody.html('<tr class="text-muted text-center py-4"><td colspan="5">Sistemde kayıtlı sözleşme veya onam şablonu bulunamadı. "+ Yeni Sözleşme Şablonu Ekle" butonu ile oluşturabilirsiniz.</td></tr>');
+                    $('#badge-tab-contracts').text('0');
+                    return;
+                }
+
+                contracts.forEach((c) => {
+                    if (c.is_linked) linkedCount++;
+                    const isMandatoryBadge = c.is_mandatory
+                        ? '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fas fa-exclamation-circle me-1"></i>Zorunlu</span>'
+                        : '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">İsteğe Bağlı</span>';
+
+                    const tr = `
+                        <tr>
+                            <td class="ps-3">
+                                <span class="fw-semibold text-dark">${escapeHtml(c.title)}</span>
+                            </td>
+                            <td>${isMandatoryBadge}</td>
+                            <td>
+                                <div class="form-check form-switch m-0 fs-5 d-flex align-items-center">
+                                    <input class="form-check-input btn-toggle-contract" type="checkbox" 
+                                           data-contract-id="${c.id}" 
+                                           id="contract-switch-${c.id}"
+                                           ${c.is_linked ? 'checked' : ''}>
+                                    <label class="form-check-label small fw-semibold text-muted ms-2" for="contract-switch-${c.id}">
+                                        ${c.is_linked ? '<span class="text-success fw-bold">Bağlı (Aktif)</span>' : 'Bağlı Değil'}
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-xs btn-outline-info py-1 px-2 btn-preview-contract" 
+                                        data-title="${escapeHtml(c.title)}" 
+                                        data-content="${escapeHtml(c.content_html || '')}">
+                                    <i class="fas fa-eye me-1"></i>Metni Gör
+                                </button>
+                            </td>
+                            <td class="text-end pe-3">
+                                <span class="badge bg-light text-secondary border">Şablon #${c.id}</span>
+                            </td>
+                        </tr>
+                    `;
+                    $tbody.append(tr);
+                });
+
+                $('#badge-tab-contracts').text(linkedCount);
+            })
+            .fail(() => {
+                $tbody.html('<tr class="text-danger text-center py-4"><td colspan="5">Sözleşmeler yüklenirken bir hata oluştu.</td></tr>');
+                $('#badge-tab-contracts').text('0');
+            });
     }
 
     /**
      * Filters service records depending on a string keyword.
-     *
-     * @param {String} keyword This is used to filter the service records of the database.
-     * @param {Number} selectId Optional, if set then after the filter operation the record with this
-     * ID will be selected (but not displayed).
-     * @param {Boolean} show Optional (false), if true then the selected record will be displayed on the form.
      */
-    function filter(keyword, selectId = null, show = false) {
+    function filter(keyword = '', selectId = null) {
         App.Http.Services.search(keyword, filterLimit).then((response) => {
-            filterResults = response;
-
-            $filterServices.find('.results').empty();
-
-            response.forEach((service) => {
-                $filterServices.find('.results').append(App.Pages.Services.getFilterHtml(service)).append($('<hr/>'));
-            });
-
-            if (response.length === 0) {
-                $filterServices.find('.results').append(
-                    $('<em/>', {
-                        'text': lang('no_records_found'),
-                    }),
-                );
-            } else if (response.length === filterLimit) {
-                $('<button/>', {
-                    'type': 'button',
-                    'class': 'btn btn-outline-secondary w-100 load-more text-center',
-                    'text': lang('load_more'),
-                    'click': () => {
-                        filterLimit += 20;
-                        App.Pages.Services.filter(keyword, selectId, show);
-                    },
-                }).appendTo('#filter-services .results');
-            }
+            filterResults = response || [];
+            renderServicesTable(filterResults);
 
             if (selectId) {
-                App.Pages.Services.select(selectId, show);
+                showEditorView(selectId);
             }
         });
     }
 
     /**
-     * Get Filter HTML
-     *
-     * Get a service row HTML code that is going to be displayed on the filter results list.
-     *
-     * @param {Object} service Contains the service record data.
-     *
-     * @return {String} The HTML code that represents the record on the filter results list.
-     */
-    function getFilterHtml(service) {
-        const name = service.name;
-
-        const info = service.duration + ' min - ' + service.price + ' ' + service.currency;
-
-        return $('<div/>', {
-            'class': 'service-row entry',
-            'data-id': service.id,
-            'html': [
-                $('<strong/>', {
-                    'text': name,
-                }),
-                $('<br/>'),
-                $('<small/>', {
-                    'class': 'text-muted',
-                    'text': info,
-                }),
-                $('<br/>'),
-            ],
-        });
-    }
-
-    /**
-     * Select a specific record from the current filter results. If the service id does not exist
-     * in the list then no record will be selected.
-     *
-     * @param {Number} id The record id to be selected from the filter results.
-     * @param {Boolean} show Optional (false), if true then the method will display the record on the form.
-     */
-    function select(id, show = false) {
-        $filterServices.find('.selected').removeClass('selected');
-
-        $filterServices.find('.service-row[data-id="' + id + '"]').addClass('selected');
-
-        if (show) {
-            const service = filterResults.find((filterResult) => Number(filterResult.id) === Number(id));
-
-            App.Pages.Services.display(service);
-
-            $('#edit-service, #delete-service').prop('disabled', false);
-        }
-    }
-
-    /**
-     * Update the service-category list box.
-     *
-     * Use this method every time a change is made to the service categories db table.
+     * Update available service categories in dropdowns.
      */
     function updateAvailableServiceCategories() {
         App.Http.ServiceCategories.search('', 999).then((response) => {
             $serviceCategoryId.empty();
+            $serviceCategoryId.append(new Option('-- Kategori Seçin --', '')).val('');
 
-            $serviceCategoryId.append(new Option('', '')).val('');
+            const $tableCatFilter = $('#table-category-filter');
+            $tableCatFilter.find('option:not(:first)').remove();
 
             response.forEach((serviceCategory) => {
                 $serviceCategoryId.append(new Option(serviceCategory.name, serviceCategory.id));
+                $tableCatFilter.append(new Option(serviceCategory.name, serviceCategory.id));
             });
         });
     }
@@ -1270,10 +1442,9 @@ App.Pages.Services = (function () {
      * Initialize the module.
      */
     function initialize() {
-        App.Pages.Services.resetForm();
-        App.Pages.Services.filter('');
-        App.Pages.Services.addEventListeners();
+        addEventListeners();
         updateAvailableServiceCategories();
+        filter('');
     }
 
     document.addEventListener('DOMContentLoaded', initialize);
@@ -1283,10 +1454,10 @@ App.Pages.Services = (function () {
         save,
         remove,
         validate,
-        getFilterHtml,
         resetForm,
         display,
-        select,
+        showTableView,
+        showEditorView,
         addEventListeners,
     };
 })();

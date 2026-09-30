@@ -495,4 +495,202 @@ class BeautyWellnessFixesIntegrationTest extends TenantTestCase
         $db->where('id', $cmId)->delete('customer_memberships');
         $db->where('id', $planId)->delete('membership_plans');
     }
+
+    /**
+     * Test 8: Verify update_item model method updates quantity, unit_price, discount
+     * and automatically recomputes adisyon subtotal, tax_amount, total_amount.
+     */
+    public function testUpdateAdisyonItemAndTotalsRecalculation(): void
+    {
+        $db = self::db();
+        $now = date('Y-m-d H:i:s');
+
+        // Create an adisyon
+        $db->insert('adisyons', [
+            'adisyon_number' => 'AD-TEST-UPDATE-' . mt_rand(1000, 9999),
+            'id_users_customer' => self::$customerId,
+            'status' => 'open',
+            'payment_status' => 'unpaid',
+            'invoice_status' => 'uninvoiced',
+            'subtotal' => 0.00,
+            'total_amount' => 0.00,
+            'paid_amount' => 0.00,
+            'tax_amount' => 0.00,
+            'opened_at' => $now,
+            'created_at' => $now,
+        ]);
+        $adisyonId = (int) $db->insert_id();
+
+        // Add item: 1x 100 TL
+        $itemId = self::ci()->adisyons_model->add_item($adisyonId, [
+            'name' => 'Cilt Bakım Maskesi',
+            'unit_price' => 100.00,
+            'quantity' => 1,
+            'tax_rate' => 20,
+            'item_type' => 'product',
+        ]);
+
+        $adAfterAdd = self::ci()->adisyons_model->find($adisyonId);
+        $this->assertEquals(100.00, (float) $adAfterAdd['total_amount']);
+
+        // Update item: change quantity to 3, unit_price to 150.00, discount_amount to 50.00
+        // Expected line total: (150 * 3) - 50 = 400.00
+        $updateSuccess = self::ci()->adisyons_model->update_item($itemId, [
+            'quantity' => 3,
+            'unit_price' => 150.00,
+            'discount_amount' => 50.00,
+            'name' => 'Özel Cilt Bakım Kürü',
+        ]);
+        $this->assertTrue($updateSuccess);
+
+        $adAfterUpdate = self::ci()->adisyons_model->find($adisyonId);
+        $this->assertEquals(400.00, (float) $adAfterUpdate['total_amount'], 'Total amount must be recalculated after item edit');
+        $this->assertSame('unpaid', $adAfterUpdate['payment_status']);
+
+        // Cleanup
+        $db->where('id_adisyons', $adisyonId)->delete('adisyon_items');
+        $db->where('id', $adisyonId)->delete('adisyons');
+    }
+
+    /**
+     * Test 9: Verify partial payment records correctly, updates payment_status to 'partially_paid',
+     * and when balance is fulfilled, transitions to 'paid'.
+     */
+    public function testPartialPaymentAndRemainingBalance(): void
+    {
+        $db = self::db();
+        $now = date('Y-m-d H:i:s');
+
+        $db->insert('adisyons', [
+            'adisyon_number' => 'AD-TEST-PARTIAL-' . mt_rand(1000, 9999),
+            'id_users_customer' => self::$customerId,
+            'status' => 'open',
+            'payment_status' => 'unpaid',
+            'invoice_status' => 'uninvoiced',
+            'subtotal' => 0.00,
+            'total_amount' => 0.00,
+            'paid_amount' => 0.00,
+            'tax_amount' => 0.00,
+            'opened_at' => $now,
+            'created_at' => $now,
+        ]);
+        $adisyonId = (int) $db->insert_id();
+
+        // Add 500 TL service
+        self::ci()->adisyons_model->add_item($adisyonId, [
+            'name' => 'Komple Saç Bakımı & Boya',
+            'unit_price' => 500.00,
+            'quantity' => 1,
+            'tax_rate' => 20,
+            'item_type' => 'service',
+        ]);
+
+        // Pay 200 TL cash (partial payment)
+        self::ci()->adisyons_model->record_payment($adisyonId, [
+            'amount' => 200.00,
+            'payment_method' => 'cash',
+            'notes' => 'Kısmi nakit tahsilat',
+        ]);
+
+        $ad1 = self::ci()->adisyons_model->find($adisyonId);
+        $this->assertEquals(200.00, (float) $ad1['paid_amount']);
+        $this->assertSame('partially_paid', $ad1['payment_status']);
+        $remaining1 = (float)$ad1['total_amount'] - (float)$ad1['paid_amount'];
+        $this->assertEquals(300.00, $remaining1);
+
+        // Pay remaining 300 TL via card
+        self::ci()->adisyons_model->record_payment($adisyonId, [
+            'amount' => 300.00,
+            'payment_method' => 'card',
+            'notes' => 'Kalan tutar kart tahsilatı',
+        ]);
+
+        $ad2 = self::ci()->adisyons_model->find($adisyonId);
+        $this->assertEquals(500.00, (float) $ad2['paid_amount']);
+        $this->assertSame('paid', $ad2['payment_status']);
+        $remaining2 = (float)$ad2['total_amount'] - (float)$ad2['paid_amount'];
+        $this->assertEquals(0.00, $remaining2);
+
+        // Cleanup
+        $db->where('id_adisyons', $adisyonId)->delete('adisyon_payments');
+        $db->where('id_adisyons', $adisyonId)->delete('adisyon_items');
+        $db->where('id', $adisyonId)->delete('adisyons');
+    }
+
+    /**
+     * Test 10: Verify thermal print slip renders 80mm and 58mm without 500 error,
+     * containing adisyon number, items, and payment details.
+     */
+    public function testThermalPrintSlipViewRendering(): void
+    {
+        $db = self::db();
+        $now = date('Y-m-d H:i:s');
+
+        $adNumber = 'AD-TEST-SLIP-' . mt_rand(1000, 9999);
+        $db->insert('adisyons', [
+            'adisyon_number' => $adNumber,
+            'id_users_customer' => self::$customerId,
+            'status' => 'open',
+            'payment_status' => 'unpaid',
+            'invoice_status' => 'uninvoiced',
+            'subtotal' => 0.00,
+            'total_amount' => 0.00,
+            'paid_amount' => 0.00,
+            'tax_amount' => 0.00,
+            'opened_at' => $now,
+            'created_at' => $now,
+        ]);
+        $adisyonId = (int) $db->insert_id();
+
+        self::ci()->adisyons_model->add_item($adisyonId, [
+            'name' => 'Fön ve Yıkama',
+            'unit_price' => 250.00,
+            'quantity' => 1,
+            'tax_rate' => 20,
+            'item_type' => 'service',
+        ]);
+
+        self::ci()->adisyons_model->record_payment($adisyonId, [
+            'amount' => 250.00,
+            'payment_method' => 'card',
+            'notes' => 'POS Fişi: ÖKC-123456',
+        ]);
+
+        $adisyon = self::ci()->adisyons_model->find($adisyonId);
+
+        // Render 80mm
+        $output80 = self::ci()->load->view('pages/adisyon_print_slip', [
+            'adisyon' => $adisyon,
+            'format' => '80mm',
+            'width' => '80',
+            'company_name' => 'Salon Flora Test',
+            'company_phone' => '0212 555 0000',
+            'company_address' => 'Test Mah. Test Cad. No:1',
+        ], true);
+
+        $this->assertNotEmpty($output80);
+        $this->assertStringContainsString($adNumber, $output80);
+        $this->assertStringContainsString('Fön ve Yıkama', $output80);
+        $this->assertStringContainsString('250.00', $output80);
+        $this->assertStringContainsString('Kredi Kartı', $output80);
+
+        // Render 58mm
+        $output58 = self::ci()->load->view('pages/adisyon_print_slip', [
+            'adisyon' => $adisyon,
+            'format' => '58mm',
+            'width' => '58',
+            'company_name' => 'Salon Flora Test',
+            'company_phone' => '0212 555 0000',
+            'company_address' => 'Test Mah. Test Cad. No:1',
+        ], true);
+
+        $this->assertNotEmpty($output58);
+        $this->assertStringContainsString('58mm', $output58);
+        $this->assertStringContainsString($adNumber, $output58);
+
+        // Cleanup
+        $db->where('id_adisyons', $adisyonId)->delete('adisyon_payments');
+        $db->where('id_adisyons', $adisyonId)->delete('adisyon_items');
+        $db->where('id', $adisyonId)->delete('adisyons');
+    }
 }

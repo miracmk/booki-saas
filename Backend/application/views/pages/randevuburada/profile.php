@@ -125,18 +125,18 @@
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="bg-primary text-white p-4 position-relative" style="background: linear-gradient(135deg, var(--bs-primary) 0%, #1e293b 100%);">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="rounded-circle bg-white text-dark d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; font-size: 20px; font-weight: bold;">
+                        <div id="preview-avatar" class="rounded-circle bg-white text-dark d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; font-size: 20px; font-weight: bold;">
                             <?= mb_substr($settings['company_name'] ?: 'İ', 0, 1) ?>
                         </div>
                         <div>
-                            <h6 class="mb-0 text-white fw-bold"><?= htmlspecialchars($settings['company_name'] ?: 'İşletme Adınız') ?></h6>
-                            <span class="badge bg-light bg-opacity-25 text-white small"><?= htmlspecialchars($settings['randevuburada_category'] ?: 'Kategori') ?></span>
+                            <h6 id="preview-company-name" class="mb-0 text-white fw-bold"><?= htmlspecialchars($settings['company_name'] ?: 'İşletme Adınız') ?></h6>
+                            <span id="preview-category" class="badge bg-light bg-opacity-25 text-white small"><?= htmlspecialchars($settings['randevuburada_category'] ?: 'Kategori') ?></span>
                         </div>
                     </div>
                 </div>
                 <div class="card-body p-3">
-                    <div class="small text-muted mb-2"><i class="fas fa-map-marker-alt me-2 text-danger"></i><?= htmlspecialchars($settings['company_address'] ?: 'Adres belirtilmedi') ?></div>
-                    <div class="small text-muted mb-3"><i class="fas fa-phone me-2 text-success"></i><?= htmlspecialchars($settings['company_phone'] ?: 'Telefon belirtilmedi') ?></div>
+                    <div class="small text-muted mb-2"><i class="fas fa-map-marker-alt me-2 text-danger"></i><span id="preview-address"><?= htmlspecialchars($settings['company_address'] ?: 'Adres belirtilmedi') ?></span></div>
+                    <div class="small text-muted mb-3"><i class="fas fa-phone me-2 text-success"></i><span id="preview-phone"><?= htmlspecialchars($settings['company_phone'] ?: 'Telefon belirtilmedi') ?></span></div>
                     <div class="border-top pt-2">
                         <a href="<?= e($mp_url) ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary w-100 rounded-3">
                             <i class="fas fa-eye me-1"></i> Vitrin Canlı Sayfasına Git
@@ -149,17 +149,64 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Live preview listeners
+    const nameInput = document.querySelector('input[name="company_name"]');
+    const categorySelect = document.querySelector('select[name="randevuburada_category"]');
+    const phoneInput = document.querySelector('input[name="company_phone"]');
+    const addressInput = document.querySelector('input[name="company_address"]');
+    const activeSwitch = document.getElementById('activeSwitch');
+
+    if (nameInput) {
+        nameInput.addEventListener('input', function() {
+            const val = this.value.trim() || 'İşletme Adınız';
+            document.getElementById('preview-company-name').textContent = val;
+            document.getElementById('preview-avatar').textContent = val.charAt(0).toUpperCase();
+        });
+    }
+
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            document.getElementById('preview-category').textContent = this.value || 'Kategori';
+        });
+    }
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            document.getElementById('preview-phone').textContent = this.value.trim() || 'Telefon belirtilmedi';
+        });
+    }
+
+    if (addressInput) {
+        addressInput.addEventListener('input', function() {
+            document.getElementById('preview-address').textContent = this.value.trim() || 'Adres belirtilmedi';
+        });
+    }
+});
+
 function saveStorefrontProfile() {
+    const formData = new FormData();
+
+    // Collect from profile-form
     const form = document.getElementById('profile-form');
-    const formData = new FormData(form);
-    
-    // Checkbox handles
-    if (!form.querySelector('input[name="randevuburada_active"]').checked) {
-        formData.set('randevuburada_active', '0');
+    if (form) {
+        new FormData(form).forEach((value, key) => {
+            formData.append(key, value);
+        });
     }
-    if (!form.querySelector('input[name="randevuburada_instant_booking"]').checked) {
-        formData.set('randevuburada_instant_booking', '0');
-    }
+
+    // Collect outer fields
+    const minHours = document.querySelector('input[name="randevuburada_min_notice_hours"]');
+    if (minHours) formData.set('randevuburada_min_notice_hours', minHours.value);
+
+    const instantBooking = document.getElementById('instantBookingSwitch');
+    formData.set('randevuburada_instant_booking', (instantBooking && instantBooking.checked) ? '1' : '0');
+
+    const activeSwitch = document.getElementById('activeSwitch');
+    formData.set('randevuburada_active', (activeSwitch && activeSwitch.checked) ? '1' : '0');
+
+    const csrfToken = '<?= $this->security->get_csrf_hash() ?>';
+    formData.append('<?= $this->security->get_csrf_token_name() ?>', csrfToken);
 
     fetch('<?= site_url('randevuburada/save_profile') ?>', {
         method: 'POST',

@@ -111,20 +111,50 @@ App.Pages.Reports = (function () {
 
             $reportSummary.empty().append(
                 $('<div/>', {
-                    class: 'alert alert-primary mb-0',
+                    class: 'row g-2',
                     html: [
-                        $('<strong/>', {text: 'Toplam seans: '}),
-                        document.createTextNode(response.session_count + '  |  '),
-                        $('<strong/>', {text: 'Toplam ciro: '}),
-                        document.createTextNode(formatCurrency(response.grand_total) + '  |  '),
-                        $('<strong/>', {text: 'Tahsil edilen: '}),
-                        document.createTextNode(formatCurrency(response.grand_collected) + '  |  '),
-                        $('<strong/>', {text: 'Bakiye: '}),
-                        document.createTextNode(formatCurrency(response.grand_balance) + '  |  '),
-                        $('<strong/>', {text: 'Toplam terapist ödemesi: '}),
-                        document.createTextNode(formatCurrency(response.grand_payout)),
-                    ],
-                }),
+                        $('<div/>', {
+                            class: 'col-6 col-md-3',
+                            html: $('<div/>', {
+                                class: 'p-2 border rounded bg-white text-center shadow-sm',
+                                html: [
+                                    $('<div/>', {class: 'text-muted small fw-bold text-uppercase', text: 'Toplam Seans'}),
+                                    $('<div/>', {class: 'fs-5 fw-bold text-dark mt-1', text: response.session_count})
+                                ]
+                            })
+                        }),
+                        $('<div/>', {
+                            class: 'col-6 col-md-3',
+                            html: $('<div/>', {
+                                class: 'p-2 border rounded bg-white text-center shadow-sm',
+                                html: [
+                                    $('<div/>', {class: 'text-muted small fw-bold text-uppercase', text: 'Toplam Ciro'}),
+                                    $('<div/>', {class: 'fs-5 fw-bold text-primary mt-1', text: formatCurrency(response.grand_total)})
+                                ]
+                            })
+                        }),
+                        $('<div/>', {
+                            class: 'col-6 col-md-3',
+                            html: $('<div/>', {
+                                class: 'p-2 border rounded bg-white text-center shadow-sm',
+                                html: [
+                                    $('<div/>', {class: 'text-muted small fw-bold text-uppercase', text: 'Tahsil Edilen'}),
+                                    $('<div/>', {class: 'fs-5 fw-bold text-success mt-1', text: formatCurrency(response.grand_collected)})
+                                ]
+                            })
+                        }),
+                        $('<div/>', {
+                            class: 'col-6 col-md-3',
+                            html: $('<div/>', {
+                                class: 'p-2 border rounded bg-white text-center shadow-sm',
+                                html: [
+                                    $('<div/>', {class: 'text-muted small fw-bold text-uppercase', text: 'Kalan Bakiye'}),
+                                    $('<div/>', {class: 'fs-5 fw-bold ' + (response.grand_balance > 0 ? 'text-danger' : 'text-muted') + ' mt-1', text: formatCurrency(response.grand_balance)})
+                                ]
+                            })
+                        })
+                    ]
+                })
             );
             })
             .fail(() => {
@@ -195,6 +225,81 @@ App.Pages.Reports = (function () {
         });
     }
 
+    function initializeAnalytics() {
+        $('#analytics-fetch-btn').on('click', () => {
+            const dateFrom = $('#analytics-date-from').val();
+            const dateTo = $('#analytics-date-to').val();
+            const groupBy = $('#analytics-group-by').val();
+            const $revTbody = $('#analytics-revenue-table tbody');
+            const $utTbody = $('#analytics-utilization-table tbody');
+            const $error = $('#analytics-error');
+
+            $error.addClass('d-none').text('');
+            $revTbody.html('<tr><td colspan="4" class="text-center text-muted py-3">Yükleniyor...</td></tr>');
+            $utTbody.html('<tr><td colspan="4" class="text-center text-muted py-3">Yükleniyor...</td></tr>');
+
+            // Revenue report
+            $.get(App.Utils.Url.siteUrl('reports/get_revenue_report'), {
+                date_from: dateFrom,
+                date_to: dateTo,
+                group_by: groupBy
+            }).done((res) => {
+                $revTbody.empty();
+                const series = res.series || [];
+                if (!series.length) {
+                    $revTbody.html('<tr><td colspan="4" class="text-center text-muted py-3">Bu aralıkta ciro kaydı bulunamadı.</td></tr>');
+                    return;
+                }
+                series.forEach((s) => {
+                    $revTbody.append(
+                        $('<tr/>', {
+                            html: [
+                                $('<td/>', {class: 'fw-semibold', text: s.period || s.date || '-'}),
+                                $('<td/>', {class: 'text-center', text: s.appointments_count || 0}),
+                                $('<td/>', {class: 'text-end fw-bold text-success', text: formatCurrency(s.total_revenue || 0)}),
+                                $('<td/>', {class: 'text-end text-muted', text: formatCurrency(s.total_payout || 0)})
+                            ]
+                        })
+                    );
+                });
+            }).fail((err) => {
+                $error.removeClass('d-none').text('Ciro verileri alınırken bir hata oluştu.');
+            });
+
+            // Utilization report
+            $.get(App.Utils.Url.siteUrl('reports/get_utilization_report'), {
+                date_from: dateFrom,
+                date_to: dateTo
+            }).done((res) => {
+                $utTbody.empty();
+                const providers = res.providers || [];
+                if (!providers.length) {
+                    $utTbody.html('<tr><td colspan="4" class="text-center text-muted py-3">Personel doluluk verisi bulunamadı.</td></tr>');
+                    return;
+                }
+                providers.forEach((p) => {
+                    const rate = parseFloat(p.utilization_rate || 0);
+                    $utTbody.append(
+                        $('<tr/>', {
+                            html: [
+                                $('<td/>', {class: 'fw-semibold', text: p.provider_name || '-'}),
+                                $('<td/>', {class: 'text-center', text: formatDuration(p.booked_minutes || 0)}),
+                                $('<td/>', {class: 'text-center text-muted', text: formatDuration(p.available_minutes || 0)}),
+                                $('<td/>', {
+                                    class: 'text-center',
+                                    html: $('<span/>', {
+                                        class: 'badge ' + (rate > 70 ? 'bg-success' : (rate > 35 ? 'bg-primary' : 'bg-secondary')),
+                                        text: '%' + rate.toFixed(1)
+                                    })
+                                })
+                            ]
+                        })
+                    );
+                });
+            });
+        });
+    }
+
     function initialize() {
         const today = moment().format('YYYY-MM-DD');
         $reportDate.val(today);
@@ -206,6 +311,7 @@ App.Pages.Reports = (function () {
         load(today);
 
         initializeExport();
+        initializeAnalytics();
     }
 
     document.addEventListener('DOMContentLoaded', initialize);

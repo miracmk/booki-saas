@@ -31,19 +31,39 @@ class Google_integrations_client
      * makes far more sense than one per therapist); Contacts/Tasks make sense for either.
      */
     public const SERVICES = [
+        'calendar' => [
+            'label' => 'Google Takvim (Calendar)',
+            'scope' => 'https://www.googleapis.com/auth/calendar',
+            'owner_types' => ['company', 'provider'],
+        ],
         'contacts' => [
             'label' => 'Kişiler (Contacts)',
             'scope' => 'https://www.googleapis.com/auth/contacts',
             'owner_types' => ['company', 'provider'],
         ],
-        'drive' => [
-            'label' => 'Drive',
-            'scope' => 'https://www.googleapis.com/auth/drive.file',
+        'analytics' => [
+            'label' => 'Google Analytics (GA4)',
+            'scope' => 'https://www.googleapis.com/auth/analytics.readonly',
+            'owner_types' => ['company'],
+        ],
+        'ads' => [
+            'label' => 'Google Ads',
+            'scope' => 'https://www.googleapis.com/auth/adwords',
             'owner_types' => ['company'],
         ],
         'sheets' => [
             'label' => 'E-Tablolar (Sheets)',
             'scope' => 'https://www.googleapis.com/auth/spreadsheets',
+            'owner_types' => ['company'],
+        ],
+        'drive' => [
+            'label' => 'Drive',
+            'scope' => 'https://www.googleapis.com/auth/drive',
+            'owner_types' => ['company'],
+        ],
+        'gmail' => [
+            'label' => 'Gmail (SMTP & Bildirim E-postaları)',
+            'scope' => 'https://mail.google.com/',
             'owner_types' => ['company'],
         ],
         'docs' => [
@@ -55,6 +75,11 @@ class Google_integrations_client
             'label' => 'Görevler (Tasks)',
             'scope' => 'https://www.googleapis.com/auth/tasks',
             'owner_types' => ['company', 'provider'],
+        ],
+        'tagmanager' => [
+            'label' => 'Tag Manager (GTM)',
+            'scope' => 'https://www.googleapis.com/auth/tagmanager.edit.containers',
+            'owner_types' => ['company'],
         ],
     ];
 
@@ -143,16 +168,24 @@ class Google_integrations_client
         $this->client->setPrompt('consent');
         $this->client->setAccessType('offline');
 
+        if (empty($service_keys) || in_array('all', $service_keys, true)) {
+            $service_keys = array_keys(self::SERVICES);
+        }
+
         foreach ($service_keys as $service_key) {
             if (isset(self::SERVICES[$service_key])) {
                 $this->client->addScope([self::SERVICES[$service_key]['scope']]);
+                if ($service_key === 'calendar') {
+                    $this->client->addScope(['https://www.googleapis.com/auth/calendar.events']);
+                }
+                if ($service_key === 'analytics') {
+                    $this->client->addScope(['https://www.googleapis.com/auth/analytics']);
+                }
             }
         }
 
-        // Always request 'openid email' too - the ID token that comes back with the access token then
-        // carries the connected account's email as a verifiable JWT claim (see authenticate()), with no
-        // extra API call or extra vendored service needed just to look up "whose account is this".
-        $this->client->addScope(['openid', 'email']);
+        // Always request 'openid', 'email', 'profile' too
+        $this->client->addScope(['openid', 'email', 'profile']);
     }
 
     /**

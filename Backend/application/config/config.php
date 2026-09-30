@@ -457,6 +457,11 @@ $config['csrf_exclude_uris'] = [
     'expenses/.*',
     'settings/api/.*',
     'settings/.*',
+    'randevuburada/.*',
+    'marketing/.*',
+    'reports/.*',
+    'meta/.*',
+    'google_integrations/.*',
     // Public Marketplace lead contact request (visitor contact form)
     'isletme/contact',
     'marketplace/isletme/contact',

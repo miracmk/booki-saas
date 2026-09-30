@@ -18,6 +18,12 @@ class Campaigns_model extends App_Model
         'sent_count' => 'integer',
         'failed_count' => 'integer',
         'total_recipients' => 'integer',
+        'impressions' => 'integer',
+        'clicks' => 'integer',
+        'conversions' => 'integer',
+        'spend' => 'float',
+        'roas' => 'float',
+        'budget' => 'float',
     ];
 
     public const STATUS_DRAFT = 'draft';
@@ -27,6 +33,38 @@ class Campaigns_model extends App_Model
     public const STATUS_FAILED = 'failed';
     public const STATUS_ACTIVE = 'active';
     public const STATUS_PAUSED = 'paused';
+    public const STATUS_STOPPED = 'stopped';
+
+    /**
+     * Update campaign status.
+     */
+    public function update_status(int $campaign_id, string $status): bool
+    {
+        $this->find($campaign_id);
+        $this->db->update('marketing_campaigns', [
+            'status' => $status,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ], ['id' => $campaign_id]);
+
+        return true;
+    }
+
+    /**
+     * Update campaign metrics.
+     */
+    public function update_metrics(int $campaign_id, array $metrics): bool
+    {
+        $this->find($campaign_id);
+        $data = ['updated_at' => date('Y-m-d H:i:s')];
+        if (isset($metrics['impressions'])) $data['impressions'] = (int) $metrics['impressions'];
+        if (isset($metrics['clicks'])) $data['clicks'] = (int) $metrics['clicks'];
+        if (isset($metrics['spend'])) $data['spend'] = (float) $metrics['spend'];
+        if (isset($metrics['conversions'])) $data['conversions'] = (int) $metrics['conversions'];
+        if (isset($metrics['roas'])) $data['roas'] = (float) $metrics['roas'];
+
+        $this->db->update('marketing_campaigns', $data, ['id' => $campaign_id]);
+        return true;
+    }
 
     /**
      * Pause an active or queued campaign.
@@ -147,7 +185,8 @@ class Campaigns_model extends App_Model
         }
 
         $campaignType = $campaign['campaign_type'] ?? 'broadcast';
-        $isExternalAd = in_array($campaignType, ['google_ads', 'meta_ads'], true);
+        $platform = $campaign['platform'] ?? 'broadcast';
+        $isExternalAd = in_array($campaignType, ['google_ads', 'meta_ads'], true) || in_array($platform, ['google_ads', 'meta_ads'], true);
 
         if (!$isExternalAd && (empty($campaign['segment_id']) || (int) $campaign['segment_id'] <= 0)) {
             throw new InvalidArgumentException('Hedef segment seçilmek zorundadır.');
@@ -155,7 +194,7 @@ class Campaigns_model extends App_Model
 
         $allowedChannels = ['email', 'sms', 'whatsapp', 'telegram', 'google_ads', 'meta_ads'];
         if (!in_array($campaign['channel'] ?? '', $allowedChannels, true)) {
-            throw new InvalidArgumentException('Geçersiz kanal: ' . ($campaign['channel'] ?? ''));
+            $campaign['channel'] = $platform === 'meta_ads' ? 'meta_ads' : ($platform === 'google_ads' ? 'google_ads' : 'email');
         }
 
         if (!$isExternalAd && trim((string) ($campaign['message'] ?? '')) === '') {

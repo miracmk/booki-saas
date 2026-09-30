@@ -129,6 +129,7 @@ function toggleServiceVisibility(serviceId, isVisible) {
     const formData = new FormData();
     formData.append('service_id', serviceId);
     formData.append('is_visible', isVisible ? '1' : '0');
+    formData.append('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
 
     fetch('<?= site_url('randevuburada/toggle_service') ?>', {
         method: 'POST',
@@ -158,6 +159,7 @@ function savePromoPrice() {
     const formData = new FormData();
     formData.append('service_id', serviceId);
     formData.append('promo_price', promoPrice);
+    formData.append('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
 
     fetch('<?= site_url('randevuburada/save_service_price') ?>', {
         method: 'POST',

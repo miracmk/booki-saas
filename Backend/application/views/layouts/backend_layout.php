@@ -87,13 +87,70 @@
 <script src="<?= asset_url('assets/js/ki-theme-switcher.min.js') ?>"></script>
 
 <style>
-    /* BooKi (2026-09-18) - Modern sidebar accordion navigation & smooth scroll */
+    /* BooKi - Strictly Single-Column Sidebar Accordion Navigation & Smooth Scroll */
+    #sidebar {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-sizing: border-box !important;
+    }
+    #sidebar .offcanvas-body {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    #sidebar-accordion,
+    #sidebar .sidebar-nav {
+        display: block !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+        padding-left: 0 !important;
+        list-style: none !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        float: none !important;
+        columns: 1 !important;
+        column-count: 1 !important;
+    }
+    #sidebar-accordion > li,
+    #sidebar .sidebar-nav > li,
+    #sidebar .sidebar-group,
+    #sidebar .nav-item {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        flex: none !important;
+        float: none !important;
+        clear: both !important;
+        box-sizing: border-box !important;
+        margin-bottom: 2px !important;
+    }
     #sidebar .nav-link {
         padding: .5rem .75rem;
         border-radius: 8px;
         font-weight: 500;
         font-size: 13.5px;
         transition: all .15s ease;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        text-decoration: none !important;
     }
     #sidebar .nav-item.active > .nav-link {
         font-weight: 600;
@@ -101,6 +158,11 @@
     #sidebar .sidebar-group-toggle {
         cursor: pointer;
         font-size: 13.5px;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     #sidebar .sidebar-group-toggle .chevron-icon {
         transition: transform .25s ease;
@@ -114,18 +176,39 @@
         color: var(--bs-primary) !important;
         font-weight: 600;
     }
-    #sidebar .sub-nav-list {
+    #sidebar .sidebar-group > .collapse,
+    #sidebar .sidebar-group > .collapsing {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    #sidebar .sub-nav-list,
+    #sidebar .sub-sub-nav-list {
+        display: block !important;
         border-left: 2px solid rgba(148, 163, 184, 0.25);
         margin-left: 1.15rem;
         margin-top: 3px;
         margin-bottom: 6px;
         padding-left: 0.5rem;
+        width: calc(100% - 1.15rem) !important;
+        list-style: none !important;
+        box-sizing: border-box !important;
+    }
+    #sidebar .sub-nav-list > li,
+    #sidebar .sub-sub-nav-list > li,
+    #sidebar .sub-nav-list .nav-item,
+    #sidebar .sub-sub-nav-list .nav-item {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     #sidebar .sub-nav-list .nav-link {
         font-size: 13px;
         padding: .35rem .6rem;
         border-radius: 6px;
         opacity: 0.9;
+        display: flex !important;
+        align-items: center !important;
+        width: 100% !important;
     }
     #sidebar .sub-nav-list .nav-link:hover {
         opacity: 1;
@@ -135,33 +218,11 @@
         font-weight: 600;
     }
 
-    #sidebar {
-        height: 100vh !important;
-        max-height: 100vh !important;
-        overflow: hidden !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-    #sidebar .offcanvas-body {
-        flex: 1 1 auto !important;
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        overflow: hidden !important;
-        padding: 0 !important;
-    }
-    #sidebar .sidebar-nav {
-        flex: 1 1 auto !important;
-        min-height: 0 !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-        overscroll-behavior: contain;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
-    }
     #sidebar .sidebar-footer-account {
         flex-shrink: 0 !important;
         margin-top: auto !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     #sidebar .sidebar-nav::-webkit-scrollbar {
         width: 5px;
@@ -176,9 +237,16 @@
     #sidebar .sidebar-nav::-webkit-scrollbar-thumb:hover {
         background: rgba(148, 163, 184, 0.6);
     }
+    @media (max-width: 767.98px) {
+        #sidebar.offcanvas-md {
+            width: 290px !important;
+            max-width: 85vw !important;
+        }
+    }
     @media (min-width: 768px) {
         #sidebar {
             width: 235px !important;
+            max-width: 235px !important;
             position: fixed !important;
             top: 0;
             left: 0;
@@ -240,11 +308,10 @@
         }
     }
 
-    /* Salon Flora customization - sequential booking form step locking (appointments_modal.php). A locked step
-       stays visible (so staff see what's coming) but is dimmed and inert until the previous step is complete. */
+    /* Operational appointment modal fields should always remain interactive */
     .sf-step.sf-step-locked {
-        opacity: 0.45;
-        pointer-events: none;
+        opacity: 1 !important;
+        pointer-events: auto !important;
     }
     .sf-step-badge {
         font-weight: 400;

@@ -1838,11 +1838,82 @@ class Marketplace extends App_Controller
             'RandevuBurada'
         );
 
-        // Redirect to onboarding wizard with claim context
-        // The onboarding flow will handle tenant creation
-        $onboarding_url = randevuburada_url('customer/portal?claim_token=' . urlencode($token) . '&lead_id=' . $lead['id']);
+        $this->load->helper('tenant_master_crypto');
+        $this->load->model('onboarding_sessions_model');
 
-        // For now: show a claim landing page
+        // Check if an onboarding session already exists for this lead
+        $session = $this->db
+            ->where('id_leads', $lead['id'])
+            ->where('status !=', 'completed')
+            ->order_by('created_at', 'desc')
+            ->limit(1)
+            ->get('onboarding_sessions')
+            ->row_array();
+
+        if (!$session || strtotime($session['expires_at']) <= time()) {
+            $tenant = $this->db->get_where('tenants', ['id_leads' => $lead['id']])->row_array();
+
+            if (!$tenant) {
+                // Generate clean, unique subdomain
+                $base_sub = strtolower(preg_replace('/[^a-z0-9]/', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $lead['name'] ?? '')));
+                if (empty($base_sub)) {
+                    $base_sub = 'isletme' . $lead['id'];
+                }
+                $subdomain = $base_sub;
+                $counter = 1;
+                while ($this->db->get_where('tenants', ['subdomain' => $subdomain])->num_rows() > 0) {
+                    $counter++;
+                    $subdomain = $base_sub . $counter;
+                }
+
+                $now = date('Y-m-d H:i:s');
+                $db_host = $this->db->hostname ?: 'db';
+                $db_username = $this->db->username ?: 'ki_reservation_master';
+                $db_password_plain = $this->db->password ?: '';
+                $db_name = 'ki_tenant_' . $subdomain;
+
+                $this->db->insert('tenants', [
+                    'subdomain' => $subdomain,
+                    'db_host' => $db_host,
+                    'db_name' => $db_name,
+                    'db_username' => $db_username,
+                    'db_password' => function_exists('tenant_master_encrypt') ? tenant_master_encrypt($db_password_plain) : $db_password_plain,
+                    'pii_enc_key' => function_exists('tenant_master_encrypt') ? tenant_master_encrypt(base64_encode(random_bytes(32))) : base64_encode(random_bytes(32)),
+                    'pii_hash_key' => function_exists('tenant_master_encrypt') ? tenant_master_encrypt(base64_encode(random_bytes(32))) : base64_encode(random_bytes(32)),
+                    'status' => 'active',
+                    'plan' => 'Professional',
+                    'business_type' => $lead['sector'] ?? 'Güzellik Salonu',
+                    'billing_cycle' => 'monthly',
+                    'mrr_amount' => 2450.00,
+                    'currency' => 'TRY',
+                    'company_name' => $lead['name'] ?? '',
+                    'phone_number' => $lead['phone'] ?? '',
+                    'address' => $lead['address'] ?? '',
+                    'id_leads' => $lead['id'],
+                    'acquisition_source' => 'RandevuBurada Claim',
+                    'sales_owner' => 'RandevuBurada Organic',
+                    'onboarding_status' => 'pending',
+                    'trial_ends_at' => date('Y-m-d 23:59:59', strtotime('+7 days')),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $tenant_id = (int) $this->db->insert_id();
+            } else {
+                $tenant_id = (int) $tenant['id'];
+            }
+
+            $session = $this->onboarding_sessions_model->create_session($tenant_id, (int) $lead['id']);
+        }
+
+        $onboarding_url = $this->onboarding_sessions_model->generate_onboarding_url($session['token']);
+
+        // Redirect directly to the onboarding wizard
+        if ($this->input->get('preview') !== '1') {
+            redirect($onboarding_url);
+            return;
+        }
+
+        // Preview mode: show claim landing page
         $display_name = $lead['name'] ?? 'İşletme';
 
         html_vars([

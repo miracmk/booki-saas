@@ -157,7 +157,7 @@ $active_menu = $active_menu ?? (vars('active_menu') ?: '');
 
             <!-- Role-Aware Quick Action Dropdown -->
             <div class="dropdown w-100">
-                <button class="btn btn-primary w-100 fw-bold btn-sm py-2 rounded-3 dropdown-toggle shadow-sm text-white" type="button" data-bs-toggle="dropdown" style="background-color: var(--bs-primary) !important; border-color: var(--bs-primary) !important;">
+                <button class="btn w-100 fw-bold btn-sm py-2 rounded-3 dropdown-toggle shadow-sm text-white" id="sidebar-quick-action-btn" type="button" data-bs-toggle="dropdown" style="background: var(--bs-primary) !important; background-color: var(--bs-primary) !important; background-image: none !important; border-color: var(--bs-primary) !important;">
                     <i class="fas fa-bolt me-1"></i> Hızlı İşlem
                 </button>
                 <ul class="dropdown-menu shadow border-0 rounded-3">
@@ -194,7 +194,7 @@ $active_menu = $active_menu ?? (vars('active_menu') ?: '');
         </div>
 
         <!-- Grouped Navigation Menu (Schema-Driven, Vertical-First & Role-Aware) -->
-        <ul class="nav flex-column flex-grow-1 px-2 sidebar-nav mt-1" id="sidebar-accordion">
+        <ul class="sidebar-nav flex-grow-1 px-2 mt-1 list-unstyled" id="sidebar-accordion">
             <?php foreach ($nav_groups as $group_key => $group_data): ?>
                 <?php
                 $items = $group_data['items'] ?? [];
@@ -243,7 +243,7 @@ $active_menu = $active_menu ?? (vars('active_menu') ?: '');
                             <i class="fas fa-chevron-down small chevron-icon text-white-50"></i>
                         </a>
                         <div class="collapse <?= $is_group_active ? 'show' : '' ?>" id="sidebar-menu-<?= e($group_key) ?>" data-bs-parent="#sidebar-accordion">
-                            <ul class="nav flex-column sub-nav-list">
+                            <ul class="sub-nav-list list-unstyled">
                                 <?php foreach ($items as $item): ?>
                                     <?php
                                     $item_route = trim($item['route'] ?? '', '/');
@@ -261,7 +261,7 @@ $active_menu = $active_menu ?? (vars('active_menu') ?: '');
                                             <?php else: ?>
                                                 <span class="nav-link text-white-50 small text-uppercase px-3 pt-2 pb-1"><?= e($item['label']) ?></span>
                                             <?php endif; ?>
-                                            <ul class="nav flex-column ps-3">
+                                            <ul class="sub-sub-nav-list list-unstyled ps-3">
                                                 <?php foreach ($item['children'] as $child): ?>
                                                     <?php
                                                     $child_route = trim($child['route'] ?? '', '/');

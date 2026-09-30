@@ -14,7 +14,7 @@ class Meta_marketing_client
 {
     protected CI_Controller $CI;
     protected array $settings;
-    protected string $apiVersion = 'v20.0';
+    protected string $apiVersion = 'v26.0';
 
     public function __construct()
     {

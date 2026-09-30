@@ -488,7 +488,7 @@ class Ai_agent extends App_Controller
                                 $access_token = $m_settings['instagram_access_token'] ?? null;
                                 $page_id = $m_settings['instagram_account_id'] ?? 'me';
                                 if (!empty($access_token)) {
-                                    $url = "https://graph.facebook.com/v20.0/{$page_id}/messages";
+                                    $url = "https://graph.facebook.com/v26.0/{$page_id}/messages";
                                     $ch = curl_init();
                                     curl_setopt_array($ch, [
                                         CURLOPT_URL => $url,

@@ -209,9 +209,17 @@ class Roles_model extends App_Model
      *
      * @return array Returns the permissions value.
      */
-    public function get_permissions_by_slug(string $slug): array
+    public function get_permissions_by_slug(?string $slug): array
     {
+        if (empty($slug)) {
+            return [];
+        }
+
         $role = $this->db->get_where('roles', ['slug' => $slug])->row_array();
+
+        if (!$role) {
+            return [];
+        }
 
         $this->cast($role);
 

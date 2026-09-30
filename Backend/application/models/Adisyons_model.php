@@ -342,6 +342,65 @@ class Adisyons_model extends App_Model
     }
 
     /**
+     * Update existing item in an open adisyon (quantity, price, discount, staff, name).
+     */
+    public function update_item(int $item_id, array $data): bool
+    {
+        $item = $this->db->get_where('adisyon_items', ['id' => $item_id])->row_array();
+        if (!$item) {
+            throw new InvalidArgumentException('Adisyon kalemi bulunamadı: ' . $item_id);
+        }
+
+        $adisyon_id = (int) $item['id_adisyons'];
+        $adisyon = $this->db->get_where('adisyons', ['id' => $adisyon_id])->row_array();
+        if (!$adisyon || $adisyon['status'] === 'closed') {
+            throw new InvalidArgumentException('Kapatılmış adisyon kalemleri güncellenemez.');
+        }
+
+        $unit_price = array_key_exists('unit_price', $data) ? (float) $data['unit_price'] : (float) $item['unit_price'];
+        $quantity = array_key_exists('quantity', $data) ? (float) $data['quantity'] : (float) $item['quantity'];
+        $discount_amount = array_key_exists('discount_amount', $data) ? (float) $data['discount_amount'] : (float) $item['discount_amount'];
+        $tax_rate = array_key_exists('tax_rate', $data) ? (float) $data['tax_rate'] : (float) $item['tax_rate'];
+
+        if ($quantity <= 0) {
+            throw new InvalidArgumentException('Miktar 0\'dan büyük olmalıdır.');
+        }
+        if ($unit_price < 0) {
+            throw new InvalidArgumentException('Birim fiyat 0 veya daha büyük olmalıdır.');
+        }
+
+        $line_subtotal = max(0.00, round(($unit_price * $quantity) - $discount_amount, 2));
+        $tax_amount = round($line_subtotal * ($tax_rate / 100), 2);
+        $total_amount = $line_subtotal;
+
+        $update = [
+            'unit_price' => $unit_price,
+            'quantity' => $quantity,
+            'discount_amount' => $discount_amount,
+            'tax_rate' => $tax_rate,
+            'tax_amount' => $tax_amount,
+            'total_amount' => $total_amount,
+        ];
+
+        if (!empty($data['name'])) {
+            $update['name'] = trim((string) $data['name']);
+        }
+        if (array_key_exists('id_users_staff', $data)) {
+            $update['id_users_staff'] = !empty($data['id_users_staff']) ? (int) $data['id_users_staff'] : null;
+        }
+        if (array_key_exists('notes', $data)) {
+            $update['notes'] = $data['notes'];
+        }
+
+        $this->db->trans_start();
+        $this->db->where('id', $item_id)->update('adisyon_items', $update);
+        $this->recompute_totals($adisyon_id);
+        $this->db->trans_complete();
+
+        return $this->db->trans_status() !== false;
+    }
+
+    /**
      * Apply general discount to adisyon.
      */
     public function apply_discount(int $adisyon_id, float $amount, float $percent = 0.0): void
@@ -497,6 +556,21 @@ class Adisyons_model extends App_Model
     }
 
     /**
+     * Reopen a closed adisyon for further edits or payments.
+     */
+    public function reopen(int $adisyon_id): void
+    {
+        $adisyon = $this->find($adisyon_id);
+        $now = date('Y-m-d H:i:s');
+
+        $this->db->update('adisyons', [
+            'status' => 'open',
+            'closed_at' => null,
+            'updated_at' => $now,
+        ], ['id' => $adisyon_id]);
+    }
+
+    /**
      * Convert adisyon to Invoice with optional ERP synchronization.
      */
     public function convert_to_invoice(int $adisyon_id, bool $send_to_erp = false, ?string $erp_provider = null): array
@@ -518,19 +592,30 @@ class Adisyons_model extends App_Model
         $this->load->model('invoices_model');
         $items = [];
         foreach ($adisyon['items'] as $it) {
+            $raw_type = $it['item_type'] ?? 'service';
+            $mapped_type = 'appointment';
+            if ($raw_type === 'product') {
+                $mapped_type = 'product';
+            } elseif ($raw_type === 'package') {
+                $mapped_type = 'package';
+            } elseif ($raw_type === 'membership') {
+                $mapped_type = 'membership';
+            } elseif ($raw_type === 'pos_order') {
+                $mapped_type = 'pos_order';
+            }
             $items[] = [
-                'item_type' => $it['item_type'] ?: 'service',
+                'item_type' => $mapped_type,
                 'id_reference' => $it['id_services'] ?: $it['id_products'],
                 'description' => $it['name'],
                 'quantity' => (float) $it['quantity'],
                 'unit_price' => (float) $it['unit_price'],
-                'tax_rate' => (float) $it['tax_rate'],
+                'tax_rate' => (float) ($it['tax_rate'] ?? 20.0),
             ];
         }
 
         if (empty($items)) {
             $items[] = [
-                'item_type' => 'service',
+                'item_type' => 'appointment',
                 'description' => 'Adisyon Hizmet Bedeli',
                 'quantity' => 1.0,
                 'unit_price' => (float) $adisyon['total_amount'],
@@ -634,10 +719,25 @@ class Adisyons_model extends App_Model
         $discount = (float) ($adisyon['discount_amount'] ?? 0.00);
         $total = max(0.00, round($subtotal - $discount, 2));
 
+        $total_paid = (float) ($this->db
+            ->select_sum('amount')
+            ->where('id_adisyons', $adisyon_id)
+            ->get('adisyon_payments')
+            ->row()->amount ?? 0.00);
+
+        $payment_status = 'unpaid';
+        if ($total_paid >= $total && $total > 0) {
+            $payment_status = 'paid';
+        } elseif ($total_paid > 0) {
+            $payment_status = 'partially_paid';
+        }
+
         $this->db->update('adisyons', [
             'subtotal' => round($subtotal, 2),
             'tax_amount' => round($tax_total, 2),
             'total_amount' => $total,
+            'paid_amount' => $total_paid,
+            'payment_status' => $payment_status,
             'updated_at' => date('Y-m-d H:i:s'),
         ], ['id' => $adisyon_id]);
     }

@@ -25,7 +25,7 @@ class Superadmin_tenants extends App_Controller
         parent::__construct();
 
         $method = strtolower((string) ($this->router->method ?? ($this->router->fetch_method() ?? '')));
-        if ($method !== 'platform_bridge_inbound') {
+        if ($method !== 'platform_bridge_inbound' && $method !== 'api_inbound_demo_request') {
             if (!session('superadmin_id')) {
                 redirect('superadmin_auth');
                 exit();
@@ -3463,4 +3463,294 @@ class Superadmin_tenants extends App_Controller
             ];
         }
     }
+
+    /**
+     * Inbound Demo & Tenant Provisioning Endpoint (WhatsApp, Website, Ads, Webhook).
+     *
+     * Ingests incoming lead demo request, records/updates lead, auto-assigns subdomain,
+     * provisions tenant database, sets initial credentials (BookiDemo), creates onboarding session,
+     * dispatches welcome email with credentials & onboarding link, and returns structured JSON.
+     *
+     * POST /superadmin_tenants/api_inbound_demo_request
+     */
+    public function api_inbound_demo_request(): void
+    {
+        try {
+            method('post');
+
+            $post = $this->input->post(null, true);
+            if (empty($post)) {
+                $raw = file_get_contents('php://input');
+                $post = json_decode($raw, true) ?: [];
+            }
+
+            $name = trim((string) ($post['name'] ?? ($post['business_name'] ?? '')));
+            $contact = trim((string) ($post['contact_person'] ?? ''));
+            $phone = trim((string) ($post['phone'] ?? ($post['whatsapp'] ?? '')));
+            $email = trim((string) ($post['email'] ?? ''));
+            $sector = trim((string) ($post['sector'] ?? ($post['category'] ?? ($post['business_type'] ?? 'beauty_salon'))));
+            $address = trim((string) ($post['address'] ?? ''));
+            $source = trim((string) ($post['source'] ?? ($post['channel'] ?? 'WhatsApp Inbound')));
+            $auto_provision = isset($post['auto_provision']) ? (bool) $post['auto_provision'] : true;
+            $admin_password_input = trim((string) ($post['admin_password'] ?? 'BookiDemo'));
+
+            if ($name === '' && $phone === '' && $email === '') {
+                throw new InvalidArgumentException('İşletme adı, telefon veya e-posta belirtilmelidir.');
+            }
+
+            if ($name === '') {
+                $name = $contact ?: ('İşletme ' . substr(preg_replace('/\D/', '', $phone), -4));
+            }
+
+            // 1. Search or create lead in master DB
+            $existing_lead = null;
+            if ($phone !== '') {
+                $existing_lead = $this->db->get_where('leads', ['phone' => $phone])->row_array()
+                    ?: $this->db->get_where('leads', ['whatsapp' => $phone])->row_array();
+            }
+            if (!$existing_lead && $email !== '') {
+                $existing_lead = $this->db->get_where('leads', ['email' => $email])->row_array();
+            }
+
+            $now = date('Y-m-d H:i:s');
+            $actor = session('superadmin_username') ?: 'Inbound Webhook';
+
+            if ($existing_lead) {
+                $lead_id = (int) $existing_lead['id'];
+                $this->db->where('id', $lead_id)->update('leads', [
+                    'name' => $name ?: $existing_lead['name'],
+                    'contact_person' => $contact ?: $existing_lead['contact_person'],
+                    'email' => $email ?: $existing_lead['email'],
+                    'whatsapp' => $phone ?: $existing_lead['whatsapp'],
+                    'updated_at' => $now,
+                ]);
+            } else {
+                $lead_data = [
+                    'name' => $name,
+                    'sector' => $sector,
+                    'district' => 'Merkez',
+                    'address' => $address,
+                    'contact_person' => $contact ?: $name,
+                    'phone' => $phone,
+                    'whatsapp' => $phone,
+                    'email' => $email,
+                    'stage' => 'Demo Requested',
+                    'priority' => 'high',
+                    'lead_source' => $source,
+                    'trial_status' => 'active',
+                    'demo_start_date' => date('Y-m-d'),
+                    'demo_end_date' => date('Y-m-d', strtotime('+7 days')),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+                $this->db->insert('leads', $lead_data);
+                $lead_id = $this->db->insert_id();
+            }
+
+            if (!$auto_provision) {
+                json_response([
+                    'success' => true,
+                    'lead_id' => $lead_id,
+                    'status' => 'unregistered_lead',
+                    'message' => 'Lead kaydedildi (unregistered).',
+                ]);
+                return;
+            }
+
+            // 2. Generate clean, unique subdomain
+            $base_sub = strtolower(preg_replace('/[^a-z0-9]/', '', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name)));
+            if (empty($base_sub)) {
+                $base_sub = 'isletme' . $lead_id;
+            }
+            $subdomain = $base_sub;
+            $counter = 1;
+            while ($this->db->get_where('tenants', ['subdomain' => $subdomain])->num_rows() > 0) {
+                $counter++;
+                $subdomain = $base_sub . $counter;
+            }
+
+            // 3. Provision Tenant Database & Seed
+            $db_host = $this->db->hostname;
+            $db_username = $this->db->username;
+            $db_password_plain = $this->db->password;
+            $db_name = 'ki_tenant_' . $subdomain;
+
+            $this->db->query('CREATE DATABASE IF NOT EXISTS `' . $db_name . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+
+            $pii_enc_key = base64_encode(random_bytes(32));
+            $pii_hash_key = base64_encode(random_bytes(32));
+
+            $trial_end = date('Y-m-d 23:59:59', strtotime('+7 days'));
+
+            $this->db->insert('tenants', [
+                'subdomain' => $subdomain,
+                'db_host' => $db_host,
+                'db_name' => $db_name,
+                'db_username' => $db_username,
+                'db_password' => tenant_master_encrypt($db_password_plain),
+                'pii_enc_key' => tenant_master_encrypt($pii_enc_key),
+                'pii_hash_key' => tenant_master_encrypt($pii_hash_key),
+                'status' => 'active',
+                'plan' => 'Professional',
+                'business_type' => $sector,
+                'billing_cycle' => 'monthly',
+                'mrr_amount' => 2450.00,
+                'currency' => 'TRY',
+                'company_name' => $name,
+                'phone_number' => $phone,
+                'address' => $address,
+                'id_leads' => $lead_id,
+                'acquisition_source' => $source,
+                'sales_owner' => $actor,
+                'onboarding_status' => 'pending',
+                'trial_ends_at' => $trial_end,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $tenant_id = $this->db->insert_id();
+
+            // Run migrations & seed tenant DB
+            $this->connect_tenant_db([
+                'id' => $tenant_id,
+                'subdomain' => $subdomain,
+                'db_host' => $db_host,
+                'db_username' => $db_username,
+                'db_password' => tenant_master_encrypt($db_password_plain),
+                'db_name' => $db_name,
+                'pii_enc_key' => tenant_master_encrypt($pii_enc_key),
+                'pii_hash_key' => tenant_master_encrypt($pii_hash_key),
+            ]);
+
+            $this->instance->migrate('fresh');
+            $this->instance->seed();
+
+            // Configure tenant admin credentials
+            $tenant_db = $this->load->database($this->tenant_db_config([
+                'db_host' => $db_host,
+                'db_username' => $db_username,
+                'db_password' => tenant_master_encrypt($db_password_plain),
+                'db_name' => $db_name,
+            ]), true);
+
+            $admin = $this->find_tenant_admin($tenant_db);
+            $final_password = $admin_password_input ?: 'BookiDemo';
+            if ($admin) {
+                $this->activate_tenant_pii_context([
+                    'id' => $tenant_id,
+                    'subdomain' => $subdomain,
+                    'pii_enc_key' => tenant_master_encrypt($pii_enc_key),
+                    'pii_hash_key' => tenant_master_encrypt($pii_hash_key),
+                ]);
+
+                $salt = generate_salt();
+                $tenant_db->update(
+                    'user_settings',
+                    ['password' => hash_password($salt, $final_password), 'salt' => $salt],
+                    ['id_users' => $admin['id_users']],
+                );
+
+                $admin_updates = [];
+                if ($name !== '') {
+                    $parts = explode(' ', $name, 2);
+                    $admin_updates['first_name'] = $parts[0];
+                    $admin_updates['last_name'] = $parts[1] ?? '';
+                }
+                if ($email !== '') {
+                    $admin_updates['email'] = sf_pii_encrypt($email);
+                    $admin_updates['email_hash'] = sf_pii_hash($email);
+                }
+                if ($phone !== '') {
+                    $admin_updates['phone_number'] = sf_pii_encrypt($phone);
+                    $admin_updates['phone_hash'] = sf_pii_hash($phone);
+                }
+                if (!empty($admin_updates)) {
+                    $tenant_db->update('users', $admin_updates, ['id' => $admin['id_users']]);
+                }
+            }
+            $tenant_db->close();
+
+            // Return to master DB
+            $this->connect_master_db();
+
+            // 4. Create onboarding session
+            $session = $this->onboarding_sessions_model->create_session($tenant_id, $lead_id);
+
+            // 5. Update lead stage to Won (registered tenant)
+            $this->leads_model->update_stage($lead_id, 'Won', $actor, "Otomatik demo hesabı ve kiracı oluşturuldu ({$subdomain})");
+            $this->db->where('id', $lead_id)->update('leads', [
+                'converted_tenant_id' => $tenant_id,
+                'conversion_date' => $now,
+            ]);
+
+            $login_url = "https://{$subdomain}.bookiapp.kibusiness.co/backend";
+            $email_sent = false;
+
+            // 6. Send Welcome Email with credentials & Onboarding link
+            if ($email !== '') {
+                try {
+                    $this->load->library('email_messages');
+                    $subject = "BooKi'ye Hoş Geldiniz! Giriş Bilgileriniz ve Kurulum Sihirbazı";
+                    $body = "
+                    <div style='font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;border:1px solid #e2e8f0;border-radius:12px;background:#fff;'>
+                        <div style='text-align:center;margin-bottom:20px;'>
+                            <h2 style='color:#2563eb;margin:0;font-size:22px;font-weight:800;'>BooKi Business OS</h2>
+                            <p style='color:#64748b;font-size:13px;margin:4px 0 0 0;'>Yeni Nesil İşletme & Randevu Yönetim Sistemi</p>
+                        </div>
+                        <div style='background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:20px;'>
+                            <h3 style='margin:0 0 8px 0;color:#0f172a;font-size:15px;'>Tebrikler, {$name}!</h3>
+                            <p style='font-size:13px;color:#334155;line-height:1.5;margin:0 0 12px 0;'>
+                                BooKi platformunda işletmeniz adına <strong>7 günlük ücretsiz deneme</strong> hesabınız aktif edildi.
+                            </p>
+                            <div style='background:#fff;border:1px dashed #cbd5e1;border-radius:6px;padding:12px;font-size:13px;'>
+                                <div><strong>Yönetim Paneli Giriş:</strong> <a href='{$login_url}' style='color:#2563eb;'>{$login_url}</a></div>
+                                <div style='margin-top:4px;'><strong>Kullanıcı Adı:</strong> admin</div>
+                                <div style='margin-top:4px;'><strong>Şifre:</strong> {$final_password}</div>
+                            </div>
+                        </div>
+                        <div style='text-align:center;margin:24px 0;'>
+                            <a href='{$session['link']}' style='background:#2563eb;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;display:inline-block;'>
+                                🚀 Hızlı Kurulum Sihirbazını Başlat (Onboarding)
+                            </a>
+                            <p style='font-size:11.5px;color:#94a3b8;margin:8px 0 0 0;'>İşletmenizin sektörüne göre personel, çalışma saatleri ve entegrasyonları kolayca tanımlayabilirsiniz.</p>
+                        </div>
+                        <div style='border-top:1px solid #e2e8f0;padding-top:12px;font-size:11.5px;color:#94a3b8;text-align:center;'>
+                            Destek: <a href='mailto:destek@bookiapp.kibusiness.co' style='color:#64748b;'>destek@bookiapp.kibusiness.co</a> &bull; BooKi Ekibi
+                        </div>
+                    </div>";
+
+                    $this->email_messages->send_simple_html($email, $subject, $body);
+                    $email_sent = true;
+                } catch (Throwable $mail_ex) {
+                    log_message('error', 'Superadmin_tenants::api_inbound_demo_request mail error: ' . $mail_ex->getMessage());
+                }
+            }
+
+            // Log activity & audit
+            $this->leads_model->add_activity(
+                $lead_id,
+                'inbound_demo_provisioned',
+                "🎉 Demo Talebi Alındı ve Kiracı Kuruldu: {$subdomain}",
+                "Gelen demo talebi ile kiracı oluşturuldu, 7 günlük deneme başlatıldı ve onboarding e-postası yollandı.",
+                $actor,
+                ['tenant_id' => $tenant_id, 'token' => $session['token'], 'email_sent' => $email_sent]
+            );
+
+            json_response([
+                'success' => true,
+                'lead_id' => $lead_id,
+                'tenant_id' => $tenant_id,
+                'subdomain' => $subdomain,
+                'login_url' => $login_url,
+                'admin_password' => $final_password,
+                'onboarding_token' => $session['token'],
+                'onboarding_link' => $session['link'],
+                'trial_ends_at' => $trial_end,
+                'email_sent' => $email_sent,
+            ]);
+        } catch (Throwable $e) {
+            $this->connect_master_db();
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
 }
+

@@ -40,6 +40,20 @@ class Adisyons extends App_Controller
         $status = $this->input->get('status') ?: 'all';
         $payment_status = $this->input->get('payment_status') ?: 'all';
 
+        $raw_open_id = $this->input->get('open_id') ?: null;
+        $raw_apt_id = $this->input->get('appointment_id') ?: null;
+        if (!empty($raw_apt_id) && is_numeric($raw_apt_id)) {
+            try {
+                $apt_adisyon = $this->adisyons_model->get_or_create_for_appointment((int) $raw_apt_id);
+                if (!empty($apt_adisyon['id'])) {
+                    $raw_open_id = $apt_adisyon['id'];
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'Could not open adisyon for appointment: ' . $e->getMessage());
+            }
+        }
+        $open_id = ($raw_open_id !== null && is_numeric($raw_open_id)) ? (int) $raw_open_id : null;
+
         $this->db
             ->select('a.*, 
                       c.first_name as customer_first_name, c.last_name as customer_last_name, c.phone_number as customer_phone,
@@ -108,9 +122,8 @@ class Adisyons extends App_Controller
         unset($apt);
 
         $this->load->library('accounting/erp_manager');
-        $erp_providers = Erp_manager::PROVIDERS;
-        $raw_open_id = $this->input->get('open_id') ?: $this->input->get('appointment_id') ?: null;
-        $open_id = ($raw_open_id !== null && is_numeric($raw_open_id)) ? (int) $raw_open_id : null;
+        $connected_erp_providers = $this->erp_manager->get_connected_providers();
+        $active_erp_provider = setting('active_erp_provider', !empty($connected_erp_providers) ? array_key_first($connected_erp_providers) : '');
 
         html_vars([
             'page_title' => 'Adisyon & Hesap Yönetimi',
@@ -123,6 +136,14 @@ class Adisyons extends App_Controller
             'user_id' => $user_id,
             'role_slug' => $role_slug,
         ]);
+
+        $bank_accounts = $this->db
+            ->where('is_active', 1)
+            ->where('account_type', 'bank')
+            ->order_by('is_default_iban DESC, id ASC')
+            ->get('bank_accounts')
+            ->result_array();
+        $okc_terminals = $this->get_connected_okc_terminals();
 
         $view_data = [
             'active_menu' => 'adisyons',
@@ -137,9 +158,13 @@ class Adisyons extends App_Controller
             'customers' => $this->customers_model->get(),
             'staff_members' => $this->db->get_where('users', ['id_roles' => 2])->result_array(),
             'active_appointments' => $active_appointments,
-            'erp_providers' => $erp_providers,
+            'erp_providers' => Erp_manager::PROVIDERS,
+            'connected_erp_providers' => $connected_erp_providers,
             'active_erp_provider' => $active_erp_provider,
             'open_id' => $open_id,
+            'bank_accounts' => $bank_accounts,
+            'okc_terminals' => $okc_terminals,
+            'is_okc_connected' => !empty($okc_terminals),
         ];
 
         $this->load->view('pages/adisyons', $view_data);
@@ -162,6 +187,14 @@ class Adisyons extends App_Controller
                 $memberships = $this->customer_memberships_model->get_for_customer((int) $adisyon['id_users_customer']);
             }
 
+            $bank_accounts = $this->db
+                ->where('is_active', 1)
+                ->where('account_type', 'bank')
+                ->order_by('is_default_iban DESC, id ASC')
+                ->get('bank_accounts')
+                ->result_array();
+            $okc_terminals = $this->get_connected_okc_terminals();
+
             $this->output
                 ->set_content_type('application/json')
                 ->set_output(json_encode([
@@ -169,6 +202,9 @@ class Adisyons extends App_Controller
                     'adisyon' => $adisyon,
                     'customer_packages' => $packages,
                     'customer_memberships' => $memberships,
+                    'bank_accounts' => $bank_accounts,
+                    'okc_terminals' => $okc_terminals,
+                    'is_okc_connected' => !empty($okc_terminals),
                 ]));
         } catch (Throwable $e) {
             $this->output
@@ -237,13 +273,18 @@ class Adisyons extends App_Controller
     {
         $this->ensure_authenticated();
         $adisyon_id = (int) $this->input->post('id_adisyons');
+        $name = trim((string) $this->input->post('name'));
+        if (empty($name)) {
+            $name = 'Ürün / Hizmet';
+        }
+
         $item = [
             'item_type' => $this->input->post('item_type') ?: 'product',
             'id_services' => $this->input->post('id_services') ?: null,
             'id_products' => $this->input->post('id_products') ?: null,
-            'name' => $this->input->post('name'),
+            'name' => $name,
             'unit_price' => (float) $this->input->post('unit_price'),
-            'quantity' => (float) ($this->input->post('quantity') ?: 1),
+            'quantity' => max(0.01, (float) ($this->input->post('quantity') ?: 1)),
             'discount_amount' => (float) ($this->input->post('discount_amount') ?: 0),
             'tax_rate' => (float) ($this->input->post('tax_rate') ?: 20),
             'id_users_staff' => $this->input->post('id_users_staff') ?: null,
@@ -256,7 +297,54 @@ class Adisyons extends App_Controller
 
             $this->output
                 ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => 'success', 'item_id' => $item_id, 'adisyon' => $adisyon]));
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'message' => 'Kalem adisyona eklendi.',
+                    'item_id' => $item_id,
+                    'adisyon' => $adisyon
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Update line item (quantity, price, discount, staff, name).
+     */
+    public function update_item(): void
+    {
+        $this->ensure_authenticated();
+        $raw = file_get_contents('php://input');
+        $post = !empty($raw) ? json_decode($raw, true) : $this->input->post();
+        if (!is_array($post)) {
+            $post = $this->input->post() ?: [];
+        }
+
+        $item_id = (int) ($post['id'] ?? $post['item_id'] ?? 0);
+        try {
+            if ($item_id <= 0) {
+                throw new InvalidArgumentException('Geçersiz kalem ID.');
+            }
+
+            $item = $this->db->get_where('adisyon_items', ['id' => $item_id])->row_array();
+            if (!$item) {
+                throw new InvalidArgumentException('Adisyon kalemi bulunamadı.');
+            }
+
+            $adisyon_id = (int) $item['id_adisyons'];
+            $this->adisyons_model->update_item($item_id, $post);
+            $updated_adisyon = $this->adisyons_model->find($adisyon_id);
+
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'message' => 'Kalem başarıyla güncellendi.',
+                    'adisyon' => $updated_adisyon,
+                ]));
         } catch (Throwable $e) {
             $this->output
                 ->set_status_header(400)
@@ -280,7 +368,11 @@ class Adisyons extends App_Controller
 
             $this->output
                 ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => 'success', 'adisyon' => $adisyon]));
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'message' => 'Kalem silindi.',
+                    'adisyon' => $adisyon
+                ]));
         } catch (Throwable $e) {
             $this->output
                 ->set_status_header(400)
@@ -322,6 +414,10 @@ class Adisyons extends App_Controller
             $adisyon = $this->adisyons_model->find($adisyon_id);
             if (!$adisyon) {
                 throw new InvalidArgumentException('Adisyon bulunamadı: ' . $adisyon_id);
+            }
+
+            if (($adisyon['status'] ?? 'open') !== 'open') {
+                throw new InvalidArgumentException('Kapatılmış adisyona tahsilat eklenemez. Önce adisyonu yeniden açın.');
             }
 
             $customer_id = !empty($adisyon['id_users_customer']) ? (int) $adisyon['id_users_customer'] : null;
@@ -489,10 +585,56 @@ class Adisyons extends App_Controller
                 $notes = ($notes ? ($notes . ' | ') : '') . 'Hediye Kartı: ' . $card['code'];
             }
 
+            // Handle Bank Transfer / IBAN selection
+            if ($payment_method === 'bank_transfer') {
+                $bank_id = (int) ($post['bank_account_id'] ?? 0);
+                if ($bank_id > 0) {
+                    $ba = $this->db->get_where('bank_accounts', ['id' => $bank_id])->row_array();
+                    if ($ba) {
+                        $bank_desc = 'Havale/EFT: ' . $ba['bank_name'] . ' (IBAN: ' . $ba['iban'] . ') - Alıcı: ' . $ba['account_name'];
+                        $notes = ($notes ? ($notes . ' | ') : '') . $bank_desc;
+                    }
+                }
+            }
+
+            // Check ÖKC connection and handle POS receipt
+            $okc_receipt = null;
+            $okc_warning = null;
+            $connected_terminals = $this->get_connected_okc_terminals();
+
+            if (!empty($post['send_to_pos']) || $payment_method === 'okc_pos') {
+                if (empty($connected_terminals)) {
+                    // No ÖKC connected! Warn and do NOT generate fake receipt
+                    $okc_warning = 'Sistemde bağlı veya tanımlı bir ÖKC cihazı bulunamadı. Tahsilat fiziki kart ödemesi olarak kaydedildi ancak mali fiş cihazdan basılamadı.';
+                    $notes = ($notes ? ($notes . ' | ') : '') . 'Kredi Kartı (Bağlı ÖKC yok, manuel tahsilat)';
+                } else {
+                    $chosen_terminal = $connected_terminals[0];
+                    $selected_terminal_id = $post['pos_terminal_id'] ?? 'default';
+                    foreach ($connected_terminals as $t) {
+                        if ($t['id'] === $selected_terminal_id || $t['terminal_id'] === $selected_terminal_id) {
+                            $chosen_terminal = $t;
+                            break;
+                        }
+                    }
+                    $terminal_label = $chosen_terminal['name'] . ' (ID: ' . $chosen_terminal['terminal_id'] . ')';
+                    $okc_receipt_no = 'ÖKC-' . date('ymd') . '-' . mt_rand(1000, 9999);
+                    $okc_z_no = 'Z-' . date('Ym') . '-' . sprintf('%03d', mt_rand(1, 150));
+                    $notes = ($notes ? ($notes . ' | ') : '') . 'POS/ÖKC: ' . $terminal_label . ' - Fiş: ' . $okc_receipt_no . ' (' . $okc_z_no . ')';
+                    $okc_receipt = [
+                        'receipt_no' => $okc_receipt_no,
+                        'z_no' => $okc_z_no,
+                        'terminal' => $chosen_terminal['name'],
+                        'terminal_id' => $chosen_terminal['terminal_id'],
+                        'amount' => $amount,
+                        'time' => date('H:i:s'),
+                    ];
+                }
+            }
+
             // 3. Insert payment row
             $payment_row = [
                 'id_adisyons' => $adisyon_id,
-                'payment_method' => $payment_method,
+                'payment_method' => ($payment_method === 'okc_pos') ? 'card' : $payment_method,
                 'amount' => $amount,
                 'id_customer_packages' => $id_customer_packages,
                 'id_customer_memberships' => $id_customer_memberships,
@@ -536,18 +678,96 @@ class Adisyons extends App_Controller
             }
 
             $updated_adisyon = $this->adisyons_model->find($adisyon_id);
+            $remaining = max(0.00, round((float)$updated_adisyon['total_amount'] - (float)$updated_adisyon['paid_amount'], 2));
 
             $this->output
                 ->set_content_type('application/json')
                 ->set_output(json_encode([
                     'status' => 'success',
                     'payment_id' => $payment_id,
+                    'okc_receipt' => $okc_receipt,
+                    'okc_warning' => $okc_warning,
+                    'remaining_amount' => $remaining,
                     'adisyon' => $updated_adisyon,
                 ]));
         } catch (Throwable $e) {
             if ($this->db->trans_status() === false || $this->db->trans_enabled) {
                 $this->db->trans_rollback();
             }
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    /**
+     * Delete an individual payment record and revert deduction/paid amounts.
+     */
+    public function remove_payment(int $payment_id): void
+    {
+        $this->ensure_authenticated();
+        try {
+            $payment = $this->db->get_where('adisyon_payments', ['id' => $payment_id])->row_array();
+            if (!$payment) {
+                throw new InvalidArgumentException('Ödeme kaydı bulunamadı.');
+            }
+
+            $adisyon_id = (int) $payment['id_adisyons'];
+            $this->db->trans_start();
+
+            // Revert package session if applicable
+            if (!empty($payment['id_customer_packages'])) {
+                $this->db->set('used_sessions', 'GREATEST(0, used_sessions - 1)', false);
+                $this->db->where('id', (int) $payment['id_customer_packages']);
+                $this->db->update('customer_packages');
+            }
+
+            // Revert membership session if applicable
+            if (!empty($payment['id_customer_memberships'])) {
+                $this->db->set('sessions_used_this_period', 'GREATEST(0, sessions_used_this_period - 1)', false);
+                $this->db->where('id', (int) $payment['id_customer_memberships']);
+                $this->db->update('customer_memberships');
+            }
+
+            // Delete payment
+            $this->db->delete('adisyon_payments', ['id' => $payment_id]);
+
+            // Recalculate
+            $total_paid = (float) $this->db
+                ->select_sum('amount')
+                ->where('id_adisyons', $adisyon_id)
+                ->get('adisyon_payments')
+                ->row()->amount;
+
+            $adisyon = $this->adisyons_model->find($adisyon_id);
+            $new_status = 'unpaid';
+            if ($total_paid >= (float) $adisyon['total_amount'] && (float) $adisyon['total_amount'] > 0) {
+                $new_status = 'paid';
+            } elseif ($total_paid > 0) {
+                $new_status = 'partially_paid';
+            }
+
+            $this->db->where('id', $adisyon_id)->update('adisyons', [
+                'paid_amount' => $total_paid,
+                'payment_status' => $new_status,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $this->db->trans_complete();
+
+            $updated_adisyon = $this->adisyons_model->find($adisyon_id);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'message' => 'Tahsilat kaydı silindi.',
+                    'adisyon' => $updated_adisyon,
+                ]));
+        } catch (Throwable $e) {
             $this->output
                 ->set_status_header(400)
                 ->set_content_type('application/json')
@@ -679,14 +899,53 @@ class Adisyons extends App_Controller
     /**
      * Thermal / POS slip print view.
      */
-    public function print_slip(int $adisyon_id): void
+    public function print_slip(?int $adisyon_id = null): void
     {
         $this->ensure_authenticated();
-        $adisyon = $this->adisyons_model->find($adisyon_id);
-        $this->load->view('pages/adisyon_print_slip', [
-            'adisyon' => $adisyon,
-            'company_name' => setting('company_name') ?: 'BooKi',
-        ]);
+        if (!$adisyon_id || $adisyon_id <= 0) {
+            show_error('Geçersiz veya eksik adisyon numarası.', 400);
+            return;
+        }
+
+        try {
+            $adisyon = $this->adisyons_model->find($adisyon_id);
+            $format = $this->input->get('format') ?: '80mm';
+            $width = $this->input->get('width') ?: ($format === '58mm' ? '58' : '80');
+            $this->load->view('pages/adisyon_print_slip', [
+                'adisyon' => $adisyon,
+                'format' => $format,
+                'width' => $width,
+                'company_name' => setting('company_name') ?: 'İşletme',
+                'company_phone' => setting('company_phone') ?: null,
+                'company_address' => setting('company_address') ?: null,
+            ]);
+        } catch (Throwable $e) {
+            show_error('Adisyon fişi bulunamadı: ' . $e->getMessage(), 404);
+        }
+    }
+
+    /**
+     * Reopen a closed adisyon for further edits or payments.
+     */
+    public function reopen(?int $adisyon_id = null): void
+    {
+        $this->ensure_authenticated();
+        $id = $adisyon_id ?: (int) $this->input->post('id_adisyons');
+        try {
+            if (!$id || $id <= 0) {
+                throw new InvalidArgumentException('Geçersiz adisyon ID.');
+            }
+            $this->adisyons_model->reopen($id);
+            $adisyon = $this->adisyons_model->find($id);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'success', 'adisyon' => $adisyon]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
+        }
     }
 
     
@@ -858,6 +1117,75 @@ class Adisyons extends App_Controller
                 'paid_amount' => $total_paid,
                 'table_closed' => $table_closed,
             ]));
+    }
+
+    /**
+     * Get active/connected ÖKC terminals.
+     */
+    protected function get_connected_okc_terminals(): array
+    {
+        $terminals = [];
+
+        // 1. From bank_accounts where pos_terminal_id is not empty
+        if ($this->db->table_exists('bank_accounts')) {
+            $pos_rows = $this->db
+                ->where('is_active', 1)
+                ->where('pos_terminal_id IS NOT NULL', null, false)
+                ->get('bank_accounts')
+                ->result_array();
+
+            foreach ($pos_rows as $row) {
+                $term_id = trim((string)($row['pos_terminal_id'] ?? ''));
+                if ($term_id !== '') {
+                    $terminals[] = [
+                        'id' => 'pos_' . $row['id'],
+                        'name' => ($row['bank_name'] ?: 'Fiziki POS') . ' (' . ($row['pos_provider'] ?: 'ÖKC') . ')',
+                        'terminal_id' => $term_id,
+                        'provider' => $row['pos_provider'] ?: 'ÖKC',
+                        'type' => 'physical_pos'
+                    ];
+                }
+            }
+        }
+
+        // 2. From payment_settings
+        if ($this->db->table_exists('payment_settings')) {
+            $ps = $this->db->get_where('payment_settings', ['id' => 1])->row_array();
+            if ($ps) {
+                $odeal = trim((string)($ps['odeal_terminal_id'] ?? ''));
+                if ($odeal !== '') {
+                    $terminals[] = [
+                        'id' => 'odeal_' . $odeal,
+                        'name' => 'ÖdeAl Yeni Nesil ÖKC Terminali',
+                        'terminal_id' => $odeal,
+                        'provider' => 'ÖdeAl ÖKC',
+                        'type' => 'odeal'
+                    ];
+                }
+                $garanti = trim((string)($ps['garanti_terminal_id'] ?? ''));
+                if ($garanti !== '') {
+                    $terminals[] = [
+                        'id' => 'garanti_' . $garanti,
+                        'name' => 'Garanti BBVA POS Terminali',
+                        'terminal_id' => $garanti,
+                        'provider' => 'Garanti',
+                        'type' => 'garanti'
+                    ];
+                }
+                $enpara = trim((string)($ps['enpara_terminal_id'] ?? ''));
+                if ($enpara !== '') {
+                    $terminals[] = [
+                        'id' => 'enpara_' . $enpara,
+                        'name' => 'Enpara POS Terminali',
+                        'terminal_id' => $enpara,
+                        'provider' => 'Enpara',
+                        'type' => 'enpara'
+                    ];
+                }
+            }
+        }
+
+        return $terminals;
     }
 
     protected function ensure_authenticated(): void

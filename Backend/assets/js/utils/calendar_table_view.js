@@ -177,11 +177,15 @@ App.Utils.CalendarTableView = (function () {
      * @param {Object} appointment - Appointment data object.
      */
     function populateAppointmentModal(appointment) {
-        const customer = appointment.customer;
+        if (!appointment) {
+            return;
+        }
+
+        const customer = appointment.customer || {};
 
         App.Components.AppointmentsModal.resetModal();
         $appointmentsModal.find('.modal-header h3').text(lang('edit_appointment_title'));
-        $appointmentsModal.find('#appointment-id').val(appointment.id);
+        $appointmentsModal.find('#appointment-id').val(appointment.id || '');
         $appointmentsModal.find('#select-service').val(appointment.id_services).trigger('change');
         $appointmentsModal.find('#select-provider').val(appointment.id_users_provider);
         App.Utils.UI.setDateTimePickerValue(
@@ -195,23 +199,23 @@ App.Utils.CalendarTableView = (function () {
 
         // Customer fields
 
-        $appointmentsModal.find('#customer-id').val(appointment.id_users_customer);
-        $appointmentsModal.find('#first-name').val(customer.first_name);
-        $appointmentsModal.find('#last-name').val(customer.last_name);
-        $appointmentsModal.find('#email').val(customer.email);
-        $appointmentsModal.find('#phone-number').val(customer.phone_number);
-        $appointmentsModal.find('#address').val(customer.address);
-        $appointmentsModal.find('#city').val(customer.city);
-        $appointmentsModal.find('#state').val(customer.state);
-        $appointmentsModal.find('#zip-code').val(customer.zip_code);
-        $appointmentsModal.find('#language').val(customer.language);
-        $appointmentsModal.find('#timezone').val(customer.timezone);
-        $appointmentsModal.find('#customer-notes').val(customer.notes);
-        $appointmentsModal.find('#custom-field-1').val(customer.custom_field_1);
-        $appointmentsModal.find('#custom-field-2').val(customer.custom_field_2);
-        $appointmentsModal.find('#custom-field-3').val(customer.custom_field_3);
-        $appointmentsModal.find('#custom-field-4').val(customer.custom_field_4);
-        $appointmentsModal.find('#custom-field-5').val(customer.custom_field_5);
+        $appointmentsModal.find('#customer-id').val(appointment.id_users_customer || customer.id || '');
+        $appointmentsModal.find('#first-name').val(customer.first_name || '');
+        $appointmentsModal.find('#last-name').val(customer.last_name || '');
+        $appointmentsModal.find('#email').val(customer.email || '');
+        $appointmentsModal.find('#phone-number').val(customer.phone_number || '');
+        $appointmentsModal.find('#address').val(customer.address || '');
+        $appointmentsModal.find('#city').val(customer.city || '');
+        $appointmentsModal.find('#state').val(customer.state || '');
+        $appointmentsModal.find('#zip-code').val(customer.zip_code || '');
+        $appointmentsModal.find('#language').val(customer.language || '');
+        $appointmentsModal.find('#timezone').val(customer.timezone || '');
+        $appointmentsModal.find('#customer-notes').val(customer.notes || '');
+        $appointmentsModal.find('#custom-field-1').val(customer.custom_field_1 || '');
+        $appointmentsModal.find('#custom-field-2').val(customer.custom_field_2 || '');
+        $appointmentsModal.find('#custom-field-3').val(customer.custom_field_3 || '');
+        $appointmentsModal.find('#custom-field-4').val(customer.custom_field_4 || '');
+        $appointmentsModal.find('#custom-field-5').val(customer.custom_field_5 || '');
 
         // Appointment fields
 
@@ -553,7 +557,14 @@ App.Utils.CalendarTableView = (function () {
     function onEditPopoverClick() {
         closePopover();
 
+        if (!lastFocusedEventData || !lastFocusedEventData.extendedProps) {
+            return;
+        }
+
         const data = lastFocusedEventData.extendedProps.data;
+        if (!data) {
+            return;
+        }
 
         if (isWorkingPlanException(data)) {
             handleEditWorkingPlanException(data);

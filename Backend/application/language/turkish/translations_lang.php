@@ -710,13 +710,13 @@ $lang['settings_industry_modules'] = 'Sektör & Modüller';
 // Sections
 $lang['settings_section_business_title'] = 'İşletme & Profil';
 $lang['settings_section_business_desc'] = 'Temel şirket kimliği, çalışma planı ve marka renkleri';
-$lang['settings_section_booking_title'] = 'Randevu & Rezervasyon Kuralları';
+$lang['settings_section_booking_title'] = 'Randevu Kuralları';
 $lang['settings_section_booking_desc'] = 'Müşteri randevu akışı, çakışma kuralları ve iptal politikası';
-$lang['settings_section_communication_title'] = 'Bildirim & İletişim Kanalları';
+$lang['settings_section_communication_title'] = 'İletişim & Bildirim';
 $lang['settings_section_communication_desc'] = 'E-posta, WhatsApp, SMS ve Telegram şablon ve altyapı ayarları';
-$lang['settings_section_integrations_title'] = 'Entegrasyonlar & AI Ajanı';
+$lang['settings_section_integrations_title'] = 'Entegrasyon & AI';
 $lang['settings_section_integrations_desc'] = 'Google Takvim senkronizasyonu, MCP araç sunucusu ve AI Copilot kuralları';
-$lang['settings_section_legal_title'] = 'Hukuk, KVKK & Şartlar';
+$lang['settings_section_legal_title'] = 'Hukuk & KVKK';
 $lang['settings_section_legal_desc'] = 'Aydınlatma metinleri, kullanım şartları ve müşteri onay mekanizmaları';
 $lang['settings_section_security_title'] = 'Güvenlik & Erişim';
 $lang['settings_section_security_desc'] = 'İki adımlı doğrulama (2FA), API anahtarları, IP kısıtlamaları ve webhook\'lar';

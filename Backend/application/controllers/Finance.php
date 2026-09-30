@@ -181,6 +181,58 @@ class Finance extends App_Controller
         }
     }
 
+    /**
+     * Save / Connect bank account or POS terminal.
+     */
+    public function save_bank_account(): void
+    {
+        $this->ensure_authenticated();
+        $id = (int) $this->input->post('id');
+        $data = [
+            'bank_name' => trim((string) $this->input->post('bank_name')),
+            'account_name' => trim((string) $this->input->post('account_name')),
+            'account_type' => trim((string) $this->input->post('account_type')) ?: 'bank',
+            'iban' => trim((string) $this->input->post('iban')),
+            'pos_terminal_id' => trim((string) $this->input->post('pos_terminal_id')),
+            'pos_provider' => trim((string) $this->input->post('pos_provider')),
+            'currency' => trim((string) $this->input->post('currency')) ?: 'TRY',
+            'balance' => (float) ($this->input->post('balance') ?: 0),
+            'is_default_iban' => $this->input->post('is_default_iban') ? 1 : 0,
+            'is_default_pos' => $this->input->post('is_default_pos') ? 1 : 0,
+            'is_default_payout' => $this->input->post('is_default_payout') ? 1 : 0,
+            'is_active' => 1,
+        ];
+
+        if ($data['is_default_iban']) {
+            $this->db->update('bank_accounts', ['is_default_iban' => 0]);
+        }
+        if ($data['is_default_pos']) {
+            $this->db->update('bank_accounts', ['is_default_pos' => 0]);
+        }
+        if ($data['is_default_payout']) {
+            $this->db->update('bank_accounts', ['is_default_payout' => 0]);
+        }
+
+        if ($id > 0) {
+            $this->db->where('id', $id)->update('bank_accounts', $data);
+        } else {
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('bank_accounts', $data);
+        }
+
+        json_response(['success' => true, 'message' => 'Hesap / POS bilgisi başarıyla kaydedildi.']);
+    }
+
+    /**
+     * Delete / Deactivate bank account.
+     */
+    public function delete_bank_account(int $id): void
+    {
+        $this->ensure_authenticated();
+        $this->db->where('id', $id)->update('bank_accounts', ['is_active' => 0]);
+        json_response(['success' => true, 'message' => 'Hesap başarıyla silindi.']);
+    }
+
     protected function ensure_authenticated(): void
     {
         if (!session('user_id')) {

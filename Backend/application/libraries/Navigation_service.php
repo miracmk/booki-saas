@@ -60,10 +60,11 @@ class Navigation_service
             'resources' => ['title' => 'Kaynaklar', 'icon' => 'fas fa-door-open', 'items' => []],
             'team' => ['title' => 'Ekip', 'icon' => 'fas fa-user-tie', 'items' => []],
             'finance' => ['title' => 'Satış & Finans', 'icon' => 'fas fa-wallet', 'items' => []],
-            'marketing' => ['title' => 'Pazarlama', 'icon' => 'fas fa-bullhorn', 'items' => []],
+            'marketing' => ['title' => 'Pazarlama & Mesajlaşma', 'icon' => 'fas fa-comments-dollar', 'items' => []],
             'vertical' => ['title' => 'Vertical Modülleri', 'icon' => 'fas fa-shapes', 'items' => []],
             'reports' => ['title' => 'Raporlar', 'icon' => 'fas fa-chart-pie', 'items' => []],
             'ai' => ['title' => 'AI Asistan', 'icon' => 'fas fa-robot', 'items' => []],
+            'randevuburada' => ['title' => 'RandevuBurada', 'icon' => 'fas fa-store text-warning', 'items' => []],
             'settings' => ['title' => 'Ayarlar', 'icon' => 'fas fa-cogs', 'items' => []],
         ];
 
@@ -433,7 +434,21 @@ class Navigation_service
             'mobile_visibility' => false,
         ];
 
-        // 8. PAZARLAMA
+        // 8. PAZARLAMA & MESAJLAŞMA
+        $items[] = [
+            'id' => 'nav_chat_portal',
+            'label' => 'Canlı Chat & AI Portalı',
+            'icon' => 'fas fa-comments text-success',
+            'route' => 'chat_portal',
+            'group' => 'marketing',
+            'order' => 0,
+            'module' => null,
+            'permission' => null,
+            'children' => [],
+            'badge' => 'Canlı',
+            'mobile_visibility' => true,
+        ];
+
         $items[] = [
             'id' => 'nav_marketing',
             'label' => 'Kampanyalar & SMS',
@@ -462,15 +477,16 @@ class Navigation_service
             'mobile_visibility' => false,
         ];
 
+        // 8.1. RANDEVUBURADA PAZARYERİ ENTEGRASYONU
         $items[] = [
             'id' => 'nav_rb_profile',
-            'label' => 'RandevuBurada Pazaryeri',
-            'icon' => 'fas fa-store',
+            'label' => 'Vitrin & Profil',
+            'icon' => 'fas fa-id-card',
             'route' => 'randevuburada/profile',
-            'group' => 'marketing',
-            'order' => 3,
+            'group' => 'randevuburada',
+            'order' => 1,
             'module' => null,
-            'permission' => ['view', 'marketing'],
+            'permission' => null,
             'children' => [],
             'badge' => null,
             'mobile_visibility' => true,
@@ -478,13 +494,27 @@ class Navigation_service
 
         $items[] = [
             'id' => 'nav_rb_services',
-            'label' => 'Pazaryeri Hizmet & Fiyatları',
+            'label' => 'Hizmetler & Fiyatlar',
             'icon' => 'fas fa-tags',
             'route' => 'randevuburada/services',
-            'group' => 'marketing',
-            'order' => 4,
+            'group' => 'randevuburada',
+            'order' => 2,
             'module' => null,
-            'permission' => ['view', 'marketing'],
+            'permission' => null,
+            'children' => [],
+            'badge' => null,
+            'mobile_visibility' => true,
+        ];
+
+        $items[] = [
+            'id' => 'nav_rb_reviews',
+            'label' => 'Yorum Yönetimi',
+            'icon' => 'fas fa-star-half-alt',
+            'route' => 'randevuburada/reviews',
+            'group' => 'randevuburada',
+            'order' => 3,
+            'module' => null,
+            'permission' => null,
             'children' => [],
             'badge' => null,
             'mobile_visibility' => true,
@@ -495,10 +525,10 @@ class Navigation_service
             'label' => 'Pazaryeri Rezervasyonları',
             'icon' => 'fas fa-calendar-check',
             'route' => 'randevuburada/reservations',
-            'group' => 'marketing',
-            'order' => 5,
+            'group' => 'randevuburada',
+            'order' => 4,
             'module' => null,
-            'permission' => ['view', 'marketing'],
+            'permission' => null,
             'children' => [],
             'badge' => null,
             'mobile_visibility' => true,

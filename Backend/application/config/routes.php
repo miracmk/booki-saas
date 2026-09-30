@@ -64,16 +64,30 @@ if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'boo
     $route['portal/(:any)'] = 'portal/$1';
     $route['login'] = 'portal/index';
     $route['find_tenant'] = 'portal/find_tenant';
+    $route['meta/connect/(:any)'] = 'meta/connect/$1';
+    $route['meta/disconnect/(:any)'] = 'meta/disconnect/$1';
+    $route['meta/oauth/(:any)'] = 'meta/oauth/$1';
+    $route['meta/oauth'] = 'meta/oauth';
     $route['meta/webhook'] = 'meta/webhook';
     $route['meta/oauth_callback'] = 'meta/oauth_callback';
+    $route['meta/scopes'] = 'meta/scopes';
     $route['whatsapp/webhook'] = 'whatsapp/webhook';
     $route['instagram/webhook'] = 'instagram/webhook';
     $route['instagram/oauth_callback'] = 'meta/oauth_callback';
+    $route['google/oauth_callback'] = 'google/oauth_callback';
+    $route['google_integrations/oauth_callback'] = 'google_integrations/oauth_callback';
 }
 
+$route['meta/connect/(:any)'] = 'meta/connect/$1';
+$route['meta/disconnect/(:any)'] = 'meta/disconnect/$1';
+$route['meta/oauth/(:any)'] = 'meta/oauth/$1';
+$route['meta/oauth'] = 'meta/oauth';
 $route['meta/webhook'] = 'meta/webhook';
 $route['meta/oauth_callback'] = 'meta/oauth_callback';
+$route['meta/scopes'] = 'meta/scopes';
 $route['instagram/oauth_callback'] = 'meta/oauth_callback';
+$route['google/oauth_callback'] = 'google/oauth_callback';
+$route['google_integrations/oauth_callback'] = 'google_integrations/oauth_callback';
 
 // BooKi (2026-08-26) - SaaS admin panel: admin-bookiapp.kibusiness.co has no booking page
 // either - it's the super-admin login/dashboard. See App_Controller::resolve_tenant()'s superadmin
@@ -439,7 +453,10 @@ if ($portal_host !== (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) 
 
 // BooKi (2026-09-18) - Industry Blueprints & Onboarding Wizard
 $route['onboarding'] = 'onboarding/index';
-$route['onboarding/(:any)'] = 'onboarding/$1';
+$route['onboarding/get_blueprints'] = 'onboarding/get_blueprints';
+$route['onboarding/get_blueprint_details/(:any)'] = 'onboarding/get_blueprint_details/$1';
+$route['onboarding/apply'] = 'onboarding/apply';
+$route['onboarding/(:any)'] = 'customer_onboarding/index/$1';
 
 // Multi-Vertical Enterprise Suite Web Routes
 $route['verticals/gift_cards'] = 'verticals/gift_cards';
@@ -590,6 +607,19 @@ $route['settings/api/(:any)']['post'] = 'settings/api_save/$1';
 $route['settings/api/(:any)']['put'] = 'settings/api_save/$1';
 $route['settings/(:any)'] = 'settings/$1';
 $route['settings'] = 'settings/index';
+
+// Unified Omnichannel Chat Portal & AI Copilot Routes
+$route['chat_portal'] = 'chat_portal/index';
+$route['chat_portal/api_threads'] = 'chat_portal/api_threads';
+$route['chat_portal/api_messages'] = 'chat_portal/api_messages';
+$route['chat_portal/api_send'] = 'chat_portal/api_send';
+$route['chat_portal/api_toggle_handoff'] = 'chat_portal/api_toggle_handoff';
+$route['chat_portal/api_suggest'] = 'chat_portal/api_suggest';
+$route['chat_portal/api_switch_wa_mode'] = 'chat_portal/api_switch_wa_mode';
+$route['chat_portal/api_qr_status'] = 'chat_portal/api_qr_status';
+$route['chat_portal/api_qr_start'] = 'chat_portal/api_qr_start';
+$route['inbox'] = 'chat_portal/index';
+$route['messages'] = 'chat_portal/index';
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

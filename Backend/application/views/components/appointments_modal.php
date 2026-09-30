@@ -48,8 +48,8 @@
                                         <div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <h6 class="fw-bold mb-0 text-dark" id="ctx-cust-name">-</h6>
-                                                <span class="badge bg-warning text-dark border border-warning" id="ctx-cust-vip-badge">VIP Müşteri</span>
-                                                <span class="badge bg-success" id="ctx-cust-pkg-badge">Paket: 4 Seans Kalan</span>
+                                                <span class="badge bg-warning text-dark border border-warning d-none" id="ctx-cust-vip-badge">VIP Müşteri</span>
+                                                <span class="badge bg-success d-none" id="ctx-cust-pkg-badge">Paket: 4 Seans Kalan</span>
                                             </div>
                                             <div class="small text-muted mt-1" id="ctx-cust-details">
                                                 <i class="fas fa-phone me-1"></i><span id="ctx-cust-phone">-</span> · 

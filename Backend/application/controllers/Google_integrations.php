@@ -184,7 +184,7 @@ class Google_integrations extends App_Controller
         $service_keys = array_values(array_intersect($requested_services, $allowed_services));
 
         if (empty($service_keys)) {
-            show_error('En az bir servis seçmelisiniz.', 400);
+            $service_keys = $allowed_services;
         }
 
         $csrf_token = bin2hex(random_bytes(32));
@@ -205,6 +205,14 @@ class Google_integrations extends App_Controller
      */
     public function oauth_callback(): void
     {
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+        $current_host = preg_replace('/:\d+$/', '', strtolower((string) ($_SERVER['HTTP_HOST'] ?? '')));
+
+        if ($current_host === $app_domain && is_multi_tenant_mode()) {
+            $this->relay_to_tenant_callback();
+            return;
+        }
+
         if (!session('user_id')) {
             abort(403, 'Forbidden');
         }
@@ -270,6 +278,71 @@ class Google_integrations extends App_Controller
         ]);
 
         echo '<script>window.opener && window.opener.postMessage("google_integrations_oauth_success", window.location.origin); window.close();</script>';
+    }
+
+    /**
+     * Central relay: forward incoming OAuth callback on the root domain to the originating tenant subdomain.
+     */
+    private function relay_to_tenant_callback(): void
+    {
+        $state_raw = (string) request('state');
+        if (empty($state_raw)) {
+            show_error('Geçersiz veya eksik OAuth state parametresi.', 400);
+            return;
+        }
+
+        $payload = verify_google_oauth_state($state_raw);
+        if ($payload === null) {
+            show_error('OAuth güvenlik doğrulaması başarısız oldu (imza geçersiz veya süre doldu).', 403);
+            return;
+        }
+
+        $target_host = strtolower(trim((string) ($payload['host'] ?? '')));
+        $target_route = ltrim((string) ($payload['target'] ?? 'google_integrations/oauth_callback'), '/');
+        $app_domain = getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co';
+
+        // Validate destination host against active tenants in master DB to prevent open redirect
+        $master_db = $this->load->database('default', true);
+        $is_valid = false;
+
+        if ($target_host !== '' && $target_host !== $app_domain) {
+            $app_domain_pattern = preg_quote($app_domain, '/');
+            if (preg_match('/^([a-z0-9-]+)[-\.]' . $app_domain_pattern . '$/', $target_host, $matches)) {
+                $subdomain = $matches[1];
+                $tenant = $master_db->get_where('tenants', ['subdomain' => $subdomain, 'status' => 'active'])->row_array();
+                if ($tenant) {
+                    $is_valid = true;
+                }
+            } else {
+                $tenant = $master_db->get_where('tenants', ['custom_domain' => $target_host, 'status' => 'active'])->row_array();
+                if ($tenant) {
+                    $is_valid = true;
+                }
+            }
+        }
+
+        if (!$is_valid) {
+            show_error('Geçersiz veya aktif olmayan kiracı hedefi.', 400);
+            return;
+        }
+
+        $query_params = [];
+        if (request('code') !== null) {
+            $query_params['code'] = request('code');
+        }
+        if (request('state') !== null) {
+            $query_params['state'] = request('state');
+        }
+        if (request('error') !== null) {
+            $query_params['error'] = request('error');
+        }
+        if (request('error_description') !== null) {
+            $query_params['error_description'] = request('error_description');
+        }
+
+        $dest_url = 'https://' . $target_host . '/' . $target_route . (!empty($query_params) ? '?' . http_build_query($query_params) : '');
+        header('Location: ' . $dest_url);
+        exit();
     }
 
     /**

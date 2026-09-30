@@ -22,11 +22,11 @@ App.Utils.SessionActions = (function () {
                     return;
                 }
 
-                App.Layouts.Backend.displayNotification('Seans başlatıldı.');
+                App.Layouts.Backend.displayNotification('Randevu başlatıldı.');
                 callbacks.onUpdated?.(response.appointment);
             })
             .fail(() => {
-                App.Layouts.Backend.displayNotification('Seans başlatılamadı.');
+                App.Layouts.Backend.displayNotification('Randevu başlatılamadı.');
                 callbacks.onError?.();
             });
     }
@@ -44,9 +44,7 @@ App.Utils.SessionActions = (function () {
     }
 
     /**
-     * Finish a session (check-out). If the real duration deviates from the service's planned duration beyond the
-     * configured thresholds, the server rejects the request and this shows a dialog asking staff for a reason,
-     * then resubmits with it.
+     * Finish an appointment (check-out).
      *
      * @param {Number} appointmentId
      * @param {Object} callbacks {onUpdated(appointment), onError()}
@@ -56,10 +54,7 @@ App.Utils.SessionActions = (function () {
     }
 
     /**
-     * Salon Flora customization - let staff record payment at any point (typically at check-in, before the
-     * session even starts) rather than only at the mandatory check-out prompt. Not mandatory here - a "Sonra"
-     * (later) option is offered, since forcing this the moment a customer walks in creates exactly the kind of
-     * "answer whatever to make it go away" fatigue that produces bad data.
+     * Let staff record payment.
      *
      * @param {Number} appointmentId
      * @param {Object} appointment Current appointment data (for the default amount / existing payment display).
@@ -74,15 +69,16 @@ App.Utils.SessionActions = (function () {
             .done((response) => {
                 if (response.success) {
                     App.Layouts.Backend.displayNotification(
-                        reason ? 'Seans kaydedildi.' : 'Seans tamamlandı.',
+                        reason ? 'Randevu kaydedildi.' : 'Randevu tamamlandı.',
                     );
 
-                    // Salon Flora customization - a session isn't fully "done" from a bookkeeping standpoint
-                    // until payment is recorded (or explicitly marked as not collected). Only admins/secretaries
-                    // are ever asked - providers never see or touch payment data. If payment was already
-                    // recorded earlier (e.g. at check-in, via collectPayment()), don't ask a second time.
+                    // Redirect directly to Adisyon drawer/checkout for payment
                     if (vars('can_manage_payment') && !hasPayment(response.appointment)) {
-                        showPaymentDialog(appointmentId, response.appointment, callbacks, {mandatory: true});
+                        const targetUrl = (vars('site_url') || '') + '/adisyons?appointment_id=' + appointmentId;
+                        App.Layouts.Backend.displayNotification('Randevu tamamlandı. Adisyon ekranına yönlendiriliyorsunuz...');
+                        setTimeout(() => {
+                            window.location.href = targetUrl;
+                        }, 500);
                     } else {
                         callbacks.onUpdated?.(response.appointment);
                     }
@@ -99,7 +95,7 @@ App.Utils.SessionActions = (function () {
                 callbacks.onError?.();
             })
             .fail(() => {
-                App.Layouts.Backend.displayNotification('Seans bitirilemedi.');
+                App.Layouts.Backend.displayNotification('Randevu tamamlanamadı.');
                 callbacks.onError?.();
             });
     }
@@ -421,7 +417,7 @@ App.Utils.SessionActions = (function () {
                     const reasonCode = $('#early-exit-reason-code').val();
 
                     if (!justification) {
-                        App.Layouts.Backend.displayNotification('Haklı mı haksız mı olduğunu seçin.');
+                        App.Layouts.Backend.displayNotification('Lütfen erken çıkış kusur / haklılık durumunu seçin.');
                         return;
                     }
 
@@ -436,16 +432,16 @@ App.Utils.SessionActions = (function () {
             },
         ];
 
-        App.Utils.Message.show('Erken Çıkış', header, buttons);
+        App.Utils.Message.show('Erken Çıkış Değerlendirmesi', header, buttons);
 
         const $body = $('#message-modal .modal-body');
 
         $('<div/>', {
             class: 'mt-3 mb-2',
             html: [
-                $('<label/>', {class: 'form-label d-block', text: 'Bu erken çıkış:'}),
+                $('<label/>', {class: 'form-label d-block fw-bold text-dark mb-2', text: 'Erken Çıkış Kusur / Sorumluluk Tespiti:'}),
                 $('<div/>', {
-                    class: 'btn-group w-100',
+                    class: 'd-flex flex-column gap-2 w-100',
                     role: 'group',
                     html: [
                         $('<input/>', {
@@ -456,9 +452,9 @@ App.Utils.SessionActions = (function () {
                             value: 'justified',
                         }),
                         $('<label/>', {
-                            class: 'btn btn-outline-success',
+                            class: 'btn btn-outline-success text-start py-2 px-3',
                             for: 'sf-early-exit-justified',
-                            text: 'Haklı',
+                            html: '<i class="fas fa-check-circle me-2"></i><strong>Personel Haklı</strong> <span class="d-block small text-muted">Müşteri kaynaklı / erken ayrıldı — Personel tam hakedişini alır.</span>',
                         }),
                         $('<input/>', {
                             type: 'radio',
@@ -468,9 +464,9 @@ App.Utils.SessionActions = (function () {
                             value: 'unjustified',
                         }),
                         $('<label/>', {
-                            class: 'btn btn-outline-danger',
+                            class: 'btn btn-outline-danger text-start py-2 px-3',
                             for: 'sf-early-exit-unjustified',
-                            text: 'Haksız',
+                            html: '<i class="fas fa-times-circle me-2"></i><strong>Müşteri Haklı</strong> <span class="d-block small text-muted">Personel kusurlu / eksik hizmet — Personel hakedişi kesilir.</span>',
                         }),
                     ],
                 }),

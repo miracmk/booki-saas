@@ -113,20 +113,15 @@ App.Components.AppointmentsModal = (function () {
     let stationRequestToken = 0;
 
     /**
-     * Salon Flora customization - the sequential booking form's step lock: 1 saat → 2 hizmet → 3 hizmet sağlayıcı
-     * → 4 istasyon → 5 müşteri. Each step is disabled/dimmed (.sf-step-locked) until the previous one has a
-     * value. Editing an EXISTING appointment unlocks everything at once (all the values already exist and are
-     * valid - there's nothing sequential to enforce). New appointments start locked down to step 1.
+     * Appointment modal steps controller.
+     * Keep all operational steps (customer, time, service, provider, station) fully
+     * accessible and interactive so staff can manage appointments flexibly in any order.
      */
     const stepController = (function () {
         const $steps = $('.sf-step');
 
         function lockFrom(step) {
-            $steps.each((index, el) => {
-                const $el = $(el);
-                const stepNumber = Number($el.data('step'));
-                $el.toggleClass('sf-step-locked', stepNumber >= step);
-            });
+            $steps.removeClass('sf-step-locked');
         }
 
         function unlockAll() {
@@ -134,7 +129,7 @@ App.Components.AppointmentsModal = (function () {
         }
 
         function reset() {
-            lockFrom(2);
+            $steps.removeClass('sf-step-locked');
         }
 
         return {lockFrom, unlockAll, reset};
@@ -246,12 +241,8 @@ App.Components.AppointmentsModal = (function () {
                     stations.length ? `Bu saatte ${freeCount}/${stations.length} istasyon müsait.` : '',
                 );
 
-                // Salon Flora customization - BUG FIX: step 5 (müşteri) was only unlocked by the station
-                // select's OWN 'change' event, which never fires if staff leave it on its default value (e.g.
-                // "— Atanmamış —" for automatic assignment) without touching it - a station choice (even "no
-                // station") completes step 4 regardless of whether the dropdown was touched, so unlock here too,
-                // once the options have actually loaded.
-                stepController.lockFrom(6);
+                // Keep all steps interactive
+                stepController.unlockAll();
             })
             .fail(() => {
                 if (requestToken !== stationRequestToken) {
@@ -430,10 +421,7 @@ App.Components.AppointmentsModal = (function () {
          * be occupied.
          */
         $stationSelect.on('change', () => {
-            // Salon Flora customization - sequential booking form: a station choice (even "— Atanmamış —",
-            // value "") completes the sequence - unlock step 5 (müşteri). This runs for both new and existing
-            // appointments; only the live update_station call below is existing-appointment-only.
-            stepController.lockFrom(6);
+            stepController.unlockAll();
 
             const appointmentId = $appointmentId.val();
 
@@ -561,8 +549,9 @@ App.Components.AppointmentsModal = (function () {
             };
 
             // Define error callback.
-            const errorCallback = () => {
-                $appointmentsModal.find('.modal-message').text(lang('service_communication_error'));
+            const errorCallback = (xhr) => {
+                const message = xhr?.responseJSON?.message || lang('service_communication_error');
+                $appointmentsModal.find('.modal-message').text(message);
                 $appointmentsModal.find('.modal-message').addClass('alert-danger').removeClass('d-none');
                 $appointmentsModal.find('.modal-body').scrollTop(0);
             };
@@ -730,7 +719,7 @@ App.Components.AppointmentsModal = (function () {
 
             $selectCustomer.trigger('click'); // Hide the list.
             checkCustomerPackage();
-            stepController.lockFrom(3); // Customer picked (Step 1) -> Unlock Step 2 (Zaman)
+            stepController.unlockAll();
             updateLiveSummary();
         });
 
@@ -884,8 +873,7 @@ App.Components.AppointmentsModal = (function () {
             // Load addons for this service
             loadServiceAddons(serviceId);
 
-            // Step 3 (Hizmet) completed -> unlock Step 4 (Hizmet Sağlayıcı). Step 5 (İstasyon) locked.
-            stepController.lockFrom(5);
+            stepController.unlockAll();
         });
 
         /**
@@ -934,10 +922,7 @@ App.Components.AppointmentsModal = (function () {
             // Refresh station options
             updateStationOptions();
 
-            // Step 4 (Hizmet Sağlayıcı) completed -> unlock Step 5 (İstasyon)
-            if ($selectProvider.val()) {
-                stepController.lockFrom(6);
-            }
+            stepController.unlockAll();
 
             updateLiveSummary();
         });
@@ -966,15 +951,13 @@ App.Components.AppointmentsModal = (function () {
             $('#customer-context-banner').addClass('d-none');
             $('#active-customer-package-id').val('');
             $('#service-package-selector').addClass('d-none');
-            stepController.lockFrom(2);
+            stepController.unlockAll();
             updateLiveSummary();
         });
 
-        // Customer manual typing unlocks Step 2 (Zaman)
+        // Customer manual typing keeps all steps unlocked
         $firstName.add($lastName).add($phoneNumber).on('input', () => {
-            if ($firstName.val().trim() || $phoneNumber.val().trim()) {
-                stepController.lockFrom(3);
-            }
+            stepController.unlockAll();
             updateLiveSummary();
         });
 
@@ -1078,10 +1061,8 @@ App.Components.AppointmentsModal = (function () {
         // can plan which room/station a session will use at booking time); updateStationOptions() below fills it
         // in once the provider list is ready. The check-in/out panel stays hidden for a brand new, unsaved
         // appointment - it has no ID yet, so there's nothing for the check-in endpoint to act on.
-        // Salon Flora customization - a brand new appointment starts locked down to step 1 (saat); every other
-        // step opens up as staff fill in the previous one. displaySessionTracking() unlocks everything again for
-        // an existing appointment being edited (see below).
-        stepController.reset();
+        // Keep all operational steps unlocked
+        stepController.unlockAll();
 
         $checkInOutPanel.addClass('d-none');
         $stationMode.text('');
@@ -1168,7 +1149,7 @@ App.Components.AppointmentsModal = (function () {
                     const newEnd = new Date(selectedDates[0].getTime() + totalMins * 60000);
                     App.Utils.UI.setDateTimePickerValue($endDatetime, newEnd);
 
-                    stepController.lockFrom(4);
+                    stepController.unlockAll();
                     updateStationOptions($stationSelect.val());
                     updateLiveSummary();
                 }
@@ -1189,7 +1170,7 @@ App.Components.AppointmentsModal = (function () {
                     }
                 }
 
-                stepController.lockFrom(4);
+                stepController.unlockAll();
                 updateStationOptions($stationSelect.val());
                 updateLiveSummary();
             },
@@ -1242,11 +1223,8 @@ App.Components.AppointmentsModal = (function () {
         $consumablesTbody.empty();
         updateLiveSummary();
 
-        // Salon Flora customization - BUG FIX: $selectService.trigger('change') above re-populates the provider
-        // list and, via its own 'change' handler, calls stepController.lockFrom(4) - which UNLOCKS steps 2/3
-        // (hizmet/sağlayıcı) even though staff haven't picked a time yet for a brand new appointment. Re-lock
-        // back down to step 1 here, now that all of resetModal()'s side effects have run.
-        stepController.reset();
+        // Salon Flora customization - Keep all steps accessible in the modal
+        stepController.unlockAll();
     }
 
     /**
@@ -1302,6 +1280,7 @@ App.Components.AppointmentsModal = (function () {
                 .addClass('alert-danger')
                 .text(error.message)
                 .removeClass('d-none');
+            $appointmentsModal.find('.modal-body').scrollTop(0);
             return false;
         }
     }
@@ -1666,6 +1645,8 @@ App.Components.AppointmentsModal = (function () {
         const $banner = $('#customer-context-banner');
         if (!customer || !customer.id) {
             $banner.addClass('d-none');
+            $('#ctx-cust-vip-badge').addClass('d-none');
+            $('#ctx-cust-pkg-badge').addClass('d-none');
             return;
         }
 
@@ -1674,6 +1655,10 @@ App.Components.AppointmentsModal = (function () {
         $('#ctx-cust-name').text(fullName);
         $('#ctx-cust-phone').text(customer.phone_number || '-');
         $('#ctx-cust-email').text(customer.email || '-');
+
+        // Initially hide dynamic badges until loaded
+        $('#ctx-cust-vip-badge').addClass('d-none');
+        $('#ctx-cust-pkg-badge').addClass('d-none');
 
         $('#btn-open-ctx-360').off('click').on('click', () => {
             if (window.openCustomer360) {
@@ -1684,22 +1669,29 @@ App.Components.AppointmentsModal = (function () {
         // Check customer packages & VIP from 360 endpoint
         $.get(App.Utils.Url.siteUrl('customers/get_360/' + customer.id))
             .done((res) => {
-                if (res && res.success) {
+                if (res) {
                     const packages = res.packages || [];
-                    const activePkg = packages.find(p => Number(p.remaining_sessions) > 0);
+                    const activePkg = packages.find(p => (Number(p.total_sessions) - Number(p.used_sessions)) > 0);
                     if (activePkg) {
-                        $('#ctx-cust-pkg-badge').text('Paket: ' + activePkg.package_name + ' (' + activePkg.remaining_sessions + ' Seans)').removeClass('d-none');
+                        const remSessions = Number(activePkg.total_sessions) - Number(activePkg.used_sessions);
+                        $('#ctx-cust-pkg-badge').text('Paket: ' + remSessions + ' Seans Kalan').removeClass('d-none');
                     } else {
                         $('#ctx-cust-pkg-badge').addClass('d-none');
                     }
 
                     const metrics = res.metrics || {};
-                    if (Number(metrics.completed_appointments) >= 5 || Number(metrics.total_spend) > 3000) {
+                    const tags = res.tags || [];
+                    const isVip = tags.some(t => t.label === 'VIP') || Number(metrics.completed_appointments) >= 5 || Number(metrics.total_spent) > 3000;
+                    if (isVip) {
                         $('#ctx-cust-vip-badge').removeClass('d-none');
                     } else {
                         $('#ctx-cust-vip-badge').addClass('d-none');
                     }
                 }
+            })
+            .fail(() => {
+                $('#ctx-cust-pkg-badge').addClass('d-none');
+                $('#ctx-cust-vip-badge').addClass('d-none');
             });
 
         $banner.removeClass('d-none');

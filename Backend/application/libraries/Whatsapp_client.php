@@ -65,7 +65,7 @@ class Whatsapp_client
         try {
             $client = new Client();
 
-            $url = 'https://graph.facebook.com/v19.0/' . $this->phone_number_id . $endpoint;
+            $url = 'https://graph.facebook.com/v26.0/' . $this->phone_number_id . $endpoint;
 
             $options = [
                 'headers' => [

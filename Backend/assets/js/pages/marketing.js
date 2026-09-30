@@ -94,11 +94,27 @@ App.Pages.Marketing = (function () {
     $segmentTbody.on('click', 'button.refresh-segment-btn', onRefreshSegmentClick);
 
     // Campaigns
-    $('#add-campaign').on('click', onAddCampaignClick);
+    $('#btn-open-new-campaign').on('click', onOpenNewCampaignClick);
+    $('#add-campaign').on('click', onOpenNewCampaignClick);
+    $('#btn-save-campaign-draft').on('click', function () { onSaveAdsCampaignClick('draft'); });
+    $('#btn-publish-campaign').on('click', function () { onSaveAdsCampaignClick('active'); });
+    $('.campaign-filter-btn').on('click', onCampaignFilterClick);
+    $campaignTbody.on('click', 'button.update-status-btn', onUpdateCampaignStatusClick);
+    $campaignTbody.on('click', 'button.edit-metrics-btn', onEditMetricsClick);
+    $('#btn-save-metrics').on('click', onSaveMetricsClick);
+    $campaignTbody.on('click', 'button.delete-campaign-btn', onDeleteCampaignClick);
+    $campaignTbody.on('click', 'button.edit-campaign-btn', onEditCampaignClick);
+
+    // Reviews (RandevuBurada)
+    $('#reviews-table').on('change', '.review-toggle-randevuburada', onToggleReviewRandevuBurada);
+
+    // Assign customer to segment
+    $('#btn-assign-customer-segment').on('click', function () { $('#assign-customer-segment-modal').modal('show'); });
+    $('#btn-confirm-assign-customer').on('click', onConfirmAssignCustomerClick);
+
+    // Legacy broadcasts / segments
     $('#save-campaign').on('click', onSaveCampaignClick);
     $('#campaign-type').on('change', onCampaignTypeChange);
-    $campaignTbody.on('click', 'button.edit-campaign-btn', onEditCampaignClick);
-    $campaignTbody.on('click', 'button.delete-campaign-btn', onDeleteCampaignClick);
     $campaignTbody.on('click', 'button.prepare-campaign-btn', onPrepareCampaignClick);
     $campaignTbody.on('click', 'button.send-campaign-btn', onSendCampaignClick);
     $campaignTbody.on('click', 'button.pause-campaign-btn', onPauseCampaignClick);
@@ -706,57 +722,323 @@ App.Pages.Marketing = (function () {
       });
   }
 
-  function renderCampaigns() {
-    $campaignTbody.empty();
+  let currentCampaignFilter = 'all';
 
-    if (!campaigns.length) {
-      $campaignTbody.append('<tr><td colspan="9" class="text-center text-muted">Henüz kampanya yok.</td></tr>');
+  function onCampaignFilterClick() {
+    $('.campaign-filter-btn').removeClass('active');
+    $(this).addClass('active');
+    currentCampaignFilter = $(this).data('filter') || 'all';
+    renderCampaigns();
+  }
+
+  function onOpenNewCampaignClick() {
+    $('#new-campaign-modal').modal('show');
+  }
+
+  function onSaveAdsCampaignClick(status) {
+    const isGoogle = $('#tab-btn-google-ads').hasClass('active');
+    let payload = {};
+
+    if (isGoogle) {
+      const name = $('#g-campaign-name').val().trim();
+      if (!name) {
+        App.Utils.message('Google Ads kampanya adı zorunludur.', 'warning');
+        return;
+      }
+      payload = {
+        platform: 'google_ads',
+        name: name,
+        campaign_type: $('#g-campaign-type').val(),
+        ad_group_name: $('#g-ad-group-name').val().trim(),
+        target_keywords: $('#g-keywords').val().trim(),
+        ad_headline: $('#g-headline-1').val().trim(),
+        ad_description: $('#g-description').val().trim(),
+        budget: parseFloat($('#g-budget').val()) || 250,
+        target_url: $('#g-target-url').val().trim(),
+        status: status,
+      };
+    } else {
+      const name = $('#m-campaign-name').val().trim();
+      if (!name) {
+        App.Utils.message('Meta Ads kampanya adı zorunludur.', 'warning');
+        return;
+      }
+      payload = {
+        platform: 'meta_ads',
+        name: name,
+        campaign_type: $('#m-objective').val(),
+        ad_group_name: $('#m-adset-name').val().trim(),
+        target_audience: $('#m-audience').val().trim(),
+        ad_headline: $('#m-headline').val().trim(),
+        ad_description: $('#m-primary-text').val().trim(),
+        budget: parseFloat($('#m-budget').val()) || 200,
+        target_url: $('#m-target-url').val().trim(),
+        status: status,
+      };
+    }
+
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/save_ads_campaign'),
+      type: 'POST',
+      dataType: 'json',
+      data: payload,
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    })
+      .done(function (response) {
+        if (response.success !== false) {
+          $('#new-campaign-modal').modal('hide');
+          App.Utils.message(response.message || 'Kampanya başarıyla kaydedildi.', 'success');
+          loadCampaigns();
+        }
+      })
+      .fail(function (jqxhr) {
+        App.Utils.ajaxErrorMsg(jqxhr);
+      });
+  }
+
+  function onUpdateCampaignStatusClick() {
+    const id = $(this).data('id');
+    const status = $(this).data('status');
+
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/update_campaign_status'),
+      type: 'POST',
+      dataType: 'json',
+      data: { id: id, status: status },
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    })
+      .done(function (response) {
+        if (response.success !== false) {
+          const statusText = status === 'active' ? 'başlatıldı (yayında).' : (status === 'paused' ? 'duraklatıldı.' : 'durduruldu.');
+          App.Utils.message('Kampanya durumu güncellendi: ' + statusText, 'info');
+          loadCampaigns();
+        }
+      })
+      .fail(function (jqxhr) {
+        App.Utils.ajaxErrorMsg(jqxhr);
+      });
+  }
+
+  function onEditMetricsClick() {
+    const id = parseInt($(this).data('id'), 10);
+    const campaign = campaigns.find(function (c) {
+      return parseInt(c.id, 10) === id;
+    });
+
+    if (!campaign) return;
+
+    $('#edit-metric-campaign-id').val(id);
+    $('#edit-metric-campaign-name').val(campaign.name);
+    $('#edit-metric-impressions').val(campaign.impressions || 0);
+    $('#edit-metric-clicks').val(campaign.clicks || 0);
+    $('#edit-metric-spend').val(campaign.spend || 0);
+    $('#edit-metric-conversions').val(campaign.conversions || 0);
+    $('#edit-metric-roas').val(campaign.roas || 0);
+
+    $('#campaign-metrics-modal').modal('show');
+  }
+
+  function onSaveMetricsClick() {
+    const id = parseInt($('#edit-metric-campaign-id').val(), 10);
+    if (!id) return;
+
+    const payload = {
+      id: id,
+      impressions: parseInt($('#edit-metric-impressions').val(), 10) || 0,
+      clicks: parseInt($('#edit-metric-clicks').val(), 10) || 0,
+      spend: parseFloat($('#edit-metric-spend').val()) || 0,
+      conversions: parseInt($('#edit-metric-conversions').val(), 10) || 0,
+      roas: parseFloat($('#edit-metric-roas').val()) || 0,
+    };
+
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/update_campaign_metrics'),
+      type: 'POST',
+      dataType: 'json',
+      data: payload,
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    })
+      .done(function (response) {
+        if (response.success !== false) {
+          $('#campaign-metrics-modal').modal('hide');
+          App.Utils.message('Kampanya metrikleri güncellendi.', 'success');
+          loadCampaigns();
+        }
+      })
+      .fail(function (jqxhr) {
+        App.Utils.ajaxErrorMsg(jqxhr);
+      });
+  }
+
+  function onToggleReviewRandevuBurada() {
+    const id = $(this).data('review-id');
+    const isChecked = $(this).is(':checked') ? 1 : 0;
+
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/toggle_review_randevuburada'),
+      type: 'POST',
+      dataType: 'json',
+      data: { id: id, publish_to_randevuburada: isChecked },
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    })
+      .done(function (response) {
+        if (response.success !== false) {
+          App.Utils.message(response.message || 'Yorum yayını güncellendi.', 'success');
+        }
+      })
+      .fail(function (jqxhr) {
+        App.Utils.ajaxErrorMsg(jqxhr);
+      });
+  }
+
+  function onConfirmAssignCustomerClick() {
+    const customerId = $('#assign-customer-id').val();
+    const segmentId = $('#assign-segment-id').val();
+
+    if (!customerId || !segmentId) {
+      App.Utils.message('Lütfen müşteri ve segment seçin.', 'warning');
       return;
     }
 
-    campaigns.forEach(function (campaign) {
-      const segment = segments.find(function (s) {
-        return parseInt(s.id, 10) === campaign.segment_id;
+    $.ajax({
+      url: App.Utils.ajaxUrl('marketing/add_customer_to_segment'),
+      type: 'POST',
+      dataType: 'json',
+      data: { customer_id: customerId, segment_id: segmentId },
+      headers: { 'X-CSRF-Token': App.Security.csrfToken },
+    })
+      .done(function (response) {
+        if (response.success !== false) {
+          $('#assign-customer-segment-modal').modal('hide');
+          App.Utils.message('Müşteri segmente başarıyla eklendi.', 'success');
+          loadSegments();
+        }
+      })
+      .fail(function (jqxhr) {
+        App.Utils.ajaxErrorMsg(jqxhr);
       });
+  }
 
-      const isEditable = campaign.status === 'draft' || campaign.status === 'failed' || campaign.status === 'paused' || campaign.status === 'active';
-      const isPaused = campaign.status === 'paused';
-      const isActive = campaign.status === 'active';
+  function updateCampaignKPIs(filtered) {
+    let totalSpend = 0;
+    let totalImpressions = 0;
+    let totalClicks = 0;
+    let totalConversions = 0;
+    let weightedRoasSum = 0;
+    let googleSpend = 0;
+    let metaSpend = 0;
+
+    campaigns.forEach(function (c) {
+      const spend = parseFloat(c.spend) || 0;
+      const impr = parseInt(c.impressions, 10) || 0;
+      const clicks = parseInt(c.clicks, 10) || 0;
+      const conv = parseInt(c.conversions, 10) || 0;
+      const roas = parseFloat(c.roas) || 0;
+
+      totalSpend += spend;
+      totalImpressions += impr;
+      totalClicks += clicks;
+      totalConversions += conv;
+      weightedRoasSum += (spend * roas);
+
+      if (c.platform === 'google_ads' || c.channel === 'google_ads') {
+        googleSpend += spend;
+      } else if (c.platform === 'meta_ads' || c.channel === 'meta_ads') {
+        metaSpend += spend;
+      }
+    });
+
+    const avgCpc = totalClicks > 0 ? (totalSpend / totalClicks) : 0;
+    const avgRoas = totalSpend > 0 ? (weightedRoasSum / totalSpend) : (totalConversions > 0 ? 3.4 : 0);
+
+    $('#kpi-total-spend').text(totalSpend.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺');
+    $('#kpi-total-impressions').text(totalImpressions.toLocaleString('tr-TR'));
+    $('#kpi-total-clicks').text(totalClicks.toLocaleString('tr-TR'));
+    $('#kpi-avg-cpc').text(avgCpc.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺');
+    $('#kpi-total-conversions').text(totalConversions.toLocaleString('tr-TR'));
+    $('#kpi-avg-roas').text(avgRoas.toFixed(2) + 'x');
+
+    $('#bar-google-spend').text(googleSpend.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' ₺');
+    $('#bar-meta-spend').text(metaSpend.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' ₺');
+  }
+
+  function renderCampaigns() {
+    $campaignTbody.empty();
+    updateCampaignKPIs(campaigns);
+
+    let displayList = campaigns;
+    if (currentCampaignFilter !== 'all') {
+      displayList = campaigns.filter(function (c) {
+        if (currentCampaignFilter === 'google_ads') return c.platform === 'google_ads' || c.channel === 'google_ads';
+        if (currentCampaignFilter === 'meta_ads') return c.platform === 'meta_ads' || c.channel === 'meta_ads';
+        if (currentCampaignFilter === 'broadcast') return c.platform === 'broadcast' && c.channel !== 'google_ads' && c.channel !== 'meta_ads';
+        return true;
+      });
+    }
+
+    if (!displayList.length) {
+      $campaignTbody.append('<tr><td colspan="11" class="text-center text-muted py-4">Bu filtreye uygun kampanya bulunamadı.</td></tr>');
+      return;
+    }
+
+    displayList.forEach(function (campaign) {
+      const isGoogle = campaign.platform === 'google_ads' || campaign.channel === 'google_ads';
+      const isMeta = campaign.platform === 'meta_ads' || campaign.channel === 'meta_ads';
+
+      let platformBadge = '<span class="badge bg-secondary"><i class="fas fa-envelope me-1"></i> İletişim</span>';
+      if (isGoogle) {
+        platformBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fab fa-google me-1"></i> Google Ads</span>';
+      } else if (isMeta) {
+        platformBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="fab fa-meta me-1"></i> Meta Ads</span>';
+      }
 
       const budgetStr = campaign.budget ? parseFloat(campaign.budget).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺' : '-';
+      const spendVal = parseFloat(campaign.spend) || 0;
+      const spendStr = spendVal > 0 ? spendVal.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺' : '0,00 ₺';
+      const clicksVal = parseInt(campaign.clicks, 10) || 0;
+      const imprVal = parseInt(campaign.impressions, 10) || 0;
+      const cpcStr = clicksVal > 0 ? (spendVal / clicksVal).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺' : '-';
+      const convVal = parseInt(campaign.conversions, 10) || 0;
+      const roasVal = parseFloat(campaign.roas) || 0;
+
+      let statusBadge = '<span class="badge bg-secondary">Taslak</span>';
+      if (campaign.status === 'active') {
+        statusBadge = '<span class="badge bg-success"><i class="fas fa-circle fa-xs me-1"></i> Yayında</span>';
+      } else if (campaign.status === 'paused') {
+        statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-pause fa-xs me-1"></i> Duraklatıldı</span>';
+      } else if (campaign.status === 'stopped') {
+        statusBadge = '<span class="badge bg-secondary"><i class="fas fa-stop fa-xs me-1"></i> Durduruldu</span>';
+      }
 
       const $row = $(
         '<tr>' +
-          '<td>' + ($('<div>').text(campaign.name).html()) + '</td>' +
-          '<td>' + (segment ? $('<div>').text(segment.name).html() : '<span class="badge bg-light text-dark">Genel / Ad</span>') + '</td>' +
-          '<td>' + (CHANNEL_LABELS[campaign.channel] || campaign.channel) + '</td>' +
-          '<td class="text-center">' + budgetStr + '</td>' +
-          '<td class="text-center">' + (campaign.total_recipients || 0) + '</td>' +
-          '<td class="text-center">' + (campaign.sent_count || 0) + '</td>' +
-          '<td class="text-center">' + (campaign.failed_count || 0) + '</td>' +
-          '<td><span class="badge bg-' + (STATUS_BADGES[campaign.status] || 'secondary') + '">' +
-            $('<div>').text(campaign.status).html() + '</span></td>' +
           '<td>' +
-            (initials.can_edit && isEditable
-              ? '<button class="btn btn-sm btn-outline-primary edit-campaign-btn" data-id="' + campaign.id + '" title="Düzenle"><i class="fas fa-edit"></i></button> '
-              : '') +
-            (initials.can_edit && (isActive || campaign.status === 'queued')
-              ? '<button class="btn btn-sm btn-outline-warning pause-campaign-btn" data-id="' + campaign.id + '" title="Durdur"><i class="fas fa-pause"></i></button> '
-              : '') +
-            (initials.can_edit && isPaused
-              ? '<button class="btn btn-sm btn-outline-success resume-campaign-btn" data-id="' + campaign.id + '" title="Devam Ettir"><i class="fas fa-play"></i></button> '
-              : '') +
-            (initials.can_edit && campaign.campaign_type === 'broadcast'
-              ? '<button class="btn btn-sm btn-outline-info prepare-campaign-btn" data-id="' + campaign.id + '" title="Alıcı listesi hazırla"><i class="fas fa-list-ol"></i></button> '
-              : '') +
-            (initials.can_edit && campaign.status !== 'sent' && campaign.campaign_type === 'broadcast'
-              ? '<button class="btn btn-sm btn-success send-campaign-btn" data-id="' + campaign.id + '" title="Gönder"><i class="fas fa-paper-plane"></i></button> '
-              : '') +
+            '<div class="fw-bold text-dark">' + ($('<div>').text(campaign.name).html()) + '</div>' +
+            '<div class="mt-1">' + platformBadge + '</div>' +
+          '</td>' +
+          '<td>' +
+            '<div class="small fw-semibold">' + ($('<div>').text(campaign.ad_group_name || campaign.campaign_type || 'Genel').html()) + '</div>' +
+            '<div class="small text-muted">' + (campaign.target_keywords ? $('<div>').text(campaign.target_keywords).html() : (campaign.target_audience ? $('<div>').text(campaign.target_audience).html() : 'Tüm Kitle')) + '</div>' +
+          '</td>' +
+          '<td class="text-end fw-semibold">' + budgetStr + '</td>' +
+          '<td class="text-center font-monospace">' + imprVal.toLocaleString('tr-TR') + '</td>' +
+          '<td class="text-center font-monospace">' + clicksVal.toLocaleString('tr-TR') + '</td>' +
+          '<td class="text-center small text-muted">' + cpcStr + '</td>' +
+          '<td class="text-end fw-bold text-dark">' + spendStr + '</td>' +
+          '<td class="text-center"><span class="badge bg-light text-dark fw-bold border">' + convVal + '</span></td>' +
+          '<td class="text-center fw-bold text-success">' + (roasVal > 0 ? roasVal.toFixed(2) + 'x' : '-') + '</td>' +
+          '<td class="text-center">' + statusBadge + '</td>' +
+          '<td class="text-end text-nowrap">' +
+            (campaign.status === 'active'
+              ? '<button class="btn btn-sm btn-outline-warning update-status-btn me-1" data-id="' + campaign.id + '" data-status="paused" title="Duraklat"><i class="fas fa-pause"></i></button>' +
+                '<button class="btn btn-sm btn-outline-secondary update-status-btn me-1" data-id="' + campaign.id + '" data-status="stopped" title="Durdur"><i class="fas fa-stop"></i></button>'
+              : '<button class="btn btn-sm btn-outline-success update-status-btn me-1" data-id="' + campaign.id + '" data-status="active" title="Başlat / Yayına Al"><i class="fas fa-play"></i></button>') +
+            '<button class="btn btn-sm btn-outline-primary edit-metrics-btn me-1" data-id="' + campaign.id + '" title="Metrikleri Düzenle"><i class="fas fa-sliders-h"></i></button>' +
             (initials.can_delete
               ? '<button class="btn btn-sm btn-outline-danger delete-campaign-btn" data-id="' + campaign.id + '" title="Sil"><i class="fas fa-trash"></i></button>'
               : '') +
           '</td>' +
-          '</tr>',
+        '</tr>'
       );
 
       $campaignTbody.append($row);

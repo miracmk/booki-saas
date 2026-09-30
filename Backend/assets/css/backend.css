@@ -623,3 +623,15 @@ body .modal.full-screen .modal-push {
     min-width: 0;
   }
 }
+
+/* Services page full-width & responsive custom table layout override */
+#services-page,
+#services-page.container-fluid,
+#services-page .record-details,
+#services-page .filter-records,
+#services-page #services {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}

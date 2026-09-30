@@ -117,21 +117,56 @@
         <!-- Bank Accounts Card -->
         <div class="col-12 col-lg-6" id="bank-accounts-table">
             <div class="card border-0 shadow-sm rounded-3 h-100">
-                <div class="card-header bg-white py-3 px-4 border-bottom">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-university text-primary me-2"></i>Banka Hesapları</h6>
+                <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-university text-primary me-2"></i>Banka Hesapları & POS Terminalleri</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openBankAccountModal()">
+                        <i class="fas fa-plus me-1"></i> Hesap / POS Bağla
+                    </button>
                 </div>
                 <div class="card-body p-3">
                     <?php if (empty($bank_accounts)): ?>
-                        <div class="text-center py-4 text-muted small">Tanımlı banka hesabı bulunmuyor.</div>
+                        <div class="text-center py-4 text-muted small">
+                            <i class="fas fa-wallet fa-2x mb-2 text-muted opacity-50 d-block"></i>
+                            Henüz tanımlı banka hesabı veya POS terminali bulunmuyor.
+                        </div>
                     <?php else: ?>
                         <ul class="list-group list-group-flush">
                             <?php foreach ($bank_accounts as $b): ?>
                                 <li class="list-group-item d-flex justify-content-between align-items-center px-2 py-3">
                                     <div>
-                                        <h6 class="mb-0 fw-bold"><?= e($b['bank_name']) ?> - <?= e($b['account_name']) ?></h6>
-                                        <small class="text-muted"><?= e($b['iban']) ?></small>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <h6 class="mb-0 fw-bold text-dark"><?= e($b['bank_name']) ?> - <?= e($b['account_name']) ?></h6>
+                                            <?php if (!empty($b['is_default_iban'])): ?>
+                                                <span class="badge bg-primary bg-opacity-10 text-primary small border border-primary border-opacity-25" title="Müşteri Havale / EFT ödemeleri bu hesaba yönlendirilir">
+                                                    <i class="fas fa-exchange-alt me-1"></i>Havale/EFT
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($b['is_default_pos'])): ?>
+                                                <span class="badge bg-success bg-opacity-10 text-success small border border-success border-opacity-25" title="Fiziki POS çekimleri bu hesaba aktarılır">
+                                                    <i class="fas fa-credit-card me-1"></i>POS Hesabı
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if (!empty($b['is_default_payout'])): ?>
+                                                <span class="badge bg-warning bg-opacity-10 text-dark small border border-warning border-opacity-25" title="BooKi Online Kapora & Tahsilat Hakedişleri bu hesaba aktarılır">
+                                                    <i class="fas fa-hand-holding-usd me-1"></i>BooKi Hakediş
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="small text-muted font-monospace">
+                                            <?php if (!empty($b['iban'])): ?>
+                                                <i class="fas fa-hashtag me-1"></i><?= e($b['iban']) ?>
+                                            <?php endif; ?>
+                                            <?php if (!empty($b['pos_terminal_id'])): ?>
+                                                <span class="ms-2"><i class="fas fa-cash-register me-1"></i>Terminal: <?= e($b['pos_terminal_id']) ?> (<?= e($b['pos_provider'] ?: 'ÖKC') ?>)</span>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
-                                    <span class="fw-bold text-primary fs-6"><?= number_format($b['balance'], 2) ?> <?= e($b['currency']) ?></span>
+                                    <div class="text-end d-flex align-items-center gap-2">
+                                        <span class="fw-bold text-primary fs-6"><?= number_format($b['balance'], 2) ?> <?= e($b['currency'] ?? 'TRY') ?></span>
+                                        <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="deleteBankAccount(<?= $b['id'] ?>)" title="Hesabı Kaldır">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
@@ -330,12 +365,136 @@
             </div>
         </div>
     </div>
+<!-- Modal: Bank Account & POS Terminal -->
+<div class="modal fade" id="bank-account-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom py-3">
+                <h6 class="modal-title fw-bold text-dark"><i class="fas fa-university text-primary me-2"></i>Banka Hesabı & POS Terminali Bağla</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="bank-account-form">
+                    <input type="hidden" name="id" id="bank-account-id" value="">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Hesap / Entegrasyon Türü</label>
+                        <select name="account_type" id="bank-account-type" class="form-select rounded-3" onchange="togglePosFields(this.value)">
+                            <option value="bank">Banka Vadesiz Hesabı (IBAN / Havale)</option>
+                            <option value="pos">Fiziki POS Terminali / ÖKC</option>
+                            <option value="payout">BooKi Tahsilat & Kapora Hakediş Hesabı</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Banka / Kurum Adı</label>
+                            <input type="text" name="bank_name" id="bank-name" class="form-control rounded-3" placeholder="Örn: Garanti BBVA" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Hesap / Cihaz Tanımı</label>
+                            <input type="text" name="account_name" id="account-name" class="form-control rounded-3" placeholder="Örn: Ana Ticari / Kasa POS" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="group-iban">
+                        <label class="form-label small fw-semibold text-muted">IBAN Numarası</label>
+                        <input type="text" name="iban" id="bank-iban" class="form-control rounded-3 font-monospace" placeholder="TR00 0000 0000 0000 0000 0000 00">
+                    </div>
+
+                    <div class="row g-3 mb-3" id="group-pos" style="display: none;">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">POS Terminal / ÖKC Seri No</label>
+                            <input type="text" name="pos_terminal_id" id="pos-terminal-id" class="form-control rounded-3 font-monospace" placeholder="Örn: TR88291039">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-muted">POS Sağlayıcı / Marka</label>
+                            <input type="text" name="pos_provider" id="pos-provider" class="form-control rounded-3" placeholder="Örn: Ingenico ÖKC / Garanti">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Varsayılan Kullanım Alanları</label>
+                        <div class="card bg-light border-0 p-3 rounded-3">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_default_iban" id="check-def-iban" value="1">
+                                <label class="form-check-label small fw-semibold" for="check-def-iban">Havale / EFT Ödemelerinde Müşteriye Sunulacak Ana Hesap</label>
+                            </div>
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="is_default_pos" id="check-def-pos" value="1">
+                                <label class="form-check-label small fw-semibold" for="check-def-pos">Kredi Kartı / Fiziki POS Tahsilatlarının Bağlandığı Hesap</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_default_payout" id="check-def-payout" value="1">
+                                <label class="form-check-label small fw-semibold" for="check-def-payout">BooKi Online Ödeme & Kapora Hakedişlerinin Aktarılacağı Hesap</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top py-3">
+                <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Vazgeç</button>
+                <button type="button" class="btn btn-primary rounded-3 px-4" onclick="submitBankAccount()">
+                    <i class="fas fa-save me-1"></i> Kaydet & Bağla
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php end_section('content'); ?>
 
 <?php section('scripts'); ?>
 <script>
+let bankAccountModal = null;
+document.addEventListener('DOMContentLoaded', function() {
+    const el = document.getElementById('bank-account-modal');
+    if (el) bankAccountModal = new bootstrap.Modal(el);
+});
+
+function openBankAccountModal() {
+    document.getElementById('bank-account-form').reset();
+    document.getElementById('bank-account-id').value = '';
+    togglePosFields('bank');
+    if (bankAccountModal) bankAccountModal.show();
+}
+
+function togglePosFields(type) {
+    const posGroup = document.getElementById('group-pos');
+    if (posGroup) {
+        posGroup.style.display = (type === 'pos') ? 'flex' : 'none';
+    }
+}
+
+function submitBankAccount() {
+    const form = document.getElementById('bank-account-form');
+    const fd = new FormData(form);
+
+    fetch('<?= site_url('finance/save_bank_account') ?>', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Hesap başarıyla kaydedildi.');
+                window.location.reload();
+            } else {
+                alert(data.message || 'Kayıt başarısız.');
+            }
+        })
+        .catch(err => alert('İşlem başarısız: ' + err.message));
+}
+
+function deleteBankAccount(id) {
+    if (!confirm('Bu hesabı silmek istediğinize emin misiniz?')) return;
+    fetch('<?= site_url('finance/delete_bank_account/') ?>' + id)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'Hesap silindi.');
+                window.location.reload();
+            }
+        });
+}
+
 function submitCloseRegister() {
     const regId = document.getElementById('modal-register-id').value;
     const actualCash = document.getElementById('modal-actual-cash').value;

@@ -323,6 +323,8 @@ class Calendar extends App_Controller
      */
     public function save_appointment(): void
     {
+        $station_locks_held = [];
+
         try {
             method('post');
 
@@ -351,10 +353,10 @@ class Calendar extends App_Controller
             if ($customer_data) {
                 $customer = $customer_data;
 
-                // Salon Flora bugfix - was inverted (checked 'add' for an existing id, 'edit' for a new one).
+                // Salon Flora bugfix - allow if user has customer permissions OR appointment permissions.
                 $required_permissions = !empty($customer['id'])
-                    ? can('edit', PRIV_CUSTOMERS)
-                    : can('add', PRIV_CUSTOMERS);
+                    ? (can('edit', PRIV_CUSTOMERS) || can('edit', PRIV_APPOINTMENTS))
+                    : (can('add', PRIV_CUSTOMERS) || can('add', PRIV_APPOINTMENTS));
 
                 if (!$required_permissions) {
                     throw new RuntimeException('You do not have the required permissions for this task.');
@@ -543,6 +545,11 @@ class Calendar extends App_Controller
                 }
 
                 if (($provider_conflict || $station_conflict) && !$force_save) {
+                    if (!empty($station_locks_held)) {
+                        $this->stations_model->release_station_locks($station_locks_held);
+                        $station_locks_held = [];
+                    }
+
                     if ($provider_conflict && $station_conflict) {
                         $message = lang('provider_and_station_have_conflicting_appointment');
                     } elseif ($provider_conflict) {
@@ -650,6 +657,7 @@ class Calendar extends App_Controller
 
                 if (!empty($station_locks_held)) {
                     $this->stations_model->release_station_locks($station_locks_held);
+                    $station_locks_held = [];
                 }
             }
 
@@ -737,6 +745,11 @@ class Calendar extends App_Controller
             ]);
         } catch (Throwable $e) {
             json_exception($e);
+        } finally {
+            if (!empty($station_locks_held)) {
+                $this->stations_model->release_station_locks($station_locks_held);
+                $station_locks_held = [];
+            }
         }
     }
 
