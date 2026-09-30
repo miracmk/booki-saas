@@ -1953,22 +1953,21 @@ async function showPaymentModal(adisyonId) {
     amountInput.dataset.remaining = remaining.toFixed(2);
     updatePaymentRemainingPreview();
 
-    // Setup Bank Accounts Dropdown
+// Setup Bank Accounts Dropdown
     const bankAccounts = (currentAdisyonData && currentAdisyonData.bank_accounts) || [];
     const bankSelect = document.getElementById('payment-bank-account-select');
-    if (bankSelect) {
-        if (bankAccounts.length > 0) {
-            const esc = v => String(v === null || v === undefined ? '' : v)
-                .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
-                .replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            bankSelect.innerHTML = '<option value="">-- Banka Hesabı Seçin --</option>' + bankAccounts.map(ba => `
-                <option value="${esc(ba.id)}" data-bank="${esc(ba.bank_name)}" data-receiver="${esc(ba.account_name)}" data-iban="${esc(ba.iban)}">
-                    ${esc(ba.bank_name)} - ${esc(ba.iban)} (${esc(ba.account_name)})
-                </option>
-            `).join('');
-        } else {
-            bankSelect.innerHTML = '<option value="">-- Tanımlı Banka Hesabı Bulunamadı --</option>';
-        }
+    if (bankSelect && bankAccounts.length > 0) {
+        const esc = v => String(v === null || v === undefined ? '' : v)
+            .replace(/&/g, '&').replace(/"/g, '"')
+            .replace(/</g, '<').replace(/>/g, '>');
+        bankSelect.innerHTML = '<option value="">-- Banka Hesabı Seçin --</option>' + bankAccounts.map(ba => `
+            <option value="${esc(ba.id)}" data-bank="${esc(ba.bank_name)}" data-receiver="${esc(ba.account_name)}" data-iban="${esc(ba.iban)}">
+                ${esc(ba.bank_name)} - ${esc(ba.iban)} (${esc(ba.account_name)})
+            </option>
+        `).join('');
+        onBankAccountSelected(bankSelect);
+    }
+    // If no accounts from API, keep PHP-rendered dropdown (don't clear it)
         onBankAccountSelected(bankSelect);
     }
 

@@ -314,9 +314,8 @@ App.Components.AppointmentsModal = (function () {
         });
 
         /**
-         * Salon Flora customization - Event: "Tahsilat Bilgisini Düzenle" button click. Lets admins/secretaries
-         * correct or fill in payment details after the fact (e.g. a provider checked the session out, leaving
-         * payment_status "pending", and now someone at reception is recording the actual payment).
+         * Salon Flora customization - Event: "Tahsilat Bilgisini Düzenle" button click.
+         * Opens the adisyon payment modal for the appointment's adisyon (creates if needed).
          */
         $editPaymentButton.on('click', () => {
             const appointmentId = $appointmentId.val();
@@ -325,9 +324,30 @@ App.Components.AppointmentsModal = (function () {
                 return;
             }
 
-            App.Utils.SessionActions.collectPayment(appointmentId, currentAppointmentData, {
-                onUpdated: (updatedAppointment) => displaySessionTracking(updatedAppointment),
-            });
+            // Get or create adisyon for this appointment, then open adisyon payment modal
+            $.get(App.Utils.Url.siteUrl('adisyons/get_for_appointment/' + appointmentId))
+                .done((response) => {
+                    if (response.status === 'success' && response.adisyon?.id) {
+                        // Open adisyon drawer and payment modal
+                        if (typeof openAdisyonDrawer === 'function') {
+                            openAdisyonDrawer(response.adisyon.id);
+                            // Show payment modal after drawer opens (small delay for animation)
+                            setTimeout(() => {
+                                if (typeof showPaymentModal === 'function') {
+                                    showPaymentModal(response.adisyon.id);
+                                }
+                            }, 300);
+                        } else if (typeof showPaymentModal === 'function') {
+                            // Fallback: just show payment modal directly
+                            showPaymentModal(response.adisyon.id);
+                        }
+                    } else {
+                        App.Layouts.Backend.displayNotification(response.message || 'Adisyon oluşturulamadı.');
+                    }
+                })
+                .fail(() => {
+                    App.Layouts.Backend.displayNotification('Adisyon bilgisi alınamadı.');
+                });
         });
 
         /**

@@ -38,7 +38,7 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 $lang['imglib_source_image_required'] = 'Devi specificare un\'immagine sorgente nelle tue preferenze.';
-$lang['iglib_gd_required'] = 'Per questa funzione è richiesta la libreria di immagini GD.';
+$lang['imglib_gd_required'] = 'Per questa funzione è richiesta la libreria di immagini GD.';
 $lang['imglib_gd_required_for_props'] = 'Il tuo server deve supportare la libreria di immagini GD per determinare le proprietà dell\'immagine.';
 $lang['imglib_unsupported_imagecreate'] = 'Il tuo server non supporta la funzione GD richiesta per elaborare questo tipo di immagine.';
 $lang['imglib_gif_not_supported'] = 'Le immagini GIF spesso non sono supportate a causa di restrizioni di licenza. Potrebbe essere necessario utilizzare invece immagini JPG o PNG.';
@@ -49,7 +49,7 @@ $lang['imglib_copy_error'] = 'Si è verificato un errore durante il tentativo di
 $lang['imglib_rotate_unsupported'] = 'La rotazione dell\'immagine non sembra essere supportata dal tuo server.';
 $lang['imglib_libpath_invalid'] = 'Il percorso della tua libreria di immagini non è corretto. Si prega di impostare il percorso corretto nelle preferenze dell\'immagine.';
 $lang['imglib_image_process_failed'] = 'Elaborazione dell\'immagine fallita. Verifica che il tuo server supporti il protocollo scelto e che il percorso della tua libreria di immagini sia corretto.';
-$lang['iglib_rotation_angle_required'] = 'È richiesto un angolo di rotazione per ruotare l\'immagine.';
+$lang['imglib_rotation_angle_required'] = 'È richiesto un angolo di rotazione per ruotare l\'immagine.';
 $lang['imglib_invalid_path'] = 'Il percorso dell\'immagine non è corretto.';
 $lang['imglib_invalid_image'] = 'L\'immagine fornita non è valida.';
 $lang['imglib_copy_failed'] = 'La routine di copia dell\'immagine non è riuscita.';

@@ -252,6 +252,20 @@ $lang['uncategorized'] = 'Uncategorized';
 $lang['stations_heading'] = 'Stations';
 $lang['stations_name_placeholder'] = 'E.g. Station 1';
 $lang['stations_inactive_hint'] = 'Inactive stations are not offered when assigning staff.';
+
+// Salon Flora customization - session/station terminology used by the appointment popover
+// (createPopoverRow('station'|'real_start'|'real_end')) and the active-sessions widget.
+$lang['session'] = 'Session';
+$lang['station'] = 'Station';
+$lang['real_start'] = 'Actual Start';
+$lang['real_end'] = 'Actual End';
+
+// Adisyon (thermal bill) print slip headers - the slip is rendered for every tenant, so
+// these must come from the dictionary instead of being hardcoded in the template
+// (see application/views/pages/adisyon_print_slip.php).
+$lang['slip_item_name'] = 'Item';
+$lang['slip_quantity'] = 'Qty';
+$lang['slip_amount'] = 'Amount';
 $lang['username_already_exists'] = 'Username already exists.';
 $lang['password_length_notice'] = 'Password must be at least $number characters long.';
 $lang['general_settings'] = 'General Settings';

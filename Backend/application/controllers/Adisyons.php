@@ -828,6 +828,25 @@ class Adisyons extends App_Controller
     }
 
     /**
+     * Get or create adisyon for an appointment (API - returns JSON).
+     */
+    public function get_for_appointment(int $appointment_id): void
+    {
+        $this->ensure_authenticated();
+        try {
+            $adisyon = $this->adisyons_model->get_or_create_for_appointment($appointment_id);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'success', 'adisyon' => $adisyon]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
+        }
+    }
+
+    /**
      * Convert adisyon to Invoice with optional ERP sync.
      */
     public function create_invoice(int $adisyon_id): void

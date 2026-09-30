@@ -160,6 +160,9 @@ $remaining = max(0.00, round((float)($adisyon['total_amount'] ?? 0) - (float)($a
             padding: 4px 0;
             text-align: left;
             font-weight: bold;
+            /* BooKi - the headers come from the dictionary now, so the receipt keeps its
+               ALL-CAPS look through CSS instead of hardcoded uppercase strings. */
+            text-transform: uppercase;
         }
         .items-table th.center { text-align: center; }
         .items-table th.right { text-align: right; }
@@ -314,9 +317,9 @@ $remaining = max(0.00, round((float)($adisyon['total_amount'] ?? 0) - (float)($a
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 50%;">KALEM</th>
-                    <th class="center" style="width: 15%;">AD</th>
-                    <th class="right" style="width: 35%;">TUTAR</th>
+                    <th style="width: 50%;"><?= lang('slip_item_name') ?></th>
+                    <th class="center" style="width: 15%;"><?= lang('slip_quantity') ?></th>
+                    <th class="right" style="width: 35%;"><?= lang('slip_amount') ?></th>
                 </tr>
             </thead>
             <tbody>

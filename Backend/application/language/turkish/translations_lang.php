@@ -609,6 +609,12 @@ $lang['stations_name_placeholder'] = 'Örn. İstasyon 1';
 $lang['stations_inactive_hint'] = 'Pasif istasyonlar personel atamasında görünmez.';
 $lang['real_start'] = 'Gerçek Başlangıç';
 $lang['real_end'] = 'Gerçek Bitiş';
+
+// Adisyon (termal fiş) başlıkları - fiş tüm kiracılar için basıldığından bu başlıklar
+// şablonda sabit yazılmak yerine sözlükten gelmelidir (bkz. views/pages/adisyon_print_slip.php).
+$lang['slip_item_name'] = 'Kalem';
+$lang['slip_quantity'] = 'Ad';
+$lang['slip_amount'] = 'Tutar';
 $lang['uncategorized'] = 'Kategorisiz';
 
 // Salon Flora customization - "Şablonlar" (email templates) settings page.
