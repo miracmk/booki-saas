@@ -1005,7 +1005,10 @@
 <script>
 function getCsrfToken() {
     return (typeof window.vars === 'function' ? window.vars('csrf_token') : null)
-        || '<?= $this->security->get_csrf_hash() ?>';
+        || (window.App && window.App.Security ? window.App.Security.csrfToken : null)
+        || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        || (document.cookie.match(/(?:^|;\s*)csrf_cookie=([^;]+)/) || [])[1]
+        || '<?= function_exists('get_instance') && isset(get_instance()->security) ? get_instance()->security->get_csrf_hash() : '' ?>';
 }
 
 let currentAdisyonId = null;

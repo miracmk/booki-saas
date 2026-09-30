@@ -135,6 +135,7 @@ class Adisyons extends App_Controller
         script_vars([
             'user_id' => $user_id,
             'role_slug' => $role_slug,
+            'csrf_token' => config_item('csrf_protection') ? $this->security->get_csrf_hash() : '',
         ]);
 
         $bank_accounts = $this->db
