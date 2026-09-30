@@ -1,7 +1,26 @@
 <?php extend('layouts/backend_layout'); ?>
 
+<?php section('styles'); ?>
+<!-- BooKi - the backend layout ships Font Awesome in JS/SVG mode with the "solid" pack only, so
+     brand icons ("fab fa-google" / "fab fa-yandex") render as empty boxes. Load the FA webfont
+     stylesheet (already used by the other BooKi views and whitelisted in hooks/security_headers.php)
+     so the unresolved brand <i> elements left behind by the FA JS get their glyphs. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* BooKi - scoped polish for the reviews page (page-id scoped, so nothing leaks into other
+   backend screens): source cards keep their height, review text wraps instead of stretching. */
+#randevuburada-reviews-page .card{border-radius:1rem}
+#randevuburada-reviews-page .table>thead>tr>th{font-size:.78rem;text-transform:uppercase;letter-spacing:.02em;color:#64748b;white-space:nowrap}
+#randevuburada-reviews-page .table>tbody>tr>td{vertical-align:top}
+#randevuburada-reviews-page .rb-review-text{max-width:380px;overflow-wrap:anywhere}
+@media(max-width:575.98px){
+    #randevuburada-reviews-page .btn-group-sm>.btn{padding:.3rem .45rem}
+}
+</style>
+<?php end_section('styles'); ?>
+
 <?php section('content'); ?>
-<div class="container-fluid backend-page py-3" id="randevuburada-reviews-page">
+<div class="container-fluid backend-page py-3 px-md-4" style="max-width: 1400px;" id="randevuburada-reviews-page">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h4 class="mb-1 fw-bold text-dark d-flex align-items-center">
@@ -91,7 +110,7 @@
         <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center gap-2">
                 <h6 class="mb-0 fw-semibold text-dark"><i class="fas fa-star-half-alt me-2 text-warning"></i>Vitrin Yorum Moderasyonu</h6>
-                <span class="badge bg-secondary bg-opacity-10 text-secondary fs-7 rounded-pill"><?= count($reviews ?? []) ?> Yorum</span>
+                <span class="badge bg-secondary bg-opacity-10 text-secondary small fw-semibold rounded-pill"><?= count($reviews ?? []) ?> Yorum</span>
             </div>
             <div class="btn-group btn-group-sm rounded-3 shadow-none">
                 <button type="button" class="btn btn-outline-secondary active" onclick="filterReviews('all', this)">Tümü</button>
@@ -145,7 +164,7 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <p class="mb-0 text-dark small" style="max-width: 380px;"><?= nl2br(htmlspecialchars($rev['comment'] ?? 'Hizmetten son derece memnun kaldım, teşekkürler.')) ?></p>
+                                    <p class="mb-0 text-dark small rb-review-text"><?= nl2br(htmlspecialchars($rev['comment'] ?? 'Hizmetten son derece memnun kaldım, teşekkürler.')) ?></p>
                                 </td>
                                 <td>
                                     <small class="text-muted"><?= htmlspecialchars(substr($rev['created_at'] ?? date('Y-m-d'), 0, 10)) ?></small>
@@ -180,12 +199,27 @@
     </div>
 </div>
 
+<?php end_section('content'); ?>
+
+<?php section('scripts'); ?>
 <script>
+/* BooKi - CSRF: the controller passes csrf_name / csrf_hash to the view (views cannot reach
+   $this->security in this CI build - $this inside a view is the loader). window.vars('csrf_token')
+   is the app-wide fallback (App_Controller::load_common_script_vars()). These POST endpoints are
+   CSRF-protected by CI's Security library, so every fetch below must carry the token. */
+const RB_CSRF_NAME = <?= json_encode($csrf_name ?? 'csrf_token') ?>;
+const RB_CSRF_TOKEN = <?= json_encode((string) ($csrf_hash ?? vars('csrf_token'))) ?>;
+
+function rbCsrfToken() {
+    return (typeof window.vars === 'function' && window.vars('csrf_token')) || RB_CSRF_TOKEN;
+}
+
 function saveSourceSettings() {
     const formData = new FormData();
     formData.append('google', document.getElementById('sourceGoogle').checked ? '1' : '0');
     formData.append('yandex', document.getElementById('sourceYandex').checked ? '1' : '0');
     formData.append('randevuburada', document.getElementById('sourceDirect').checked ? '1' : '0');
+    formData.append(RB_CSRF_NAME, rbCsrfToken());
 
     fetch('<?= site_url('randevuburada/save_sources') ?>', {
         method: 'POST',
@@ -205,6 +239,7 @@ function moderateReview(reviewId, action) {
     const url = action === 'publish' ? '<?= site_url('randevuburada/publish_review') ?>' : '<?= site_url('randevuburada/reject_review') ?>';
     const formData = new FormData();
     formData.append('review_id', reviewId);
+    formData.append(RB_CSRF_NAME, rbCsrfToken());
 
     fetch(url, {
         method: 'POST',
@@ -250,4 +285,4 @@ function showAlert(msg) {
     alertBox.classList.remove('d-none');
 }
 </script>
-<?php end_section('content'); ?>
+<?php end_section('scripts'); ?>

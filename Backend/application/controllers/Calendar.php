@@ -776,9 +776,19 @@ class Calendar extends App_Controller
 
             $this->appointments_model->set_actual_datetime($appointment_id, 'actual_start_datetime', date('Y-m-d H:i:s'));
 
+            $adisyon_id = null;
+            try {
+                $this->load->model('adisyons_model');
+                $adisyon = $this->adisyons_model->get_or_create_for_appointment($appointment_id);
+                $adisyon_id = $adisyon['id'] ?? null;
+            } catch (Throwable $e) {
+                log_message('error', 'Adisyon creation on check_in failed: ' . $e->getMessage());
+            }
+
             json_response([
                 'success' => true,
                 'appointment' => $this->appointments_model->find($appointment_id),
+                'adisyon_id' => $adisyon_id,
             ]);
         } catch (Throwable $e) {
             json_exception($e);
@@ -1073,9 +1083,19 @@ class Calendar extends App_Controller
                 );
             }
 
+            $adisyon_id = null;
+            try {
+                $this->load->model('adisyons_model');
+                $adisyon = $this->adisyons_model->get_or_create_for_appointment($appointment_id);
+                $adisyon_id = $adisyon['id'] ?? null;
+            } catch (Throwable $e) {
+                log_message('error', 'Adisyon creation on check_out failed: ' . $e->getMessage());
+            }
+
             json_response([
                 'success' => true,
                 'appointment' => $this->appointments_model->find($appointment_id),
+                'adisyon_id' => $adisyon_id,
             ]);
         } catch (Throwable $e) {
             json_exception($e);

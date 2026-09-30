@@ -51,9 +51,9 @@ function add_security_headers(): void
     header(
         "Content-Security-Policy: default-src 'self'; " .
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://my.zadarma.com https://api.zadarma.com https://maps.googleapis.com https://*.googleapis.com; " .
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://my.zadarma.com; " .
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://my.zadarma.com https://cdnjs.cloudflare.com; " .
             "img-src 'self' data: blob: https://my.zadarma.com https://maps.gstatic.com https://*.googleapis.com https://*.ggpht.com https://*.googleusercontent.com https://*.google.com https://*.gstatic.com; " .
-            "font-src 'self' data: https://fonts.gstatic.com; " .
+            "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
             "connect-src 'self' https://api.elevenlabs.io https://*.elevenlabs.io https://generativelanguage.googleapis.com https://*.googleapis.com https://api.zadarma.com https://*.zadarma.com https://maps.googleapis.com wss: ws: blob:; " .
             "media-src 'self' blob: data: https://my.zadarma.com; " .
             "frame-src 'self' https://www.google.com; " .

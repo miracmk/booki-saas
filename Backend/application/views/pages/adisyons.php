@@ -849,11 +849,37 @@
                     </div>
                 </div>
 
-                <!-- ÖKC / Fiziki POS Entegrasyon Bölümü -->
+                <!-- POS / Fiziki Kredi Kartı Bölümü -->
                 <div id="pos-okc-group" class="card bg-primary bg-opacity-10 border-primary border-opacity-25 p-3 rounded-3 mb-3 d-none">
-                    <!-- If no ÖKC is connected -->
-                    <div id="pos-okc-disconnected-alert" class="alert alert-warning py-2 px-3 small mb-2 d-none">
-                        <i class="fas fa-exclamation-triangle me-1"></i><strong>Bağlı ÖKC Cihazı Bulunmuyor:</strong> Sistemde tanımlı veya bağlı bir ÖKC / Fiziki POS cihazı bulunamadı. Kredi kartı tahsilatını cihaz entegrasyonu olmadan kaydedebilirsiniz.
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small fw-bold text-dark mb-0">
+                            <i class="fas fa-credit-card text-primary me-1"></i>İşletme POS / Terminal Seçimi
+                        </label>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none small" onclick="openQuickBankAccountModal('pos')">
+                            <i class="fas fa-plus-circle me-1"></i>Yeni POS Ekle
+                        </button>
+                    </div>
+                    <p class="small text-muted mb-2" style="font-size:11px;">Kart çekiminin yapıldığı fiziki POS cihazını veya hesabını seçin.</p>
+
+                    <select id="payment-pos-account-select" class="form-select form-select-sm mb-2">
+                        <?php if (!empty($pos_accounts)): ?>
+                            <option value="">-- Fiziki POS / Terminal Seçin --</option>
+                            <?php foreach ($pos_accounts as $pa): ?>
+                                <option value="<?= $pa['id'] ?>" data-bank="<?= e($pa['bank_name']) ?>" data-name="<?= e($pa['account_name']) ?>" data-terminal="<?= e($pa['pos_terminal_id'] ?? '') ?>" data-provider="<?= e($pa['pos_provider'] ?? '') ?>">
+                                    <?= e($pa['bank_name']) ?> - <?= e($pa['account_name']) ?><?= !empty($pa['pos_terminal_id']) ? ' (Term: ' . e($pa['pos_terminal_id']) . ')' : '' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="">-- Tanımlı POS Cihazı Bulunamadı --</option>
+                        <?php endif; ?>
+                    </select>
+
+                    <div id="no-pos-account-alert" class="alert alert-warning py-2 px-3 small mb-2 <?= !empty($pos_accounts) ? 'd-none' : '' ?>">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <span>Tanımlı POS cihazı bulunamadı.</span>
+                        <button type="button" class="btn btn-sm btn-outline-warning ms-1 py-0" onclick="openQuickBankAccountModal('pos')">
+                            <i class="fas fa-plus me-1"></i> POS Tanımla
+                        </button>
                     </div>
 
                     <!-- If ÖKC is connected -->
@@ -869,7 +895,7 @@
                         </div>
                         <div class="row g-2">
                             <div class="col-6">
-                                <label class="form-label small text-muted mb-1">POS / ÖKC Terminali</label>
+                                <label class="form-label small text-muted mb-1">ÖKC Terminali</label>
                                 <select id="payment-pos-terminal-select" class="form-select form-select-sm">
                                     <?php if (!empty($okc_terminals)): ?>
                                         <?php foreach ($okc_terminals as $t): ?>
@@ -888,13 +914,6 @@
                                     <option value="1">%1 Temel</option>
                                 </select>
                             </div>
-                        </div>
-                        <div id="no-okc-terminal-alert" class="alert alert-warning py-2 px-3 small mb-0 mt-2 d-none">
-                            <i class="fas fa-exclamation-triangle me-1"></i>
-                            <strong>Tanımlı ÖKC / POS terminali yok.</strong>
-                            <button type="button" class="btn btn-sm btn-outline-warning ms-1 py-0" onclick="openQuickBankAccountModal('pos')">
-                                <i class="fas fa-plus me-1"></i> Hemen Ekle
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -984,6 +1003,11 @@
 
 <?php section('scripts'); ?>
 <script>
+function getCsrfToken() {
+    return (typeof window.vars === 'function' ? window.vars('csrf_token') : null)
+        || '<?= $this->security->get_csrf_hash() ?>';
+}
+
 let currentAdisyonId = null;
 let currentAdisyonData = null;
 let selectedPaymentMethod = 'cash';
@@ -991,9 +1015,15 @@ let invoicingAdisyonIds = [];
 
 // Initialize auto-open if passed from backend redirect
 document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
     const autoOpenId = <?= !empty($open_id) ? (int) $open_id : 'null' ?>;
     if (autoOpenId) {
         openAdisyonDrawer(autoOpenId);
+        if (urlParams.get('action') === 'pay') {
+            setTimeout(() => {
+                showPaymentModal(autoOpenId);
+            }, 450);
+        }
     }
 
     // Bind Select All Checkbox
@@ -1153,8 +1183,10 @@ function executeInvoicing() {
         return;
     }
 
-    const sendToErp = document.getElementById('invoice-send-erp-toggle').checked;
-    const erpProvider = document.getElementById('invoice-erp-provider-select').value;
+    const erpToggleEl = document.getElementById('invoice-send-erp-toggle');
+    const sendToErp = erpToggleEl ? (erpToggleEl.type === 'checkbox' ? erpToggleEl.checked : erpToggleEl.value === '1') : false;
+    const erpProviderEl = document.getElementById('invoice-erp-provider-select');
+    const erpProvider = erpProviderEl ? erpProviderEl.value : '';
     const btn = document.getElementById('btn-confirm-invoicing');
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Faturalandırılıyor...';
@@ -1164,10 +1196,15 @@ function executeInvoicing() {
         // Single invoicing
         const adId = invoicingAdisyonIds[0];
         const fd = new FormData();
+        fd.append('csrf_token', getCsrfToken());
         fd.append('send_to_erp', sendToErp ? '1' : '0');
-        fd.append('erp_provider', erpProvider);
+        if (erpProvider) fd.append('erp_provider', erpProvider);
 
-        fetch('<?= site_url('adisyons/create_invoice/') ?>' + adId, { method: 'POST', body: fd })
+        fetch('<?= site_url('adisyons/create_invoice/') ?>' + adId, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRF-Token': getCsrfToken() }
+        })
             .then(res => res.json())
             .then(data => {
                 btn.innerHTML = originalText;
@@ -1183,16 +1220,21 @@ function executeInvoicing() {
             .catch(err => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('İşlem sırasında hata oluştu.');
+                alert('İşlem sırasında hata oluştu: ' + (err.message || ''));
             });
     } else {
         // Bulk invoicing
         const fd = new FormData();
+        fd.append('csrf_token', getCsrfToken());
         invoicingAdisyonIds.forEach(id => fd.append('adisyon_ids[]', id));
         fd.append('send_to_erp', sendToErp ? '1' : '0');
-        fd.append('erp_provider', erpProvider);
+        if (erpProvider) fd.append('erp_provider', erpProvider);
 
-        fetch('<?= site_url('adisyons/bulk_create_invoices') ?>', { method: 'POST', body: fd })
+        fetch('<?= site_url('adisyons/bulk_create_invoices') ?>', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRF-Token': getCsrfToken() }
+        })
             .then(res => res.json())
             .then(data => {
                 btn.innerHTML = originalText;
@@ -1208,7 +1250,7 @@ function executeInvoicing() {
             .catch(err => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('İşlem sırasında hata oluştu.');
+                alert('İşlem sırasında hata oluştu: ' + (err.message || ''));
             });
     }
 }
@@ -1496,6 +1538,7 @@ function addItemToAdisyon() {
     const qty = parseFloat(document.getElementById('item-quantity').value) || 1;
 
     const fd = new FormData();
+    fd.append('csrf_token', getCsrfToken());
     fd.append('id_adisyons', currentAdisyonId);
     fd.append('item_type', type);
     if (type === 'service') fd.append('id_services', id);
@@ -1504,7 +1547,11 @@ function addItemToAdisyon() {
     fd.append('unit_price', price);
     fd.append('quantity', qty);
 
-    fetch('<?= site_url('adisyons/add_item') ?>', { method: 'POST', body: fd })
+    fetch('<?= site_url('adisyons/add_item') ?>', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-Token': getCsrfToken() }
+    })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
@@ -1547,6 +1594,7 @@ function addCustomItemToAdisyon() {
     }
 
     const fd = new FormData();
+    fd.append('csrf_token', getCsrfToken());
     fd.append('id_adisyons', currentAdisyonId);
     fd.append('item_type', 'product');
     fd.append('name', name);
@@ -1554,7 +1602,11 @@ function addCustomItemToAdisyon() {
     fd.append('quantity', qty);
     if (staffId) fd.append('id_users_staff', staffId);
 
-    fetch('<?= site_url('adisyons/add_item') ?>', { method: 'POST', body: fd })
+    fetch('<?= site_url('adisyons/add_item') ?>', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-Token': getCsrfToken() }
+    })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
@@ -1652,10 +1704,14 @@ function updateItemApi(itemId, payload, callback) {
     if (!body.id && !body.item_id) {
         body.id = itemId;
     }
+    body.csrf_token = getCsrfToken();
 
     const request = fetch('<?= site_url('adisyons/update_item') ?>', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': getCsrfToken()
+        },
         body: JSON.stringify(body)
     })
     .then(async res => {
@@ -1953,22 +2009,43 @@ async function showPaymentModal(adisyonId) {
     amountInput.dataset.remaining = remaining.toFixed(2);
     updatePaymentRemainingPreview();
 
-// Setup Bank Accounts Dropdown
+    // Setup Bank Accounts Dropdown
     const bankAccounts = (currentAdisyonData && currentAdisyonData.bank_accounts) || [];
     const bankSelect = document.getElementById('payment-bank-account-select');
     if (bankSelect && bankAccounts.length > 0) {
         const esc = v => String(v === null || v === undefined ? '' : v)
-            .replace(/&/g, '&').replace(/"/g, '"')
-            .replace(/</g, '<').replace(/>/g, '>');
+            .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
         bankSelect.innerHTML = '<option value="">-- Banka Hesabı Seçin --</option>' + bankAccounts.map(ba => `
             <option value="${esc(ba.id)}" data-bank="${esc(ba.bank_name)}" data-receiver="${esc(ba.account_name)}" data-iban="${esc(ba.iban)}">
                 ${esc(ba.bank_name)} - ${esc(ba.iban)} (${esc(ba.account_name)})
             </option>
         `).join('');
+        const defIban = bankAccounts.find(ba => parseInt(ba.is_default_iban, 10) === 1);
+        if (defIban) bankSelect.value = String(defIban.id);
+        onBankAccountSelected(bankSelect);
+    } else if (bankSelect) {
         onBankAccountSelected(bankSelect);
     }
-    // If no accounts from API, keep PHP-rendered dropdown (don't clear it)
-        onBankAccountSelected(bankSelect);
+
+    // Setup POS Accounts Dropdown
+    const posAccounts = (currentAdisyonData && currentAdisyonData.pos_accounts) || [];
+    const posSelect = document.getElementById('payment-pos-account-select');
+    const posAlert = document.getElementById('no-pos-account-alert');
+    if (posSelect && posAccounts.length > 0) {
+        const esc = v => String(v === null || v === undefined ? '' : v)
+            .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        posSelect.innerHTML = '<option value="">-- Fiziki POS / Terminal Seçin --</option>' + posAccounts.map(pa => `
+            <option value="${esc(pa.id)}" data-bank="${esc(pa.bank_name)}" data-name="${esc(pa.account_name)}" data-terminal="${esc(pa.pos_terminal_id)}" data-provider="${esc(pa.pos_provider)}">
+                ${esc(pa.bank_name)} - ${esc(pa.account_name)}${pa.pos_terminal_id ? ' (Term: ' + esc(pa.pos_terminal_id) + ')' : ''}
+            </option>
+        `).join('');
+        const defPos = posAccounts.find(pa => parseInt(pa.is_default_pos, 10) === 1);
+        if (defPos) posSelect.value = String(defPos.id);
+        if (posAlert) posAlert.classList.add('d-none');
+    } else if (posSelect && posAlert) {
+        posAlert.classList.toggle('d-none', posSelect.options.length > 1);
     }
 
     // Setup ÖKC section based on is_okc_connected
@@ -2144,6 +2221,7 @@ function saveQuickBankAccount() {
     }
 
     const fd = new FormData();
+    fd.append('csrf_token', getCsrfToken());
     fd.append('id', 0);
     fd.append('bank_name', bankName);
     fd.append('account_name', accountName);
@@ -2159,7 +2237,11 @@ function saveQuickBankAccount() {
         fd.append('is_default_pos', document.getElementById('quick-ba-default-pos')?.checked ? 1 : 0);
     }
 
-    fetch('<?= site_url('finance/save_bank_account') ?>', { method: 'POST', body: fd })
+    fetch('<?= site_url('finance/save_bank_account') ?>', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-Token': getCsrfToken() }
+    })
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success) {
@@ -2211,6 +2293,27 @@ function saveQuickBankAccount() {
                 onBankAccountSelected(bankSelect);
             }
 
+            const posSelect = document.getElementById('payment-pos-account-select');
+            const posAlert = document.getElementById('no-pos-account-alert');
+            if (posSelect && accountType === 'pos') {
+                const posAccounts = details.pos_accounts || [];
+                const esc = v => String(v === null || v === undefined ? '' : v)
+                    .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+                    .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                posSelect.innerHTML = posAccounts.length > 0
+                    ? '<option value="">-- Fiziki POS / Terminal Seçin --</option>' + posAccounts.map(pa => `
+                        <option value="${esc(pa.id)}" data-bank="${esc(pa.bank_name)}" data-name="${esc(pa.account_name)}" data-terminal="${esc(pa.pos_terminal_id)}" data-provider="${esc(pa.pos_provider)}">
+                            ${esc(pa.bank_name)} - ${esc(pa.account_name)}${pa.pos_terminal_id ? ' (Term: ' + esc(pa.pos_terminal_id) + ')' : ''}
+                        </option>
+                    `).join('')
+                    : '<option value="">-- Tanımlı POS Cihazı Bulunamadı --</option>';
+
+                if (posAccounts.length > 0) {
+                    posSelect.value = String(posAccounts[posAccounts.length - 1].id);
+                }
+                if (posAlert) posAlert.classList.add('d-none');
+            }
+
             bootstrap.Modal.getOrCreateInstance(document.getElementById('quick-bank-account-modal')).hide();
             if (typeof showDrawerAlert === 'function') {
                 showDrawerAlert('success', accountType === 'bank' ? 'Banka hesabı kaydedildi ve seçildi.' : 'ÖKC / POS terminali kaydedildi.');
@@ -2233,6 +2336,7 @@ function submitPayment() {
     const isOkc = !!(currentAdisyonData && (currentAdisyonData.is_okc_connected || (currentAdisyonData.okc_terminals && currentAdisyonData.okc_terminals.length > 0)));
     const sendPos = (selectedPaymentMethod === 'card' && isOkc && document.getElementById('payment-send-pos')?.checked) ? '1' : '0';
     const posTerminalId = document.getElementById('payment-pos-terminal-select')?.value;
+    const posAccountId = document.getElementById('payment-pos-account-select')?.value;
     const bankAccountId = document.getElementById('payment-bank-account-select')?.value;
 
     if (!amount || parseFloat(amount) <= 0) {
@@ -2260,11 +2364,15 @@ function submitPayment() {
     submitBtn.disabled = true;
 
     const fd = new FormData();
+    fd.append('csrf_token', getCsrfToken());
     fd.append('id_adisyons', currentAdisyonId);
     fd.append('amount', amount);
     fd.append('payment_method', selectedPaymentMethod);
     fd.append('send_to_pos', sendPos);
     if (posTerminalId) fd.append('pos_terminal_id', posTerminalId);
+    if (selectedPaymentMethod === 'card' && posAccountId) {
+        fd.append('pos_account_id', posAccountId);
+    }
     if (selectedPaymentMethod === 'bank_transfer' && bankAccountId) {
         fd.append('bank_account_id', bankAccountId);
     }
@@ -2287,7 +2395,11 @@ function submitPayment() {
         fd.append('gift_card_code', giftCardCode.toUpperCase());
     }
 
-    fetch('<?= site_url('adisyons/pay') ?>', { method: 'POST', body: fd })
+    fetch('<?= site_url('adisyons/pay') ?>', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-Token': getCsrfToken() }
+    })
         .then(res => res.json())
         .then(data => {
             submitBtn.innerHTML = origText;

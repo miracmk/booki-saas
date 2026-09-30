@@ -1,7 +1,7 @@
 <?php extend('layouts/backend_layout'); ?>
 
 <?php section('content'); ?>
-<div class="container-fluid backend-page py-3" id="randevuburada-services-page">
+<div class="container-fluid backend-page py-3 px-md-4" style="max-width: 1400px;" id="randevuburada-services-page">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h4 class="mb-1 fw-bold text-dark d-flex align-items-center">
@@ -26,7 +26,7 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-semibold text-dark"><i class="fas fa-list-check me-2 text-primary"></i>Pazaryeri Hizmet Kataloğu</h6>
-            <span class="badge bg-primary bg-opacity-10 text-primary fs-7 rounded-pill">Toplam <?= count($services ?? []) ?> Hizmet</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary small fw-semibold rounded-pill">Toplam <?= count($services ?? []) ?> Hizmet</span>
         </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -119,7 +119,20 @@
     </div>
 </div>
 
+<?php end_section('content'); ?>
+
+<?php section('scripts'); ?>
 <script>
+/* BooKi - CSRF: the controller passes csrf_name / csrf_hash to the view (views cannot reach
+   $this->security in this CI build - $this inside a view is the loader). window.vars('csrf_token')
+   is the app-wide fallback (App_Controller::load_common_script_vars()). */
+const RB_CSRF_NAME = <?= json_encode($csrf_name ?? 'csrf_token') ?>;
+const RB_CSRF_TOKEN = <?= json_encode((string) ($csrf_hash ?? vars('csrf_token'))) ?>;
+
+function rbCsrfToken() {
+    return (typeof window.vars === 'function' && window.vars('csrf_token')) || RB_CSRF_TOKEN;
+}
+
 let priceModal = null;
 document.addEventListener('DOMContentLoaded', function() {
     priceModal = new bootstrap.Modal(document.getElementById('priceModal'));
@@ -129,7 +142,7 @@ function toggleServiceVisibility(serviceId, isVisible) {
     const formData = new FormData();
     formData.append('service_id', serviceId);
     formData.append('is_visible', isVisible ? '1' : '0');
-    formData.append('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
+    formData.append(RB_CSRF_NAME, rbCsrfToken());
 
     fetch('<?= site_url('randevuburada/toggle_service') ?>', {
         method: 'POST',
@@ -159,7 +172,7 @@ function savePromoPrice() {
     const formData = new FormData();
     formData.append('service_id', serviceId);
     formData.append('promo_price', promoPrice);
-    formData.append('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
+    formData.append(RB_CSRF_NAME, rbCsrfToken());
 
     fetch('<?= site_url('randevuburada/save_service_price') ?>', {
         method: 'POST',
@@ -185,4 +198,4 @@ function showAlert(msg) {
     alertBox.classList.remove('d-none');
 }
 </script>
-<?php end_section('content'); ?>
+<?php end_section('scripts'); ?>

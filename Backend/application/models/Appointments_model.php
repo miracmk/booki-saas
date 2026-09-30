@@ -471,6 +471,39 @@ class Appointments_model extends App_Model
 
         $this->cast($appointment);
 
+        if ($this->db->table_exists('adisyons')) {
+            $adisyon = $this->db->get_where('adisyons', ['id_appointments' => $appointment_id])->row_array();
+            if ($adisyon) {
+                $appointment['id_adisyons'] = (int) $adisyon['id'];
+                $appointment['adisyon_number'] = $adisyon['adisyon_number'] ?? null;
+                $appointment['adisyon_status'] = $adisyon['status'] ?? 'open';
+                $appointment['adisyon_payment_status'] = $adisyon['payment_status'] ?? 'unpaid';
+                $appointment['adisyon_total_amount'] = (float) ($adisyon['total_amount'] ?? 0);
+                $appointment['adisyon_paid_amount'] = (float) ($adisyon['paid_amount'] ?? 0);
+                $appointment['adisyon_invoice_status'] = $adisyon['invoice_status'] ?? 'uninvoiced';
+
+                $ad_paid = (float) ($adisyon['paid_amount'] ?? 0);
+                $ad_total = (float) ($adisyon['total_amount'] ?? 0);
+
+                if (($adisyon['payment_status'] ?? '') === 'paid') {
+                    $appointment['payment_status'] = 'collected';
+                    $appointment['payment_amount'] = $ad_paid;
+                    $appointment['payment_balance_amount'] = 0.00;
+                } elseif (($adisyon['payment_status'] ?? '') === 'partially_paid') {
+                    $appointment['payment_status'] = 'not_collected';
+                    $appointment['payment_amount'] = $ad_paid;
+                    $appointment['payment_balance_amount'] = max(0.00, round($ad_total - $ad_paid, 2));
+                } elseif (($adisyon['status'] ?? '') === 'closed' && ($adisyon['payment_status'] ?? '') === 'unpaid') {
+                    $appointment['payment_status'] = 'not_collected';
+                    $appointment['payment_balance_amount'] = $ad_total;
+                }
+
+                if (($adisyon['invoice_status'] ?? '') === 'invoiced') {
+                    $appointment['is_invoiced'] = 1;
+                }
+            }
+        }
+
         return $appointment;
     }
 

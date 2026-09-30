@@ -39,22 +39,48 @@ class Randevuburada extends App_Controller
         $role_slug = session('role_slug');
 
         $current_tenant_ctx = function_exists('tenant_context') ? tenant_context() : null;
+        $tenant_id = $current_tenant_ctx['id'] ?? null;
         $tenant_sub = $current_tenant_ctx['subdomain'] ?? '';
         $mp_url = !empty($tenant_sub)
             ? (function_exists('randevuburada_url') ? randevuburada_url('business/' . rawurlencode($tenant_sub)) : 'https://randevuburada.kibusiness.co/business/' . rawurlencode($tenant_sub))
             : (function_exists('randevuburada_url') ? randevuburada_url() : 'https://randevuburada.kibusiness.co');
 
+        // Fetch master tenant record as fallback if available
+        $master_tenant = [];
+        try {
+            if (!empty($tenant_id) || !empty($tenant_sub)) {
+                $master_db = $this->load->database('default', true);
+                if ($master_db && $master_db->conn_id) {
+                    if (!empty($tenant_id)) {
+                        $master_tenant = $master_db->where('id', (int)$tenant_id)->get('tenants')->row_array() ?: [];
+                    } else {
+                        $master_tenant = $master_db->where('subdomain', $tenant_sub)->get('tenants')->row_array() ?: [];
+                    }
+                    $master_db->close();
+                }
+            }
+        } catch (Throwable $e) {
+            log_message('error', 'Master tenant lookup fallback error: ' . $e->getMessage());
+        }
+
         $settings = [
-            'company_name' => setting('company_name', ''),
+            'company_name' => setting('company_name') ?: ($master_tenant['company_name'] ?? ''),
             'company_email' => setting('company_email', ''),
-            'company_phone' => setting('company_phone', ''),
-            'company_address' => setting('company_address', ''),
-            'company_description' => setting('company_description', ''),
-            'company_color' => setting('company_color', '#0d6efd'),
-            'randevuburada_active' => setting('randevuburada_active', '1'),
-            'randevuburada_category' => setting('randevuburada_category', 'Genel'),
-            'randevuburada_tags' => setting('randevuburada_tags', 'rezervasyon, online randevu'),
-            'randevuburada_cover_image' => setting('randevuburada_cover_image', ''),
+            'company_phone' => setting('company_phone') ?: (setting('phone_number') ?: ($master_tenant['phone_number'] ?? '')),
+            'company_link' => setting('company_link', ''),
+            'company_address' => setting('company_address') ?: (setting('address') ?: ($master_tenant['address'] ?? '')),
+            'company_description' => setting('company_description') ?: (setting('marketplace_short_description') ?: ($master_tenant['short_description'] ?? '')),
+            'company_color' => setting('company_color', '#35A768'),
+            'randevuburada_active' => (setting('marketplace_opt_in') !== null && setting('marketplace_opt_in') !== '')
+                ? (string)setting('marketplace_opt_in')
+                : ((isset($master_tenant['marketplace_opt_in'])) ? (string)$master_tenant['marketplace_opt_in'] : (string)setting('randevuburada_active', '1')),
+            'randevuburada_category' => setting('marketplace_category') ?: (setting('randevuburada_category') ?: ($master_tenant['category'] ?? 'Kuaför & Güzellik')),
+            'randevuburada_price_range' => setting('marketplace_price_range') ?: ($master_tenant['price_range'] ?? '₺₺'),
+            'randevuburada_city' => setting('marketplace_city') ?: (setting('randevuburada_city') ?: ($master_tenant['city'] ?? '')),
+            'randevuburada_district' => setting('marketplace_district') ?: (setting('randevuburada_district') ?: ($master_tenant['district'] ?? '')),
+            'randevuburada_neighborhood' => setting('marketplace_neighborhood') ?: (setting('randevuburada_neighborhood') ?: ($master_tenant['neighborhood'] ?? '')),
+            'randevuburada_cover_image' => setting('marketplace_cover_image_url') ?: (setting('randevuburada_cover_image') ?: ($master_tenant['cover_image_url'] ?? '')),
+            'randevuburada_tags' => setting('randevuburada_tags', 'rezervasyon, online randevu, bakım'),
             'randevuburada_instant_booking' => setting('randevuburada_instant_booking', '1'),
             'randevuburada_min_notice_hours' => setting('randevuburada_min_notice_hours', '2'),
         ];
@@ -70,6 +96,8 @@ class Randevuburada extends App_Controller
             'settings' => $settings,
             'mp_url' => $mp_url,
             'tenant_sub' => $tenant_sub,
+            'csrf_name' => $this->security->get_csrf_token_name(),
+            'csrf_hash' => $this->security->get_csrf_hash(),
         ]);
     }
 
@@ -86,32 +114,43 @@ class Randevuburada extends App_Controller
             $post = json_decode($raw, true) ?? [];
         }
 
-        $allowed_keys = [
-            'company_name',
-            'company_email',
-            'company_phone',
-            'company_address',
-            'company_description',
-            'randevuburada_active',
-            'randevuburada_category',
-            'randevuburada_tags',
-            'randevuburada_instant_booking',
-            'randevuburada_min_notice_hours'
+        // Direct & dual-mapped settings to persist into tenant settings table
+        $setting_mappings = [
+            'company_name' => ['company_name'],
+            'company_email' => ['company_email'],
+            'company_phone' => ['company_phone', 'phone_number'],
+            'company_link' => ['company_link'],
+            'company_address' => ['company_address', 'address'],
+            'company_description' => ['company_description', 'marketplace_short_description'],
+            'company_color' => ['company_color'],
+            'randevuburada_category' => ['randevuburada_category', 'marketplace_category'],
+            'randevuburada_price_range' => ['randevuburada_price_range', 'marketplace_price_range'],
+            'randevuburada_city' => ['randevuburada_city', 'marketplace_city', 'city'],
+            'randevuburada_district' => ['randevuburada_district', 'marketplace_district', 'district'],
+            'randevuburada_neighborhood' => ['randevuburada_neighborhood', 'marketplace_neighborhood', 'neighborhood'],
+            'randevuburada_cover_image' => ['randevuburada_cover_image', 'marketplace_cover_image_url'],
+            'randevuburada_active' => ['randevuburada_active', 'marketplace_opt_in'],
+            'randevuburada_tags' => ['randevuburada_tags'],
+            'randevuburada_instant_booking' => ['randevuburada_instant_booking'],
+            'randevuburada_min_notice_hours' => ['randevuburada_min_notice_hours'],
         ];
 
-        foreach ($allowed_keys as $key) {
-            if (isset($post[$key])) {
-                $val = is_bool($post[$key]) ? ($post[$key] ? '1' : '0') : trim((string)$post[$key]);
-                $this->db->replace('settings', ['name' => $key, 'value' => $val]);
+        foreach ($setting_mappings as $input_key => $db_keys) {
+            if (isset($post[$input_key])) {
+                $val = is_bool($post[$input_key]) ? ($post[$input_key] ? '1' : '0') : trim((string)$post[$input_key]);
+                foreach ($db_keys as $db_key) {
+                    $this->settings_model->set_setting($db_key, $val);
+                }
             }
         }
 
-        // Synchronize with Master DB ea_tenants table so both RandevuBurada & BooKi are fed from the same source
+        // Synchronize with Master DB ea_tenants table so RandevuBurada Directory & BooKi are always 100% unified
         try {
             $current_tenant_ctx = function_exists('tenant_context') ? tenant_context() : null;
+            $tenant_id = $current_tenant_ctx['id'] ?? null;
             $subdomain = $current_tenant_ctx['subdomain'] ?? '';
 
-            if (!empty($subdomain)) {
+            if (!empty($tenant_id) || !empty($subdomain)) {
                 $master_db = $this->load->database('default', true);
                 if ($master_db && $master_db->conn_id) {
                     $master_update = [
@@ -132,10 +171,29 @@ class Randevuburada extends App_Controller
                     if (isset($post['randevuburada_category'])) {
                         $master_update['category'] = trim((string)$post['randevuburada_category']);
                     }
+                    if (isset($post['randevuburada_price_range'])) {
+                        $master_update['price_range'] = trim((string)$post['randevuburada_price_range']);
+                    }
+                    if (isset($post['randevuburada_city'])) {
+                        $master_update['city'] = trim((string)$post['randevuburada_city']);
+                    }
+                    if (isset($post['randevuburada_district'])) {
+                        $master_update['district'] = trim((string)$post['randevuburada_district']);
+                    }
+                    if (isset($post['randevuburada_neighborhood'])) {
+                        $master_update['neighborhood'] = trim((string)$post['randevuburada_neighborhood']);
+                    }
+                    if (isset($post['randevuburada_cover_image'])) {
+                        $master_update['cover_image_url'] = trim((string)$post['randevuburada_cover_image']);
+                    }
                     if (isset($post['randevuburada_active'])) {
                         $master_update['marketplace_opt_in'] = (!empty($post['randevuburada_active']) && $post['randevuburada_active'] !== '0') ? 1 : 0;
                     }
-                    $master_db->where('subdomain', $subdomain)->update('tenants', $master_update);
+                    if (!empty($tenant_id)) {
+                        $master_db->where('id', (int) $tenant_id)->update('tenants', $master_update);
+                    } else {
+                        $master_db->where('subdomain', $subdomain)->update('tenants', $master_update);
+                    }
                     $master_db->close();
                 }
             }
@@ -145,7 +203,8 @@ class Randevuburada extends App_Controller
 
         json_response([
             'success' => true,
-            'message' => 'RandevuBurada vitrin profili başarıyla güncellendi ve yayına alındı.'
+            'message' => 'RandevuBurada vitrin profili ve İşletme Profili ayarları başarıyla senkronize edildi ve kaydedildi.',
+            'csrf_hash' => $this->security->get_csrf_hash(),
         ]);
     }
 
@@ -181,6 +240,8 @@ class Randevuburada extends App_Controller
         $this->load->view('pages/randevuburada/services', [
             'services' => $services,
             'categories' => $categories,
+            'csrf_name' => $this->security->get_csrf_token_name(),
+            'csrf_hash' => $this->security->get_csrf_hash(),
         ]);
     }
 
@@ -282,6 +343,8 @@ class Randevuburada extends App_Controller
             'providers' => $providers,
             'sources' => $sources,
             'counts' => $this->reviews_model->counts(),
+            'csrf_name' => $this->security->get_csrf_token_name(),
+            'csrf_hash' => $this->security->get_csrf_hash(),
         ]);
     }
 
@@ -403,6 +466,8 @@ class Randevuburada extends App_Controller
         $this->load->view('pages/randevuburada/reservations', [
             'appointments' => $appointments,
             'stats' => $stats,
+            'csrf_name' => $this->security->get_csrf_token_name(),
+            'csrf_hash' => $this->security->get_csrf_hash(),
         ]);
     }
 

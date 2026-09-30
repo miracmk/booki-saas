@@ -548,6 +548,22 @@ class Adisyons_model extends App_Model
             $this->load->model('staff_commissions_model');
             $this->staff_commissions_model->calculate_for_adisyon($adisyon_id);
 
+            // Sync appointment payment state if linked to an appointment
+            if (!empty($adisyon['id_appointments'])) {
+                $app_id = (int) $adisyon['id_appointments'];
+                $total_amount = (float) $adisyon['total_amount'];
+                $paid_amount = (float) $adisyon['paid_amount'];
+                $is_paid = ($paid_amount >= $total_amount && $total_amount > 0);
+                $app_payment_status = $is_paid ? 'collected' : 'not_collected';
+                $app_balance = $is_paid ? 0.00 : max(0.00, round($total_amount - $paid_amount, 2));
+
+                $this->db->where('id', $app_id)->update('appointments', [
+                    'payment_status' => $app_payment_status,
+                    'payment_amount' => $paid_amount,
+                    'payment_balance_amount' => $app_balance,
+                ]);
+            }
+
             $this->db->trans_complete();
         } catch (Throwable $e) {
             $this->db->trans_rollback();
@@ -633,6 +649,12 @@ class Adisyons_model extends App_Model
             'invoice_status' => 'invoiced',
             'updated_at' => date('Y-m-d H:i:s'),
         ], ['id' => $adisyon_id]);
+
+        if (!empty($adisyon['id_appointments'])) {
+            $this->db->update('appointments', [
+                'is_invoiced' => 1,
+            ], ['id' => (int) $adisyon['id_appointments']]);
+        }
 
         $erp_result = null;
         $erp_synced = false;

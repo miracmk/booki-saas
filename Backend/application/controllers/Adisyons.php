@@ -139,10 +139,25 @@ class Adisyons extends App_Controller
 
         $bank_accounts = $this->db
             ->where('is_active', 1)
-            ->where('account_type', 'bank')
+            ->group_start()
+                ->where('account_type', 'bank')
+                ->or_where('account_type IS NULL', null, false)
+                ->or_where('account_type', '')
+            ->group_end()
             ->order_by('is_default_iban DESC, id ASC')
             ->get('bank_accounts')
             ->result_array();
+
+        $pos_accounts = $this->db
+            ->where('is_active', 1)
+            ->group_start()
+                ->where('account_type', 'pos')
+                ->or_where("pos_terminal_id IS NOT NULL AND pos_terminal_id != ''", null, false)
+            ->group_end()
+            ->order_by('is_default_pos DESC, id ASC')
+            ->get('bank_accounts')
+            ->result_array();
+
         $okc_terminals = $this->get_connected_okc_terminals();
 
         $view_data = [
@@ -163,6 +178,7 @@ class Adisyons extends App_Controller
             'active_erp_provider' => $active_erp_provider,
             'open_id' => $open_id,
             'bank_accounts' => $bank_accounts,
+            'pos_accounts' => $pos_accounts,
             'okc_terminals' => $okc_terminals,
             'is_okc_connected' => !empty($okc_terminals),
         ];
@@ -189,10 +205,25 @@ class Adisyons extends App_Controller
 
             $bank_accounts = $this->db
                 ->where('is_active', 1)
-                ->where('account_type', 'bank')
+                ->group_start()
+                    ->where('account_type', 'bank')
+                    ->or_where('account_type IS NULL', null, false)
+                    ->or_where('account_type', '')
+                ->group_end()
                 ->order_by('is_default_iban DESC, id ASC')
                 ->get('bank_accounts')
                 ->result_array();
+
+            $pos_accounts = $this->db
+                ->where('is_active', 1)
+                ->group_start()
+                    ->where('account_type', 'pos')
+                    ->or_where("pos_terminal_id IS NOT NULL AND pos_terminal_id != ''", null, false)
+                ->group_end()
+                ->order_by('is_default_pos DESC, id ASC')
+                ->get('bank_accounts')
+                ->result_array();
+
             $okc_terminals = $this->get_connected_okc_terminals();
 
             $this->output
@@ -203,6 +234,7 @@ class Adisyons extends App_Controller
                     'customer_packages' => $packages,
                     'customer_memberships' => $memberships,
                     'bank_accounts' => $bank_accounts,
+                    'pos_accounts' => $pos_accounts,
                     'okc_terminals' => $okc_terminals,
                     'is_okc_connected' => !empty($okc_terminals),
                 ]));
@@ -597,6 +629,18 @@ class Adisyons extends App_Controller
                 }
             }
 
+            // Handle Card / POS selection
+            if ($payment_method === 'card' || $payment_method === 'okc_pos') {
+                $pos_id = (int) ($post['pos_account_id'] ?? 0);
+                if ($pos_id > 0) {
+                    $pa = $this->db->get_where('bank_accounts', ['id' => $pos_id])->row_array();
+                    if ($pa) {
+                        $pos_desc = 'POS: ' . $pa['bank_name'] . ' (' . $pa['account_name'] . ')' . (!empty($pa['pos_terminal_id']) ? ' - Term: ' . $pa['pos_terminal_id'] : '');
+                        $notes = ($notes ? ($notes . ' | ') : '') . $pos_desc;
+                    }
+                }
+            }
+
             // Check ÖKC connection and handle POS receipt
             $okc_receipt = null;
             $okc_warning = null;
@@ -670,6 +714,21 @@ class Adisyons extends App_Controller
                 'payment_status' => $status,
                 'updated_at' => $now,
             ], ['id' => $adisyon_id]);
+
+            // Sync appointment payment state if linked to an appointment
+            if (!empty($adisyon['id_appointments'])) {
+                $app_id = (int) $adisyon['id_appointments'];
+                $app_payment_status = ($status === 'paid') ? 'collected' : 'not_collected';
+                $app_balance = ($status === 'paid') ? 0.00 : max(0.00, round((float)$adisyon['total_amount'] - $total_paid, 2));
+
+                $this->db->where('id', $app_id)->update('appointments', [
+                    'payment_status' => $app_payment_status,
+                    'payment_method' => ($payment_method === 'okc_pos') ? 'card' : $payment_method,
+                    'payment_amount' => $total_paid,
+                    'payment_balance_amount' => $app_balance,
+                    'payment_recorded_by' => $received_by,
+                ]);
+            }
 
             $this->db->trans_complete();
 
@@ -757,6 +816,19 @@ class Adisyons extends App_Controller
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
 
+            // Sync appointment payment state if linked to an appointment
+            if (!empty($adisyon['id_appointments'])) {
+                $app_id = (int) $adisyon['id_appointments'];
+                $app_payment_status = ($new_status === 'paid') ? 'collected' : 'not_collected';
+                $app_balance = ($new_status === 'paid') ? 0.00 : max(0.00, round((float)$adisyon['total_amount'] - $total_paid, 2));
+
+                $this->db->where('id', $app_id)->update('appointments', [
+                    'payment_status' => $app_payment_status,
+                    'payment_amount' => $total_paid,
+                    'payment_balance_amount' => $app_balance,
+                ]);
+            }
+
             $this->db->trans_complete();
 
             $updated_adisyon = $this->adisyons_model->find($adisyon_id);
@@ -766,6 +838,28 @@ class Adisyons extends App_Controller
                     'status' => 'success',
                     'message' => 'Tahsilat kaydı silindi.',
                     'adisyon' => $updated_adisyon,
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
+        }
+    }
+
+    /**
+     * Get or create adisyon for an appointment JSON endpoint.
+     */
+    public function get_for_appointment(int $appointment_id): void
+    {
+        $this->ensure_authenticated();
+        try {
+            $adisyon = $this->adisyons_model->get_or_create_for_appointment($appointment_id);
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'adisyon' => $adisyon,
                 ]));
         } catch (Throwable $e) {
             $this->output
@@ -824,25 +918,6 @@ class Adisyons extends App_Controller
         } catch (Throwable $e) {
             $this->session->set_flashdata('error_message', $e->getMessage());
             redirect('adisyons');
-        }
-    }
-
-    /**
-     * Get or create adisyon for an appointment (API - returns JSON).
-     */
-    public function get_for_appointment(int $appointment_id): void
-    {
-        $this->ensure_authenticated();
-        try {
-            $adisyon = $this->adisyons_model->get_or_create_for_appointment($appointment_id);
-            $this->output
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => 'success', 'adisyon' => $adisyon]));
-        } catch (Throwable $e) {
-            $this->output
-                ->set_status_header(400)
-                ->set_content_type('application/json')
-                ->set_output(json_encode(['status' => 'error', 'message' => $e->getMessage()]));
         }
     }
 

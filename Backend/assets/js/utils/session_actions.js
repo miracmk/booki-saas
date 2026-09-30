@@ -22,8 +22,12 @@ App.Utils.SessionActions = (function () {
                     return;
                 }
 
-                App.Layouts.Backend.displayNotification('Randevu başlatıldı.');
+                App.Layouts.Backend.displayNotification('Randevu başlatıldı. Adisyon ekranına yönlendiriliyorsunuz...');
                 callbacks.onUpdated?.(response.appointment);
+                const targetUrl = (vars('site_url') || '') + '/adisyons?appointment_id=' + appointmentId;
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 400);
             })
             .fail(() => {
                 App.Layouts.Backend.displayNotification('Randevu başlatılamadı.');
@@ -54,14 +58,34 @@ App.Utils.SessionActions = (function () {
     }
 
     /**
-     * Let staff record payment.
+     * Let staff record payment. Payment is always collected on the Adisyon screen (each appointment has its
+     * own Adisyon), so this navigates there instead of showing the legacy appointment-level dialog. The
+     * Adisyon page's index() resolves the appointment to an existing (or new) Adisyon and auto-opens its
+     * drawer, where "Tahsilat Al" records the payment. Shared by the appointment modal's "Tahsilat Bilgisini
+     * Düzenle" and the active-sessions widget's "Tahsilat Al".
      *
      * @param {Number} appointmentId
-     * @param {Object} appointment Current appointment data (for the default amount / existing payment display).
-     * @param {Object} callbacks {onUpdated(appointment), onError()}
+     * @param {Object} appointment Current appointment data (unused; kept for signature compatibility).
+     * @param {Object} callbacks {onUpdated(appointment), onError()} (unused; kept for signature compatibility).
      */
     function collectPayment(appointmentId, appointment, callbacks = {}) {
-        showPaymentDialog(appointmentId, appointment, callbacks, {mandatory: false});
+        if (!appointmentId) {
+            callbacks.onError?.();
+            return;
+        }
+
+        App.Layouts.Backend.displayNotification('Adisyon ekranına yönlendiriliyorsunuz...');
+        const targetUrl = (vars('site_url') || '') + '/adisyons?appointment_id=' + appointmentId + '&action=pay';
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 300);
+    }
+
+    /**
+     * Legacy shim: redirects to unified Adisyon payment collection.
+     */
+    function showPaymentDialog(appointmentId, appointment, callbacks) {
+        collectPayment(appointmentId, appointment, callbacks);
     }
 
     function performCheckOut(appointmentId, reason, earlyExit, callbacks) {
@@ -69,19 +93,15 @@ App.Utils.SessionActions = (function () {
             .done((response) => {
                 if (response.success) {
                     App.Layouts.Backend.displayNotification(
-                        reason ? 'Randevu kaydedildi.' : 'Randevu tamamlandı.',
+                        reason ? 'Randevu kaydedildi. Adisyona yönlendiriliyorsunuz...' : 'Randevu tamamlandı. Adisyona yönlendiriliyorsunuz...',
                     );
 
-                    // Redirect directly to Adisyon drawer/checkout for payment
-                    if (vars('can_manage_payment') && !hasPayment(response.appointment)) {
-                        const targetUrl = (vars('site_url') || '') + '/adisyons?appointment_id=' + appointmentId;
-                        App.Layouts.Backend.displayNotification('Randevu tamamlandı. Adisyon ekranına yönlendiriliyorsunuz...');
-                        setTimeout(() => {
-                            window.location.href = targetUrl;
-                        }, 500);
-                    } else {
-                        callbacks.onUpdated?.(response.appointment);
-                    }
+                    callbacks.onUpdated?.(response.appointment);
+
+                    const targetUrl = (vars('site_url') || '') + '/adisyons?appointment_id=' + appointmentId + '&action=pay';
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 400);
 
                     return;
                 }
@@ -96,221 +116,6 @@ App.Utils.SessionActions = (function () {
             })
             .fail(() => {
                 App.Layouts.Backend.displayNotification('Randevu tamamlanamadı.');
-                callbacks.onError?.();
-            });
-    }
-
-    /**
-     * Salon Flora customization - mandatory payment-collection dialog shown right after check-out (to
-     * admins/secretaries only). Staff must record either that payment was collected (method + amount +
-     * invoiced flag) or explicitly acknowledge it wasn't (with an optional remaining balance) - the dialog has no
-     * close button and can't be dismissed with Escape or a backdrop click, so a session never silently ends up
-     * with unknown payment status.
-     */
-    function showPaymentDialog(appointmentId, appointment, callbacks, {mandatory = true} = {}) {
-        // Salon Flora customization - prefill with the EFFECTIVE price (real check-in/check-out duration, rounded
-        // down to the nearest half hour, times the service's hourly rate - or a price_override if one was set at
-        // booking) rather than the flat service.price, so what staff see here matches what should actually be
-        // collected.
-        const defaultAmount = App.Utils.SessionStatus.effectivePricing(appointment).price || '';
-        const paymentMethods = vars('payment_methods') || [];
-
-        const buttons = [];
-
-        if (!mandatory) {
-            // Salon Flora customization - "collect now" (e.g. at check-in) is optional: staff can defer to the
-            // mandatory check-out prompt instead of being forced through this every time.
-            buttons.push({
-                text: 'Sonra',
-                className: 'btn btn-outline-secondary',
-                click: (event, modal) => modal.hide(),
-            });
-        }
-
-        buttons.push(
-            {
-                text: 'Kaydet',
-                click: (event, modal) => {
-                    const collected = $('input[name="sf-payment-collected"]:checked').val() === 'yes';
-
-                    if (collected) {
-                        const method = $('#sf-payment-method').val();
-
-                        if (!method) {
-                            $('#sf-payment-method').addClass('is-invalid');
-                            return;
-                        }
-
-                        const amount = $('#sf-payment-amount').val();
-                        const invoiced = $('#sf-payment-invoiced').is(':checked');
-
-                        modal.hide();
-                        submitPayment(
-                            appointmentId,
-                            {
-                                payment_status: 'collected',
-                                payment_method: method,
-                                payment_amount: amount !== '' ? amount : null,
-                                payment_balance_amount: null,
-                                is_invoiced: invoiced,
-                            },
-                            callbacks,
-                        );
-                        return;
-                    }
-
-                    const balance = $('#sf-payment-balance').val();
-
-                    modal.hide();
-                    submitPayment(
-                        appointmentId,
-                        {
-                            payment_status: 'not_collected',
-                            payment_method: null,
-                            payment_amount: null,
-                            payment_balance_amount: balance !== '' ? balance : null,
-                            is_invoiced: false,
-                        },
-                        callbacks,
-                    );
-                },
-            },
-        );
-
-        // isDismissible = false: no close (X) button, Escape does nothing, backdrop click does nothing - this
-        // dialog only closes via the "Kaydet" button above.
-        // isDismissible follows `mandatory`: the check-out prompt can't be dismissed except via its own buttons;
-        // the optional check-in-time prompt can be closed normally (X / Escape / backdrop), on top of its "Sonra"
-        // button.
-        //
-        // BUG FIX: App.Utils.Message.show() silently no-ops (`if (!title || !message) return null;`) when message
-        // is an empty string - '' is falsy in JS. Passing '' here meant the dialog NEVER opened (the modal's
-        // '#message-modal .modal-body' selector below still found the PREVIOUS modal instance left over in the
-        // DOM and appended the payment form fields into it, but nothing ever called .show() on it) - this was
-        // reported as "tahsilat al yapamıyorum". A non-empty placeholder is filled in immediately after by the
-        // radio buttons appended below.
-        App.Utils.Message.show('Tahsilat Bilgisi', 'Lütfen tahsilat durumunu belirtin:', buttons, !mandatory);
-
-        const $body = $('#message-modal .modal-body');
-
-        $('<div/>', {
-            class: 'form-check mb-2',
-            html: [
-                $('<input/>', {
-                    type: 'radio',
-                    class: 'form-check-input',
-                    name: 'sf-payment-collected',
-                    id: 'sf-payment-collected-yes',
-                    value: 'yes',
-                    checked: true,
-                }),
-                $('<label/>', {class: 'form-check-label', for: 'sf-payment-collected-yes', text: 'Tahsilat yapıldı'}),
-            ],
-        }).appendTo($body);
-
-        $('<div/>', {
-            class: 'form-check mb-3',
-            html: [
-                $('<input/>', {
-                    type: 'radio',
-                    class: 'form-check-input',
-                    name: 'sf-payment-collected',
-                    id: 'sf-payment-collected-no',
-                    value: 'no',
-                }),
-                $('<label/>', {
-                    class: 'form-check-label',
-                    for: 'sf-payment-collected-no',
-                    text: 'Tahsilat yapılmadı / eksik',
-                }),
-            ],
-        }).appendTo($body);
-
-        const $collectedFields = $('<div/>', {id: 'sf-payment-collected-fields'}).appendTo($body);
-
-        $('<label/>', {class: 'form-label', for: 'sf-payment-method', text: 'Ödeme Yöntemi'}).appendTo(
-            $collectedFields,
-        );
-
-        const $methodSelect = $('<select/>', {id: 'sf-payment-method', class: 'form-select mb-2'})
-            .append($('<option/>', {value: '', text: 'Seçiniz...'}))
-            .append(paymentMethods.map((method) => $('<option/>', {value: method.value, text: method.label})))
-            .appendTo($collectedFields);
-
-        $methodSelect.on('change', () => $methodSelect.removeClass('is-invalid'));
-
-        $('<label/>', {class: 'form-label', for: 'sf-payment-amount', text: 'Tutar (TRY)'}).appendTo(
-            $collectedFields,
-        );
-
-        $('<input/>', {
-            type: 'number',
-            step: '0.01',
-            min: '0',
-            id: 'sf-payment-amount',
-            class: 'form-control mb-2',
-            value: defaultAmount,
-        }).appendTo($collectedFields);
-
-        $('<div/>', {
-            class: 'form-check',
-            html: [
-                $('<input/>', {type: 'checkbox', class: 'form-check-input', id: 'sf-payment-invoiced'}),
-                $('<label/>', {class: 'form-check-label', for: 'sf-payment-invoiced', text: 'Faturalandırıldı'}),
-            ],
-        }).appendTo($collectedFields);
-
-        const $notCollectedFields = $('<div/>', {id: 'sf-payment-not-collected-fields', class: 'd-none'}).appendTo(
-            $body,
-        );
-
-        $('<div/>', {
-            class: 'alert alert-warning',
-            text: 'Dikkat: bu seans için tahsilat yapılmadı olarak kaydedilecek. Müşteride bakiye kalmış olabilir, mutlaka takip edin.',
-        }).appendTo($notCollectedFields);
-
-        $('<label/>', {class: 'form-label', for: 'sf-payment-balance', text: 'Kalan Bakiye (TRY, varsa)'}).appendTo(
-            $notCollectedFields,
-        );
-
-        $('<input/>', {
-            type: 'number',
-            step: '0.01',
-            min: '0',
-            id: 'sf-payment-balance',
-            class: 'form-control',
-        }).appendTo($notCollectedFields);
-
-        $body.find('input[name="sf-payment-collected"]').on('change', () => {
-            const collected = $('input[name="sf-payment-collected"]:checked').val() === 'yes';
-            $collectedFields.toggleClass('d-none', !collected);
-            $notCollectedFields.toggleClass('d-none', collected);
-        });
-    }
-
-    /**
-     * @param {Number} appointmentId
-     * @param {Object} paymentData {payment_status, payment_method, payment_amount, payment_balance_amount, is_invoiced}
-     * @param {Object} callbacks
-     */
-    function submitPayment(appointmentId, paymentData, callbacks) {
-        App.Http.Calendar.updatePayment(appointmentId, paymentData)
-            .done((response) => {
-                if (!response.success) {
-                    App.Layouts.Backend.displayNotification(response.message || 'Tahsilat bilgisi kaydedilemedi.');
-                    callbacks.onError?.();
-                    return;
-                }
-
-                App.Layouts.Backend.displayNotification(
-                    paymentData.payment_status === 'collected'
-                        ? 'Tahsilat kaydedildi.'
-                        : 'Tahsilat "yapılmadı" olarak işaretlendi.',
-                );
-                callbacks.onUpdated?.(response.appointment);
-            })
-            .fail(() => {
-                App.Layouts.Backend.displayNotification('Tahsilat bilgisi kaydedilemedi.');
                 callbacks.onError?.();
             });
     }

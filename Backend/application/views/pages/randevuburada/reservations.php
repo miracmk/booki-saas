@@ -1,7 +1,26 @@
 <?php extend('layouts/backend_layout'); ?>
 
+<?php section('styles'); ?>
+<!-- BooKi - the backend layout ships Font Awesome in JS/SVG mode with the "solid" pack only, so
+     brand icons ("fab", e.g. the WhatsApp action below) render as empty boxes. Load the FA webfont
+     stylesheet (already used by the other BooKi views and whitelisted in hooks/security_headers.php)
+     so the unresolved brand <i> elements left behind by the FA JS get their glyphs. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* BooKi - scoped polish for the marketplace reservations page (page-id scoped, so nothing leaks
+   into other backend screens): keeps the KPI cards and the table readable on narrow screens. */
+#randevuburada-reservations-page .card{border-radius:1rem}
+#randevuburada-reservations-page .table>thead>tr>th{font-size:.78rem;text-transform:uppercase;letter-spacing:.02em;color:#64748b;white-space:nowrap}
+#randevuburada-reservations-page .table>tbody>tr>td{vertical-align:middle}
+@media(max-width:575.98px){
+    #randevuburada-reservations-page h3{font-size:1.35rem}
+    #randevuburada-reservations-page .btn-group-sm>.btn{padding:.3rem .45rem}
+}
+</style>
+<?php end_section('styles'); ?>
+
 <?php section('content'); ?>
-<div class="container-fluid backend-page py-3" id="randevuburada-reservations-page">
+<div class="container-fluid backend-page py-3 px-md-4" style="max-width: 1400px;" id="randevuburada-reservations-page">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h4 class="mb-1 fw-bold text-dark d-flex align-items-center">
@@ -176,12 +195,25 @@
     </div>
 </div>
 
+<?php end_section('content'); ?>
+
+<?php section('scripts'); ?>
 <script>
+/* BooKi - CSRF: the controller passes csrf_name / csrf_hash to the view (views cannot reach
+   $this->security in this CI build - $this inside a view is the loader, which used to fatal-error
+   this page). window.vars('csrf_token') is the app-wide fallback (App_Controller::load_common_script_vars()). */
+const RB_CSRF_NAME = <?= json_encode($csrf_name ?? 'csrf_token') ?>;
+const RB_CSRF_TOKEN = <?= json_encode((string) ($csrf_hash ?? vars('csrf_token'))) ?>;
+
+function rbCsrfToken() {
+    return (typeof window.vars === 'function' && window.vars('csrf_token')) || RB_CSRF_TOKEN;
+}
+
 function updateAppointmentStatus(appointmentId, status) {
     const formData = new FormData();
     formData.append('appointment_id', appointmentId);
     formData.append('status', status);
-    formData.append('<?= $this->security->get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
+    formData.append(RB_CSRF_NAME, rbCsrfToken());
 
     fetch('<?= site_url('randevuburada/update_reservation_status') ?>', {
         method: 'POST',
@@ -229,4 +261,4 @@ function showAlert(msg) {
     alertBox.classList.remove('d-none');
 }
 </script>
-<?php end_section('content'); ?>
+<?php end_section('scripts'); ?>
