@@ -1,0 +1,92 @@
+@startuml BooKi_Admin_ERP_Master
+skinparam handwritten false
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+title BÖLÜM 3: BooKi Admin (BKA) Lead Discovery, Finans, Fatura & AI Satış Mimarisi
+
+|Lead Toplama & Lazy Enrichment (Keşif Hattı)|
+start
+:Zamanlanmış Scraper Görevi Başlar (Hedef İl / İlçe / Kategori);
+:Google Places API ve Instagram Graph Taranır;
+:Telefon Numarası ve Google Place ID ile Tekilleştirme Yapılır;
+
+if (Sistemde Kayıtlı mı?) then (Evet)
+  :Atla;
+  stop
+else (Hayır - Yeni Lead)
+  :Web Sitesi Varsa Başlık ve Meta Bilgileri Çekilir;
+  :İşletme Adından NLP ile 6 Sektörel Blueprintten Biri Eşleştirilir;
+  :Açık Şirket Kayıtlarından VKN ve Ticaret Sicili Doğrulanır;
+  :RandevuBurada'da "Unclaimed (Sahipsiz)" Vitrin Sayfası Açılır;
+  :SEO Uyumlu URL (Slug) ve Kategori Ağacı Üretilir;
+endif
+
+|Platform Satış AI & Self-Evolving Döngüsü|
+:İşletmeye QR Bridge ile İlk WhatsApp Bildirimi Gönderilir;
+:İşletme Sahibi Mesaja Yanıt Verdiğinde AI Satış Temsilcisi Karşılar;
+:Gelen İtiraz Türü Sınıflandırılır (Pahalı, Defter Kullanıyorum, Programım Var);
+:Satış Metodolojisi Hafızasından En İyi İkna Yanıtı ve 7 Gün Deneme Linki Gönderilir;
+
+if (İşletme Kaydoldu mu?) then (Evet - Başarılı)
+  :Kullanılan Argümanın Ağırlık Skoru Artırılır (+1);
+else (Reddedildi / Yanıt Yok)
+  :Konuşma Analiz Edilir;
+  if (Sistemde Tanımlı Olmayan Yeni Bir İtiraz mı?) then (Evet)
+    :AI Kendi Promptuna "Yeni Savunma Stratejisi" Ekler;
+    :Admin Paneline "Yeni İtiraz Öğrenildi" Logu Atar;
+  endif
+endif
+
+|Unified Payout (Birleşik Cari Hesap) & Fatura Denetimi|
+:T+3 İş Günü Dolan Başarılı İşlemler Havuzda Toplanır;
+
+partition "Hakediş Konsolidasyonu" {
+  :1. RandevuBurada Organik Bakiye (Brüt - %5 RB - %5 POS - %1 Banka);
+  :2. BooKi Online POS Bakiyesi (Brüt - Standart POS veya %20 Komisyon);
+  :İki Havuz Birleştirilerek "Toplam Ödenebilir Bakiye" Çıkarılır;
+}
+
+|Fatura Yükleme Zorunluluğu (Gatekeeper)|
+if (İşletme Portala Resmi Fatura / Serbest Meslek Makbuzu Yükledi mi?) then (Hayır)
+  :HAKEDİŞ KİLİTLENİR (Status: PENDING_INVOICE);
+  :İşletmeye "Fatura Yükleyin" Bildirimi Atılır;
+  stop
+else (Evet - Fatura Yüklendi)
+  :Fatura PDF'i OCR ile Taranır;
+  :Fatura Tutarı ile Sistemdeki Net Hakediş Tutarı Karşılaştırılır;
+  if (Tutar ve VKN Doğru mu?) then (Evet)
+    :Statü: APPROVED_READY_TO_PAY;
+  else (Hatalı Fatura)
+    :Fatura Reddedilir ve Düzeltme İstenir;
+    stop
+  endif
+endif
+
+|YapıKredi Masraf Motoru & Dağıtım|
+:YapıKredi Canlı Masraf Crawler'ı Çalıştırılır (`yapikredi.com.tr/...`);
+:Anlık FAST / EFT Gönderim Masrafı Çekilir ve Hakedişten Düşülür;
+:Yönetici Ekrandan "Ödemeyi Yap" Butonuna Basar;
+:Banka FAST/EFT Transferi Gerçekleşir;
+:Statü: PAID Olarak Kapatılır ve Dekont Arşivlenir;
+
+|Değerlendirme Moderasyon Masası|
+if (İşletme Bir Yoruma İtiraz Etti mi?) then (Evet)
+  :Yorumun Üzerine "Kötü Niyet İncelemesinde" Rozeti Konur;
+  :Müşteriye 14 Günlük Kanıt Süresi Tanınır;
+  if (Müşteri 14 Gün İçinde Geçerli Hizmet Kanıtı Sundu mu?) then (Evet)
+    :Admin İki Tarafı İnceler;
+    if (Yorum Hakaret / Asılsız mı?) then (Evet)
+      :Yorum Silinir;
+    else (Hayır - Tüketici Deneyimi)
+      :Rozet Kaldırılır, Yorum Yayında Kalır;
+    endif
+  else (Hayır - 14 Gün Doldu)
+    :Yorum Sistemden Otomatik Olarak Silinir;
+  endif
+endif
+stop
+@enduml
