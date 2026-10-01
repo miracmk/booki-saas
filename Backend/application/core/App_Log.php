@@ -137,7 +137,7 @@ class App_Log extends CI_Log
 
             // Stock CI3 guard line - must be exactly this (preventing direct web access).
             if ($is_new_file) {
-                fwrite($handle, "<?php exit;\n");
+                fwrite($handle, "<?php exit; ?>\n");
             }
 
             // Write one JSON line per log entry.

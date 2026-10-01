@@ -1,0 +1,23 @@
+{
+  "intelephense.files.exclude": [
+    "**/.git/**",
+    "**/.svn/**",
+    "**/.hg/**",
+    "**/CVS/**",
+    "**/.DS_Store/**",
+    "**/node_modules/**",
+    "**/vendor/**/{Test,test,Tests,tests}/**",
+    "**/storage/logs/**",
+    "**/data/files/logs/**",
+    "**/application/logs/**"
+  ],
+  "files.watcherExclude": {
+    "**/storage/logs/**": true,
+    "**/data/files/logs/**": true,
+    "**/application/logs/**": true
+  },
+  "search.exclude": {
+    "**/storage/logs": true,
+    "**/data/files/logs": true
+  }
+}
