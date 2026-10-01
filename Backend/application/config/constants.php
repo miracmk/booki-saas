@@ -242,5 +242,12 @@ const SALONFLORA_BURSA_DISTRICTS = [
     'Keles', 'Büyükorhan', 'İznik',
 ];
 
+/*
+|--------------------------------------------------------------------------
+| BooKi Core Platform Version
+|--------------------------------------------------------------------------
+*/
+defined('BOOKI_VERSION') || define('BOOKI_VERSION', '1.0.0');
+
 /* End of file constants.php */
 /* Location: ./application/config/constants.php */
