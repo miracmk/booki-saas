@@ -1822,6 +1822,20 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success' || data.success) {
+                    if (data.payment && data.payment.three_d_html) {
+                        const div = document.createElement('div');
+                        div.style.display = 'none';
+                        div.innerHTML = data.payment.three_d_html;
+                        document.body.appendChild(div);
+                        const form = div.querySelector('form');
+                        if (form) {
+                            form.submit();
+                            return;
+                        }
+                    } else if (data.payment && data.payment.three_d_url && data.payment.status === '3d_redirect_required') {
+                        window.location.href = data.payment.three_d_url;
+                        return;
+                    }
                     showToast('Ödeme başarıyla tamamlandı! Aboneliğiniz aktif.');
                     closeToslaPaymentModal();
                     nextStep(9);

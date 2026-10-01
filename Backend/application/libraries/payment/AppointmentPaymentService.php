@@ -385,13 +385,8 @@ class AppointmentPaymentService
             throw new RuntimeException("Özel Sanal POS sağlayıcısı '{$provider}' henüz desteklenmiyor.");
         }
 
-        // Platform Gateway: Tosla İşim Master Sanal POS
-        return new ToslaPaymentGatewayAdapter([
-            'client_id'  => '1000006967',
-            'api_user'   => 'apiUser3041794',
-            'api_pass'   => 'QJMGN0AX9E',
-            'is_sandbox' => false
-        ]);
+        // Platform Gateway: Tosla İşim Master Sanal POS (Environment-Aware)
+        return new ToslaPaymentGatewayAdapter();
     }
 
     protected function getAppointment(int $id): array

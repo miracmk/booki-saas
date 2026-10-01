@@ -435,6 +435,9 @@ $config['csrf_exclude_uris'] = [
     'payment_webhooks/.*',
     'payment/callback.*',
     'payment/unified_callback.*',
+    'billing_checkout/.*',
+    'marketplace_escrow/.*',
+    'marketplace_ads/.*',
     // WhatsApp endpoints (webhooks and authenticated QR pairing / mode AJAX calls)
     'whatsapp/.*',
     'whatsapp/webhook',
@@ -468,6 +471,11 @@ $config['csrf_exclude_uris'] = [
     'sahiplen/.*',
     'marketplace/claim_process/.*',
     'marketplace/check_subdomain/.*',
+    'marketplace/customer/.*',
+    'marketplace/customer_.*',
+    'customer/auth',
+    'customer/me',
+    'customer/logout',
 ];
 
 /*
