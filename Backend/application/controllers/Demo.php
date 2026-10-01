@@ -12,6 +12,10 @@ class Demo extends App_Controller
         parent::__construct();
         $this->load->library('demo_service');
         $this->load->library('vertical_service');
+
+        if (!is_demo_environment()) {
+            show_error('Rol değiştirme ve demo araçları yalnızca BooKi-Demo ortamında kullanılabilir. Prod, Beta ve Dev ortamlarında rol bazlı değişiklik yapılamaz.', 403, 'Erişim Engellendi');
+        }
     }
 
     /**

@@ -115,11 +115,11 @@ $active_menu = $active_menu ?? (vars('active_menu') ?: '');
                 <span class="badge bg-light bg-opacity-25 text-white text-truncate border border-white-50" style="max-width: 140px;" title="<?= e($current_vert_name) ?>">
                     <i class="fas fa-shapes me-1 text-warning"></i><?= e($current_vert_name) ?>
                 </span>
+                <?php if (is_demo_environment() && !empty($demo_roles)): ?>
                 <div class="dropdown">
                     <button class="btn btn-sm btn-outline-light border-0 py-0 px-2 text-white dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" title="Demo Rol Değiştir" style="background: rgba(255,255,255,0.15); font-size: 11px;">
                         <i class="fas fa-user-circle me-1"></i><?= e($current_job_title) ?>
                     </button>
-                    <?php if (!empty($demo_roles)): ?>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
                         <li class="dropdown-header small text-uppercase">Demo Rol Değiştir</li>
                         <?php foreach ($demo_roles as $dr): ?>
@@ -133,8 +133,12 @@ $active_menu = $active_menu ?? (vars('active_menu') ?: '');
                             </li>
                         <?php endforeach; ?>
                     </ul>
-                    <?php endif; ?>
                 </div>
+                <?php else: ?>
+                <span class="badge bg-light bg-opacity-25 text-white d-flex align-items-center border border-white-50 py-1 px-2" style="font-size: 11px;" title="Rolünüz: <?= e($current_job_title) ?>">
+                    <i class="fas fa-user-circle me-1 text-info"></i><?= e($current_job_title) ?>
+                </span>
+                <?php endif; ?>
             </div>
 
             <!-- Public Booking & Showcase Links (Open in New Tab) -->
