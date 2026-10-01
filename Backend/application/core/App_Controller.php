@@ -190,6 +190,8 @@ class App_Controller extends CI_Controller
         // from the master DB's `tenants`, `reviews`, and `onboarding_sessions` tables. Stays on master DB for any host.
         if (
             strtolower((string) $this->router->class) === 'marketplace'
+            || strtolower((string) $this->router->class) === 'marketplace_escrow'
+            || strtolower((string) $this->router->class) === 'marketplace_ads'
             || strtolower((string) $this->router->class) === 'landing'
             || strtolower((string) $this->router->class) === 'customer_onboarding'
             || strtolower((string) $this->router->class) === 'billing_checkout'
@@ -255,8 +257,8 @@ class App_Controller extends CI_Controller
                 return;
             }
 
-            // BooKi - Central Webhooks & OAuth Relay: Meta, WhatsApp, Instagram, Payment Webhooks, Billing Checkout
-            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram', 'payment_webhooks', 'billing_checkout'], true)) {
+            // BooKi - Central Webhooks & OAuth Relay: Meta, WhatsApp, Instagram, Payment Webhooks, Billing Checkout, Escrow & Ads, Marketplace
+            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram', 'payment_webhooks', 'billing_checkout', 'marketplace_escrow', 'marketplace_ads', 'marketplace'], true)) {
                 return;
             }
 
@@ -545,7 +547,7 @@ class App_Controller extends CI_Controller
             'login', 'logout', 'recovery', 'captcha', 'health', 'booking', 'booking_confirmation',
             'booking_cancellation', 'landing', 'landing_page', 'review', 'about', 'privacy',
             'legal', 'places_photo', 'meta', 'zadarma', 'customer_onboarding', 'payment_webhooks',
-            'billing_checkout',
+            'billing_checkout', 'marketplace_escrow', 'marketplace_ads',
             'telegram', 'whatsapp', 'track', 'portal', 'auth_api_v1', 'demo', 'account',
             'superadmin_auth', 'superadmin_settings', 'superadmin_tenants',
             'customer_portal', 'consents', 'search'

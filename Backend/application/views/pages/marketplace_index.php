@@ -396,6 +396,133 @@ $district_display = $district_display ?? '';
         }
         .tenant-modal-portal-link:hover { text-decoration: underline; }
         
+        /* Customer Modal Styling */
+        .customer-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .customer-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+        }
+        .customer-modal-dialog {
+            position: relative;
+            background: #ffffff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            max-height: 88vh;
+            overflow-y: auto;
+            padding: 2.2rem 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            text-align: left;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        .customer-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.2rem;
+            background: none;
+            border: none;
+            font-size: 1.7rem;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .customer-modal-close:hover { color: #0f172a; }
+        .customer-modal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+            margin-bottom: 0.8rem;
+        }
+        .booking-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.9rem 1.1rem;
+            margin-bottom: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .booking-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .booking-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.45rem;
+        }
+        .booking-service-title {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+        .booking-status-tag {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .booking-status-in_escrow_t3 {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .booking-status-authorized {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        .booking-status-completed {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+        .booking-status-cancelled {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .booking-card-body {
+            font-size: 0.84rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+        .booking-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 0.6rem;
+            padding-top: 0.6rem;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 0.82rem;
+        }
+        .escrow-guarantee-note {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.78rem;
+            color: #166534;
+            margin-top: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
         .btn-nav-business {
             background-color: #0f766e;
             color: #ffffff !important;
@@ -960,11 +1087,14 @@ $district_display = $district_display ?? '';
                 <a href="https://booki.kibusiness.co" target="_blank" rel="noopener" class="partner-software-link">
                     <i class="fas fa-desktop me-1"></i> BooKi Yazılımı ↗
                 </a>
+                <button type="button" class="btn-nav-login" id="btnCustomerNav" onclick="openCustomerModal()" style="border: 1px solid #cbd5e1; background: #fff; cursor: pointer;">
+                    <i class="fas fa-calendar-check me-1" style="color: #0f766e;"></i> <span id="customerNavLabel">Randevularım</span>
+                </button>
                 <a href="<?php echo $portal_url; ?>" class="btn-nav-login" onclick="openTenantLoginModal(event)">
-                    <i class="fas fa-user-circle me-1"></i> Giriş Yap
+                    <i class="fas fa-store me-1"></i> İşletme Girişi
                 </a>
                 <a href="https://booki.kibusiness.co" target="_blank" rel="noopener" class="btn-nav-business">
-                    <i class="fas fa-store me-1"></i> İşletmenizi Ekleyin
+                    <i class="fas fa-plus-circle me-1"></i> İşletmenizi Ekleyin
                 </a>
             </div>
         </div>
@@ -1127,6 +1257,7 @@ $district_display = $district_display ?? '';
                     'image' => $tenant['cover_image_url'] ?? '',
                     'category' => $tenant['category'] ?? '',
                     'verified' => true,
+                    'sponsored' => !empty($tenant['is_sponsored']),
                     'rating' => ((int)($tenant['review_count'] ?? 0) > 0) ? round((float)$tenant['avg_rating'], 1) : null,
                     'review_count' => (int)($tenant['review_count'] ?? 0),
                     'location' => implode(', ', array_filter([$tenant['district'] ?? null, $tenant['city'] ?? null])) ?: 'Türkiye',
@@ -1182,7 +1313,11 @@ $district_display = $district_display ?? '';
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($card['verified']): ?>
+                            <?php if (!empty($card['sponsored'])): ?>
+                                <div class="badge-verified" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; box-shadow:0 2px 8px rgba(217,119,6,0.4);">
+                                    <i class="fas fa-crown"></i> Sponsorlu
+                                </div>
+                            <?php elseif ($card['verified']): ?>
                                 <div class="badge-verified">
                                     <i class="fas fa-check-circle"></i> Doğrulanmış
                                 </div>
@@ -1395,6 +1530,90 @@ $district_display = $district_display ?? '';
             </div>
         </div>
     </footer>
+    <!-- Customer Appointments / Login Modal -->
+    <div id="customerModal" class="customer-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="customerModalTitle">
+        <div class="customer-modal-backdrop" onclick="closeCustomerModal()"></div>
+        <div class="customer-modal-dialog">
+            <button type="button" class="customer-modal-close" onclick="closeCustomerModal()" aria-label="Kapat">&times;</button>
+            
+            <!-- View 1: Auth / Login Form -->
+            <div id="customerAuthView" style="display:block;">
+                <div class="customer-modal-badge"><i class="fas fa-shield-alt"></i> RandevuBurada Güvenli Giriş</div>
+                <h3 id="customerModalTitle" class="tenant-modal-title">Randevularınızı Görüntüleyin</h3>
+                <p class="tenant-modal-desc">Telefon numaranızı girerek tüm BooKi işletmelerindeki randevularınıza, provizyon durumunuza ve rezervasyon detaylarınıza tek yerden ulaşın.</p>
+                
+                <form id="customerAuthForm" onsubmit="handleCustomerAuthSubmit(event)">
+                    <div class="tenant-input-group" style="margin-bottom: 0.9rem;">
+                        <label for="custAuthPhone">Telefon Numaranız</label>
+                        <div class="tenant-input-wrap">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="custAuthPhone" placeholder="05XXXXXXXXX" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 0.9rem;">
+                        <div class="tenant-input-group" style="flex:1;">
+                            <label for="custAuthName">Adınız</label>
+                            <div class="tenant-input-wrap">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="custAuthName" placeholder="Adınız">
+                            </div>
+                        </div>
+                        <div class="tenant-input-group" style="flex:1;">
+                            <label for="custAuthSurname">Soyadınız</label>
+                            <div class="tenant-input-wrap">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="custAuthSurname" placeholder="Soyadınız">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="custAuthBtn" class="tenant-modal-btn">
+                        <span>Giriş Yap &amp; Randevularımı Getir</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <div class="escrow-guarantee-note">
+                    <i class="fas fa-shield-alt" style="font-size:1.1rem; color:#16a34a; flex-shrink:0; margin-top:2px;"></i>
+                    <div>
+                        <strong>%100 Tüketici Güvencesi:</strong> RandevuBurada üzerinden oluşturulan rezervasyonlarda müşteriden hiçbir ek komisyon veya gizli ücret alınmaz. Hizmet bedeliniz hizmet tamamlanana kadar güvenli havuz hesabında tutulur.
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 2: Customer Profile & Bookings List -->
+            <div id="customerProfileView" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; border-bottom:1px solid #f1f5f9; padding-bottom:0.75rem;">
+                    <div>
+                        <div class="customer-modal-badge" style="margin-bottom:0.3rem;"><i class="fas fa-user-check"></i> Doğrulanmış Profil</div>
+                        <h3 id="custProfileName" style="font-size:1.2rem; font-weight:800; color:#0f172a; margin:0;">Müşteri</h3>
+                        <p id="custProfilePhone" style="font-size:0.85rem; color:#64748b; margin:0;">05XXXXXXXXX</p>
+                    </div>
+                    <button type="button" onclick="handleCustomerLogout()" style="background:#fee2e2; color:#b91c1c; border:none; padding:0.4rem 0.75rem; border-radius:8px; font-size:0.8rem; font-weight:700; cursor:pointer;">
+                        <i class="fas fa-sign-out-alt"></i> Çıkış
+                    </button>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.85rem;">
+                    <h4 style="font-size:0.95rem; font-weight:700; color:#1e293b; margin:0;">Tüm Randevularınız</h4>
+                    <span id="custBookingsCount" style="font-size:0.75rem; background:#f1f5f9; color:#475569; padding:0.2rem 0.55rem; border-radius:999px; font-weight:700;">0 Randevu</span>
+                </div>
+
+                <div id="custBookingsContainer" style="max-height: 380px; overflow-y:auto; padding-right:4px;">
+                    <!-- Bookings dynamically rendered here -->
+                </div>
+
+                <div class="escrow-guarantee-note">
+                    <i class="fas fa-info-circle" style="font-size:1.1rem; color:#16a34a; flex-shrink:0; margin-top:2px;"></i>
+                    <div>
+                        Randevularınız RandevuBurada akıllı havuz altyapısı ile güvence altındadır. İşletmeye ödenecek tutar randevunuz tamamlandıktan sonra T+3 gün içinde aktarılır.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
     <!-- Tenant Login Modal -->
     <div id="tenantLoginModal" class="tenant-login-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="tenantModalTitle">
@@ -1546,6 +1765,174 @@ $district_display = $district_display ?? '';
         }, function(err) {
             showToast('Konum izni alınamadı: ' + err.message, 'error');
         });
+    });
+
+    // RandevuBurada Standalone Customer Profile & Modal Logic
+    function openCustomerModal() {
+        const modal = document.getElementById('customerModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            checkCustomerSession();
+        }
+    }
+
+    function closeCustomerModal() {
+        const modal = document.getElementById('customerModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    async function checkCustomerSession() {
+        try {
+            const res = await fetch('<?php echo base_url('customer/me'); ?>', {
+                credentials: 'same-origin'
+            });
+            const data = await res.json();
+            if (data && data.authenticated && data.customer) {
+                renderCustomerProfile(data.customer, data.bookings || []);
+                const navLabel = document.getElementById('customerNavLabel');
+                if (navLabel) {
+                    const firstName = (data.customer.full_name || 'Profilim').split(' ')[0];
+                    navLabel.textContent = firstName + ' (Randevularım)';
+                }
+            } else {
+                renderCustomerAuth();
+                const navLabel = document.getElementById('customerNavLabel');
+                if (navLabel) navLabel.textContent = 'Randevularım';
+            }
+        } catch (e) {
+            renderCustomerAuth();
+        }
+    }
+
+    function renderCustomerAuth() {
+        const authView = document.getElementById('customerAuthView');
+        const profView = document.getElementById('customerProfileView');
+        if (authView) authView.style.display = 'block';
+        if (profView) profView.style.display = 'none';
+    }
+
+    function renderCustomerProfile(cust, bookings) {
+        const authView = document.getElementById('customerAuthView');
+        const profView = document.getElementById('customerProfileView');
+        if (authView) authView.style.display = 'none';
+        if (profView) profView.style.display = 'block';
+
+        const nameEl = document.getElementById('custProfileName');
+        const phoneEl = document.getElementById('custProfilePhone');
+        const countEl = document.getElementById('custBookingsCount');
+        if (nameEl) nameEl.textContent = cust.full_name || 'Müşteri';
+        if (phoneEl) phoneEl.textContent = cust.phone || '';
+        if (countEl) countEl.textContent = (bookings.length) + ' Randevu';
+        
+        const container = document.getElementById('custBookingsContainer');
+        if (!container) return;
+        if (!bookings || bookings.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:2rem 1rem; color:#94a3b8;"><i class="far fa-calendar-times" style="font-size:2.5rem; margin-bottom:0.75rem; display:block;"></i>Kayıtlı randevunuz bulunmuyor.</div>';
+            return;
+        }
+
+        let html = '';
+        bookings.forEach(b => {
+            let statusText = 'Onaylandı';
+            let statusClass = 'booking-status-in_escrow_t3';
+            if (b.payout_status === 'in_escrow_t3') {
+                statusText = 'Onaylandı & Güvende';
+                statusClass = 'booking-status-in_escrow_t3';
+            } else if (b.provision_status === 'authorized') {
+                statusText = 'Provizyon Bekliyor';
+                statusClass = 'booking-status-authorized';
+            } else if (b.payout_status === 'paid_out') {
+                statusText = 'Tamamlandı';
+                statusClass = 'booking-status-completed';
+            } else if (b.provision_status === 'cancelled') {
+                statusText = 'İptal Edildi';
+                statusClass = 'booking-status-cancelled';
+            }
+
+            const gross = parseFloat(b.gross_amount || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+            const company = b.company_name ? b.company_name : ('İşletme #' + b.id_tenants);
+            const dateStr = b.created_at ? b.created_at.substring(0, 16) : '';
+
+            html += `
+                <div class="booking-card">
+                    <div class="booking-card-header">
+                        <span class="booking-service-title">${b.service_name || 'Hizmet Rezervasyonu'}</span>
+                        <span class="booking-status-tag ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="booking-card-body">
+                        <div><i class="fas fa-store me-1 text-muted"></i> <strong>${company}</strong></div>
+                        <div style="font-size:0.78rem; color:#64748b; margin-top:2px;"><i class="far fa-clock me-1"></i> ${dateStr}</div>
+                    </div>
+                    <div class="booking-card-footer">
+                        <span>Ödenen Tutar: <strong style="color:#0f766e;">${gross} TL</strong></span>
+                        <span style="color:#16a34a; font-size:0.75rem; font-weight:600;"><i class="fas fa-shield-alt"></i> T+3 Escrow</span>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    async function handleCustomerAuthSubmit(e) {
+        e.preventDefault();
+        const phone = document.getElementById('custAuthPhone').value.trim();
+        const firstName = document.getElementById('custAuthName').value.trim();
+        const lastName = document.getElementById('custAuthSurname').value.trim();
+        const btn = document.getElementById('custAuthBtn');
+
+        if (!phone) {
+            showToast('Lütfen telefon numaranızı girin.', 'error');
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span>Giriş yapılıyor...</span> <i class="fas fa-spinner fa-spin"></i>';
+        }
+
+        try {
+            const res = await fetch('<?php echo base_url('customer/auth'); ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ phone, first_name: firstName, last_name: lastName })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('Giriş başarılı!', 'info');
+                checkCustomerSession();
+            } else {
+                showToast(data.message || 'Giriş yapılamadı.', 'error');
+            }
+        } catch (err) {
+            showToast('Bağlantı hatası oluştu.', 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Giriş Yap &amp; Randevularımı Getir</span> <i class="fas fa-arrow-right"></i>';
+            }
+        }
+    }
+
+    async function handleCustomerLogout() {
+        try {
+            await fetch('<?php echo base_url('customer/logout'); ?>', {
+                method: 'POST',
+                credentials: 'same-origin'
+            });
+            showToast('Çıkış yapıldı.', 'info');
+            checkCustomerSession();
+        } catch (e) {
+            showToast('Çıkış yapılırken hata oluştu.', 'error');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeCustomerModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        checkCustomerSession();
     });
     </script>
 </body>
