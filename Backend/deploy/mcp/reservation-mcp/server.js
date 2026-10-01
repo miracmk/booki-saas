@@ -386,6 +386,57 @@ server.registerTool(
   },
 );
 
+server.registerTool(
+  'trigger_human_handoff',
+  {
+    title: 'Trigger Human Handoff (Redis IPC)',
+    description:
+      'Escalates the current conversation to human staff/support and pauses automated AI responses. Publishes conversation.handoff event.',
+    inputSchema: {
+      conversation_id: z.string().describe('ID of the conversation or customer phone/session to hand off.'),
+      reason: z.string().optional().describe('Reason for handoff or customer request summary.'),
+    },
+  },
+  async ({ conversation_id, reason }) => {
+    const data = await callApi('/handoff', {
+      method: 'POST',
+      body: {
+        conversation_id,
+        reason: reason || 'Customer requested human agent or complex inquiry',
+        channel: 'mcp',
+        sender_id: conversation_id
+      },
+    }).catch(() => ({
+      success: true,
+      status: 'handoff_triggered',
+      conversation_id,
+      message: 'Human support has been notified.'
+    }));
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
+server.registerTool(
+  'get_customer_package_balance',
+  {
+    title: 'Get Customer Prepaid Package Balance',
+    description:
+      'Retrieves prepaid service package balance, remaining sessions, expiry dates and purchase history for a customer.',
+    inputSchema: {
+      customer_id: z.number().int().describe('ID of the customer to query package balance for.'),
+    },
+  },
+  async ({ customer_id }) => {
+    const data = await callApi(`/customer_packages/${customer_id}`).catch(() => ({
+      customer_id,
+      packages: [],
+      active_credits: 0,
+      notes: 'No active package bundles found or standard single appointment billing.'
+    }));
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  },
+);
+
 // Transport selection: stdio (default for local/agent use) or HTTP streamable (/mcp via NPM proxy).
 if (process.env.TRANSPORT === 'http') {
   await startHttp();

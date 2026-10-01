@@ -90,7 +90,8 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
       final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
       final startDateTime = '$dateStr $_selectedSlot:00';
 
-      final notes = 'Müşteri: ${_customerNameController.text.trim()} | Tel: ${_customerPhoneController.text.trim()} | Not: ${_notesController.text.trim()}';
+      final notes =
+          'Müşteri: ${_customerNameController.text.trim()} | Tel: ${_customerPhoneController.text.trim()} | Not: ${_notesController.text.trim()}';
 
       await repo.bookAppointment(
         serviceId: _selectedService!.id,
@@ -117,9 +118,9 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hata: $e')));
       }
     } finally {
       if (mounted) {
@@ -137,9 +138,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
     final stationsAsync = ref.watch(stationsListProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hızlı Randevu Girişi (Walk-in)'),
-      ),
+      appBar: AppBar(title: const Text('Hızlı Randevu Girişi (Walk-in)')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -165,8 +164,9 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                     labelText: 'Müşteri Adı Soyadı',
                     prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Müşteri adı gerekli' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Müşteri adı gerekli'
+                      : null,
                 ),
                 const SizedBox(height: 14),
 
@@ -221,7 +221,8 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                         DropdownButtonFormField<StationModel?>(
                           initialValue: _selectedStation,
                           decoration: const InputDecoration(
-                            labelText: 'Oda / Masa / Kort / Cihaz (İsteğe Bağlı)',
+                            labelText:
+                                'Oda / Masa / Kort / Cihaz (İsteğe Bağlı)',
                             prefixIcon: Icon(Icons.meeting_room_outlined),
                           ),
                           items: [
@@ -232,7 +233,9 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                             ...stations.map((st) {
                               return DropdownMenuItem<StationModel?>(
                                 value: st,
-                                child: Text('${st.name} (${st.status.labelTr} - ${st.capacity} Kişi)'),
+                                child: Text(
+                                  '${st.name} (${st.status.labelTr} - ${st.capacity} Kişi)',
+                                ),
                               );
                             }),
                           ],
@@ -248,7 +251,7 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                     );
                   },
                   loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
                 ),
 
                 // Uzman Seçimi
@@ -299,7 +302,9 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                   borderRadius: BorderRadius.circular(14),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(14),
@@ -310,14 +315,20 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.calendar_month_outlined,
-                                color: AppTheme.primaryColor),
+                            const Icon(
+                              Icons.calendar_month_outlined,
+                              color: AppTheme.primaryColor,
+                            ),
                             const SizedBox(width: 12),
                             Text(
-                              DateFormat('d MMMM yyyy, EEEE', 'tr_TR')
-                                  .format(_selectedDate),
+                              DateFormat(
+                                'd MMMM yyyy, EEEE',
+                                'tr_TR',
+                              ).format(_selectedDate),
                               style: const TextStyle(
-                                  fontWeight: FontWeight.w600, fontSize: 14),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -344,7 +355,10 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                 else if (_slots.isEmpty)
                   const Text(
                     'Seçilen tarihte müsait saat bulunamadı.',
-                    style: TextStyle(color: AppTheme.textSecondaryLight, fontSize: 13),
+                    style: TextStyle(
+                      color: AppTheme.textSecondaryLight,
+                      fontSize: 13,
+                    ),
                   )
                 else
                   Wrap(
@@ -357,8 +371,9 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
                         selected: isSelected,
                         selectedColor: AppTheme.primaryColor,
                         labelStyle: TextStyle(
-                          color:
-                              isSelected ? Colors.white : AppTheme.textPrimaryLight,
+                          color: isSelected
+                              ? Colors.white
+                              : AppTheme.textPrimaryLight,
                           fontWeight: FontWeight.w700,
                         ),
                         onSelected: (_) {
@@ -404,4 +419,3 @@ class _StaffQuickBookScreenState extends ConsumerState<StaffQuickBookScreen> {
     );
   }
 }
-

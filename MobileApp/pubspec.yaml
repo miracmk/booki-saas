@@ -1,4 +1,4 @@
-name: booki_mobile
+name: ki_reservation_mobile
 description: "BooKi - All-in-One Multi-Tenant Reservation & CRM Mobile App"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
