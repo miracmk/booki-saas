@@ -127,6 +127,18 @@ class Marketplace extends App_Controller
         $this->db->select($select_fields, false);
         $apply_filters();
 
+        // RandevuBurada Sponsored Ads Ranking Boost
+        $this->load->model('bk_ads_model');
+        $activeBoosts = $this->bk_ads_model->get_active_boosts($category, $city);
+        if (!empty($activeBoosts)) {
+            $boostCases = [];
+            foreach ($activeBoosts as $boostTenantId => $boostScore) {
+                $boostCases[] = "WHEN " . (int)$boostTenantId . " THEN " . (int)$boostScore;
+            }
+            $boostSql = "(CASE " . $this->db->dbprefix('tenants') . ".id " . implode(" ", $boostCases) . " ELSE 0 END)";
+            $this->db->order_by($boostSql, 'desc', false);
+        }
+
         if ($sort === 'rating') {
             $this->db->order_by('avg_rating', 'desc');
             $this->db->order_by('review_count', 'desc');
@@ -151,6 +163,11 @@ class Marketplace extends App_Controller
             ->limit($per_page, ($page - 1) * $per_page)
             ->get('tenants')
             ->result_array();
+
+        foreach ($tenants as &$t) {
+            $t['is_sponsored'] = !empty($activeBoosts[(int)$t['id']]);
+        }
+        unset($t);
 
         // Fetch distinct categories, cities, districts for filters
         $this->filter_dummy_tenants();
@@ -1966,5 +1983,89 @@ class Marketplace extends App_Controller
 
         echo '</urlset>';
         exit;
+    }
+
+    /**
+     * RandevuBurada Standalone Customer Authentication (Login / Register).
+     * POST /marketplace/customer/auth
+     */
+    public function customer_auth(): void
+    {
+        try {
+            method('post');
+            $post = $this->input->post(null, true) ?: json_decode((string)file_get_contents('php://input'), true);
+
+            $phone = trim((string)($post['phone'] ?? ''));
+            $fullName = trim((string)($post['full_name'] ?? 'Müşteri'));
+            $email = !empty($post['email']) ? trim((string)$post['email']) : null;
+
+            if (empty($phone)) {
+                throw new InvalidArgumentException('Telefon numarası zorunludur.');
+            }
+
+            $this->load->model('bk_marketplace_customer_model');
+            $customer = $this->bk_marketplace_customer_model->find_or_create($fullName, $phone, $email);
+
+            // Establish customer session on RandevuBurada
+            $this->session->set_userdata([
+                'rb_customer_id'    => (int) $customer['id'],
+                'rb_customer_name'  => $customer['full_name'],
+                'rb_customer_phone' => $customer['phone'],
+                'rb_customer_email' => $customer['email']
+            ]);
+
+            json_response([
+                'status'   => 'success',
+                'customer' => $customer,
+                'message'  => 'Giriş başarılı.'
+            ]);
+        } catch (Throwable $e) {
+            json_response([
+                'status'  => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * RandevuBurada Customer Profile & Bookings.
+     * GET /marketplace/customer/me
+     */
+    public function customer_me(): void
+    {
+        $customerId = (int) ($this->session->userdata('rb_customer_id') ?: $this->input->get('customer_id') ?: 0);
+        $phone = (string) ($this->session->userdata('rb_customer_phone') ?: $this->input->get('phone') ?: '');
+
+        if ($customerId <= 0 && empty($phone)) {
+            json_response([
+                'status'        => 'unauthenticated',
+                'authenticated' => false
+            ], 401);
+            return;
+        }
+
+        $this->load->model('bk_marketplace_customer_model');
+        $customer = $customerId > 0 
+            ? $this->bk_marketplace_customer_model->get_by_id($customerId)
+            : $this->bk_marketplace_customer_model->get_by_phone($phone);
+
+        $bookings = $customer ? $this->bk_marketplace_customer_model->get_customer_appointments($customer['id'], $customer['phone']) : [];
+
+        json_response([
+            'status'        => 'success',
+            'authenticated' => true,
+            'customer'      => $customer,
+            'bookings'      => $bookings
+        ]);
+    }
+
+    /**
+     * RandevuBurada Customer Logout.
+     * POST /marketplace/customer/logout
+     */
+    public function customer_logout(): void
+    {
+        $this->session->unset_userdata(['rb_customer_id', 'rb_customer_name', 'rb_customer_phone', 'rb_customer_email']);
+        json_response(['status' => 'success', 'message' => 'Çıkış yapıldı.']);
     }
 }

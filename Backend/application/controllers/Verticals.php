@@ -1421,6 +1421,17 @@ class Verticals extends App_Controller
 
         $customers = $this->customers_model->get(null, 150, null, 'first_name ASC');
 
+        $this->load->model('hospitality_model');
+        $room_types = $this->hospitality_model->get_room_types();
+        $rate_plans = $this->hospitality_model->get_rate_plans();
+        $tape_chart = $this->hospitality_model->get_tape_chart_matrix(date('Y-m-d'), 14);
+        $housekeeping_board = $this->hospitality_model->get_housekeeping_board();
+        $maintenance_tickets = $this->hospitality_model->get_maintenance_tickets();
+        $kbs_declarations = $this->hospitality_model->get_kbs_declarations();
+        $night_audits = $this->hospitality_model->get_night_audit_history(10);
+        $kpi_stats = $this->hospitality_model->get_hospitality_dashboard_stats();
+        $property_templates = $this->hospitality_model->get_property_templates();
+
         $this->load->view('pages/vertical_hospitality', [
             'rooms' => $rooms,
             'folios' => $folios,
@@ -1428,6 +1439,15 @@ class Verticals extends App_Controller
             'preferences' => $preferences,
             'customers' => $customers,
             'stations' => $stations,
+            'room_types' => $room_types,
+            'rate_plans' => $rate_plans,
+            'tape_chart' => $tape_chart,
+            'housekeeping_board' => $housekeeping_board,
+            'maintenance_tickets' => $maintenance_tickets,
+            'kbs_declarations' => $kbs_declarations,
+            'night_audits' => $night_audits,
+            'kpi_stats' => $kpi_stats,
+            'property_templates' => $property_templates,
         ]);
     }
 
@@ -1756,6 +1776,474 @@ class Verticals extends App_Controller
                         'notes' => $notes,
                     ],
                 ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_checkin(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $res = $this->hospitality_model->express_checkin($data);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode($res));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_checkout(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $target = (int) (!empty($data['appointment_id']) ? $data['appointment_id'] : ($data['room_id'] ?? ($data['id'] ?? 0)));
+            if (!$target) {
+                throw new InvalidArgumentException('Check-out için Rezervasyon ID veya Oda ID gereklidir.');
+            }
+
+            $res = $this->hospitality_model->express_checkout($target, $data);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode($res));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_tape_chart(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $start_date = $this->input->get('start_date') ?: date('Y-m-d');
+            $days = (int) ($this->input->get('days') ?: 14);
+
+            $data = $this->hospitality_model->get_tape_chart_matrix($start_date, $days);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => true,
+                    'data' => $data,
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_run_night_audit(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $audit_date = $data['audit_date'] ?? date('Y-m-d');
+            $user_id = (int) (session('user_id') ?: 1);
+            $post_charges = !isset($data['post_room_charges']) || (bool) $data['post_room_charges'];
+
+            $res = $this->hospitality_model->run_night_audit($audit_date, $user_id, $post_charges);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => true,
+                    'message' => 'Gece Denetimi (Night Audit) başarıyla tamamlandı.',
+                    'audit' => $res,
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_save_room_type(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $id = $this->hospitality_model->save_room_type($data);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => true,
+                    'id' => $id,
+                    'message' => 'Oda tipi başarıyla kaydedildi.',
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_apply_property_template(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $template_key = trim((string) ($data['template_key'] ?? ''));
+            if (empty($template_key)) {
+                throw new InvalidArgumentException('Tesis şablonu anahtarı (template_key) zorunludur.');
+            }
+
+            $res = $this->hospitality_model->apply_property_template($template_key);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode($res));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_save_rate_plan(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $id = $this->hospitality_model->save_rate_plan($data);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => true,
+                    'id' => $id,
+                    'message' => 'Fiyat planı başarıyla kaydedildi.',
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_housekeeping_task_update(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $task_id = (int) ($data['task_id'] ?? ($data['id'] ?? 0));
+            $status = trim((string) ($data['status'] ?? 'completed'));
+            $checklist = $data['checklist'] ?? [];
+
+            if (!$task_id) {
+                throw new InvalidArgumentException('Görev ID zorunludur.');
+            }
+
+            $ok = $this->hospitality_model->update_housekeeping_task($task_id, $status, is_array($checklist) ? $checklist : []);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => $ok,
+                    'message' => 'Temizlik görevi güncellendi.',
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_create_housekeeping_task(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $room_id = (int) ($data['room_id'] ?? ($data['room_station_id'] ?? 0));
+            $task_type = $data['task_type'] ?? 'stayover_clean';
+            $priority = $data['priority'] ?? 'normal';
+            $staff_id = !empty($data['staff_id']) ? (int) $data['staff_id'] : null;
+            $notes = $data['notes'] ?? '';
+
+            if (!$room_id) {
+                throw new InvalidArgumentException('Oda ID zorunludur.');
+            }
+
+            $taskId = $this->hospitality_model->create_housekeeping_task($room_id, $task_type, $priority, $staff_id, $notes);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => true,
+                    'task_id' => $taskId,
+                    'message' => 'Kat hizmetleri iş emri oluşturuldu.',
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_maintenance_ticket(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $ticket_id = $this->hospitality_model->create_maintenance_ticket($data);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => true,
+                    'ticket_id' => $ticket_id,
+                    'message' => 'Teknik arıza kaydı oluşturuldu.',
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_resolve_maintenance(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $ticket_id = (int) ($data['ticket_id'] ?? ($data['id'] ?? 0));
+            $notes = $data['resolution_notes'] ?? ($data['notes'] ?? '');
+
+            if (!$ticket_id) {
+                throw new InvalidArgumentException('Arıza bilet ID zorunludur.');
+            }
+
+            $ok = $this->hospitality_model->resolve_maintenance_ticket($ticket_id, $notes);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => $ok,
+                    'message' => 'Arıza kaydı çözüldü olarak işaretlendi. Oda temizliğe yönlendirildi.',
+                ]));
+        } catch (Throwable $e) {
+            $this->output
+                ->set_status_header(400)
+                ->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ]));
+        }
+    }
+
+    public function hospitality_kbs_export(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        $format = $this->input->get('format') ?: 'json';
+        $date = $this->input->get('date') ?: date('Y-m-d');
+
+        if ($format === 'xml') {
+            $xml = $this->hospitality_model->export_kbs_xml($date);
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/xml')
+                ->set_header('Content-Disposition: attachment; filename="KBS_' . $date . '.xml"')
+                ->set_output($xml);
+        } else {
+            $data = $this->hospitality_model->get_kbs_declarations($date);
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_header('Content-Disposition: attachment; filename="KBS_' . $date . '.json"')
+                ->set_output(json_encode([
+                    'facility' => 'BooKi PMS Hotel Facility',
+                    'date' => $date,
+                    'total_guests' => count($data),
+                    'records' => $data,
+                ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        }
+    }
+
+    public function hospitality_ical_export(int $room_id = 0): void
+    {
+        $room_id = $room_id ?: (int) $this->input->get('room_id');
+        if (!$room_id) {
+            show_404();
+            return;
+        }
+
+        $this->load->model('hospitality_model');
+        $ics = $this->hospitality_model->generate_room_ical_feed($room_id);
+
+        $this->output
+            ->set_status_header(200)
+            ->set_content_type('text/calendar; charset=utf-8')
+            ->set_header('Content-Disposition: inline; filename="room_' . $room_id . '.ics"')
+            ->set_output($ics);
+    }
+
+    public function hospitality_ical_sync(): void
+    {
+        $this->ensure_authenticated();
+        $this->load->model('hospitality_model');
+
+        try {
+            $raw = file_get_contents('php://input');
+            $data = !empty($raw) ? json_decode($raw, true) : null;
+            if (!is_array($data)) {
+                $data = $this->input->post() ?: [];
+            }
+
+            $room_id = (int) ($data['room_id'] ?? ($data['station_id'] ?? 0));
+            $url = $data['ical_url'] ?? null;
+
+            if (!$room_id) {
+                throw new InvalidArgumentException('Oda ID zorunludur.');
+            }
+
+            $res = $this->hospitality_model->sync_inbound_ical($room_id, $url);
+
+            $this->output
+                ->set_status_header(200)
+                ->set_content_type('application/json')
+                ->set_output(json_encode($res));
         } catch (Throwable $e) {
             $this->output
                 ->set_status_header(400)

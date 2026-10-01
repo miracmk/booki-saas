@@ -1382,6 +1382,9 @@ App.Components.AppointmentsModal = (function () {
         // Load and display session consumables & costs
         loadAppointmentConsumables(appointment.id);
 
+        // Load and display service legal consents & signed waivers
+        loadAppointmentConsents(appointment.id);
+
         updateLiveSummary();
     }
 
@@ -2011,6 +2014,264 @@ App.Components.AppointmentsModal = (function () {
             $btnAddConsumableModal.prop('disabled', false);
         }
     }
+
+    /**
+     * =========================================================================
+     * SERVICE LEGAL CONSENTS & DIGITAL WAIVER SIGNING ENGINE
+     * =========================================================================
+     */
+    let currentApptConsents = [];
+
+    function resetAppointmentConsents() {
+        currentApptConsents = [];
+        $('#appointment-consents-panel').addClass('d-none');
+        $('#appointment-consents-list').empty();
+        $('#appt-consents-summary-badge').text('0 / 0 İmzalandı');
+    }
+
+    function loadAppointmentConsents(appointmentId) {
+        if (!appointmentId) {
+            resetAppointmentConsents();
+            return;
+        }
+
+        const $panel = $('#appointment-consents-panel');
+        const $list = $('#appointment-consents-list');
+        const $badge = $('#appt-consents-summary-badge');
+
+        $panel.removeClass('d-none');
+        $list.html('<div class="text-muted text-center py-2 small"><i class="fas fa-spinner fa-spin me-1"></i>Hizmet sözleşmeleri & onam formları denetleniyor...</div>');
+
+        $.get(App.Utils.Url.siteUrl('appointments/get_consents/' + appointmentId))
+            .done((res) => {
+                if (!res || !res.success || !res.consents || !res.consents.length) {
+                    $panel.addClass('d-none');
+                    return;
+                }
+
+                currentApptConsents = res.consents;
+                $badge.text(`${res.signed_count || 0} / ${res.total_count || 0} İmzalandı`);
+                if (res.signed_count === res.total_count) {
+                    $badge.removeClass('bg-light text-secondary border bg-warning-subtle text-warning').addClass('bg-success text-white');
+                } else {
+                    $badge.removeClass('bg-light text-secondary border bg-success text-white').addClass('bg-warning text-dark');
+                }
+
+                renderAppointmentConsents(currentApptConsents, appointmentId);
+            })
+            .fail(() => {
+                $list.html('<div class="text-danger text-center py-2 small">Onam formları yüklenirken hata oluştu.</div>');
+            });
+    }
+
+    function renderAppointmentConsents(consents, appointmentId) {
+        const $list = $('#appointment-consents-list');
+        $list.empty();
+
+        consents.forEach((item, index) => {
+            const isSigned = !!item.is_signed;
+            const sig = item.signature || {};
+            const card = `
+                <div class="p-3 mb-2 rounded border bg-white shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="fw-bold text-dark">${escapeHtml(item.title)}</span>
+                            <span class="badge ${item.is_mandatory ? 'bg-danger-subtle text-danger' : 'bg-secondary-subtle text-secondary'} small">
+                                ${item.is_mandatory ? 'Zorunlu Onam' : 'İsteğe Bağlı'}
+                            </span>
+                        </div>
+                        <div class="small">
+                            ${isSigned ? `
+                                <span class="text-success fw-semibold">
+                                    <i class="fas fa-check-circle me-1"></i>İmzalandı & Onaylandı
+                                </span>
+                                <span class="text-muted ms-2">(${sig.signed_at || '-'} · ${escapeHtml(sig.signer_full_name || 'Danışan')})</span>
+                            ` : `
+                                <span class="text-warning-emphasis fw-semibold">
+                                    <i class="fas fa-clock me-1"></i>Danışan İmzası Bekliyor
+                                </span>
+                            `}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        ${isSigned ? `
+                            <button type="button" class="btn btn-sm btn-outline-success btn-view-signed-doc" data-index="${index}">
+                                <i class="fas fa-file-contract me-1"></i>İmzalı Belgeyi Gör
+                            </button>
+                        ` : `
+                            <button type="button" class="btn btn-sm btn-danger btn-open-staff-sign-modal" data-index="${index}" data-appointment-id="${appointmentId}">
+                                <i class="fas fa-pen-nib me-1"></i>Danışana İmzalat
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+            $list.append(card);
+        });
+    }
+
+    // View signed consent document
+    $(document).on('click', '.btn-view-signed-doc', function () {
+        const index = $(this).data('index');
+        const item = currentApptConsents[index];
+        if (!item) return;
+
+        const sig = item.signature || {};
+        $('#view-signed-consent-title').html('<i class="fas fa-file-signature text-success me-2"></i>' + escapeHtml(item.title));
+        $('#view-signed-consent-content').html(item.compiled_html || '<p class="text-muted">Metin içeriği bulunmuyor.</p>');
+        $('#view-sig-name').text(sig.signer_full_name || 'Danışan');
+        $('#view-sig-time').text(sig.signed_at || '-');
+        $('#view-sig-ip').text(sig.ip_address || '-');
+        $('#view-sig-type').text(sig.signature_type || 'Elektronik Kanvas İmza');
+
+        if (sig.signature_data && sig.signature_data.startsWith('data:image')) {
+            $('#view-sig-image').attr('src', sig.signature_data);
+            $('#view-sig-image-container').show();
+        } else {
+            $('#view-sig-image-container').hide();
+        }
+
+        const modalEl = document.getElementById('modal-view-signed-consent');
+        if (modalEl && window.bootstrap) {
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        }
+    });
+
+    // Staff fast sign modal opener & canvas setup
+    let staffCanvas = null;
+    let staffCtx = null;
+    let isDrawing = false;
+
+    $(document).on('click', '.btn-open-staff-sign-modal', function () {
+        const index = $(this).data('index');
+        const appointmentId = $(this).data('appointment-id');
+        const item = currentApptConsents[index];
+        if (!item) return;
+
+        $('#staff-sign-waiver-id').val(item.waiver_id);
+        $('#staff-sign-consent-preview').html(item.compiled_html);
+        $('#staff-sign-consent-subtitle').text(item.title);
+
+        const modalEl = document.getElementById('modal-staff-sign-consent');
+        if (modalEl && window.bootstrap) {
+            const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            setTimeout(() => {
+                initStaffSignatureCanvas();
+            }, 300);
+        }
+    });
+
+    function initStaffSignatureCanvas() {
+        staffCanvas = document.getElementById('staff-signature-canvas');
+        if (!staffCanvas) return;
+        staffCtx = staffCanvas.getContext('2d');
+
+        // Reset canvas
+        staffCanvas.width = staffCanvas.parentElement.clientWidth || 650;
+        staffCanvas.height = 150;
+        staffCtx.clearRect(0, 0, staffCanvas.width, staffCanvas.height);
+        staffCtx.lineWidth = 2.5;
+        staffCtx.lineCap = 'round';
+        staffCtx.lineJoin = 'round';
+        staffCtx.strokeStyle = '#0f172a';
+
+        function getPos(e) {
+            const rect = staffCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        staffCanvas.onmousedown = function (e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            staffCtx.beginPath();
+            staffCtx.moveTo(pos.x, pos.y);
+        };
+
+        staffCanvas.onmousemove = function (e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
+            staffCtx.lineTo(pos.x, pos.y);
+            staffCtx.stroke();
+        };
+
+        window.onmouseup = function () {
+            isDrawing = false;
+        };
+
+        staffCanvas.ontouchstart = function (e) {
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getPos(e);
+            staffCtx.beginPath();
+            staffCtx.moveTo(pos.x, pos.y);
+        };
+
+        staffCanvas.ontouchmove = function (e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            staffCtx.lineTo(pos.x, pos.y);
+            staffCtx.stroke();
+        };
+
+        staffCanvas.ontouchend = function () {
+            isDrawing = false;
+        };
+    }
+
+    $('#btn-clear-staff-canvas').on('click', () => {
+        if (staffCanvas && staffCtx) {
+            staffCtx.clearRect(0, 0, staffCanvas.width, staffCanvas.height);
+        }
+    });
+
+    $('#btn-save-staff-signature-submit').on('click', function () {
+        const appointmentId = currentAppointmentData ? currentAppointmentData.id : null;
+        const waiverId = $('#staff-sign-waiver-id').val();
+        const compiledHtml = $('#staff-sign-consent-preview').html();
+
+        if (!staffCanvas) return;
+        const signatureData = staffCanvas.toDataURL('image/png');
+
+        const $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Kaydediliyor...');
+
+        $.ajax({
+            url: App.Utils.Url.siteUrl('appointments/sign_consent'),
+            type: 'POST',
+            data: {
+                csrf_token: vars('csrf_token'),
+                appointment_id: Number(appointmentId),
+                waiver_id: Number(waiverId),
+                signature_data: signatureData,
+                compiled_content_html: compiledHtml
+            },
+            success: () => {
+                const modalEl = document.getElementById('modal-staff-sign-consent');
+                if (modalEl && window.bootstrap) {
+                    window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                }
+                App.Layouts.Backend.displayNotification('Danışan onam imzası başarıyla kaydedildi! ✓', 'success');
+                if (appointmentId) {
+                    loadAppointmentConsents(appointmentId);
+                }
+            },
+            error: (xhr) => {
+                const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'İmza kaydedilemedi.';
+                alert(msg);
+            },
+            complete: () => {
+                $btn.prop('disabled', false).html('<i class="fas fa-check-circle me-1"></i>İmzayı Onayla & Kaydet');
+            }
+        });
+    });
 
     document.addEventListener('DOMContentLoaded', initialize);
 

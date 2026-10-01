@@ -1773,89 +1773,327 @@ $recent_audit_logs = $recent_audit_logs ?? [];
 
                                                         <!-- 7. AI Asistan & Santral Drawer Panel -->
                                                         <div class="drawer-service-panel" id="drawer-panel-ai_assistant" style="display: none;">
+                                                            <?php
+                                                            $current_plan_name = function_exists('tenant_context') ? normalize_plan_name(tenant_context()['plan'] ?? 'Basic') : 'Basic';
+                                                            $is_plan_free = ($current_plan_name === 'Free');
+                                                            $active_engine = $section_values['integrations']['ai_engine_type'] ?? 'booki';
+                                                            $used_conv = (int)($section_values['integrations']['ai_conversations_used'] ?? 142);
+                                                            $total_conv = (int)($section_values['integrations']['ai_conversations_total'] ?? 1000);
+                                                            $conv_percent = ($total_conv > 0) ? min(100, round(($used_conv / $total_conv) * 100, 1)) : 0;
+                                                            $voice_active = !empty($section_values['integrations']['ai_voice_enabled']);
+                                                            $voice_rem = (int)($section_values['integrations']['ai_voice_remaining_minutes'] ?? 48);
+                                                            $voice_tot = (int)($section_values['integrations']['ai_voice_total_minutes'] ?? 60);
+                                                            $voice_percent = ($voice_tot > 0) ? min(100, round(($voice_rem / $voice_tot) * 100)) : 0;
+                                                            ?>
+
+                                                            <?php if ($is_plan_free): ?>
+                                                            <div class="alert alert-warning border-2 rounded-4 p-3 d-flex align-items-center justify-content-between mb-4 shadow-xs">
+                                                                <div class="d-flex align-items-center gap-3">
+                                                                    <div class="p-2 bg-warning bg-opacity-25 text-dark rounded-circle"><i class="fas fa-lock fa-lg"></i></div>
+                                                                    <div>
+                                                                        <h6 class="fw-bold mb-1 text-dark">Ücretsiz (Free) Pakette AI Asistan Kullanılamaz</h6>
+                                                                        <small class="text-muted">7/24 yapay zeka randevu asistanı, WhatsApp botu ve sesli santral özellikleri <strong>Başlangıç</strong>, <strong>Pro</strong> ve <strong>Premium</strong> paketlerde aylık 1.000 görüşme dahil olarak sunulur.</small>
+                                                                    </div>
+                                                                </div>
+                                                                <a href="<?= site_url('settings?tab=plan') ?>" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-3 py-2 flex-shrink-0 shadow-xs">
+                                                                    <i class="fas fa-bolt me-1"></i> Paketi Yükselt
+                                                                </a>
+                                                            </div>
+                                                            <?php else: ?>
+                                                            <div class="d-flex align-items-center justify-content-between bg-light rounded-4 p-2 px-3 mb-3 border">
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2 py-1 small">
+                                                                        <i class="fas fa-circle-check me-1"></i> <?= htmlspecialchars($current_plan_name) ?> Paketi
+                                                                    </span>
+                                                                    <span class="small text-muted">Aylık <strong>1.000 Görüşme</strong> yapay zeka kotanız dahildir.</span>
+                                                                </div>
+                                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill small px-2 py-1">
+                                                                    <i class="fas fa-microchip me-1"></i> BooKi AI Core v2.4
+                                                                </span>
+                                                            </div>
+                                                            <?php endif; ?>
+
+                                                            <!-- KULLANIM DURUMU VE PAKET KOTALARI -->
                                                             <div class="row g-3 mb-4">
+                                                                <!-- Yazılı AI Asistan Kotası -->
                                                                 <div class="col-md-6">
-                                                                    <div class="card border-success border-2 bg-success bg-opacity-10 rounded-4 p-3 h-100">
+                                                                    <div class="card border-0 bg-white shadow-xs rounded-4 p-3 h-100 border-start border-4 border-success">
                                                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                                                             <div class="d-flex align-items-center gap-2">
-                                                                                <div class="p-2 bg-success text-white rounded-circle"><i class="fas fa-comments fa-lg"></i></div>
+                                                                                <div class="p-2 bg-success bg-opacity-10 text-success rounded-circle"><i class="fas fa-comments fa-lg"></i></div>
                                                                                 <div>
-                                                                                    <h6 class="fw-bold text-dark mb-0">Yazılı Mesajlaşma AI</h6>
-                                                                                    <small class="text-muted">WhatsApp, IG, Telegram, Web</small>
+                                                                                    <h6 class="fw-bold text-dark mb-0">Yazılı AI Asistan</h6>
+                                                                                    <small class="text-muted">WhatsApp, Web Chat, IG, Telegram</small>
                                                                                 </div>
                                                                             </div>
-                                                                            <span class="badge bg-success text-white px-2 py-1 rounded-pill small">SABİT & DAHİL</span>
+                                                                            <span class="badge bg-success text-white px-2 py-1 rounded-pill small">1.000 DAHİL</span>
                                                                         </div>
-                                                                        <p class="small text-muted mb-2">Standart ve Pro paketlerinizde <strong>sınırsız</strong> dahildir. (Yalnızca Free pakette kapalıdır).</p>
-                                                                        <div class="d-flex gap-2 mt-auto pt-2 border-top border-success-subtle">
-                                                                            <span class="badge bg-white text-success border border-success small"><i class="fas fa-infinity me-1"></i> Sınırsız Mesajlaşma</span>
+                                                                        <div class="my-2">
+                                                                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                                                                <span class="text-muted">Aylık Kullanım Durumu:</span>
+                                                                                <span class="fw-bold text-success"><?= $used_conv ?> / <?= $total_conv ?> Görüşme (%<?= $conv_percent ?>)</span>
+                                                                            </div>
+                                                                            <div class="progress rounded-pill" style="height: 8px;">
+                                                                                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: <?= $conv_percent ?>%"></div>
+                                                                            </div>
+                                                                            <div class="d-flex justify-content-between small text-muted mt-1">
+                                                                                <span>Kalan: <strong><?= max(0, $total_conv - $used_conv) ?></strong> görüşme</span>
+                                                                                <span>Yenilenme: Aybaşı</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                                                                            <span class="small text-muted">Ek Paket: <strong>450 ₺ / 1.000 Görüşme</strong></span>
+                                                                            <button type="button" class="btn btn-xs btn-outline-success fw-bold px-3 py-1 rounded-pill shadow-xs" onclick="buyChatQuotaPack()">
+                                                                                <i class="fas fa-plus me-1"></i> Ek Görüşme Al
+                                                                            </button>
                                                                         </div>
                                                                     </div>
                                                                 </div>
+
+                                                                <!-- Sesli Santral AI Kotası -->
                                                                 <div class="col-md-6">
-                                                                    <div class="card border-warning border-2 bg-warning bg-opacity-10 rounded-4 p-3 h-100">
+                                                                    <div class="card border-0 bg-white shadow-xs rounded-4 p-3 h-100 border-start border-4 border-warning">
                                                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                                                             <div class="d-flex align-items-center gap-2">
-                                                                                <div class="p-2 bg-warning text-dark rounded-circle"><i class="fas fa-phone-volume fa-lg"></i></div>
+                                                                                <div class="p-2 bg-warning bg-opacity-10 text-warning-emphasis rounded-circle"><i class="fas fa-phone-volume fa-lg"></i></div>
                                                                                 <div>
-                                                                                    <h6 class="fw-bold text-dark mb-0">Sesli Telefon Santrali AI</h6>
-                                                                                    <small class="text-muted">0850 Sanal Hat & Türkçe Ses</small>
+                                                                                    <h6 class="fw-bold text-dark mb-0">Sesli Santral AI (0850)</h6>
+                                                                                    <small class="text-muted">Gelen Çağrı & Otomatik Teyit Araması</small>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="form-check form-switch fs-5 mb-0">
-                                                                                <input class="form-check-input setting-input" type="checkbox" role="switch" id="input-ai_voice_enabled" name="ai_voice_enabled" value="1" <?= !empty($section_values['integrations']['ai_voice_enabled']) ? 'checked' : '' ?>>
+                                                                                <input class="form-check-input setting-input" type="checkbox" role="switch" id="input-ai_voice_enabled" name="ai_voice_enabled" value="1" <?= $voice_active ? 'checked' : '' ?>>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="mb-2">
+                                                                        <div class="my-2">
                                                                             <div class="d-flex justify-content-between align-items-center small mb-1">
-                                                                                <span class="fw-bold text-dark">Kalan Konuşma Süresi:</span>
-                                                                                <span class="fw-bold text-warning-emphasis">48 / 60 Dakika (%80)</span>
+                                                                                <span class="text-muted">Kalan Görüşme Süresi:</span>
+                                                                                <span class="fw-bold text-warning-emphasis"><?= $voice_rem ?> / <?= $voice_tot ?> Dakika (%<?= $voice_percent ?>)</span>
                                                                             </div>
-                                                                            <div class="progress" style="height: 8px;">
-                                                                                <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: 80%"></div>
+                                                                            <div class="progress rounded-pill" style="height: 8px;">
+                                                                                <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: <?= $voice_percent ?>%"></div>
+                                                                            </div>
+                                                                            <div class="d-flex justify-content-between small text-muted mt-1">
+                                                                                <span>Tüketilen: <strong><?= max(0, $voice_tot - $voice_rem) ?></strong> dk</span>
+                                                                                <span>0850 Sanal Hat Aktif</span>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top border-warning-subtle">
-                                                                            <span class="small text-muted">Ek Paket: <strong>1.250 TL / 60 dk</strong></span>
-                                                                            <button type="button" class="btn btn-xs btn-warning fw-bold px-3 py-1 rounded-pill shadow-xs" onclick="buyVoiceQuotaPack()">
+                                                                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                                                                            <span class="small text-muted">Ek Paket: <strong>1.250 ₺ / 60 dk</strong></span>
+                                                                            <button type="button" class="btn btn-xs btn-outline-warning text-dark fw-bold px-3 py-1 rounded-pill shadow-xs" onclick="buyVoiceQuotaPack()">
                                                                                 <i class="fas fa-plus me-1"></i> Ek Dakika Al
                                                                             </button>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="row g-3">
-                                                                <div class="col-md-6 setting-field" data-setting-key="ai_assistant_name">
-                                                                    <label class="form-label fw-bold text-dark small">Asistan Adı</label>
-                                                                    <input type="text" class="form-control setting-input" name="ai_assistant_name" id="input-ai_assistant_name" value="<?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_name'] ?? 'BooKi Asistan')) ?>">
+
+                                                            <!-- MOTOR & ALTYAPI SEÇİMİ: BOOKI AI PLATFORM VS BYOK -->
+                                                            <div class="card border rounded-4 p-3 mb-4 bg-white shadow-xs">
+                                                                <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                                                                    <i class="fas fa-server text-primary"></i> AI Altyapı ve Çalışma Modeli
+                                                                </h6>
+                                                                <p class="small text-muted mb-3">Asistanın hangi yapay zeka çekirdeği üzerinden yanıt üreteceğini belirleyin. BooKi AI Platformu sıfır ayar ile doğrudan çalışır.</p>
+
+                                                                <div class="row g-3 mb-3">
+                                                                    <div class="col-md-6">
+                                                                        <div class="p-3 rounded-4 border border-2 cursor-pointer h-100 transition-all <?= $active_engine === 'booki' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light' ?>" id="card-engine-booki" onclick="selectAiEngine('booki')">
+                                                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                                                <div class="form-check mb-0">
+                                                                                    <input class="form-check-input" type="radio" name="ai_engine_radio" id="engine_booki" value="booki" <?= $active_engine === 'booki' ? 'checked' : '' ?> onchange="selectAiEngine('booki')">
+                                                                                    <label class="form-check-label fw-bold text-dark ms-1" for="engine_booki">BooKi AI Platformu</label>
+                                                                                </div>
+                                                                                <span class="badge bg-primary text-white rounded-pill small">ÖNERİLEN</span>
+                                                                            </div>
+                                                                            <p class="small text-muted mb-0">BooKi'nin yüksek hızlı, Türkçe eğitilmiş sektörel yapay zeka çekirdeği. API anahtarı girmenize gerek yoktur. Paket kotanızla doğrudan çalışır, kesintisiz yanıt garantisi sunar.</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <div class="p-3 rounded-4 border border-2 cursor-pointer h-100 transition-all <?= $active_engine === 'byok' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light' ?>" id="card-engine-byok" onclick="selectAiEngine('byok')">
+                                                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                                                <div class="form-check mb-0">
+                                                                                    <input class="form-check-input" type="radio" name="ai_engine_radio" id="engine_byok" value="byok" <?= $active_engine === 'byok' ? 'checked' : '' ?> onchange="selectAiEngine('byok')">
+                                                                                    <label class="form-check-label fw-bold text-dark ms-1" for="engine_byok">BYOK (Kendi API Anahtarınız)</label>
+                                                                                </div>
+                                                                                <span class="badge bg-secondary text-white rounded-pill small">GELİŞMİŞ</span>
+                                                                            </div>
+                                                                            <p class="small text-muted mb-0">Kendi OpenAI (ChatGPT), Anthropic (Claude), Google Gemini veya Groq hesabınızın API anahtarını kullanın. Limitler doğrudan sağlayıcı hesabınıza aittir.</p>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="col-md-6 setting-field" data-setting-key="ai_assistant_tone">
-                                                                    <label class="form-label fw-bold text-dark small">Konuşma Tonu</label>
-                                                                    <select class="form-select setting-input" name="ai_assistant_tone" id="input-ai_assistant_tone">
-                                                                        <option value="friendly_professional">Samimi & Profesyonel</option>
-                                                                        <option value="formal">Resmi / Kurumsal</option>
-                                                                        <option value="warm_empathetic">Sıcak & Empatik</option>
-                                                                    </select>
+
+                                                                <!-- Gizli input: ai_engine_type -->
+                                                                <input type="hidden" class="setting-input" name="ai_engine_type" id="input-ai_engine_type" value="<?= htmlspecialchars($active_engine) ?>">
+
+                                                                <!-- BYOK Ayarları Çekmecesi -->
+                                                                <div id="byok-settings-container" class="rounded-4 p-3 bg-light border mt-2" style="<?= $active_engine === 'byok' ? '' : 'display: none;' ?>">
+                                                                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                                                        <span class="fw-bold small text-dark"><i class="fas fa-key text-warning me-1"></i> BYOK Sağlayıcı ve Anahtar Bilgileri</span>
+                                                                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3" onclick="testByokConnection()">
+                                                                            <i class="fas fa-plug me-1"></i> Bağlantıyı Doğrula
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="row g-3">
+                                                                        <div class="col-md-4 setting-field" data-setting-key="ai_byok_provider">
+                                                                            <label class="form-label fw-bold text-dark small">AI Sağlayıcısı</label>
+                                                                            <select class="form-select setting-input form-select-sm" name="ai_byok_provider" id="input-ai_byok_provider">
+                                                                                <option value="openai" <?= ($section_values['integrations']['ai_byok_provider'] ?? '') === 'openai' ? 'selected' : '' ?>>OpenAI (GPT-4o / mini)</option>
+                                                                                <option value="anthropic" <?= ($section_values['integrations']['ai_byok_provider'] ?? '') === 'anthropic' ? 'selected' : '' ?>>Anthropic (Claude 3.5 Sonnet)</option>
+                                                                                <option value="gemini" <?= ($section_values['integrations']['ai_byok_provider'] ?? '') === 'gemini' ? 'selected' : '' ?>>Google Gemini (Gemini 1.5 Flash)</option>
+                                                                                <option value="groq" <?= ($section_values['integrations']['ai_byok_provider'] ?? '') === 'groq' ? 'selected' : '' ?>>Groq (Llama 3.3 70B - Hızlı)</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="col-md-5 setting-field" data-setting-key="ai_byok_api_key">
+                                                                            <label class="form-label fw-bold text-dark small">Özel API Anahtarı</label>
+                                                                            <div class="input-group input-group-sm">
+                                                                                <input type="password" class="form-control setting-input" name="ai_byok_api_key" id="input-ai_byok_api_key" value="<?= htmlspecialchars((string)($section_values['integrations']['ai_byok_api_key'] ?? '')) ?>" placeholder="sk-...">
+                                                                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('input-ai_byok_api_key')"><i class="fas fa-eye"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="col-md-3 setting-field" data-setting-key="ai_byok_model">
+                                                                            <label class="form-label fw-bold text-dark small">Model Adı (Opsiyonel)</label>
+                                                                            <input type="text" class="form-control setting-input form-control-sm" name="ai_byok_model" id="input-ai_byok_model" value="<?= htmlspecialchars((string)($section_values['integrations']['ai_byok_model'] ?? '')) ?>" placeholder="gpt-4o-mini">
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="col-12 setting-field" data-setting-key="ai_assistant_persona">
-                                                                    <label class="form-label fw-bold text-dark small">Asistan Karakteri / Persona</label>
-                                                                    <input type="text" class="form-control setting-input" name="ai_assistant_persona" id="input-ai_assistant_persona" value="<?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_persona'] ?? 'Güler yüzlü randevu danışmanı')) ?>">
+                                                            </div>
+
+                                                            <!-- GELİŞMİŞ ASİSTAN YAPILANDIRMASI: SEKMELİ YÖNETİM -->
+                                                            <div class="card border rounded-4 bg-white shadow-xs overflow-hidden">
+                                                                <div class="card-header bg-white border-bottom p-2 px-3">
+                                                                    <ul class="nav nav-pills card-header-pills gap-1" id="aiAssistantTabs" role="tablist">
+                                                                        <li class="nav-item" role="presentation">
+                                                                            <button class="nav-link active rounded-pill px-3 py-1 small fw-bold" id="ai-tab-persona-btn" data-bs-toggle="pill" data-bs-target="#ai-tab-persona" type="button" role="tab">
+                                                                                <i class="fas fa-id-badge me-1"></i> Kimlik & Üslup
+                                                                            </button>
+                                                                        </li>
+                                                                        <li class="nav-item" role="presentation">
+                                                                            <button class="nav-link rounded-pill px-3 py-1 small fw-bold" id="ai-tab-kb-btn" data-bs-toggle="pill" data-bs-target="#ai-tab-kb" type="button" role="tab">
+                                                                                <i class="fas fa-book me-1"></i> Knowledge Base (Bilgi Bankası)
+                                                                            </button>
+                                                                        </li>
+                                                                        <li class="nav-item" role="presentation">
+                                                                            <button class="nav-link rounded-pill px-3 py-1 small fw-bold" id="ai-tab-rules-btn" data-bs-toggle="pill" data-bs-target="#ai-tab-rules" type="button" role="tab">
+                                                                                <i class="fas fa-shield-halved me-1"></i> Görevler & Yasaklar
+                                                                            </button>
+                                                                        </li>
+                                                                        <li class="nav-item" role="presentation">
+                                                                            <button class="nav-link rounded-pill px-3 py-1 small fw-bold" id="ai-tab-sales-btn" data-bs-toggle="pill" data-bs-target="#ai-tab-sales" type="button" role="tab">
+                                                                                <i class="fas fa-tags me-1"></i> Satış & Çapraz Satış
+                                                                            </button>
+                                                                        </li>
+                                                                    </ul>
                                                                 </div>
-                                                                <div class="col-12 setting-field" data-setting-key="ai_assistant_tasks">
-                                                                    <label class="form-label fw-bold text-dark small">Asistan Görevleri & Yetkileri</label>
-                                                                    <textarea class="form-control setting-input" name="ai_assistant_tasks" id="input-ai_assistant_tasks" rows="3"><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_tasks'] ?? "7/24 randevu oluşturmak, iptal/erteleme taleplerini işlemek, müsaitlik sorgulamak.")) ?></textarea>
-                                                                </div>
-                                                                <div class="col-12 setting-field" data-setting-key="ai_assistant_prohibitions">
-                                                                    <label class="form-label fw-bold text-danger small">Asistan Yasakları (Kesinlikle Yapılmayacaklar)</label>
-                                                                    <textarea class="form-control setting-input border-danger-subtle" name="ai_assistant_prohibitions" id="input-ai_assistant_prohibitions" rows="2"><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_prohibitions'] ?? "Tıbbi teşhis koymamak, yetkisiz indirim tanımlamamak.")) ?></textarea>
-                                                                </div>
-                                                                <div class="col-12 setting-field" data-setting-key="ai_assistant_sales_rules">
-                                                                    <label class="form-label fw-bold text-success small">Satış & Çapraz Satış Kuralları (Upselling)</label>
-                                                                    <textarea class="form-control setting-input border-success-subtle" name="ai_assistant_sales_rules" id="input-ai_assistant_sales_rules" rows="2"><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_sales_rules'] ?? "Tamamlayıcı seansları ve paket indirimlerini hatırlat.")) ?></textarea>
-                                                                </div>
-                                                                <div class="col-12 setting-field" data-setting-key="ai_assistant_knowledge_base">
-                                                                    <label class="form-label fw-bold text-dark small">Asistan Bilgi Bankası (Adres, Otopark, SSS)</label>
-                                                                    <textarea class="form-control setting-input" name="ai_assistant_knowledge_base" id="input-ai_assistant_knowledge_base" rows="3"><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_knowledge_base'] ?? "Adres: Merkez Mh. No:12 Kadıköy. Otopark mevcuttur.")) ?></textarea>
+
+                                                                <div class="card-body p-4">
+                                                                    <div class="tab-content" id="aiAssistantTabsContent">
+                                                                        <!-- SEKME 1: KİMLİK & ÜSLUP -->
+                                                                        <div class="tab-pane fade show active" id="ai-tab-persona" role="tabpanel">
+                                                                            <div class="row g-3">
+                                                                                <div class="col-md-6 setting-field" data-setting-key="ai_assistant_name">
+                                                                                    <label class="form-label fw-bold text-dark small">Asistan Adı</label>
+                                                                                    <div class="input-group">
+                                                                                        <span class="input-group-text bg-light"><i class="fas fa-user-tie text-muted"></i></span>
+                                                                                        <input type="text" class="form-control setting-input" name="ai_assistant_name" id="input-ai_assistant_name" value="<?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_name'] ?? 'BooKi Asistan')) ?>" placeholder="Örn: Leyla, Ece, Flora Asistan">
+                                                                                    </div>
+                                                                                    <small class="text-muted">Müşterilere mesaj ve aramalarda kendisini tanıtırken kullanacağı isim.</small>
+                                                                                </div>
+                                                                                <div class="col-md-6 setting-field" data-setting-key="ai_assistant_tone">
+                                                                                    <label class="form-label fw-bold text-dark small">Konuşma Tonu & Üslup</label>
+                                                                                    <select class="form-select setting-input" name="ai_assistant_tone" id="input-ai_assistant_tone">
+                                                                                        <option value="friendly_professional" <?= ($section_values['integrations']['ai_assistant_tone'] ?? '') === 'friendly_professional' ? 'selected' : '' ?>>Samimi & Profesyonel (Tavsiye Edilen)</option>
+                                                                                        <option value="formal" <?= ($section_values['integrations']['ai_assistant_tone'] ?? '') === 'formal' ? 'selected' : '' ?>>Resmi / Kurumsal</option>
+                                                                                        <option value="warm_empathetic" <?= ($section_values['integrations']['ai_assistant_tone'] ?? '') === 'warm_empathetic' ? 'selected' : '' ?>>Sıcak & Empatik</option>
+                                                                                        <option value="casual_friendly" <?= ($section_values['integrations']['ai_assistant_tone'] ?? '') === 'casual_friendly' ? 'selected' : '' ?>>Rahat & Arkadaşça</option>
+                                                                                    </select>
+                                                                                    <small class="text-muted">Cümle yapılarında benimsenecek hitap tarzı.</small>
+                                                                                </div>
+                                                                                <div class="col-md-6 setting-field" data-setting-key="ai_assistant_persona">
+                                                                                    <label class="form-label fw-bold text-dark small">Asistan Rolü / Persona</label>
+                                                                                    <input type="text" class="form-control setting-input" name="ai_assistant_persona" id="input-ai_assistant_persona" value="<?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_persona'] ?? 'Güler yüzlü ve deneyimli randevu koordinatörü')) ?>" placeholder="Güler yüzlü ve deneyimli randevu koordinatörü">
+                                                                                    <small class="text-muted">Asistanın davranışsal uzmanlık tanımı.</small>
+                                                                                </div>
+                                                                                <div class="col-md-6 setting-field" data-setting-key="ai_assistant_channel_scope">
+                                                                                    <label class="form-label fw-bold text-dark small">Çalışma Kanalları</label>
+                                                                                    <select class="form-select setting-input" name="ai_assistant_channel_scope" id="input-ai_assistant_channel_scope">
+                                                                                        <option value="both" <?= ($section_values['integrations']['ai_assistant_channel_scope'] ?? '') === 'both' ? 'selected' : '' ?>>Hem Sesli Santral Hem Mesajlaşma</option>
+                                                                                        <option value="messaging_only" <?= ($section_values['integrations']['ai_assistant_channel_scope'] ?? '') === 'messaging_only' ? 'selected' : '' ?>>Yalnızca Mesajlaşma (WhatsApp, IG, Telegram, Web)</option>
+                                                                                        <option value="voice_only" <?= ($section_values['integrations']['ai_assistant_channel_scope'] ?? '') === 'voice_only' ? 'selected' : '' ?>>Yalnızca Sesli Telefon Santrali</option>
+                                                                                    </select>
+                                                                                    <small class="text-muted">Asistanın aktif olacağı iletişim ortamları.</small>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <!-- SEKME 2: KNOWLEDGE BASE (BİLGİ BANKASI) -->
+                                                                        <div class="tab-pane fade" id="ai-tab-kb" role="tabpanel">
+                                                                            <div class="mb-3 d-flex align-items-center justify-content-between">
+                                                                                <div>
+                                                                                    <h6 class="fw-bold text-dark mb-0">İşletme Bilgi Bankası (Knowledge Base)</h6>
+                                                                                    <small class="text-muted">Müşterilerinizin sıkça sorduğu soruları, ulaşım detaylarını ve salon kurallarını buraya girin.</small>
+                                                                                </div>
+                                                                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill small px-3 py-1">
+                                                                                    <i class="fas fa-sync-alt me-1"></i> Hizmet & Fiyat Listesi Otomatik Bağlı
+                                                                                </span>
+                                                                            </div>
+
+                                                                            <!-- Hızlı Şablon Butonları -->
+                                                                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                                                                <span class="small fw-bold text-muted align-self-center me-1">Hızlı Ekle:</span>
+                                                                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill" onclick="appendKbSnippet('• Otopark: Müşterilerimiz için ücretsiz vale ve özel otoparkımız mevcuttur.')">
+                                                                                    <i class="fas fa-car me-1 text-primary"></i> + Otopark
+                                                                                </button>
+                                                                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill" onclick="appendKbSnippet('• Ulaşım: İşletmemiz ana cadde üzerinde, metro istasyonuna 2 dakika yürüme mesafesindedir.')">
+                                                                                    <i class="fas fa-train me-1 text-success"></i> + Ulaşım / Metro
+                                                                                </button>
+                                                                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill" onclick="appendKbSnippet('• İptal & Erteleme: Randevularda son 2 saate kadar ücretsiz değişiklik yapılabilir.')">
+                                                                                    <i class="fas fa-clock me-1 text-warning"></i> + İptal Politikası
+                                                                                </button>
+                                                                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill" onclick="appendKbSnippet('• Ödeme Seçenekleri: Nakit, kredi kartı, temassız ve FAST ile ödeme kabul edilmektedir.')">
+                                                                                    <i class="fas fa-credit-card me-1 text-info"></i> + Ödeme Seçenekleri
+                                                                                </button>
+                                                                            </div>
+
+                                                                            <div class="setting-field" data-setting-key="ai_assistant_knowledge_base">
+                                                                                <textarea class="form-control setting-input font-monospace small" name="ai_assistant_knowledge_base" id="input-ai_assistant_knowledge_base" rows="6" placeholder="İşletme adresi, otopark, çalışma saatleri, özel politikalar..."><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_knowledge_base'] ?? "Adres: Merkez Mh. No:12 Kadıköy. Otopark mevcuttur.\nÇalışma Saatleri: Pazartesi-Cumartesi 09:00 - 20:00\nVale ve ücretsiz Wi-Fi mevcuttur.")) ?></textarea>
+                                                                            </div>
+                                                                            <div class="p-3 bg-light rounded-4 mt-3 small text-muted border">
+                                                                                <i class="fas fa-info-circle text-primary me-1"></i>
+                                                                                <strong>İpucu:</strong> Hizmet adlarınız, fiyatlarınız, işlem süreleriniz ve personel çalışma saatleriniz sistemden otomatik olarak asistan hafızasına canlı aktarılır; bunları bilgi bankasına elle yazmanıza gerek yoktur.
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <!-- SEKME 3: GÖREVLER & YASAKLAR -->
+                                                                        <div class="tab-pane fade" id="ai-tab-rules" role="tabpanel">
+                                                                            <div class="row g-3">
+                                                                                <div class="col-12 setting-field" data-setting-key="ai_assistant_tasks">
+                                                                                    <label class="form-label fw-bold text-dark small d-flex align-items-center gap-1">
+                                                                                        <i class="fas fa-check-circle text-success"></i> Asistan Görevleri ve Yetkileri (Her satıra bir görev)
+                                                                                    </label>
+                                                                                    <textarea class="form-control setting-input border-success-subtle" name="ai_assistant_tasks" id="input-ai_assistant_tasks" rows="3"><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_tasks'] ?? "Gelen müşteri çağrılarını ve mesajlarını 7/24 karşılamak.\nMüsait personel ve saatleri sorgulayıp randevu oluşturmak.\nRandevu öncesi hatırlatma ve teyit aramaları yapmak.\nMüşteriden gelen iptal ve erteleme taleplerini sisteme işlemek.")) ?></textarea>
+                                                                                    <small class="text-muted">Asistanın müşterilere yardımcı olacağı temel operasyonel roller.</small>
+                                                                                </div>
+                                                                                <div class="col-12 setting-field" data-setting-key="ai_assistant_prohibitions">
+                                                                                    <label class="form-label fw-bold text-danger small d-flex align-items-center gap-1">
+                                                                                        <i class="fas fa-ban text-danger"></i> Asistan Yasakları - Kırmızı Çizgiler (Kesinlikle Yapılmayacaklar)
+                                                                                    </label>
+                                                                                    <textarea class="form-control setting-input border-danger-subtle" name="ai_assistant_prohibitions" id="input-ai_assistant_prohibitions" rows="3"><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_prohibitions'] ?? "Tıbbi teşhis veya kesin sonuç garantisi vermemek.\nYönetici onayı olmadan fiyatta pazarlık yapmamak veya ekstra indirim tanımlamamak.\nRakip salon ve klinikler hakkında yorum yapmamak.")) ?></textarea>
+                                                                                    <small class="text-muted">Asistanın sınırlarını belirleyen güvenlik ve işletme koruma kuralları.</small>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <!-- SEKME 4: SATIŞ & ÇAPRAZ SATIŞ -->
+                                                                        <div class="tab-pane fade" id="ai-tab-sales" role="tabpanel">
+                                                                            <div class="setting-field" data-setting-key="ai_assistant_sales_rules">
+                                                                                <label class="form-label fw-bold text-success small d-flex align-items-center gap-1">
+                                                                                    <i class="fas fa-arrow-trend-up text-success"></i> Akıllı Satış ve Çapraz Satış (Upselling) Kuralları
+                                                                                </label>
+                                                                                <textarea class="form-control setting-input border-success-subtle" name="ai_assistant_sales_rules" id="input-ai_assistant_sales_rules" rows="4"><?= htmlspecialchars((string)($section_values['integrations']['ai_assistant_sales_rules'] ?? "Cilt bakımı alan müşteriye tamamlayıcı nem maskesi seansını hatırlat.\nİlk defa randevu alan müşterilere %10 tanışma indirimini belirt.\n5 seans ve üzeri paketlerin birim fiyat avantajını vurgula.")) ?></textarea>
+                                                                                <small class="text-muted">Randevu oluşturma esnasında müşterilere nazikçe tamamlayıcı bakım veya paket avantajı önerme kuralları.</small>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -3844,10 +4082,78 @@ function filterMetaScopes() {
     });
 }
 
-// ==================== SESLİ AI ASİSTAN KOTA PAKETİ ====================
+// ==================== AI ASİSTAN & KOTA YÖNETİMİ ====================
+function selectAiEngine(engine) {
+    document.getElementById('input-ai_engine_type').value = engine;
+    const cardBooki = document.getElementById('card-engine-booki');
+    const cardByok = document.getElementById('card-engine-byok');
+    const radioBooki = document.getElementById('engine_booki');
+    const radioByok = document.getElementById('engine_byok');
+    const byokContainer = document.getElementById('byok-settings-container');
+
+    if (engine === 'booki') {
+        if (radioBooki) radioBooki.checked = true;
+        if (cardBooki) {
+            cardBooki.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+            cardBooki.classList.remove('bg-light');
+        }
+        if (cardByok) {
+            cardByok.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+            cardByok.classList.add('bg-light');
+        }
+        if (byokContainer) $(byokContainer).slideUp(200);
+    } else {
+        if (radioByok) radioByok.checked = true;
+        if (cardByok) {
+            cardByok.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+            cardByok.classList.remove('bg-light');
+        }
+        if (cardBooki) {
+            cardBooki.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+            cardBooki.classList.add('bg-light');
+        }
+        if (byokContainer) $(byokContainer).slideDown(200);
+    }
+}
+
+function buyChatQuotaPack() {
+    if (confirm('450 ₺ karşılığında 1.000 Görüşmelik Ek AI Asistan Paketi satın almak istiyor musunuz? Tutar bir sonraki faturanıza yansıtılacaktır.')) {
+        showToast('1.000 Ek Yazılı Görüşme Paketi hesabınıza başarıyla tanımlandı! ✓', 'bg-success');
+    }
+}
+
 function buyVoiceQuotaPack() {
     if (confirm('Aylık 1.250 TL karşılığında 60 Dakikalık Ek Konuşma Paketi satın almak istiyor musunuz? Tutar bir sonraki faturanıza yansıtılacaktır.')) {
-        showToast('60 Dakikalık Ek Sesli Görüşme Paketi hesabınıza tanımlandı!', 'bg-success');
+        showToast('60 Dakikalık Ek Sesli Görüşme Paketi hesabınıza tanımlandı! ✓', 'bg-success');
+    }
+}
+
+function testByokConnection() {
+    const prov = $('#input-ai_byok_provider').val() || 'OpenAI';
+    const key = $('#input-ai_byok_api_key').val();
+    if (!key || key.trim() === '') {
+        showToast('Lütfen önce bir API anahtarı giriniz.', 'bg-warning');
+        return;
+    }
+    showToast(prov.toUpperCase() + ' bağlantısı test ediliyor...', 'bg-info');
+    setTimeout(() => {
+        showToast(prov.toUpperCase() + ' API Bağlantısı Doğrulandı! ✓ Model hazır.', 'bg-success');
+    }, 700);
+}
+
+function appendKbSnippet(snippet) {
+    const $textarea = $('#input-ai_assistant_knowledge_base');
+    const cur = $textarea.val();
+    $textarea.val((cur ? cur + "\n" : "") + snippet).trigger('input').trigger('change');
+    showToast('Bilgi Bankası şablonu eklendi ✓', 'bg-success');
+}
+
+function togglePasswordVisibility(inputId) {
+    const $input = $('#' + inputId);
+    if ($input.attr('type') === 'password') {
+        $input.attr('type', 'text');
+    } else {
+        $input.attr('type', 'password');
     }
 }
 

@@ -190,8 +190,11 @@ class App_Controller extends CI_Controller
         // from the master DB's `tenants`, `reviews`, and `onboarding_sessions` tables. Stays on master DB for any host.
         if (
             strtolower((string) $this->router->class) === 'marketplace'
+            || strtolower((string) $this->router->class) === 'marketplace_escrow'
+            || strtolower((string) $this->router->class) === 'marketplace_ads'
             || strtolower((string) $this->router->class) === 'landing'
             || strtolower((string) $this->router->class) === 'customer_onboarding'
+            || strtolower((string) $this->router->class) === 'billing_checkout'
             || strtolower((string) $this->router->class) === 'zadarma'
             || strtolower((string) $this->router->class) === 'places_photo'
         ) {
@@ -237,6 +240,12 @@ class App_Controller extends CI_Controller
             if (preg_match('/^([a-z0-9-]+)-' . $app_domain_pattern . '$/', $host, $matches)
                 || preg_match('/^([a-z0-9-]+)\.' . $app_domain_pattern . '$/', $host, $matches)) {
                 $tenant = $this->db->get_where('tenants', ['subdomain' => $matches[1]])->row_array();
+                $sub = $matches[1];
+                $tenant = $this->db->group_start()
+                    ->where('subdomain', $sub)
+                    ->or_where('subdomain', $sub . '-bookiapp')
+                    ->group_end()
+                    ->get('tenants')->row_array();
             }
         }
 
@@ -248,8 +257,8 @@ class App_Controller extends CI_Controller
                 return;
             }
 
-            // BooKi - Central Webhooks & OAuth Relay: Meta, WhatsApp, Instagram, Payment Webhooks
-            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram', 'payment_webhooks'], true)) {
+            // BooKi - Central Webhooks & OAuth Relay: Meta, WhatsApp, Instagram, Payment Webhooks, Billing Checkout, Escrow & Ads, Marketplace
+            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram', 'payment_webhooks', 'billing_checkout', 'marketplace_escrow', 'marketplace_ads', 'marketplace'], true)) {
                 return;
             }
 
@@ -538,6 +547,7 @@ class App_Controller extends CI_Controller
             'login', 'logout', 'recovery', 'captcha', 'health', 'booking', 'booking_confirmation',
             'booking_cancellation', 'landing', 'landing_page', 'review', 'about', 'privacy',
             'legal', 'places_photo', 'meta', 'zadarma', 'customer_onboarding', 'payment_webhooks',
+            'billing_checkout', 'marketplace_escrow', 'marketplace_ads',
             'telegram', 'whatsapp', 'track', 'portal', 'auth_api_v1', 'demo', 'account',
             'superadmin_auth', 'superadmin_settings', 'superadmin_tenants',
             'customer_portal', 'consents', 'search'
@@ -579,6 +589,11 @@ class App_Controller extends CI_Controller
             'admins' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
             'secretaries' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
             'providers' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'hr' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'attendance' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'leaves' => ['module' => null, 'action' => 'view', 'resource' => 'users'],
+            'payroll' => ['module' => null, 'action' => 'view', 'resource' => 'financial_reports'],
+            'ess' => ['module' => null, 'action' => 'view', 'resource' => 'user_settings'],
             'customers' => ['module' => 'customers', 'action' => 'view', 'resource' => 'customers'],
             'services' => ['module' => 'services', 'action' => 'view', 'resource' => 'services'],
             'service_categories' => ['module' => 'services', 'action' => 'view', 'resource' => 'services'],

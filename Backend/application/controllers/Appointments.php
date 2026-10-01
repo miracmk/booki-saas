@@ -639,4 +639,155 @@ class Appointments extends App_Controller
             json_exception($e);
         }
     }
+
+    /**
+     * Get digital waivers / consents status for an appointment.
+     */
+    public function get_consents(int $appointment_id): void
+    {
+        try {
+            method('get');
+            if (cannot('view', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $this->load->model('digital_waivers_model');
+            $this->load->library('legal_catalog');
+
+            $appt = $this->appointments_model->find($appointment_id);
+            if (!$appt) {
+                throw new InvalidArgumentException('Randevu bulunamadı.');
+            }
+
+            $service_id = (int) $appt['id_services'];
+            $service = $this->services_model->find($service_id);
+            $customer = $this->customers_model->find((int) $appt['id_users_customer']);
+            $provider = !empty($appt['id_users_provider']) ? $this->providers_model->find((int) $appt['id_users_provider']) : null;
+
+            // Existing signatures
+            $signatures = $this->digital_waivers_model->get_appointment_signatures($appointment_id);
+            $signed_waiver_ids = array_map(function ($s) {
+                return (int) $s['id_waivers'];
+            }, $signatures);
+
+            // Matched templates for this service
+            $waivers = $this->db->get('digital_waivers')->result_array();
+            $items = [];
+
+            $service_category_name = '';
+            if (!empty($service['id_service_categories'])) {
+                $cat = $this->service_categories_model->find((int)$service['id_service_categories']);
+                $service_category_name = $cat['name'] ?? '';
+            }
+
+            $start_dt = $appt['start_datetime'] ?? null;
+            $appt_date = $start_dt ? date('d.m.Y', strtotime($start_dt)) : date('d.m.Y');
+            $appt_time = $start_dt ? date('H:i', strtotime($start_dt)) : date('H:i');
+
+            $context = [
+                'customer_full_name' => trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')),
+                'customer_phone' => $customer['phone_number'] ?? '',
+                'customer_email' => $customer['email'] ?? '',
+                'service_name' => $service['name'] ?? 'Hizmet',
+                'service_category' => $service_category_name,
+                'service_price' => (float)($service['price'] ?? 0),
+                'provider_name' => $provider ? trim($provider['first_name'] . ' ' . $provider['last_name']) : 'Merkez Uzmanı',
+                'appointment_date' => $appt_date,
+                'appointment_time' => $appt_time,
+                'appointment_datetime' => $appt_date . ' ' . $appt_time,
+                'tenant_name' => setting('company_name') ?: 'BooKi İşletmesi',
+                'tenant_legal_name' => setting('company_name') ?: 'BooKi İşletmesi',
+            ];
+
+            foreach ($waivers as $w) {
+                $service_ids_str = (string) ($w['applicable_service_ids'] ?? '');
+                $service_ids = array_filter(array_map('trim', explode(',', $service_ids_str)));
+
+                $is_applicable = in_array((string)$service_id, $service_ids, true);
+                if (!$is_applicable && empty($service_ids_str) && str_contains(mb_strtolower($w['title'], 'UTF-8'), 'kvkk')) {
+                    $is_applicable = true;
+                }
+
+                if ($is_applicable || in_array((int)$w['id'], $signed_waiver_ids, true)) {
+                    $sig = null;
+                    foreach ($signatures as $s) {
+                        if ((int)$s['id_waivers'] === (int)$w['id']) {
+                            $sig = $s;
+                            break;
+                        }
+                    }
+
+                    $compiled_html = $this->legal_catalog->compile($w['content_html'], $context);
+
+                    $items[] = [
+                        'waiver_id' => (int) $w['id'],
+                        'title' => $w['title'],
+                        'is_mandatory' => (bool) $w['is_mandatory'],
+                        'is_signed' => $sig !== null,
+                        'signature' => $sig,
+                        'compiled_html' => $sig ? ($sig['compiled_content_html'] ?: $compiled_html) : $compiled_html,
+                    ];
+                }
+            }
+
+            json_response([
+                'success' => true,
+                'consents' => $items,
+                'signed_count' => count($signatures),
+                'total_count' => count($items),
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
+
+    /**
+     * Sign a consent form for an appointment directly from staff admin panel.
+     */
+    public function sign_consent(): void
+    {
+        try {
+            method('post');
+            if (cannot('edit', PRIV_APPOINTMENTS)) {
+                abort(403, 'Forbidden');
+            }
+
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $appointment_id = (int) ($data['appointment_id'] ?? 0);
+            $waiver_id = (int) ($data['waiver_id'] ?? 0);
+            $signature_data = $data['signature_data'] ?? 'data:text/plain;base64,' . base64_encode('STAFF_VERIFIED_CONSENT');
+            $compiled_html = $data['compiled_content_html'] ?? null;
+
+            if (!$appointment_id || !$waiver_id) {
+                throw new InvalidArgumentException('Geçersiz randevu veya onam formu ID.');
+            }
+
+            $appt = $this->appointments_model->find($appointment_id);
+            if (!$appt) {
+                throw new InvalidArgumentException('Randevu bulunamadı.');
+            }
+
+            $customer = $this->customers_model->find((int) $appt['id_users_customer']);
+            $signer_name = $customer ? trim($customer['first_name'] . ' ' . $customer['last_name']) : 'Danışan';
+
+            $this->load->model('digital_waivers_model');
+            $sig_id = $this->digital_waivers_model->sign_waiver([
+                'id_waivers' => $waiver_id,
+                'id_appointments' => $appointment_id,
+                'id_users_customer' => (int) $appt['id_users_customer'],
+                'signer_full_name' => $signer_name,
+                'signer_email' => $customer['email'] ?? null,
+                'signer_phone' => $customer['phone_number'] ?? null,
+                'signature_data' => $signature_data,
+                'signature_type' => str_starts_with($signature_data, 'data:image') ? 'canvas_biometric' : 'staff_assisted',
+                'compiled_content_html' => $compiled_html,
+                'ip_address' => $this->input->ip_address(),
+            ]);
+
+            json_response(['success' => true, 'signature_id' => $sig_id]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
+    }
 }
+

@@ -176,7 +176,9 @@ class Messaging_settings_model extends App_Model
             'smtp_user', 'smtp_pass'];
 
         foreach ($plaintext_fields as $field) {
-            if (isset($data[$field]) && $data[$field] !== '') {
+            if (array_key_exists($field, $data) && $data[$field] === null) {
+                $to_update[$field] = null;
+            } elseif (isset($data[$field]) && $data[$field] !== '') {
                 $to_update[$field] = $data[$field];
             } elseif (isset($existing[$field])) {
                 $to_update[$field] = $existing[$field];
@@ -184,7 +186,9 @@ class Messaging_settings_model extends App_Model
         }
 
         foreach ($encrypted_fields as $field) {
-            if (isset($data[$field]) && $data[$field] !== '') {
+            if (array_key_exists($field, $data) && $data[$field] === null) {
+                $to_update[$field] = null;
+            } elseif (isset($data[$field]) && $data[$field] !== '') {
                 $to_update[$field] = sf_pii_encrypt($data[$field]);
             } elseif (isset($existing[$field]) && !sf_pii_is_encrypted($existing[$field])) {
                 // If existing is plaintext (shouldn't happen, but safe fallback), encrypt it now

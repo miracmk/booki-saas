@@ -1012,6 +1012,20 @@ $lang['follow_up_service_stats_title'] = 'Hizmet Bazlı Takip Gerekliliği';
 $lang['follow_up_critical_count'] = 'Kritik (Tıbbi)';
 $lang['follow_up_standard_count'] = 'Standart (Varsayılan Açık)';
 $lang['follow_up_optional_count'] = 'Opsiyonel (Marketing)';
-$lang['follow_up_required_total'] = 'Takip Zorunlu Hizmet';
+// Enterprise HRMS Translations
+$lang['hr_management'] = 'İnsan Kaynakları & Kadro';
+$lang['departments'] = 'Departmanlar';
+$lang['designations'] = 'Unvanlar';
+$lang['employee_profiles'] = 'Özlük Bilgileri';
+$lang['documents_vault'] = 'Dijital Evrak Kasası';
+$lang['attendance_tracking'] = 'PDKS & Devamsızlık';
+$lang['shifts_roster'] = 'Vardiyalar & Çizelgeleme';
+$lang['leave_management'] = 'İzin Yönetimi';
+$lang['payroll_management'] = 'Bordro & Maaş';
+$lang['advances_claims'] = 'Avans Talepleri';
+$lang['expenses_claims'] = 'Masraf Bildirimleri';
+$lang['asset_custody'] = 'Zimmet & Varlıklar';
+$lang['recruitment_ats'] = 'İşe Alım (ATS)';
+$lang['employee_self_service'] = 'Personel Portalı (ESS)';
 
 

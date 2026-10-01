@@ -132,7 +132,8 @@ const log = pino({ level: process.env.LOG_LEVEL || 'info' });
 export function resolveSessionTenant(tenant) {
     if (!tenant) return tenant;
     const t = String(tenant).toLowerCase().trim();
-    if (t === 'demo' || t.startsWith('demo-') || t.includes('_sb') || t.includes('-sb') || t === 'booki-demo') {
+    if (t === 'demo' || t.startsWith('demo-') || t.includes('_sb') || t.includes('-sb') || t === 'booki-demo' ||
+        t === 'salonflora' || t === 'guzellik' || t === 'demo-guzellik' || t === 'guzellik-bookiapp' || t.includes('guzellik')) {
         return 'salonflora';
     }
     return tenant;

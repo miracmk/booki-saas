@@ -798,13 +798,39 @@ App.Pages.Services = (function () {
             });
         });
 
-        // Contract preview button
+        // Variable insert buttons in contract modal
+        $(document).on('click', '.btn-contract-var', function () {
+            const varTag = $(this).data('var');
+            const $txt = $('#contract-content-input');
+            const curVal = $txt.val();
+            $txt.val(curVal + (curVal.length && !curVal.endsWith(' ') ? ' ' : '') + varTag + ' ');
+            $txt.focus();
+        });
+
+        // Contract preview button with dynamic live placeholder rendering
         $(document).on('click', '.btn-preview-contract', function () {
-            const title = $(this).data('title');
-            const content = $(this).data('content');
-            $('#contract-preview-title').html('<i class="fas fa-file-contract text-primary me-2"></i>' + escapeHtml(title));
-            $('#contract-preview-body').html(content || '<p class="text-muted">Metin içeriği bulunmuyor.</p>');
+            const contractId = $(this).data('contract-id');
+            const serviceId = $id.val() || 0;
+            const fallbackTitle = $(this).data('title') || 'Sözleşme / Onam Formu';
+            const fallbackContent = $(this).data('content') || '';
+
+            $('#contract-preview-title').html('<i class="fas fa-file-signature text-primary me-2"></i>' + escapeHtml(fallbackTitle));
+            $('#contract-preview-body').html('<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Müşteri canlı verileri derleniyor...</div>');
+            $('#contract-preview-raw').text(fallbackContent);
             showModal('modal-contract-preview');
+
+            if (contractId) {
+                $.get(App.Utils.Url.siteUrl('services/preview_contract/' + contractId + '/' + serviceId))
+                    .done((res) => {
+                        if (res && res.success) {
+                            $('#contract-preview-body').html(res.rendered_html);
+                            $('#contract-preview-raw').text(res.raw_content);
+                        }
+                    })
+                    .fail(() => {
+                        $('#contract-preview-body').html(fallbackContent || '<p class="text-muted">Metin içeriği bulunmuyor.</p>');
+                    });
+            }
         });
 
         // Add contract modal opener
@@ -839,7 +865,7 @@ App.Pages.Services = (function () {
                 },
                 success: () => {
                     hideModal('modal-contract-form');
-                    App.Layouts.Backend.displayNotification('Yeni sözleşme şablonu oluşturuldu.');
+                    App.Layouts.Backend.displayNotification('Yeni sözleşme şablonu oluşturuldu ve hizmete bağlandı.');
                     if (serviceId) {
                         loadContracts(serviceId);
                     }
@@ -847,6 +873,125 @@ App.Pages.Services = (function () {
                 error: (xhr) => {
                     const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Sözleşme kaydedilemedi.';
                     alert(msg);
+                }
+            });
+        });
+
+        // Open Legal Catalog modal
+        let loadedCatalogData = [];
+        $('#btn-catalog-contract-modal').on('click', () => {
+            showModal('modal-catalog-contract');
+            loadLegalCatalog();
+        });
+
+        function loadLegalCatalog() {
+            const $container = $('#catalog-templates-container');
+            $container.html('<div class="text-center py-5 text-muted col-12"><i class="fas fa-spinner fa-spin fa-2x mb-2"></i><br>Sektörel onam kataloğu yükleniyor...</div>');
+
+            $.get(App.Utils.Url.siteUrl('services/get_legal_catalog'))
+                .done((res) => {
+                    loadedCatalogData = (res && res.catalog) ? res.catalog : [];
+                    renderCatalogCards(loadedCatalogData);
+                })
+                .fail(() => {
+                    $container.html('<div class="alert alert-danger col-12">Katalog yüklenirken bir hata oluştu.</div>');
+                });
+        }
+
+        function renderCatalogCards(items) {
+            const $container = $('#catalog-templates-container');
+            $container.empty();
+
+            if (!items.length) {
+                $container.html('<div class="text-center py-5 text-muted col-12">Arama kriterlerine uygun şablon bulunamadı.</div>');
+                return;
+            }
+
+            items.forEach((item) => {
+                const card = `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border shadow-sm p-3 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start gap-1 mb-2">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">${escapeHtml(item.category)}</span>
+                                    <span class="badge ${item.is_mandatory ? 'bg-danger-subtle text-danger' : 'bg-secondary-subtle text-secondary'} small">
+                                        ${item.is_mandatory ? 'Zorunlu' : 'İsteğe Bağlı'}
+                                    </span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">${escapeHtml(item.title)}</h6>
+                                <p class="small text-muted mb-2" style="font-size: 0.8rem; min-height: 40px;">${escapeHtml(item.description || '')}</p>
+                                <div class="small text-secondary mb-3" style="font-size: 0.75rem;">
+                                    <i class="fas fa-book-medical text-info me-1"></i>Kaynak: <em>${escapeHtml(item.source_reference || 'Resmi Mevzuat')}</em>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 pt-2 border-top">
+                                <button type="button" class="btn btn-sm btn-outline-secondary w-50 btn-quick-preview-catalog" 
+                                        data-title="${escapeHtml(item.title)}" 
+                                        data-content="${escapeHtml(item.content_html)}">
+                                    <i class="fas fa-eye me-1"></i>İncele
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success w-50 btn-import-catalog-item" data-code="${escapeHtml(item.code)}">
+                                    <i class="fas fa-plus-circle me-1"></i>Hizmete Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $container.append(card);
+            });
+        }
+
+        // Filter catalog cards
+        $('#catalog-search-input, #catalog-category-filter').on('input change', function () {
+            const q = ($('#catalog-search-input').val() || '').toLowerCase();
+            const cat = $('#catalog-category-filter').val();
+
+            const filtered = loadedCatalogData.filter((item) => {
+                const matchQ = !q || item.title.toLowerCase().includes(q) || (item.description || '').toLowerCase().includes(q) || (item.keywords || []).some(k => k.toLowerCase().includes(q));
+                const matchCat = !cat || item.category === cat;
+                return matchQ && matchCat;
+            });
+            renderCatalogCards(filtered);
+        });
+
+        // Quick preview from catalog
+        $(document).on('click', '.btn-quick-preview-catalog', function () {
+            const title = $(this).data('title');
+            const content = $(this).data('content');
+            $('#contract-preview-title').html('<i class="fas fa-file-contract text-primary me-2"></i>' + escapeHtml(title));
+            $('#contract-preview-body').html(content);
+            $('#contract-preview-raw').text(content);
+            showModal('modal-contract-preview');
+        });
+
+        // Import template from catalog to current service
+        $(document).on('click', '.btn-import-catalog-item', function () {
+            const code = $(this).data('code');
+            const serviceId = $id.val();
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Ekleniyor...');
+
+            $.ajax({
+                url: App.Utils.Url.siteUrl('services/import_catalog_template'),
+                type: 'POST',
+                data: {
+                    csrf_token: vars('csrf_token'),
+                    code: code,
+                    service_id: Number(serviceId || 0)
+                },
+                success: () => {
+                    hideModal('modal-catalog-contract');
+                    App.Layouts.Backend.displayNotification('Şablon başarıyla eklendi ve bu hizmete bağlandı! ✓', 'success');
+                    if (serviceId) {
+                        loadContracts(serviceId);
+                    }
+                },
+                error: (xhr) => {
+                    const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Şablon eklenemedi.';
+                    alert(msg);
+                },
+                complete: () => {
+                    $btn.prop('disabled', false).html('<i class="fas fa-plus-circle me-1"></i>Hizmete Ekle');
                 }
             });
         });
@@ -1384,7 +1529,8 @@ App.Pages.Services = (function () {
                                 </div>
                             </td>
                             <td>
-                                <button type="button" class="btn btn-xs btn-outline-info py-1 px-2 btn-preview-contract" 
+                                <button type="button" class="btn btn-xs btn-outline-info py-1 px-2 btn-preview-contract shadow-sm" 
+                                        data-contract-id="${c.id}"
                                         data-title="${escapeHtml(c.title)}" 
                                         data-content="${escapeHtml(c.content_html || '')}">
                                     <i class="fas fa-eye me-1"></i>Metni Gör

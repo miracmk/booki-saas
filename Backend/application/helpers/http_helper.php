@@ -254,18 +254,23 @@ if (!function_exists('method')) {
      */
     function method(string $expected_method): void
     {
-        /** @var App_Controller $CI */
-        $CI = &get_instance();
-
-        $current_method = $CI->input->method();
-        $curr = strtolower((string) $current_method);
-        $exp = strtolower($expected_method);
-
-        if ($curr === 'head' && $exp === 'get') {
+        if (is_cli()) {
             return;
         }
 
-        if ($curr !== $exp) {
+        /** @var App_Controller $CI */
+        $CI = &get_instance();
+
+
+        $current_method = $CI->input->method();
+        $curr = strtolower((string) $current_method);
+        $expected_list = array_map('trim', explode('|', strtolower($expected_method)));
+
+        if ($curr === 'head' && in_array('get', $expected_list, true)) {
+            return;
+        }
+
+        if (!in_array($curr, $expected_list, true)) {
             throw new RuntimeException("Method not allowed. Expected {$expected_method}, got {$current_method}.");
         }
     }

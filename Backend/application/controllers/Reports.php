@@ -76,15 +76,15 @@ class Reports extends App_Controller
     public function get_daily_revenue(): void
     {
         try {
-            method('post');
+            method('post|get');
 
             if (cannot('view', PRIV_REPORTS)) {
                 abort(403, 'Forbidden');
             }
 
-            check('date', 'date');
+            check('date', 'date|null');
 
-            $date = request('date');
+            $date = request('date') ?: date('Y-m-d');
 
             // Faz 3.6 - Extracted revenue calculation to Reports_model for reuse
             $rows = $this->reports_model->get_revenue_rows($date, $date);
@@ -211,7 +211,7 @@ class Reports extends App_Controller
     public function export_csv(): void
     {
         try {
-            method('get');
+            method('get|post');
 
             if (cannot('view', PRIV_REPORTS)) {
                 abort(403, 'Forbidden');
@@ -384,7 +384,7 @@ class Reports extends App_Controller
     public function download_template(): void
     {
         try {
-            method('get');
+            method('get|post');
 
             if (cannot('view', PRIV_REPORTS)) {
                 abort(403, 'Forbidden');
@@ -396,30 +396,30 @@ class Reports extends App_Controller
 
             switch ($template) {
                 case 'aylik_muhasebe':
-                    $_GET['start_date'] = $first_of_month;
-                    $_GET['end_date'] = date('Y-m-t');
-                    $_GET['columns'] = 'date,time,appointment_id,customer_name,service_name,effective_price,payment_status,payment_method,payment_amount,payment_balance,is_invoiced';
+                    $_GET['start_date'] = $_REQUEST['start_date'] = $first_of_month;
+                    $_GET['end_date'] = $_REQUEST['end_date'] = date('Y-m-t');
+                    $_GET['columns'] = $_REQUEST['columns'] = 'date,time,appointment_id,customer_name,service_name,effective_price,payment_status,payment_method,payment_amount,payment_balance,is_invoiced';
                     break;
                 case 'personel_prim':
-                    $_GET['start_date'] = $first_of_month;
-                    $_GET['end_date'] = $today;
-                    $_GET['columns'] = 'date,provider_name,service_name,customer_name,effective_minutes,service_list_price,payout,early_exit_justification';
+                    $_GET['start_date'] = $_REQUEST['start_date'] = $first_of_month;
+                    $_GET['end_date'] = $_REQUEST['end_date'] = $today;
+                    $_GET['columns'] = $_REQUEST['columns'] = 'date,provider_name,service_name,customer_name,effective_minutes,service_list_price,payout,early_exit_justification';
                     break;
                 case 'hizmet_karlilik':
-                    $_GET['start_date'] = date('Y-m-d', strtotime('-30 days'));
-                    $_GET['end_date'] = $today;
-                    $_GET['columns'] = 'date,service_name,provider_name,service_list_price,effective_price,effective_minutes,payment_status';
+                    $_GET['start_date'] = $_REQUEST['start_date'] = date('Y-m-d', strtotime('-30 days'));
+                    $_GET['end_date'] = $_REQUEST['end_date'] = $today;
+                    $_GET['columns'] = $_REQUEST['columns'] = 'date,service_name,provider_name,service_list_price,effective_price,effective_minutes,payment_status';
                     break;
                 case 'odeme_tahsilat':
-                    $_GET['start_date'] = $first_of_month;
-                    $_GET['end_date'] = $today;
-                    $_GET['columns'] = 'date,time,customer_name,payment_method,payment_status,payment_amount,payment_balance,is_invoiced';
+                    $_GET['start_date'] = $_REQUEST['start_date'] = $first_of_month;
+                    $_GET['end_date'] = $_REQUEST['end_date'] = $today;
+                    $_GET['columns'] = $_REQUEST['columns'] = 'date,time,customer_name,payment_method,payment_status,payment_amount,payment_balance,is_invoiced';
                     break;
                 case 'gun_sonu':
                 default:
-                    $_GET['start_date'] = $today;
-                    $_GET['end_date'] = $today;
-                    $_GET['columns'] = 'appointment_id,time,customer_name,customer_phone,provider_name,service_name,service_list_price,payment_status,payment_method,payment_amount,is_invoiced';
+                    $_GET['start_date'] = $_REQUEST['start_date'] = $today;
+                    $_GET['end_date'] = $_REQUEST['end_date'] = $today;
+                    $_GET['columns'] = $_REQUEST['columns'] = 'appointment_id,time,customer_name,customer_phone,provider_name,service_name,service_list_price,payment_status,payment_method,payment_amount,is_invoiced';
                     break;
             }
 
@@ -481,7 +481,7 @@ class Reports extends App_Controller
     public function get_revenue_report(): void
     {
         try {
-            method('post');
+            method('post|get');
 
             [$date_from, $date_to, $group_by, $filters] = $this->analytics_request();
             $rows = $this->reports_model->get_revenue_rows($date_from, $date_to, $filters);
@@ -505,11 +505,25 @@ class Reports extends App_Controller
                 };
 
                 if (!isset($trend[$key])) {
-                    $trend[$key] = ['key' => $key, 'gross' => 0.0, 'net' => 0.0, 'session_count' => 0];
+                    $trend[$key] = [
+                        'key' => $key,
+                        'period' => $key,
+                        'gross' => 0.0,
+                        'total_revenue' => 0.0,
+                        'payout' => 0.0,
+                        'total_payout' => 0.0,
+                        'net' => 0.0,
+                        'session_count' => 0,
+                        'appointments_count' => 0,
+                    ];
                 }
                 $trend[$key]['gross'] += $price;
+                $trend[$key]['total_revenue'] += $price;
+                $trend[$key]['payout'] += $payout;
+                $trend[$key]['total_payout'] += $payout;
                 $trend[$key]['net'] += ($price - $payout);
                 $trend[$key]['session_count']++;
+                $trend[$key]['appointments_count']++;
 
                 $pid = (int) $row['provider_id'];
                 if (!isset($by_provider[$pid])) {
@@ -534,13 +548,15 @@ class Reports extends App_Controller
             $totals['avg_ticket'] = $totals['session_count'] > 0 ? $totals['gross'] / $totals['session_count'] : 0.0;
 
             ksort($trend);
+            $series = array_values($trend);
 
             json_response([
                 'date_from' => $date_from,
                 'date_to' => $date_to,
                 'group_by' => $group_by,
                 'totals' => $totals,
-                'trend' => array_values($trend),
+                'trend' => $series,
+                'series' => $series,
                 'by_provider' => array_values($by_provider),
                 'by_service' => array_values($by_service),
             ]);
@@ -557,7 +573,7 @@ class Reports extends App_Controller
     public function get_utilization_report(): void
     {
         try {
-            method('post');
+            method('post|get');
 
             [$date_from, $date_to, , $filters] = $this->analytics_request();
 
@@ -578,12 +594,15 @@ class Reports extends App_Controller
                 $available_minutes = $this->reports_model->calculate_available_minutes($pid, $date_from, $date_to);
                 $provider = $this->providers_model->find($pid);
 
+                $utilization_rate = $available_minutes > 0 ? round($booked_minutes / $available_minutes * 100, 1) : 0.0;
+
                 $providers_out[] = [
                     'provider_id' => $pid,
                     'provider_name' => $provider ? trim($provider['first_name'] . ' ' . $provider['last_name']) : ('#' . $pid),
                     'booked_minutes' => $booked_minutes,
                     'available_minutes' => $available_minutes,
-                    'utilization_pct' => $available_minutes > 0 ? round($booked_minutes / $available_minutes * 100, 1) : null,
+                    'utilization_pct' => $available_minutes > 0 ? $utilization_rate : null,
+                    'utilization_rate' => $utilization_rate,
                 ];
             }
 
@@ -605,7 +624,7 @@ class Reports extends App_Controller
     public function get_retention_report(): void
     {
         try {
-            method('post');
+            method('post|get');
 
             if (session('role_slug') === DB_SLUG_PROVIDER) {
                 abort(403, 'Forbidden');
@@ -703,7 +722,7 @@ class Reports extends App_Controller
     public function get_consumables_report(): void
     {
         try {
-            method('post');
+            method('post|get');
 
             if (cannot('view', PRIV_REPORTS)) {
                 abort(403, 'Forbidden');

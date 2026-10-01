@@ -651,6 +651,36 @@ class Booking extends App_Controller
 
             $appointment = $this->appointments_model->find($appointment_id);
 
+            // Record digital consent signatures attached to booking
+            if (!empty($post_data['consents_signatures']) && is_array($post_data['consents_signatures'])) {
+                try {
+                    $this->load->model('digital_waivers_model');
+                    $signer_name = trim(($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? ''));
+                    foreach ($post_data['consents_signatures'] as $sig) {
+                        $waiver_id = (int) ($sig['id_waivers'] ?? $sig['id'] ?? 0);
+                        if ($waiver_id > 0) {
+                            $sig_data = !empty($sig['signature_data']) ? $sig['signature_data'] : 'data:text/plain;base64,' . base64_encode('DIGITAL_CONSENT_ACCEPTED');
+                            $sig_type = (str_starts_with($sig_data, 'data:image')) ? 'canvas_biometric' : 'clickwrap_checkbox';
+                            
+                            $this->digital_waivers_model->sign_waiver([
+                                'id_waivers' => $waiver_id,
+                                'id_appointments' => (int) $appointment_id,
+                                'id_users_customer' => (int) $customer_id,
+                                'signer_full_name' => $signer_name ?: 'Danışan',
+                                'signer_email' => $customer['email'] ?? null,
+                                'signer_phone' => $customer['phone_number'] ?? null,
+                                'signature_data' => $sig_data,
+                                'signature_type' => $sig_type,
+                                'compiled_content_html' => $sig['compiled_content_html'] ?? null,
+                                'ip_address' => $customer_ip,
+                            ]);
+                        }
+                    }
+                } catch (Throwable $e) {
+                    log_message('error', 'Waiver signature error during booking: ' . $e->getMessage());
+                }
+            }
+
             // Mark waitlist converted if applicable
             try {
                 if (!empty($customer['id'])) {
@@ -1203,5 +1233,100 @@ class Booking extends App_Controller
         }
 
         return $provider_list;
+    }
+
+    /**
+     * Get and compile personalized digital waivers / consents for the requested booking.
+     */
+    public function get_service_consents(): void
+    {
+        try {
+            method('post');
+
+            $data = json_decode($this->input->raw_input_stream, true) ?: $this->input->post();
+            $service_id = (int) ($data['service_id'] ?? 0);
+            $customer = $data['customer'] ?? [];
+            $appointment = $data['appointment'] ?? [];
+
+            if (!$service_id) {
+                json_response(['success' => true, 'consents' => []]);
+                return;
+            }
+
+            $this->load->library('legal_catalog');
+            $service = $this->services_model->find($service_id);
+            if (!$service) {
+                json_response(['success' => true, 'consents' => []]);
+                return;
+            }
+
+            $service_category_name = '';
+            if (!empty($service['id_service_categories'])) {
+                $category = $this->service_categories_model->find((int)$service['id_service_categories']);
+                $service_category_name = $category['name'] ?? '';
+            }
+
+            $provider_name = 'Merkez Uzmanı';
+            if (!empty($appointment['id_users_provider'])) {
+                $provider = $this->providers_model->find((int)$appointment['id_users_provider']);
+                if ($provider) {
+                    $provider_name = trim($provider['first_name'] . ' ' . $provider['last_name']);
+                }
+            }
+
+            // Find linked waivers from digital_waivers
+            $waivers = $this->db->get('digital_waivers')->result_array();
+            $matched_waivers = [];
+
+            foreach ($waivers as $w) {
+                $service_ids_str = (string) ($w['applicable_service_ids'] ?? '');
+                $service_ids = array_filter(array_map('trim', explode(',', $service_ids_str)));
+
+                // Check direct link or universal KVKK
+                $is_linked = in_array((string)$service_id, $service_ids, true);
+                if (!$is_linked && (empty($service_ids_str) && str_contains(mb_strtolower($w['title'], 'UTF-8'), 'kvkk'))) {
+                    $is_linked = true;
+                }
+
+                if ($is_linked) {
+                    // Compile placeholders
+                    $start_datetime = $appointment['start_datetime'] ?? null;
+                    $appt_date = $start_datetime ? date('d.m.Y', strtotime($start_datetime)) : date('d.m.Y');
+                    $appt_time = $start_datetime ? date('H:i', strtotime($start_datetime)) : date('H:i');
+
+                    $context = [
+                        'customer_first_name' => $customer['first_name'] ?? '',
+                        'customer_last_name' => $customer['last_name'] ?? '',
+                        'customer_phone' => $customer['phone_number'] ?? '',
+                        'customer_email' => $customer['email'] ?? '',
+                        'service_name' => $service['name'],
+                        'service_category' => $service_category_name,
+                        'service_price' => (float)$service['price'],
+                        'provider_name' => $provider_name,
+                        'appointment_date' => $appt_date,
+                        'appointment_time' => $appt_time,
+                        'appointment_datetime' => $appt_date . ' ' . $appt_time,
+                        'tenant_name' => setting('company_name') ?: 'BooKi İşletmesi',
+                        'tenant_legal_name' => setting('company_name') ?: 'BooKi İşletmesi',
+                    ];
+
+                    $compiled_html = $this->legal_catalog->compile($w['content_html'], $context);
+
+                    $matched_waivers[] = [
+                        'id' => (int) $w['id'],
+                        'title' => $w['title'],
+                        'is_mandatory' => (bool) $w['is_mandatory'],
+                        'compiled_html' => $compiled_html,
+                    ];
+                }
+            }
+
+            json_response([
+                'success' => true,
+                'consents' => $matched_waivers,
+            ]);
+        } catch (Throwable $e) {
+            json_exception($e);
+        }
     }
 }

@@ -2,6 +2,10 @@ import { Express, Request, Response } from "express";
 import { ContractEngineService } from "./contractEngine.service";
 import { ESignProviderService } from "./eSignProviders";
 import { DEFAULT_LEGAL_TEMPLATES } from "./defaultTemplates";
+import { SECTOR_ONAM_CATALOG } from "./sectorOnamCatalog";
+import { ServiceTemplateMappingService } from "./serviceTemplateMapping.service";
+import { SectorDynamicFieldsService } from "./sectorDynamicFields.service";
+import { DocumentExportService } from "./documentExport.service";
 import { FlowContext, SectorFamily, SignContractRequest } from "@shared/legalTypes";
 
 export function registerLegalRoutes(app: Express) {
@@ -11,8 +15,164 @@ export function registerLegalRoutes(app: Express) {
   app.get("/api/legal/templates", (_req: Request, res: Response) => {
     res.json({
       success: true,
-      templates: Object.values(DEFAULT_LEGAL_TEMPLATES),
+      templates: [
+        ...Object.values(DEFAULT_LEGAL_TEMPLATES),
+        ...Object.values(SECTOR_ONAM_CATALOG),
+      ],
     });
+  });
+
+  /**
+   * GET /api/legal/sector-catalog
+   */
+  app.get("/api/legal/sector-catalog", (req: Request, res: Response) => {
+    const { category, sectorFamily } = req.query as { category?: string; sectorFamily?: string };
+    let list = Object.values(SECTOR_ONAM_CATALOG);
+
+    if (category) {
+      list = list.filter((item) => item.category === category);
+    }
+    if (sectorFamily) {
+      list = list.filter((item) => item.sectorFamily === sectorFamily);
+    }
+
+    res.json({
+      success: true,
+      total: list.length,
+      templates: list,
+    });
+  });
+
+  /**
+   * GET /api/legal/sector-catalog/:id
+   */
+  app.get("/api/legal/sector-catalog/:id", (req: Request, res: Response) => {
+    const { id } = req.params;
+    const template = SECTOR_ONAM_CATALOG[id] || (DEFAULT_LEGAL_TEMPLATES as any)[id];
+
+    if (!template) {
+      return res.status(404).json({ error: `Onam şablonu bulunamadı: ${id}` });
+    }
+
+    res.json({
+      success: true,
+      template,
+    });
+  });
+
+  /**
+   * GET /api/legal/service-mappings
+   */
+  app.get("/api/legal/service-mappings", (_req: Request, res: Response) => {
+    res.json({
+      success: true,
+      rules: ServiceTemplateMappingService.getAllRules(),
+    });
+  });
+
+  /**
+   * POST /api/legal/service-resolve
+   */
+  app.post("/api/legal/service-resolve", (req: Request, res: Response) => {
+    try {
+      const { sectorFamily, serviceName, serviceCategory, serviceId } = req.body;
+      if (!sectorFamily || !serviceName) {
+        return res.status(400).json({ error: "sectorFamily ve serviceName zorunludur" });
+      }
+
+      const resolution = ServiceTemplateMappingService.resolveTemplatesForService({
+        sectorFamily,
+        serviceName,
+        serviceCategory,
+        serviceId,
+      });
+
+      res.json({
+        success: true,
+        ...resolution,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Hizmet onam eşleşmesi çözülemedi" });
+    }
+  });
+
+  /**
+   * GET /api/legal/sector-fields/:sectorFamily
+   */
+  app.get("/api/legal/sector-fields/:sectorFamily", (req: Request, res: Response) => {
+    const { sectorFamily } = req.params;
+    const fields = SectorDynamicFieldsService.getFieldsForSector(sectorFamily as SectorFamily);
+    res.json({
+      success: true,
+      sectorFamily,
+      fields,
+    });
+  });
+
+  /**
+   * GET /api/legal/export/doc/:templateId
+   */
+  app.get("/api/legal/export/doc/:templateId", (req: Request, res: Response) => {
+    try {
+      const { templateId } = req.params;
+      const doc = DocumentExportService.generateEditableWordDocument({
+        templateId,
+        isFilledWithData: false,
+      });
+
+      res.setHeader("Content-Type", doc.mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${doc.filename}"`);
+      res.send(doc.buffer);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Word dokümanı üretilemedi" });
+    }
+  });
+
+  /**
+   * POST /api/legal/export/doc
+   */
+  app.post("/api/legal/export/doc", (req: Request, res: Response) => {
+    try {
+      const { templateId, context, isFilledWithData = true } = req.body;
+      if (!templateId) {
+        return res.status(400).json({ error: "templateId gereklidir" });
+      }
+
+      const doc = DocumentExportService.generateEditableWordDocument({
+        templateId,
+        context,
+        isFilledWithData,
+      });
+
+      res.setHeader("Content-Type", doc.mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${doc.filename}"`);
+      res.send(doc.buffer);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "Word dokümanı üretilemedi" });
+    }
+  });
+
+  /**
+   * POST /api/legal/export/pdf
+   */
+  app.post("/api/legal/export/pdf", async (req: Request, res: Response) => {
+    try {
+      const { templateId, context } = req.body;
+      if (!templateId) {
+        return res.status(400).json({ error: "templateId gereklidir" });
+      }
+
+      const pdf = await DocumentExportService.generatePrintablePdf({
+        templateId,
+        context,
+      });
+
+      res.setHeader("Content-Type", pdf.mimeType);
+      res.setHeader("Content-Disposition", `attachment; filename="${pdf.filename}"`);
+      res.send(pdf.buffer);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || "PDF dokümanı üretilemedi" });
+    }
   });
 
   /**

@@ -1101,6 +1101,417 @@ class Verticals_api_v1 extends App_Controller
         }
     }
 
+    public function get_hotel_rooms(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $date = $this->input->get('date') ?: date('Y-m-d');
+            $rooms = $this->hospitality_model->get_rooms_overview($date);
+            $kpi = $this->hospitality_model->get_hospitality_dashboard_stats($date);
+
+            json_response([
+                'success' => true,
+                'date' => $date,
+                'stats' => $kpi,
+                'rooms' => $rooms,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function get_tape_chart(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $start_date = $this->input->get('start_date') ?: date('Y-m-d');
+            $days = (int) ($this->input->get('days') ?: 14);
+
+            $data = $this->hospitality_model->get_tape_chart_matrix($start_date, $days);
+            json_response([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function express_checkin(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                json_response(['error' => 'Misafir check-in yetkiniz bulunmamaktadır.'], 403);
+                return;
+            }
+
+            $data = request();
+            $this->load->model('hospitality_model');
+            $res = $this->hospitality_model->express_checkin($data);
+
+            json_response($res, 200);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function express_checkout(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                json_response(['error' => 'Misafir check-out yetkiniz bulunmamaktadır.'], 403);
+                return;
+            }
+
+            $data = request();
+            $target = (int) (!empty($data['appointment_id']) ? $data['appointment_id'] : ($data['room_id'] ?? ($data['id'] ?? 0)));
+            if (!$target) {
+                json_response(['error' => 'Check-out yapılacak Rezervasyon veya Oda ID zorunludur.'], 400);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $res = $this->hospitality_model->express_checkout($target, $data);
+
+            json_response($res, 200);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function run_night_audit(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                json_response(['error' => 'Gece Denetimi yetkiniz bulunmamaktadır.'], 403);
+                return;
+            }
+
+            $data = request();
+            $audit_date = $data['audit_date'] ?? date('Y-m-d');
+            $post_charges = !isset($data['post_room_charges']) || (bool) $data['post_room_charges'];
+
+            $this->load->model('hospitality_model');
+            $res = $this->hospitality_model->run_night_audit($audit_date, $session_user_id, $post_charges);
+
+            json_response([
+                'success' => true,
+                'message' => 'Gece Denetimi (Night Audit) başarıyla gerçekleştirildi.',
+                'audit' => $res,
+            ], 200);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function get_room_types(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $types = $this->hospitality_model->get_room_types();
+            $plans = $this->hospitality_model->get_rate_plans();
+
+            json_response([
+                'success' => true,
+                'room_types' => $types,
+                'rate_plans' => $plans,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function save_room_type(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if ($session_role === DB_SLUG_CUSTOMER) {
+                json_response(['error' => 'Yetkiniz bulunmamaktadır.'], 403);
+                return;
+            }
+
+            $data = request();
+            $this->load->model('hospitality_model');
+            $id = $this->hospitality_model->save_room_type($data);
+
+            json_response([
+                'success' => true,
+                'id' => $id,
+                'message' => 'Oda tipi kaydedildi.',
+            ], 200);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function get_property_templates(): void
+    {
+        try {
+            $this->load->model('hospitality_model');
+            $templates = $this->hospitality_model->get_property_templates();
+            json_response([
+                'success' => true,
+                'templates' => $templates,
+            ], 200);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function apply_property_template(): void
+    {
+        try {
+            $session_role = session('role_slug');
+            $session_user_id = (int) session('user_id');
+
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            if (!in_array($session_role, [DB_SLUG_ADMIN, 'hotel_manager', 'general_manager', 'receptionist'], true)) {
+                json_response(['error' => 'Tesis şablonu uygulamak için yetkiniz bulunmamaktadır.'], 403);
+                return;
+            }
+
+            $data = request();
+            $template_key = trim((string) ($data['template_key'] ?? ''));
+            if (empty($template_key)) {
+                json_response(['error' => 'template_key zorunludur.'], 400);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $res = $this->hospitality_model->apply_property_template($template_key);
+
+            json_response($res, 200);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function get_housekeeping_board(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $tasks = $this->hospitality_model->get_housekeeping_board();
+
+            json_response([
+                'success' => true,
+                'tasks' => $tasks,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function update_housekeeping_task(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $data = request();
+            $task_id = (int) ($data['task_id'] ?? ($data['id'] ?? 0));
+            $status = trim((string) ($data['status'] ?? 'completed'));
+            $checklist = $data['checklist'] ?? [];
+
+            if (!$task_id) {
+                json_response(['error' => 'Görev ID zorunludur.'], 400);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $ok = $this->hospitality_model->update_housekeeping_task($task_id, $status, is_array($checklist) ? $checklist : []);
+
+            json_response([
+                'success' => $ok,
+                'message' => 'Temizlik görevi güncellendi.',
+            ]);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function create_maintenance_ticket(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $data = request();
+            $this->load->model('hospitality_model');
+            $ticket_id = $this->hospitality_model->create_maintenance_ticket($data);
+
+            json_response([
+                'success' => true,
+                'ticket_id' => $ticket_id,
+                'message' => 'Arıza kaydı açıldı.',
+            ], 201);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function resolve_maintenance_ticket(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $data = request();
+            $ticket_id = (int) ($data['ticket_id'] ?? ($data['id'] ?? 0));
+            $notes = $data['resolution_notes'] ?? ($data['notes'] ?? '');
+
+            if (!$ticket_id) {
+                json_response(['error' => 'Bilet ID zorunludur.'], 400);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $ok = $this->hospitality_model->resolve_maintenance_ticket($ticket_id, $notes);
+
+            json_response([
+                'success' => $ok,
+                'message' => 'Arıza kaydı çözüldü.',
+            ]);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function export_kbs(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $date = $this->input->get('date') ?: date('Y-m-d');
+            $records = $this->hospitality_model->get_kbs_declarations($date);
+
+            json_response([
+                'success' => true,
+                'date' => $date,
+                'total_guests' => count($records),
+                'records' => $records,
+            ]);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
+    public function export_room_ical(int $room_id = 0): void
+    {
+        $room_id = $room_id ?: (int) $this->input->get('room_id');
+        if (!$room_id) {
+            json_response(['error' => 'Oda ID gereklidir.'], 400);
+            return;
+        }
+
+        $this->load->model('hospitality_model');
+        $ics = $this->hospitality_model->generate_room_ical_feed($room_id);
+
+        $this->output
+            ->set_status_header(200)
+            ->set_content_type('text/calendar; charset=utf-8')
+            ->set_output($ics);
+    }
+
+    public function sync_room_ical(): void
+    {
+        try {
+            $session_user_id = (int) session('user_id');
+            if (!$session_user_id) {
+                json_response(['error' => 'Kimlik doğrulama gereklidir.'], 401);
+                return;
+            }
+
+            $data = request();
+            $room_id = (int) ($data['room_id'] ?? ($data['station_id'] ?? 0));
+            $url = $data['ical_url'] ?? null;
+
+            if (!$room_id) {
+                json_response(['error' => 'Oda ID zorunludur.'], 400);
+                return;
+            }
+
+            $this->load->model('hospitality_model');
+            $res = $this->hospitality_model->sync_inbound_ical($room_id, $url);
+
+            json_response($res, 200);
+        } catch (Throwable $e) {
+            json_response(['error' => $e->getMessage()], 400);
+        }
+    }
+
     /* -------------------------------------------------------------------------
      * 8. EĞİTİM & ATÖLYE - KURS, CANLI YOKLAMA & ÖĞRENCİ GELİŞİM TAKİBİ
      * ------------------------------------------------------------------------- */

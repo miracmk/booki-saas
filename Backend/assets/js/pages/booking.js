@@ -620,6 +620,46 @@ App.Pages.Booking = (function () {
                 return;
             }
 
+            // Check service-specific mandatory consents & waivers
+            let consentsValid = true;
+            const signedConsents = [];
+
+            $('.booking-consent-checkbox').each(function () {
+                const isMandatory = Number($(this).data('mandatory')) === 1;
+                const isChecked = $(this).prop('checked');
+                const waiverId = Number($(this).data('id'));
+                const matched = currentLoadedConsents.find(c => Number(c.id) === waiverId);
+
+                if (isMandatory && !isChecked) {
+                    consentsValid = false;
+                    $(this).closest('.booking-consent-item').addClass('border-danger bg-danger-subtle');
+                } else {
+                    $(this).closest('.booking-consent-item').removeClass('border-danger bg-danger-subtle');
+                }
+
+                if (isChecked && matched) {
+                    signedConsents.push({
+                        id_waivers: waiverId,
+                        compiled_content_html: matched.compiled_html,
+                        signature_data: 'data:text/plain;base64,' + btoa('DIGITAL_CONSENT_ACCEPTED_' + Date.now()),
+                    });
+                }
+            });
+
+            if (!consentsValid) {
+                alert('Lütfen seçtiğiniz hizmete ilişkin zorunlu bilgilendirilmiş onam formlarını inceleyip onaylayınız.');
+                return;
+            }
+
+            // Append signed consents to post_data JSON
+            try {
+                const curPostData = JSON.parse($('input[name="post_data"]').val() || '{}');
+                curPostData.consents_signatures = signedConsents;
+                $('input[name="post_data"]').val(JSON.stringify(curPostData));
+            } catch (e) {
+                console.error('Error packing consents into post_data', e);
+            }
+
             App.Http.Booking.registerAppointment();
         });
 
@@ -841,7 +881,105 @@ App.Pages.Booking = (function () {
         }
 
         $('input[name="post_data"]').val(JSON.stringify(data));
+
+        // Load personalized consents and waivers for this service and customer
+        loadBookingConsents(serviceId, data.customer, data.appointment);
     }
+
+    let currentLoadedConsents = [];
+
+    /**
+     * Load personalized digital waivers and consents for the selected service.
+     */
+    function loadBookingConsents(serviceId, customerData, appointmentData) {
+        const $wrapper = $('#booking-consents-wrapper');
+        const $list = $('#booking-consents-list');
+        const $badge = $('#booking-consents-count-badge');
+
+        if (!serviceId) {
+            $wrapper.hide();
+            return;
+        }
+
+        $wrapper.show();
+        $list.html('<div class="text-center py-3 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Bu hizmete özel aydınlatılmış onam formları ve sözleşmeler hazırlanıyor...</div>');
+
+        $.ajax({
+            url: App.Utils.Url.siteUrl('booking/get_service_consents'),
+            type: 'POST',
+            data: {
+                csrf_token: vars('csrf_token'),
+                service_id: Number(serviceId),
+                customer: customerData,
+                appointment: appointmentData
+            },
+            success: (res) => {
+                currentLoadedConsents = (res && res.consents) ? res.consents : [];
+                if (!currentLoadedConsents.length) {
+                    $wrapper.hide();
+                    return;
+                }
+
+                $badge.text(currentLoadedConsents.length + ' Belge Zorunlu');
+                $list.empty();
+
+                currentLoadedConsents.forEach((consent, index) => {
+                    const itemHtml = `
+                        <div class="booking-consent-item p-3 mb-2 rounded border bg-white shadow-sm" data-id="${consent.id}">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <div class="fw-bold text-dark d-flex align-items-center">
+                                    <i class="fas fa-file-contract text-primary me-2"></i>
+                                    <span>${App.Utils.String.escapeHtml(consent.title)}</span>
+                                </div>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="badge ${consent.is_mandatory ? 'bg-danger text-white' : 'bg-secondary text-white'} small">
+                                        ${consent.is_mandatory ? 'Zorunlu' : 'İsteğe Bağlı'}
+                                    </span>
+                                    <button type="button" class="btn btn-xs btn-outline-primary py-1 px-2 btn-read-booking-consent" data-index="${index}">
+                                        <i class="fas fa-eye me-1"></i>Metni Oku & İncele
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="p-2 mb-2 rounded bg-light border text-muted small" style="max-height: 80px; overflow-y: hidden; position: relative;">
+                                <div style="opacity: 0.85; font-size: 0.85rem;">${(consent.compiled_html || '').replace(/<[^>]*>?/gm, ' ').substring(0, 220)}...</div>
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: linear-gradient(transparent, #f8f9fa);"></div>
+                            </div>
+
+                            <div class="form-check d-flex align-items-center mt-2">
+                                <input class="form-check-input booking-consent-checkbox me-2" type="checkbox" 
+                                       id="consent-check-${consent.id}" 
+                                       data-id="${consent.id}" 
+                                       data-mandatory="${consent.is_mandatory ? 1 : 0}">
+                                <label class="form-check-label fw-semibold small text-dark" for="consent-check-${consent.id}">
+                                    İşbu bilgilendirilmiş onam ve hizmet metnini okudum, anladım ve onaylıyorum.
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                    $list.append(itemHtml);
+                });
+            },
+            error: () => {
+                $wrapper.hide();
+            }
+        });
+    }
+
+    // Modal viewer for booking consents
+    $(document).on('click', '.btn-read-booking-consent', function () {
+        const index = $(this).data('index');
+        const consent = currentLoadedConsents[index];
+        if (consent) {
+            $('#booking-consent-viewer-title').html('<i class="fas fa-file-signature text-danger me-2"></i>' + App.Utils.String.escapeHtml(consent.title));
+            $('#booking-consent-viewer-body').html(consent.compiled_html);
+            const modalEl = document.getElementById('modal-booking-consent-viewer');
+            if (modalEl && window.bootstrap) {
+                const modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        }
+    });
 
     /**
      * This method calculates the end datetime of the current appointment.

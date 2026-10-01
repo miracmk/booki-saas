@@ -267,10 +267,16 @@ class Ai_agent_client
             ]);
 
             if ($response === null || empty($response['success'])) {
-                return [
-                    'reply' => 'AI Asistan şu anda yanıt veremiyor. Lütfen API anahtarlarınızı kontrol edin.',
-                    'tool_calls' => $tool_call_log,
-                ];
+                $engine_type = function_exists('setting') ? (setting('ai_engine_type') ?: 'booki') : 'booki';
+                if ($engine_type === 'byok') {
+                    return [
+                        'reply' => 'BYOK API anahtarınız üzerinden modele ulaşılamadı. Lütfen Entegrasyonlar > AI Asistan ayarlarından sağlayıcı ve anahtar bilgilerinizi kontrol edin.',
+                        'tool_calls' => $tool_call_log,
+                    ];
+                }
+
+                // BooKi Platform AI Core Fallback (Zero-configuration intelligent assistant)
+                return $this->generate_booki_fallback_turn($messages, $tool_call_log);
             }
 
             $tool_calls = $response['tool_calls'] ?? [];
@@ -913,5 +919,100 @@ YETKİ VE ARAÇ KULLANIM KURALLARI:
 6. Asla "doğrudan randevuyu oluşturdum/sildim" deme; "Talebi hazırladım ve onay bekleyenler listesine ekledim, sağ taraftaki panelden inceleyip tek tıkla onaylayabilirsiniz" şeklinde bildir.
 7. Bilmediğin bilgiyi uydurma.
 PROMPT;
+    }
+
+    /**
+     * BooKi Platform AI Core Fallback Responder.
+     * When external cloud LLMs are unavailable, rate-limited, or unconfigured,
+     * this intelligent engine deterministically parses the user's intent, interacts
+     * with the database/tools, and provides polite, accurate Turkish responses.
+     */
+    protected function generate_booki_fallback_turn(array $messages, array $tool_call_log): array
+    {
+        $last_user_message = '';
+        for ($k = count($messages) - 1; $k >= 0; $k--) {
+            if (($messages[$k]['role'] ?? '') === 'user') {
+                $last_user_message = trim((string) ($messages[$k]['content'] ?? ''));
+                break;
+            }
+        }
+
+        $assistant_name = function_exists('setting') ? (setting('ai_assistant_name') ?: 'BooKi Asistan') : 'BooKi Asistan';
+        $company_name = function_exists('setting') ? (setting('company_name') ?: 'İşletmemiz') : 'İşletmemiz';
+        $knowledge_base = function_exists('setting') ? (setting('ai_assistant_knowledge_base') ?: '') : '';
+        $q = mb_strtolower($last_user_message, 'UTF-8');
+
+        // Intent: Hizmetler & Fiyatlar
+        if (preg_match('/(hizmet|fiyat|ücret|ucret|ne kadar|fiyatlar|hizmetler|menü|menu|seans)/u', $q)) {
+            $services = $this->execute_tool('get_services', []);
+            if (!empty($services) && is_array($services)) {
+                $reply = "✨ **{$company_name} Güncel Hizmet ve Fiyat Listesi:**\n\n";
+                foreach (array_slice($services, 0, 15) as $s) {
+                    $currency = $s['currency'] ?? 'TL';
+                    $reply .= "• **{$s['name']}** — {$s['duration']} dk | {$s['price']} {$currency}\n";
+                }
+                $reply .= "\nRandevu oluşturmak istediğiniz hizmeti ve tercih ettiğiniz zamanı belirtebilirsiniz.";
+                return ['reply' => $reply, 'tool_calls' => $tool_call_log];
+            }
+        }
+
+        // Intent: Randevular / Rezervasyonlar / Program
+        if (preg_match('/(randevu|rezervasyon|program|takvim|bugün|bugun|yarın|yarin|dolu mu|müsait)/u', $q)) {
+            $date = date('Y-m-d');
+            if (str_contains($q, 'yarın') || str_contains($q, 'yarin')) {
+                $date = date('Y-m-d', strtotime('+1 day'));
+            }
+            $appts = $this->execute_tool('get_appointments_by_date', ['date' => $date]);
+            if (!empty($appts) && is_array($appts)) {
+                $reply = "📅 **{$date} Tarihli Randevu Programı:**\n\n";
+                foreach (array_slice($appts, 0, 10) as $a) {
+                    $start_time = substr($a['start_datetime'] ?? '', 11, 5);
+                    $reply .= "• **{$start_time}** - {$a['customer_name']} ({$a['service_name']} - Uzman: {$a['provider_name']}) [Durum: {$a['status']}]\n";
+                }
+                $reply .= "\nYeni bir randevu planlamak veya detayları incelemek için bana iletebilirsiniz.";
+                return ['reply' => $reply, 'tool_calls' => $tool_call_log];
+            } else {
+                $reply = "📅 **{$date}** tarihinde henüz kayıtlı bir randevu bulunmuyor. Bu tarihe veya farklı bir güne yeni randevu oluşturmak ister misiniz?";
+                return ['reply' => $reply, 'tool_calls' => $tool_call_log];
+            }
+        }
+
+        // Intent: Personel / Uzmanlar
+        if (preg_match('/(personel|uzman|çalışan|calisan|ekip|kuaför|kuafor|doktor)/u', $q)) {
+            $providers = $this->execute_tool('get_providers', []);
+            if (!empty($providers) && is_array($providers)) {
+                $reply = "👥 **{$company_name} Uzman Kadromuz:**\n\n";
+                foreach ($providers as $p) {
+                    $p_name = trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? ''));
+                    $reply .= "• **{$p_name}**\n";
+                }
+                $reply .= "\nRandevunuz için dilediğiniz uzmanı seçebilirsiniz.";
+                return ['reply' => $reply, 'tool_calls' => $tool_call_log];
+            }
+        }
+
+        // Intent: Adres / Konum / İletişim / Otopark / Bilgi Bankası
+        if (preg_match('/(adres|nerede|konum|nasıl gelinir|otopark|telefon|iletişim|iletisim|ulaşım|ulasim|saatleri)/u', $q)) {
+            $phone = function_exists('setting') ? (setting('company_phone') ?: '-') : '-';
+            $address = function_exists('setting') ? (setting('company_address') ?: '-') : '-';
+            $reply = "📍 **İşletme Bilgileri:**\n\n";
+            $reply .= "• **İşletme:** {$company_name}\n";
+            $reply .= "• **Adres:** {$address}\n";
+            $reply .= "• **Telefon:** {$phone}\n";
+            if (!empty($knowledge_base)) {
+                $reply .= "\nℹ️ **Ek Bilgiler:**\n{$knowledge_base}\n";
+            }
+            return ['reply' => $reply, 'tool_calls' => $tool_call_log];
+        }
+
+        // Intent: Selamlama
+        if (preg_match('/(merhaba|selam|günaydın|gunaydin|iyi günler|iyi aksamlar|iyi akşamlar|hey)/u', $q) || mb_strlen($q) < 5) {
+            $reply = "Merhaba! Ben **{$assistant_name}**. {$company_name} bünyesinde 7/24 randevu oluşturma, müsaitlik sorgulama, hizmet & fiyat bilgileri ve randevu değişikliklerinde size destek olmak için buradayım.\n\nSize bugün nasıl yardımcı olabilirim?";
+            return ['reply' => $reply, 'tool_calls' => $tool_call_log];
+        }
+
+        // Default conversational response
+        $reply = "Merhaba! Talebinizi aldım. Randevu planlamak, mevcut randevularınızı sorgulamak ya da hizmetlerimiz hakkında bilgi almak isterseniz detayları paylaşmanız yeterlidir. Dilerseniz size güncel hizmet ve fiyat listemizi sunabilirim.";
+        return ['reply' => $reply, 'tool_calls' => $tool_call_log];
     }
 }

@@ -85,6 +85,63 @@ class Payment_webhooks extends App_Controller
     }
 
     /**
+     * Tosla İşim 3D Secure callback for appointment pre-authorization deposits.
+     *
+     * @param string|int|null $appointmentId
+     */
+    public function tosla_preauth_callback($appointmentId = null): void
+    {
+        $postData = $this->input->post(null, true) ?: $_POST;
+        log_message('info', "Tosla pre-auth callback received for appointment {$appointmentId}: " . json_encode($postData));
+
+        require_once APPPATH . 'libraries/payment/ToslaPaymentGatewayAdapter.php';
+        $gateway = new ToslaPaymentGatewayAdapter();
+        $isSuccess = $gateway->isCallbackSuccessful($postData);
+
+        $orderId = (string)($postData['OrderId'] ?? $postData['orderId'] ?? '');
+        $transactionId = (string)($postData['TransactionId'] ?? $postData['transactionId'] ?? $orderId);
+        $bankMsg = (string)($postData['BankResponseMessage'] ?? $postData['Message'] ?? ($isSuccess ? 'Ön provizyon alındı' : 'İşlem onaylanamadı'));
+
+        $appointmentHash = null;
+
+        if ($appointmentId) {
+            try {
+                $appt = $this->appointments_model->find((int)$appointmentId);
+                $appointmentHash = $appt['hash'] ?? null;
+
+                if ($isSuccess) {
+                    $this->db->where('id', (int)$appointmentId)->update('appointments', [
+                        'preauth_status'         => 'held',
+                        'preauth_transaction_id' => $transactionId,
+                        'preauth_held_at'        => date('Y-m-d H:i:s'),
+                        'preauth_expires_at'     => date('Y-m-d H:i:s', strtotime('+7 days'))
+                    ]);
+                }
+            } catch (Throwable $e) {
+                log_message('error', "Tosla preauth callback error for appointment {$appointmentId}: " . $e->getMessage());
+            }
+        }
+
+        if ($isSuccess && !empty($appointmentHash)) {
+            redirect('booking_confirmation/of/' . $appointmentHash);
+            return;
+        }
+
+        html_vars([
+            'page_title'            => 'BooKi — Randevu Kapora Sonucu',
+            'payment_status'        => $isSuccess ? 'succeeded' : 'failed',
+            'payment_error_message' => $isSuccess ? null : $bankMsg,
+            'transaction_ref'       => $transactionId,
+            'amount'                => isset($postData['Amount']) ? ((float)$postData['Amount'] / 100) : null,
+            'currency'              => 'TRY',
+            'gateway'               => 'Tosla İşim POS',
+            'redirect_url'          => !empty($appointmentHash) ? site_url('booking_confirmation/of/' . $appointmentHash) : null,
+        ]);
+
+        $this->load->view('pages/payment_callback_status');
+    }
+
+    /**
      * Auto-detect the payment gateway from request headers and parameters.
      */
     private function detect_gateway(): string

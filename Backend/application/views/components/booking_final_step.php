@@ -23,6 +23,21 @@
 
         </div>
 
+        <!-- Hizmet Bazlı Dijital Onam Formları & Sözleşmeler Bölümü -->
+        <div id="booking-consents-wrapper" class="m-auto mb-4" style="max-width: 630px; display: none;">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden" style="background: #fafafa; border: 1px solid #e2e8f0 !important;">
+                <div class="card-header bg-light d-flex align-items-center justify-content-between py-2 px-3 border-bottom">
+                    <span class="fw-bold text-dark small">
+                        <i class="fas fa-file-signature text-danger me-2"></i>İlgili Hizmet & Bilgilendirilmiş Onam Formları
+                    </span>
+                    <span class="badge bg-danger text-white small" id="booking-consents-count-badge">Onay Bekliyor</span>
+                </div>
+                <div class="card-body p-3" id="booking-consents-list">
+                    <!-- Dinamik derlenmiş kişiselleştirilmiş onam formları -->
+                </div>
+            </div>
+        </div>
+
         <?php if (setting('require_captcha')): ?>
             <?php if (setting('altcha_enabled') === '1'): ?>
                 <div class="row frame-content m-auto" style="max-width: 630px;">

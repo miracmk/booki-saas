@@ -45,7 +45,10 @@ class Telegram_client
         if (empty($token)) {
             $context = tenant_context();
             $sub = $context['subdomain'] ?? '';
-            if (str_starts_with($sub, 'demo-') || str_contains($sub, '_sb') || str_contains($sub, '-sb') || $sub === 'salonflora' || $sub === 'demo') {
+            if (
+                str_starts_with($sub, 'demo-') || str_contains($sub, '_sb') || str_contains($sub, '-sb') || $sub === 'salonflora' || $sub === 'demo' ||
+                $sub === 'guzellik' || $sub === 'demo-guzellik' || $sub === 'guzellik-bookiapp' || str_contains($sub, 'guzellik')
+            ) {
                 return '8830789381:AAFV5gjFMc8upBuH51zvIH-WkWBC7gQv_a4';
             }
         }

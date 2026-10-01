@@ -5,6 +5,9 @@ import { AuditChainService } from "./auditChainService";
 import { ContractEngineService } from "./contractEngine.service";
 import { ESignProviderService } from "./eSignProviders";
 import { ContractDispatcherService } from "./contractDispatcher.service";
+import { ServiceTemplateMappingService } from "./serviceTemplateMapping.service";
+import { SectorDynamicFieldsService } from "./sectorDynamicFields.service";
+import { DocumentExportService } from "./documentExport.service";
 import { BookingContextData, SignContractRequest } from "@shared/legalTypes";
 
 describe("BooKi Ceza-Geçirmez Dijital Sözleşme & E-İmza Motoru", () => {
@@ -208,6 +211,134 @@ describe("BooKi Ceza-Geçirmez Dijital Sözleşme & E-İmza Motoru", () => {
       expect(verified.signerName).toBe("Zeynep Demir");
       expect(verified.timestampToken).toContain("RFC3161");
       expect(verified.deliveries?.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("should compile and sign sector-specific onam forms (TOD, IDO, Baia, AvEvrak, TDD)", async () => {
+      // 1. TOD (Türk Oftalmoloji Derneği) Onamı Derleme
+      const eyeContract = ContractEngineService.compileContract("TOD_KATARAKT_FAKO_ONAM", sampleContext);
+      expect(eyeContract).toContain("KATARAKT CERRAHİSİ");
+      expect(eyeContract).toContain("Fakoemülsifikasyon");
+      expect(eyeContract).toContain("Zeynep Demir");
+      expect(eyeContract).toContain("Endoftalmi");
+
+      // 2. İDO (İstanbul Dişhekimleri Odası) Onamı Derleme
+      const dentalContract = ContractEngineService.compileContract("IDO_DENTAL_IMPLANT_ONAM", sampleContext);
+      expect(dentalContract).toContain("DENTAL İMPLANT");
+      expect(dentalContract).toContain("titanyum vidalar");
+      expect(dentalContract).toContain("mandibular sinir");
+
+      // 3. Baia Hotels / Konaklama Sözleşmesi Derleme
+      const hotelContract = ContractEngineService.compileContract("BAIA_HOTELS_KONAKLAMA_SOZLESMESI", sampleContext);
+      expect(hotelContract).toContain("OTEL VE TATİL KÖYÜ KONAKLAMA HİZMET SÖZLEŞMESİ");
+      expect(hotelContract).toContain("Giriş ve Çıkış Saatleri");
+      expect(hotelContract).toContain("TBK m. 576-581");
+
+      // 4. AvEvrak / Lexpera Araç Bakım ve Onarım Sözleşmesi Derleme
+      const autoContract = ContractEngineService.compileContract("AVEVERAK_ARAC_BAKIM_ONARIM_SOZLESMESI", sampleContext);
+      expect(autoContract).toContain("ARAÇ BAKIM, ONARIM VE SERVİS HİZMET SÖZLEŞMESİ");
+      expect(autoContract).toContain("Türk Borçlar Kanunu Eser Sözleşmesi");
+      expect(autoContract).toContain("34 ZD 1923");
+
+      // 5. Türk Dermatoloji Derneği & DK Klinik Lazer Onamı Derleme
+      const dermContract = ContractEngineService.compileContract("DERMATOLOJI_LAZER_CILT_YENILEME", sampleContext);
+      expect(dermContract).toContain("NONABLATİF LAZERLE CİLT YENİLEME");
+      expect(dermContract).toContain("Roaccutane");
+      expect(dermContract).toContain("SPF 50+");
+    });
+  });
+
+  // 7. Service-to-Onam Mapping Engine
+  describe("ServiceTemplateMappingService", () => {
+    it("should resolve TOD cataract onam for eye surgery services", () => {
+      const resolution = ServiceTemplateMappingService.resolveTemplatesForService({
+        sectorFamily: "health_clinical",
+        serviceName: "Katarakt Fakoemülsifikasyon Cerrahisi",
+      });
+      expect(resolution.requiredTemplateIds).toContain("TOD_KATARAKT_FAKO_ONAM");
+      expect(resolution.requiredTemplateIds).toContain("KVKK_OZEL_NITELIKLI_RIZA");
+      expect(resolution.signatureLevel).toBe("OTP_2FA");
+    });
+
+    it("should resolve IDO dental implant onam for dental services", () => {
+      const resolution = ServiceTemplateMappingService.resolveTemplatesForService({
+        sectorFamily: "health_clinical",
+        serviceName: "Dental İmplant ve Çene Cerrahisi",
+      });
+      expect(resolution.requiredTemplateIds).toContain("IDO_DENTAL_IMPLANT_ONAM");
+      expect(resolution.signatureLevel).toBe("OTP_2FA");
+    });
+
+    it("should resolve Baia & Julian onams for hotel stay services", () => {
+      const resolution = ServiceTemplateMappingService.resolveTemplatesForService({
+        sectorFamily: "hospitality",
+        serviceName: "Deluxe Deniz Manzaralı Oda Konaklama",
+      });
+      expect(resolution.requiredTemplateIds).toContain("BAIA_HOTELS_KONAKLAMA_SOZLESMESI");
+      expect(resolution.requiredTemplateIds).toContain("JULIAN_HOTELS_KVKK_MISAFIR_ONAM");
+    });
+
+    it("should resolve AvEvrak auto repair onam for automotive services", () => {
+      const resolution = ServiceTemplateMappingService.resolveTemplatesForService({
+        sectorFamily: "automotive",
+        serviceName: "Periyodik Bakım ve Fren Balata Onarımı",
+      });
+      expect(resolution.requiredTemplateIds).toContain("AVEVERAK_ARAC_BAKIM_ONARIM_SOZLESMESI");
+      expect(resolution.requiredTemplateIds).toContain("TESLIM_TESELLUM_HASAR_TUTANAGI");
+    });
+  });
+
+  // 8. Sector Dynamic Booking Fields
+  describe("SectorDynamicFieldsService", () => {
+    it("should provide medical fields for health_clinical and vehicle fields for automotive", () => {
+      const healthFields = SectorDynamicFieldsService.getFieldsForSector("health_clinical");
+      expect(healthFields.some((f) => f.name === "chronicDiseases")).toBe(true);
+      expect(healthFields.some((f) => f.name === "activeMedications")).toBe(true);
+
+      const autoFields = SectorDynamicFieldsService.getFieldsForSector("automotive");
+      expect(autoFields.some((f) => f.name === "vehiclePlate")).toBe(true);
+      expect(autoFields.some((f) => f.name === "vehicleCurrentKm")).toBe(true);
+    });
+
+    it("should enrich booking context with submitted sector fields", () => {
+      const enriched = SectorDynamicFieldsService.enrichContextWithSectorFields(sampleContext, {
+        vehiclePlate: "06 ANK 2026",
+        vehicleCurrentKm: 85000,
+        vehicleBrandModel: "Audi A4",
+        allergiesInput: "Penisilin ve Lateks",
+      });
+
+      expect(enriched.vehiclePlate).toBe("06 ANK 2026");
+      expect(enriched.vehicleKm).toBe(85000);
+      expect(enriched.allergies).toContain("Penisilin ve Lateks");
+    });
+  });
+
+  // 9. Document Export Service (Editable Word & Printable PDF)
+  describe("DocumentExportService", () => {
+    it("should generate editable Word (.doc) with legal headers and party tables", () => {
+      const wordDoc = DocumentExportService.generateEditableWordDocument({
+        templateId: "TOD_KATARAKT_FAKO_ONAM",
+        context: sampleContext,
+        isFilledWithData: true,
+      });
+
+      expect(wordDoc.filename).toContain("TOD_KATARAKT_FAKO_ONAM");
+      expect(wordDoc.mimeType).toBe("application/msword");
+      const content = wordDoc.buffer.toString("utf8");
+      expect(content).toContain("WordDocument");
+      expect(content).toContain("Zeynep Demir");
+      expect(content).toContain("KATARAKT CERRAHİSİ");
+    });
+
+    it("should generate printable official PDF with tamper-proof seal", async () => {
+      const pdfDoc = await DocumentExportService.generatePrintablePdf({
+        templateId: "IDO_DENTAL_IMPLANT_ONAM",
+        context: sampleContext,
+      });
+
+      expect(pdfDoc.filename).toContain("IDO_DENTAL_IMPLANT_ONAM");
+      expect(pdfDoc.mimeType).toBe("application/pdf");
+      expect(pdfDoc.buffer.toString("utf8", 0, 4)).toBe("%PDF");
     });
   });
 });

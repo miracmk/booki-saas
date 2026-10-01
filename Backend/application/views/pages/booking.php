@@ -63,6 +63,31 @@
     ]); ?>
 <?php endif; ?>
 
+<!-- Modal: Müşteriye Özel Onam & Sözleşme Okuma Penceresi -->
+<div class="modal fade" id="modal-booking-consent-viewer" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <div>
+                    <h5 class="modal-title fw-bold text-dark mb-0" id="booking-consent-viewer-title">
+                        <i class="fas fa-file-signature text-danger me-2"></i>Bilgilendirilmiş Onam & Hizmet Sözleşmesi
+                    </h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small mt-1">
+                        <i class="fas fa-user-check me-1"></i>Kişiselleştirilmiş Yasal Metin
+                    </span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="booking-consent-viewer-body" style="font-size: 0.95rem; line-height: 1.6;">
+                <!-- Doldurulmuş onam metni buraya gelecek -->
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Metni Okudum & Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php end_section('content'); ?>
 
 <?php section('scripts'); ?>
