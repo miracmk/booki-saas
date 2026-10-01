@@ -9,8 +9,10 @@
     "**/vendor/**/{Test,test,Tests,tests}/**",
     "**/storage/logs/**",
     "**/data/files/logs/**",
-    "**/application/logs/**"
+    "**/application/logs/**",
+    "**/system/libraries/Xmlrpc*.php"
   ],
+  "intelephense.diagnostics.undefinedTypes": false,
   "files.watcherExclude": {
     "**/storage/logs/**": true,
     "**/data/files/logs/**": true,
