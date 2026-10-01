@@ -123,6 +123,32 @@ if (!function_exists('master_setting')) {
     }
 }
 
+if (!function_exists('is_demo_environment')) {
+    /**
+     * Determines whether the current execution is strictly inside the isolated BooKi Demo environment.
+     * Dynamic role-switching and showroom mock-tools are ONLY allowed in Demo mode.
+     * Strictly false in Development, Beta, and Production to enforce authentic user roles.
+     */
+    function is_demo_environment(): bool
+    {
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'demo') {
+            return true;
+        }
+
+        $app_env = strtolower((string) (getenv('APP_ENV') ?: ''));
+        if ($app_env === 'demo') {
+            return true;
+        }
+
+        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        if (str_contains($host, 'demobookiapp') || str_contains($host, 'demo.bookiapp')) {
+            return true;
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('build_google_oauth_state')) {
     /**
      * BooKi (2026-09-19) - Build a signed OAuth state parameter containing tenant host,

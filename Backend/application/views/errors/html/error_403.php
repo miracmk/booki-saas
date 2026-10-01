@@ -60,7 +60,7 @@
             <?php
             $tenant = function_exists('tenant_context') ? tenant_context() : [];
             $subdomain = $tenant['subdomain'] ?? '';
-            $is_demo = str_starts_with($subdomain, 'demo-') || (defined('ENVIRONMENT') && ENVIRONMENT !== 'production');
+            $is_demo = function_exists('is_demo_environment') ? is_demo_environment() : ((defined('ENVIRONMENT') && ENVIRONMENT === 'demo') || str_starts_with($subdomain, 'demo-'));
             ?>
 
             <?php if ($is_demo): ?>
