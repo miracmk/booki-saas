@@ -123,6 +123,12 @@ if ($portal_host !== '' && $portal_host === $marketplace_domain) {
     $route['marketplace/kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
     $route['marketplace/kategori/(:any)'] = 'marketplace/category/$1';
     $route['marketplace/sahiplen/(:any)'] = 'marketplace/claim/$1';
+    $route['marketplace/customer/auth'] = 'marketplace/customer_auth';
+    $route['marketplace/customer/me'] = 'marketplace/customer_me';
+    $route['marketplace/customer/logout'] = 'marketplace/customer_logout';
+    $route['customer/auth'] = 'marketplace/customer_auth';
+    $route['customer/me'] = 'marketplace/customer_me';
+    $route['customer/logout'] = 'marketplace/customer_logout';
     $route['sitemap.xml'] = 'marketplace/sitemap';
     $route['sitemap-places-(:num).xml'] = 'marketplace/sitemap_places/$1';
     $route['api/places/photo'] = 'places_photo/index';
@@ -155,6 +161,12 @@ if ($portal_host !== '' && $portal_host === $randevuburada_domain) {
     $route['marketplace/kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
     $route['marketplace/kategori/(:any)'] = 'marketplace/category/$1';
     $route['marketplace/sahiplen/(:any)'] = 'marketplace/claim/$1';
+    $route['marketplace/customer/auth'] = 'marketplace/customer_auth';
+    $route['marketplace/customer/me'] = 'marketplace/customer_me';
+    $route['marketplace/customer/logout'] = 'marketplace/customer_logout';
+    $route['customer/auth'] = 'marketplace/customer_auth';
+    $route['customer/me'] = 'marketplace/customer_me';
+    $route['customer/logout'] = 'marketplace/customer_logout';
     $route['sitemap.xml'] = 'marketplace/sitemap';
     $route['sitemap-places-(:num).xml'] = 'marketplace/sitemap_places/$1';
     $route['api/places/photo'] = 'places_photo/index';
@@ -203,6 +215,12 @@ $route['marketplace/kategori/(:any)/(:any)/(:any)'] = 'marketplace/category/$1/$
 $route['marketplace/kategori/(:any)/(:any)'] = 'marketplace/category/$1/$2';
 $route['marketplace/kategori/(:any)'] = 'marketplace/category/$1';
 $route['marketplace/sahiplen/(:any)'] = 'marketplace/claim/$1';
+$route['marketplace/customer/auth'] = 'marketplace/customer_auth';
+$route['marketplace/customer/me'] = 'marketplace/customer_me';
+$route['marketplace/customer/logout'] = 'marketplace/customer_logout';
+$route['customer/auth'] = 'marketplace/customer_auth';
+$route['customer/me'] = 'marketplace/customer_me';
+$route['customer/logout'] = 'marketplace/customer_logout';
 
 // Customer Onboarding Routes
 $route['onboarding/(:any)'] = 'customer_onboarding/index/$1';
@@ -450,6 +468,21 @@ if ($portal_host !== (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) 
     $route['portal'] = 'customer_portal/index';
     $route['portal/(:any)'] = 'customer_portal/$1';
 }
+
+// BooKi - Billing & Checkout Routes (Tosla İşim POS)
+$route['billing_checkout'] = 'billing_checkout/index';
+$route['billing_checkout/(:any)'] = 'billing_checkout/$1';
+$route['billing_checkout/(:any)/(:any)'] = 'billing_checkout/$1/$2';
+
+// RandevuBurada - Escrow & Payout Routes (%5 + %5 + %1 Financial Model)
+$route['marketplace_escrow'] = 'marketplace_escrow/index';
+$route['marketplace_escrow/(:any)'] = 'marketplace_escrow/$1';
+$route['marketplace_escrow/(:any)/(:any)'] = 'marketplace_escrow/$1/$2';
+
+// RandevuBurada - Sponsored Ads & Ad Engine Routes
+$route['marketplace_ads'] = 'marketplace_ads/index';
+$route['marketplace_ads/(:any)'] = 'marketplace_ads/$1';
+$route['marketplace_ads/(:any)/(:any)'] = 'marketplace_ads/$1/$2';
 
 // BooKi (2026-09-18) - Industry Blueprints & Onboarding Wizard
 $route['onboarding'] = 'onboarding/index';
