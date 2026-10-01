@@ -21,5 +21,15 @@
   "search.exclude": {
     "**/storage/logs": true,
     "**/data/files/logs": true
-  }
+  },
+  "dart.flutterSdkPath": "/opt/flutter",
+  "dart.projectSearchPaths": [
+    "MobileApp"
+  ],
+  "dart.analysisExcludedFolders": [
+    "Backend",
+    "data",
+    "meta",
+    "apps"
+  ]
 }

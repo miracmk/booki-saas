@@ -1,0 +1,13 @@
+analyzer:
+  exclude:
+    - 'Backend/**'
+    - 'WebApp/**'
+    - 'DesktopApp/**'
+    - 'RandevuBurada/**'
+    - 'apps/**'
+    - 'data/**'
+    - 'docs/**'
+    - 'meta/**'
+    - 'system/**'
+    - 'vendor/**'
+    - 'storage/**'
