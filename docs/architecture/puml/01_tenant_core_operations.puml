@@ -1,0 +1,120 @@
+@startuml Tenant_Core_Operations_Master
+skinparam handwritten false
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam linetype ortho
+
+title BÖLÜM 1: İşletme Günlük Operasyon, Randevu, Kasa ve AI Akış Mimarisi
+
+|Çok Kanallı Randevu Kabulü (Omnichannel Intake)|
+start
+:Müşteri Randevu Talebi Başlatır;
+split
+  :RandevuBurada Pazaryeri (Tosla 7 Gün Provizyon);
+split again
+  :İşletme Web Sitesi / Biyografi Linki;
+split again
+  :WhatsApp / Sosyal Medya (booki-wa AI Asistanı);
+split again
+  :Telefon Santrali (booki-mcp Sesli AI Asistanı);
+split again
+  :Kapıdan Giriş (Walk-in / Resepsiyon Manuel Kaydı);
+end split
+
+|Müsaitlik Motoru (Universal Availability Engine)|
+:Girdiler: [Tarih, Saat, Hizmet_ID, Personel_ID (Opsiyonel), Şube_ID];
+:Hizmet Süresi (Duration) + Hazırlık/Temizlik Payı (Buffer) Hesaplanır;
+:Sektörel Blueprint'e Göre Kaynak Tipi Seçilir (Koltuk, Masa, Oda, Lift);
+
+partition "Personel & İstasyon Kontrolü" {
+  if (Personel Seçildi mi?) then (Evet)
+    :Personelin Vardiya, Mola ve İzin Durumu Kontrol Edilir;
+    if (Personel Müsait mi?) then (Hayır)
+      :HATA: Personel bu saatte müsait değil;
+      stop
+    endif
+  else (Otomatik Atama)
+    :Hizmete Yetkili Personeller Taranır ve En Uygun Olanı Atanır;
+  endif
+
+  :İşletmenin Tanımlı Barem Limiti (İstasyon Sayısı) Taranır;
+  if (Aktif Randevular >= Barem İstasyon Limiti?) then (Evet - Dolu)
+    :HATA: İşletmede fiziksel alan/istasyon dolu;
+    stop
+  else (Hayır - Boş Yer Var)
+  endif
+}
+
+partition "Redis Dağıtık Kilit (Distributed Lock)" {
+  :Redis Anahtarı: `lock:slot:{tenant_id}:{date}:{start_time}`;
+  :120 Saniyelik Atomik SETNX Kilidi Alınır;
+  :Slot RandevuBurada ve Web Takviminde Geçici Olarak Kapatılır;
+  :Randevu Taslağı Oluşturulur (Status: Pending);
+  :Kilit Serbest Bırakılır;
+}
+
+|Hatırlatma & Legaltech Onam Hattı|
+:Randevu Onaylandı Bildirimi (WhatsApp/SMS);
+:T-24 Saat ve T-2 Saat Otomatik Hatırlatıcılar Çalışır;
+
+if (Hizmet İçin Hukuki Onam Zorunlu mu?) then (Evet - Klinik/Estetik/Oto)
+  :Kişiselleştirilmiş Ceza-Geçirmez Dijital Sözleşme Linki Gönderilir;
+  :Müşteri Dokümanı Okur ve Ekrana Islak İmzasını (Touch/Stylus) Atar;
+  :İstemci Telemetrisi Alınır: [IP, GPS, User-Agent, Ekran Çözünürlüğü];
+  :SHA-256 Kriptografik Özeti Üretilir ve TÜBİTAK/TSA Zaman Damgası Basılır;
+  :Sözleşme PDF'i Şifreli Depolanır (Banka Ters İbraz / Chargeback Kalkanı);
+else (Hayır)
+endif
+
+|Müşteri Gelir (Show-up) & NutrixPOS Adisyon|
+:Randevu "Show-up" Olarak İşaretlenir;
+:Adisyon Açılır (Status: OPEN);
+
+repeat
+  :Hizmet, Menü veya Ürün Kalemi Ekle;
+  :Yetkili Onayı ile İkram / İskonto Uygula;
+repeat while (Yeni Kalem Eklenecek mi?) is (Evet)
+->Hayır;
+
+:Toplam Tutar Hesaplanır (KDV ve Servis Dahil);
+
+partition "Universal Split Payment (Çoklu Parçalı Tahsilat)" {
+  while (Kalan Tutar > 0?) is (Evet)
+    :Ödeme Yöntemi ve Parçalı Tutar Seç;
+    split
+      :Fiziki Nakit (Nakit Kasasına İşlenir);
+    split again
+      :Fiziki Kart / Harici POS (Slip No Girilir);
+    split again
+      :BooKi Online POS Linki (Tosla ile Karttan Çekilir, %20 veya Std POS Kesilir, T+3 Cüzdana Eklenir);
+    split again
+      :RandevuBurada Escrow Ön Ödemesi (7 Gün Provizyon Tahsilata Dönüştürülür ve Mahsup Edilir);
+    split again
+      :Müşteri Paket Bakiyesi (Kayıtlı Paketinden 1 Seans Düşülür);
+    end split
+    :Kalan Tutar Güncellenir;
+  endwhile (Kalan Tutar = 0)
+}
+
+:Adisyon Kapatılır ve Kilitlenir (Status: CLOSED);
+:Personelin Dinamik Kademeli Primi Hesaplanıp Bordrosuna İşlenir;
+
+|Hizmet Bazlı Otonom Takip (Follow-Up)|
+fork
+  :T+2 Saat Sonra: Anlık NPS & Memnuniyet Anketi;
+  if (Puan >= 4) then (Yüksek)
+    :Google Maps ve RandevuBurada Yorum Linki Gönder;
+  else (Düşük)
+    :Yönetici Paneline Acil Şikayet Alarmı Düşür;
+  endif
+fork again
+  :T+N Gün Sonra: Klinik / Bakım Periyodik Hatırlatması;
+  note right: Botoks 14. gün kontrolü, Oto Detailing 3. ay bakımı vb.
+fork again
+  :60 Gün Ziyaret Etmeyen Müşteriye Churn Önleme Kampanyası Gönder;
+end fork
+stop
+@enduml

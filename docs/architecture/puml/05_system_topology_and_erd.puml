@@ -1,0 +1,159 @@
+@startuml System_Topology_Infrastructure_ERD_Master
+skinparam componentStyle rectangle
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 10
+skinparam linetype ortho
+
+title BÖLÜM 5: Sistem Topolojisi, VPC Subnet, Redis IPC Kanalları & Konsolide ERD
+
+cloud "Dış Dünya / İnternet (Cloudflare TLS)" as WAN #F8FAFC
+
+node "Dedicated Server (VPC Subnet: 10.0.0.0/24)" #F1F5F9 {
+
+  component "[Ingress / Reverse Proxy]\nNginx (Port 80/443)\nIP: 10.0.0.2" as Nginx
+
+  queue "[Local IPC Event Bus]\nRedis 7.x (Port 6379)\nIP: 10.0.0.3" as Redis #FEE2E2
+
+  package "Docker Konteynerleri" {
+    
+    component "[booki-app]\nPHP 7.4/8.x (CodeIgniter Core)\nIP: 10.0.0.10" as C_App {
+      [Tenant Core API]
+      [Superadmin ERP API]
+      [Marketplace API]
+      [NutrixPOS Engine]
+    }
+
+    component "[booki-wa]\nNode.js Microservice\nBaileys WA Bridge\nIP: 10.0.0.11" as C_WA
+
+    component "[booki-mcp]\nNode.js Microservice\nGemini 3.8 / MCP Agent\nIP: 10.0.0.12" as C_MCP
+
+    database "[booki-db]\nMySQL 8.x Cluster\nIP: 10.0.0.13" as C_DB
+  }
+}
+
+WAN -down-> Nginx : HTTPS İstekleri
+Nginx -down-> C_App : FastCGI
+Nginx -down-> C_WA : WebSocket
+
+' Redis IPC Kanalları
+C_App -right-> Redis : publish('lead.discovered')\npublish('booking.show_up')\npublish('showcase.updated')
+Redis -left-> C_WA : subscribe('wa.send_template')
+Redis -left-> C_MCP : subscribe('wa.incoming_message')
+Redis -up-> C_App : subscribe('escrow.release_t3')
+
+C_App -down-> C_DB : Port 3306
+C_MCP -down-> C_DB : Port 3306 (Salt Okunur)
+
+' Konsolide Veritabanı ERD
+package "MASTER DATABASE (Admin & Marketplace)" #EFF6FF {
+  entity "bka_leads" as Lead {
+    * id : BIGINT [PK]
+    --
+    business_name : VARCHAR(255)
+    phone : VARCHAR(50)
+    google_place_id : VARCHAR(100)
+    category : VARCHAR(100)
+    status : ENUM('discovered', 'contacted', 'claimed')
+    enrichment_data : JSON
+  }
+
+  entity "bka_unified_current_accounts" as CurrentAccount {
+    * id : BIGINT [PK]
+    --
+    tenant_id : VARCHAR(64) [FK]
+    rb_balance : DECIMAL(12,2)
+    booki_pos_balance : DECIMAL(12,2)
+    total_payable_balance : DECIMAL(12,2)
+    uploaded_invoice_url : VARCHAR(255)
+    payout_status : ENUM('pending_invoice', 'approved', 'paid')
+  }
+
+  entity "rb_businesses" as MB {
+    * id : BIGINT [PK]
+    --
+    tenant_id : VARCHAR(64) [FK, Nullable]
+    slug : VARCHAR(255) [UNIQUE]
+    title : VARCHAR(255)
+    membership_type : ENUM('unclaimed', 'rb_only', 'rb_booki')
+    sponsored_boost_score : INT
+    bayesian_rating : DECIMAL(3,2)
+    is_active : BOOLEAN
+  }
+
+  entity "rb_escrow_ledger" as Escrow {
+    * id : BIGINT [PK]
+    --
+    booking_id : VARCHAR(64)
+    business_id : BIGINT [FK]
+    gross_amount : DECIMAL(10,2)
+    pos_fee : DECIMAL(10,2)
+    platform_fee : DECIMAL(10,2)
+    bank_fee : DECIMAL(10,2)
+    net_amount : DECIMAL(10,2)
+    status : ENUM('authorized', 'captured', 't3_ready', 'transferred')
+    release_date : TIMESTAMP
+  }
+}
+
+package "TENANT DATABASE (İzole `tenant_{uuid}` / App_Model)" #F3E8FF {
+  entity "tenant_resources" as Resource {
+    * id : INT [PK]
+    --
+    name : VARCHAR(100)
+    resource_type : VARCHAR(50)
+    capacity : INT
+  }
+
+  entity "tenant_staff" as Staff {
+    * id : INT [PK]
+    --
+    full_name : VARCHAR(150)
+    role : VARCHAR(50)
+    commission_rate : DECIMAL(5,2)
+    working_plan : JSON
+  }
+
+  entity "tenant_bookings" as Booking {
+    * id : VARCHAR(64) [PK]
+    --
+    customer_id : INT
+    staff_id : INT [FK]
+    resource_id : INT [FK]
+    start_datetime : DATETIME
+    end_datetime : DATETIME
+    status : ENUM('confirmed', 'show_up', 'no_show', 'cancelled')
+  }
+
+  entity "tenant_adisyon" as Adisyon {
+    * id : INT [PK]
+    --
+    booking_id : VARCHAR(64) [FK]
+    total_amount : DECIMAL(10,2)
+    status : ENUM('open', 'closed')
+    payment_breakdown : JSON
+  }
+
+  entity "tenant_contracts" as Contract {
+    * id : INT [PK]
+    --
+    booking_id : VARCHAR(64) [FK]
+    customer_signature_hash : VARCHAR(255)
+    pdf_path : VARCHAR(255)
+    signed_at : TIMESTAMP
+  }
+}
+
+' ERD İlişkileri
+Lead ||--o| MB : "Vitrin üretir"
+MB ||--o{ Escrow : "Hakediş kayıtları"
+Escrow }o..|| CurrentAccount : "T+3 bitince bakiyeyi aktarır"
+Staff ||--o{ Booking : "Randevuya atanır"
+Resource ||--o{ Booking : "İstasyon tahsis eder"
+Booking ||--o| Adisyon : "Adisyona dönüşür"
+Booking ||--o| Contract : "E-İmza onamı bağlar"
+Booking ||..o| Escrow : "Pazaryeri ödemesini bağlar"
+
+@enduml
