@@ -58,7 +58,7 @@ $route['default_controller'] = 'booking';
 // portal instead. See Portal.php / App_Controller::resolve_tenant()'s bare-host exception.
 $portal_host = strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
 
-if ($portal_host !== '' && $portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) {
+if ($portal_host !== '' && ($portal_host === (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co') || in_array($portal_host, ['bookiapp.kibusiness.co', 'demobookiapp.kibusiness.co', 'devbookiapp.kibusiness.co', 'betabookiapp.kibusiness.co'], true))) {
     $route['default_controller'] = 'portal';
     $route['portal'] = 'portal/index';
     $route['portal/(:any)'] = 'portal/$1';
@@ -92,7 +92,7 @@ $route['google_integrations/oauth_callback'] = 'google_integrations/oauth_callba
 // BooKi (2026-08-26) - SaaS admin panel: admin-bookiapp.kibusiness.co has no booking page
 // either - it's the super-admin login/dashboard. See App_Controller::resolve_tenant()'s superadmin
 // host exception (stays on the master DB for the whole "Superadmin*" controller family).
-if ($portal_host !== '' && $portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'admin-bookiapp.kibusiness.co')) {
+if ($portal_host !== '' && ($portal_host === (getenv('SUPERADMIN_DOMAIN') ?: 'admin-bookiapp.kibusiness.co') || str_starts_with($portal_host, 'admin-'))) {
     $route['default_controller'] = 'superadmin_auth';
 }
 
