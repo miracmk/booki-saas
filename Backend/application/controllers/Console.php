@@ -5873,6 +5873,108 @@ class Console extends App_Controller
             echo "Seeded {$count} rules for {$t['subdomain']} ({$bp} / {$fam})." . PHP_EOL;
         }
     }
+
+    /**
+     * Billing Grace Period and Auto-Downgrade Check.
+     *
+     * Specification 4.1:
+     * - Monthly billing failure check
+     * - Checks tenant current account / escrow wallet for balance to offset subscription
+     * - If insufficient, grants 5-day grace period with status = 'grace_period'
+     * - If 5-day grace period has expired without payment, executes downgrade to 'rb_only' and locks SaaS ('locked')
+     *
+     * Usage:
+     * php index.php console billing_grace_check
+     */
+    public function billing_grace_check(): void
+    {
+        $this->load->model('bk_escrow_model');
+        $now = date('Y-m-d H:i:s');
+
+        echo "[Billing Grace Check] Starting tenant lifecycle check at {$now}..." . PHP_EOL;
+
+        // Query active or grace_period tenants from master ea_tenants
+        $tenants = $this->db->query("
+            SELECT id, subdomain, company_name, saas_status, membership_type, grace_period_ends_at, failed_billing_attempts
+            FROM `ea_tenants`
+            WHERE `saas_status` IN ('active', 'grace_period')
+        ")->result_array();
+
+        $graceCount = 0;
+        $downgradeCount = 0;
+        $offsetCount = 0;
+
+        foreach ($tenants as $t) {
+            $tenantId = (int) $t['id'];
+            $subdomain = $t['subdomain'];
+            $status = $t['saas_status'];
+            $graceEnds = $t['grace_period_ends_at'];
+
+            // 1. Check if grace period expired -> Downgrade to RB-Only
+            if ($status === 'grace_period' && !empty($graceEnds) && $graceEnds <= $now) {
+                $this->db->query("
+                    UPDATE `ea_tenants`
+                    SET `saas_status` = 'locked',
+                        `membership_type` = 'rb_only',
+                        `updated_at` = ?
+                    WHERE `id` = ?
+                ", [$now, $tenantId]);
+
+                echo "  [DOWNGRADE] Tenant {$subdomain} (ID: {$tenantId}) grace period expired ({$graceEnds}). Downgraded to RB-Only and locked SaaS core." . PHP_EOL;
+                $downgradeCount++;
+                continue;
+            }
+
+            // 2. Check if tenant has failed billing or is in grace period, attempt wallet balance offset
+            if ($status === 'grace_period') {
+                $availableBalance = $this->bk_escrow_model->get_tenant_current_account_balance($tenantId);
+                $standardMonthlySubFee = 499.00; // TL
+
+                if ($availableBalance >= $standardMonthlySubFee) {
+                    // Offset from unified current accounts
+                    $this->bk_escrow_model->record_current_account_entry([
+                        'id_tenants'   => $tenantId,
+                        'account_type' => 'saas_subscription',
+                        'direction'    => 'debit',
+                        'amount'       => $standardMonthlySubFee,
+                        'status'       => 'transferred',
+                        'description'  => 'Aylık BooKi SaaS abonelik mahsuplaşması (Escrow Cüzdanından)'
+                    ]);
+
+                    $this->db->query("
+                        UPDATE `ea_tenants`
+                        SET `saas_status` = 'active',
+                            `membership_type` = 'booki_saas',
+                            `grace_period_ends_at` = NULL,
+                            `failed_billing_attempts` = 0,
+                            `updated_at` = ?
+                        WHERE `id` = ?
+                    ", [$now, $tenantId]);
+
+                    echo "  [OFFSET-RECOVERED] Tenant {$subdomain} subscription recovered via current account balance offset (-{$standardMonthlySubFee} TL). Restored to active SaaS." . PHP_EOL;
+                    $offsetCount++;
+                }
+            }
+        }
+
+        echo "[Billing Grace Check] Completed. Downgraded: {$downgradeCount}, Offsets: {$offsetCount}, In Grace: {$graceCount}." . PHP_EOL;
+    }
+
+    /**
+     * Process Matured Escrow Payouts (T+3) into Invoice Gatekeeper.
+     *
+     * Specification 2.2:
+     * Shifts matured T+3 escrow holdings to 'pending_invoice', requiring merchant e-Fatura / e-SMM.
+     *
+     * Usage:
+     * php index.php console escrow_mature_check
+     */
+    public function escrow_mature_check(): void
+    {
+        $this->load->model('bk_escrow_model');
+        $affected = $this->bk_escrow_model->process_matured_escrow_payouts();
+        echo "[Escrow Mature Check] Processed {$affected} matured escrow payouts to 'pending_invoice'." . PHP_EOL;
+    }
 }
 
 

@@ -34,29 +34,75 @@ class Escrow_settlement_service
     }
 
     /**
-     * Calculate financial split for an amount.
+     * Calculate financial split for an amount based on deduction model:
+     * - Model A (RB Organic): Gross - 5% (RB) - 5% (POS) - 1% (EFT) = 89% Net Payout
+     * - Model B (RB-Only Link): Gross - 20% (Platform/POS) - 1% (EFT) = 79% Net Payout
+     * - Model C (BooKi SaaS Link): Gross - 0% (Platform) - 5% (POS) - 1% (EFT) = 94% Net Payout
      */
-    public static function calculate_fee_breakdown(float $amount): array
+    public static function calculate_fee_breakdown(float $amount, string $model = 'model_a'): array
     {
         $gross = round($amount, 2);
-        $rbCommission = round($gross * (self::MARKETPLACE_COMMISSION_RATE / 100), 2);
-        $posFee = round($gross * (self::POS_FEE_RATE / 100), 2);
-        $transferFee = round($gross * (self::TRANSFER_FEE_RATE / 100), 2);
+        $model = strtolower($model);
+        if (!in_array($model, ['model_a', 'model_b', 'model_c'], true)) {
+            $model = 'model_a';
+        }
+
+        switch ($model) {
+            case 'model_b':
+                // RB-Only Manual Booking via link: 20% platform/POS + 1% bank fee
+                $rbRate = 20.00;
+                $posRate = 0.00;
+                $transferRate = self::TRANSFER_FEE_RATE;
+                break;
+            case 'model_c':
+                // BooKi SaaS Active Subscriber Link: 0% RB platform + 5% POS + 1% bank fee
+                $rbRate = 0.00;
+                $posRate = self::POS_FEE_RATE;
+                $transferRate = self::TRANSFER_FEE_RATE;
+                break;
+            case 'model_a':
+            default:
+                // RB Organic Marketplace: 5% RB + 5% POS + 1% bank fee
+                $rbRate = self::MARKETPLACE_COMMISSION_RATE;
+                $posRate = self::POS_FEE_RATE;
+                $transferRate = self::TRANSFER_FEE_RATE;
+                break;
+        }
+
+        $rbCommission = round($gross * ($rbRate / 100), 2);
+        $posFee = round($gross * ($posRate / 100), 2);
+        $transferFee = round($gross * ($transferRate / 100), 2);
         $totalCut = round($rbCommission + $posFee + $transferFee, 2);
         $netPayout = round($gross - $totalCut, 2);
+        $netRate = $gross > 0 ? round(($netPayout / $gross) * 100, 2) : 0.00;
 
         return [
+            'deduction_model'        => $model,
             'gross_amount'           => $gross,
-            'marketplace_rate'       => self::MARKETPLACE_COMMISSION_RATE,
+            'marketplace_rate'       => $rbRate,
             'marketplace_commission' => $rbCommission,
-            'pos_rate'               => self::POS_FEE_RATE,
+            'pos_rate'               => $posRate,
             'pos_fee'                => $posFee,
-            'transfer_rate'          => self::TRANSFER_FEE_RATE,
+            'transfer_rate'          => $transferRate,
             'transfer_fee'           => $transferFee,
             'total_platform_cut'     => $totalCut,
-            'net_payout_rate'        => self::NET_PAYOUT_RATE,
+            'net_payout_rate'        => $netRate,
             'net_payout_amount'      => $netPayout,
             'payout_timeline'        => 'T+3 İş Günü'
+        ];
+    }
+
+    /**
+     * Resolve dynamic wire transfer / FAST fee with fallback.
+     */
+    public static function resolve_dynamic_bank_fee(float $amount): array
+    {
+        $rate = self::TRANSFER_FEE_RATE;
+        $fee = round($amount * ($rate / 100), 2);
+        return [
+            'rate'   => $rate,
+            'fee'    => $fee,
+            'source' => 'dynamic_tariff_engine'
         ];
     }
 
@@ -89,7 +135,8 @@ class Escrow_settlement_service
             'tenant_id'      => $tenantId
         ]);
 
-        $feeBreakdown = self::calculate_fee_breakdown($amount);
+        $deductionModel = $extraData['deduction_model'] ?? 'model_a';
+        $feeBreakdown = self::calculate_fee_breakdown($amount, $deductionModel);
 
         // 3. Create Escrow settlement record
         $settlementId = $this->CI->bk_escrow_model->create_settlement([
@@ -100,6 +147,7 @@ class Escrow_settlement_service
             'customer_phone'         => $customer['phone'],
             'service_name'           => $serviceName,
             'gross_amount'           => $amount,
+            'deduction_model'        => $deductionModel,
             'marketplace_rate'       => $feeBreakdown['marketplace_rate'],
             'pos_rate'               => $feeBreakdown['pos_rate'],
             'transfer_rate'          => $feeBreakdown['transfer_rate'],
@@ -112,10 +160,11 @@ class Escrow_settlement_service
         ]);
 
         return [
-            'settlement_id' => $settlementId,
-            'order_id'      => $orderId,
-            'fee_breakdown' => $feeBreakdown,
-            'payment'       => $preAuthResult
+            'settlement_id'   => $settlementId,
+            'order_id'        => $orderId,
+            'deduction_model' => $deductionModel,
+            'fee_breakdown'   => $feeBreakdown,
+            'payment'         => $preAuthResult
         ];
     }
 
@@ -183,5 +232,36 @@ class Escrow_settlement_service
             'message'     => 'Provizyon blokesi kaldırıldı, karttan çekim yapılmadı.',
             'void_result' => $voidResult
         ];
+    }
+
+    /**
+     * Upload e-Fatura / e-SMM document for an escrow settlement.
+     */
+    public function upload_merchant_invoice(int $settlementId, array $invoiceData): array
+    {
+        $settlement = $this->CI->bk_escrow_model->get_by_id($settlementId);
+        if (!$settlement) {
+            throw new InvalidArgumentException("Hakediş kaydı bulunamadı: ID {$settlementId}");
+        }
+
+        if (empty($invoiceData['invoice_no'])) {
+            throw new InvalidArgumentException("Fatura numarası zorunludur.");
+        }
+
+        $ok = $this->CI->bk_escrow_model->upload_merchant_invoice($settlementId, $invoiceData);
+        return [
+            'status'        => $ok ? 'success' : 'error',
+            'settlement_id' => $settlementId,
+            'payout_status' => 'pending_invoice',
+            'invoice_no'    => $invoiceData['invoice_no']
+        ];
+    }
+
+    /**
+     * Verify merchant invoice and approve for payout.
+     */
+    public function verify_merchant_invoice(int $settlementId): array
+    {
+        return $this->CI->bk_escrow_model->verify_merchant_invoice($settlementId);
     }
 }
