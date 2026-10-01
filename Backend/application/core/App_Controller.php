@@ -192,6 +192,7 @@ class App_Controller extends CI_Controller
             strtolower((string) $this->router->class) === 'marketplace'
             || strtolower((string) $this->router->class) === 'landing'
             || strtolower((string) $this->router->class) === 'customer_onboarding'
+            || strtolower((string) $this->router->class) === 'billing_checkout'
             || strtolower((string) $this->router->class) === 'zadarma'
             || strtolower((string) $this->router->class) === 'places_photo'
         ) {
@@ -254,8 +255,8 @@ class App_Controller extends CI_Controller
                 return;
             }
 
-            // BooKi - Central Webhooks & OAuth Relay: Meta, WhatsApp, Instagram, Payment Webhooks
-            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram', 'payment_webhooks'], true)) {
+            // BooKi - Central Webhooks & OAuth Relay: Meta, WhatsApp, Instagram, Payment Webhooks, Billing Checkout
+            if ($host === $app_domain && in_array(strtolower((string) $this->router->class), ['meta', 'whatsapp', 'instagram', 'payment_webhooks', 'billing_checkout'], true)) {
                 return;
             }
 
@@ -544,6 +545,7 @@ class App_Controller extends CI_Controller
             'login', 'logout', 'recovery', 'captcha', 'health', 'booking', 'booking_confirmation',
             'booking_cancellation', 'landing', 'landing_page', 'review', 'about', 'privacy',
             'legal', 'places_photo', 'meta', 'zadarma', 'customer_onboarding', 'payment_webhooks',
+            'billing_checkout',
             'telegram', 'whatsapp', 'track', 'portal', 'auth_api_v1', 'demo', 'account',
             'superadmin_auth', 'superadmin_settings', 'superadmin_tenants',
             'customer_portal', 'consents', 'search'

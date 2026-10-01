@@ -435,6 +435,7 @@ $config['csrf_exclude_uris'] = [
     'payment_webhooks/.*',
     'payment/callback.*',
     'payment/unified_callback.*',
+    'billing_checkout/.*',
     // WhatsApp endpoints (webhooks and authenticated QR pairing / mode AJAX calls)
     'whatsapp/.*',
     'whatsapp/webhook',

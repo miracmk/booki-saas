@@ -451,6 +451,11 @@ if ($portal_host !== (getenv('TENANT_APP_DOMAIN') ?: 'bookiapp.kibusiness.co')) 
     $route['portal/(:any)'] = 'customer_portal/$1';
 }
 
+// BooKi - Billing & Checkout Routes (Tosla İşim POS)
+$route['billing_checkout'] = 'billing_checkout/index';
+$route['billing_checkout/(:any)'] = 'billing_checkout/$1';
+$route['billing_checkout/(:any)/(:any)'] = 'billing_checkout/$1/$2';
+
 // BooKi (2026-09-18) - Industry Blueprints & Onboarding Wizard
 $route['onboarding'] = 'onboarding/index';
 $route['onboarding/get_blueprints'] = 'onboarding/get_blueprints';
