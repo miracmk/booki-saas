@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/models/station_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/booking_provider.dart';
 import '../../../providers/appointments_provider.dart';
@@ -33,8 +32,10 @@ class BookingWizardScreen extends ConsumerWidget {
             // İlerleme Göstergesi (Step Indicator)
             if (state.currentStep < 5)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     _stepIndicator(0, 'Hizmet', state.currentStep >= 0),
@@ -61,14 +62,19 @@ class BookingWizardScreen extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline,
-                        color: AppTheme.accentDanger, size: 18),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppTheme.accentDanger,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         state.errorMessage!,
                         style: const TextStyle(
-                            color: AppTheme.accentDanger, fontSize: 13),
+                          color: AppTheme.accentDanger,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -77,7 +83,13 @@ class BookingWizardScreen extends ConsumerWidget {
 
             // Adım İçerikleri
             Expanded(
-              child: _buildCurrentStepView(context, ref, state, notifier, authState),
+              child: _buildCurrentStepView(
+                context,
+                ref,
+                state,
+                notifier,
+                authState,
+              ),
             ),
           ],
         ),
@@ -113,7 +125,9 @@ class BookingWizardScreen extends ConsumerWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-              color: isActive ? AppTheme.primaryColor : AppTheme.textSecondaryLight,
+              color: isActive
+                  ? AppTheme.primaryColor
+                  : AppTheme.textSecondaryLight,
             ),
           ),
         ],
@@ -185,30 +199,47 @@ class BookingWizardScreen extends ConsumerWidget {
                     color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.spa_rounded,
-                      color: AppTheme.primaryColor, size: 26),
+                  child: const Icon(
+                    Icons.spa_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 26,
+                  ),
                 ),
                 title: Text(
                   service.name,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 16),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
                 ),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time_rounded,
-                          size: 14, color: AppTheme.textSecondaryLight),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 14,
+                        color: AppTheme.textSecondaryLight,
+                      ),
                       const SizedBox(width: 4),
-                      Text(service.formattedDuration,
-                          style: const TextStyle(fontSize: 13)),
+                      Text(
+                        service.formattedDuration,
+                        style: const TextStyle(fontSize: 13),
+                      ),
                       const SizedBox(width: 12),
-                      const Icon(Icons.payments_outlined,
-                          size: 14, color: AppTheme.textSecondaryLight),
+                      const Icon(
+                        Icons.payments_outlined,
+                        size: 14,
+                        color: AppTheme.textSecondaryLight,
+                      ),
                       const SizedBox(width: 4),
-                      Text(service.formattedPrice,
-                          style: const TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w700)),
+                      Text(
+                        service.formattedPrice,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -271,8 +302,11 @@ class BookingWizardScreen extends ConsumerWidget {
                     color: AppTheme.primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.auto_awesome_rounded,
-                      color: AppTheme.primaryColor, size: 24),
+                  child: const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 24,
+                  ),
                 ),
                 title: const Text(
                   'Fark Etmez (Otomatik Atansın)',
@@ -280,7 +314,10 @@ class BookingWizardScreen extends ConsumerWidget {
                 ),
                 subtitle: const Text(
                   'Sistem en uygun müsait oda/istasyon/masayı otomatik belirlesin.',
-                  style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryLight),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondaryLight,
+                  ),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
                 onTap: () => notifier.selectStation(null),
@@ -306,12 +343,17 @@ class BookingWizardScreen extends ConsumerWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                     side: BorderSide(
-                      color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : Colors.grey.shade200,
                       width: isSelected ? 2 : 1,
                     ),
                   ),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     leading: Container(
                       width: 44,
                       height: 44,
@@ -319,31 +361,53 @@ class BookingWizardScreen extends ConsumerWidget {
                         color: st.status.color.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(Icons.meeting_room_outlined, color: st.status.color, size: 22),
+                      child: Icon(
+                        Icons.meeting_room_outlined,
+                        color: st.status.color,
+                        size: 22,
+                      ),
                     ),
                     title: Text(
                       st.name,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
                     ),
                     subtitle: Row(
                       children: [
-                        Text('Kapasite: ${st.capacity} Kişi',
-                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondaryLight)),
+                        Text(
+                          'Kapasite: ${st.capacity} Kişi',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textSecondaryLight,
+                          ),
+                        ),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: st.status.color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             st.status.labelTr,
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: st.status.color),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: st.status.color,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                    ),
                     onTap: () => notifier.selectStation(st),
                   ),
                 );
@@ -382,7 +446,9 @@ class BookingWizardScreen extends ConsumerWidget {
       data: (providers) {
         // Seçilen hizmeti verebilen uzmanlar (veya hepsi)
         final matching = providers.where((p) {
-          if (state.selectedService == null || p.serviceIds.isEmpty) return true;
+          if (state.selectedService == null || p.serviceIds.isEmpty) {
+            return true;
+          }
           return p.serviceIds.contains(state.selectedService!.id);
         }).toList();
 
@@ -414,12 +480,16 @@ class BookingWizardScreen extends ConsumerWidget {
                 title: Text(
                   provider.fullName,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 16),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
                 ),
                 subtitle: Text(
                   provider.email.isNotEmpty ? provider.email : 'Uzman Personel',
                   style: const TextStyle(
-                      fontSize: 13, color: AppTheme.textSecondaryLight),
+                    fontSize: 13,
+                    color: AppTheme.textSecondaryLight,
+                  ),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
                 onTap: () => notifier.selectProvider(provider),
@@ -464,7 +534,8 @@ class BookingWizardScreen extends ConsumerWidget {
               itemCount: 14,
               itemBuilder: (context, index) {
                 final date = now.add(Duration(days: index));
-                final isSelected = DateFormat('yyyy-MM-dd').format(date) ==
+                final isSelected =
+                    DateFormat('yyyy-MM-dd').format(date) ==
                     DateFormat('yyyy-MM-dd').format(state.selectedDate);
 
                 return GestureDetector(
@@ -473,9 +544,7 @@ class BookingWizardScreen extends ConsumerWidget {
                     width: 60,
                     margin: const EdgeInsets.only(right: 10),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppTheme.primaryColor
-                          : Colors.white,
+                      color: isSelected ? AppTheme.primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSelected
@@ -570,7 +639,9 @@ class BookingWizardScreen extends ConsumerWidget {
                   selected: isSelected,
                   selectedColor: AppTheme.primaryColor,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textPrimaryLight,
+                    color: isSelected
+                        ? Colors.white
+                        : AppTheme.textPrimaryLight,
                     fontWeight: FontWeight.w700,
                   ),
                   onSelected: (_) => notifier.selectSlot(slot),
@@ -635,7 +706,9 @@ class BookingWizardScreen extends ConsumerWidget {
                   _summaryRow(
                     icon: Icons.meeting_room_outlined,
                     label: 'Oda / Masa / Kort / Cihaz',
-                    value: state.selectedStation?.name ?? 'Otomatik Atama (Fark Etmez)',
+                    value:
+                        state.selectedStation?.name ??
+                        'Otomatik Atama (Fark Etmez)',
                   ),
                   const Divider(height: 24),
                   _summaryRow(

@@ -1,11 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import 'package:ki_reservation_mobile/core/network/api_client.dart';
 import 'package:ki_reservation_mobile/data/models/station_model.dart';
 import 'package:ki_reservation_mobile/data/models/service_model.dart';
 import 'package:ki_reservation_mobile/data/models/provider_model.dart';
-import 'package:ki_reservation_mobile/data/repositories/booking_repository.dart';
 import 'package:ki_reservation_mobile/providers/booking_provider.dart';
 
 class FakeHttpClientAdapter implements HttpClientAdapter {
