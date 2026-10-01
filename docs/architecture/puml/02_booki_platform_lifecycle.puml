@@ -1,0 +1,89 @@
+@startuml BooKi_Platform_Lifecycle_Master
+skinparam handwritten false
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+title BÖLÜM 2: BooKi SaaS Platform Döngüsü, Barem, Downgrade & MCP Mimarisi
+
+|Self-Onboarding & Anti-Fraud|
+start
+:Kullanıcı "7 Gün Ücretsiz Dene" Butonuna Basar;
+:Tarayıcı Donanım İzi Toplanır (Canvas, WebGL, Audio, Screen, IP);
+:Özet Üretilir: `SHA256(fingerprint_vectors)`;
+
+if (Bu Donanım Daha Önce Deneme Kullandı mı?) then (Evet)
+  :Deneme Hakkı Reddedilir (Trial Abuse Guard);
+  :Ücretli Paket Satın Alma Ekranına Yönlendirilir;
+  stop
+else (Hayır - İlk Kez)
+  :Donanım İzi Kaydedilir;
+  :24 Saat Geçerli JWT Onboarding Token Üretilir;
+endif
+
+|6 Sektörel Blueprint Enjeksiyonu|
+:Kullanıcı Sektörünü Seçer;
+note right
+  1. Güzellik / Kuaför / Spa (Koltuk, Seans Paketleri, Onam)
+  2. Restoran / Kafe / Bistro (Masa, NutrixPOS, Mutfak Yazıcısı)
+  3. Spor / Fitness / Pilates (Kort, Reformer, Sağlık Beyanı)
+  4. Sağlık / Klinik / Veteriner (Muayene Odası, Anamnez, Tıbbi Onam)
+  5. Otomotiv / Detailing / Servis (Peron, Lift, Hasar Tespit)
+  6. Deneyim / Atölye / Kaçış Odası (Oyun Odası, Sabit Seanslar)
+end note
+
+:İlgili JSON Blueprint (`blueprints/{sector}.json`) Veritabanına Basılır;
+:İzole Tenant ID ve Sektörel UI Teması Ayağa Kaldırılır;
+:7 Günlük Ücretsiz Deneme Başlar;
+
+|Abonelik, Barem & Finansal Döngü|
+if (Ay Başı Abonelik Tahsilatı Başarılı mı?) then (Evet)
+  :Abonelik 1 Ay Uzatılır ve e-Fatura Üretilir;
+else (Hayır - Kart Hatası)
+  if (İşletme İçi Cüzdanda BooKi POS Hakedişi Var mı?) then (Evet)
+    :Abonelik Bedeli Cüzdandan Mahsup Edilir;
+    :Fatura Kapatılır;
+  else (Cüzdanda da Bakiye Yok)
+    |5 Günlük Grace Period (Tolerans Süresi)|
+    :5 Günlük Geri Sayım Başlar;
+    :Günlük Uyarı SMS ve E-postaları Atılır;
+    if (5 Gün İçinde Ödendi mi?) then (Evet)
+      :Sistem Normal Statüye Döner;
+    else (Hayır - 5 Gün Doldu)
+      |RB-Only Downgrade Mekanizması|
+      :BooKi SaaS Paneli Kilitlenir (Locked);
+      :Masa/Koltuk Yönetimi ve Takvim Girişi Dondurulur;
+      :RandevuBurada Statüsü 'BooKi-RB'den 'RB-Only'e Düşürülür;
+      :Pazaryeri Vitrini Yayında Kalır Fakat Sıralama Boost Puanı (+50 Boost) Silinir;
+      :Rezervasyonlar Artık Sadece Basit Tablo Halinde RB Üzerinden İzlenir;
+      :Manuel Randevularda POS Kullanılırsa %20 Kesinti Başlar;
+    endif
+  endif
+endif
+
+|Prorated Barem / Kapasite Yükseltme|
+if (İşletme Yeni Personel/İstasyon Eklemek İsterse?) then
+  if (Mevcut Barem Kotası Dolu mu?) then (Evet)
+    :Kalan Gün Sayısı (K) ve Toplam Gün Sayısı (T) Hesaplanır;
+    :Ek Barem Farkı = `(Aylık Ek İstasyon Ücreti / T) * K`;
+    :Karttan Anlık Prorated Ara Tahsilat Yapılır;
+    :Barem Limiti Anında +1 Artırılır;
+  else (Kota Var)
+    :Yeni İstasyon Ücretsiz Eklenir;
+  endif
+endif
+
+|booki-mcp Model Context Protocol Entegrasyonu|
+:booki-mcp Sunucusu JSON-RPC Tool'larını LLM Ajanlarına Sunar;
+note right
+  - check_availability(service, date)
+  - create_booking(customer, slot)
+  - cancel_booking(id, reason)
+  - get_service_pricing()
+  - trigger_human_handoff(conversation_id)
+end note
+:Gemini 3.8 / Baileys WA Botu Bu Uçları Çağırarak İşlemleri Gerçekleştirir;
+stop
+@enduml

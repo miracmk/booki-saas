@@ -1,0 +1,95 @@
+@startuml RB_Marketplace_Operations_Master
+skinparam handwritten false
+skinparam monochrome true
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+title BÖLÜM 4: RandevuBurada Pazaryeri, Sıralama Algoritması, Escrow & Tahsilat Mimarisi
+
+|Müşteri Arama & Bayesian Sıralama Algoritması|
+start
+:Kullanıcı İl, İlçe ve Kategori Seçerek Arama Yapar;
+
+partition "Sponsorlu Sıralama Algoritması (Ad Engine)" {
+  :1. Bayesian Yorum Puanı [0.0 - 10.0 Puan];
+  :2. Profil Doluluk Oranı [0.0 - 5.0 Puan];
+  :3. Konum Yakınlık Skoru [0.0 - 5.0 Puan];
+  :Temel Organik Skor = Bayesian + Doluluk + Mesafe (Max: 20.0);
+
+  if (Aktif Reklam Paketi Satın Alınmış mı?) then (Evet)
+    :Sponsorlu Boost Ekle: **+50.0 Puan**;
+    if (İşletme Aynı Zamanda BooKi SaaS Üyesi mi?) then (Evet)
+      :BooKi Ekosistem Bonusu Ekle: **+10.0 Puan**;
+    endif
+  else (Hayır)
+    :Boost = 0;
+  endif
+
+  :Toplam Sıralama Skoru = Temel Skor + Reklam Boost + BooKi Bonusu;
+  :İşletmeler Azalan (DESC) Skora Göre Dizilir;
+  :En Üstteki 3 İşletmeye "Sponsorlu Vitrin" Etiketi Basılır;
+}
+
+|3 İşletme Tipine Göre Rezervasyon Akışı|
+:Kullanıcı Bir İşletme Seçer;
+
+if (İşletme Türü Nedir?) then (1. Unclaimed - Sahipsiz Profil)
+  :Canlı Takvim Kapalıdır;
+  :Kullanıcı "Randevu Talebi Bırak" Formunu Doldurur;
+  :Karttan Provizyon Alınmaz;
+  :İşletmeye QR Bridge ile Sıcak Lead WhatsApp Mesajı Atılır;
+  stop
+
+else if (2. RB-Only - Sadece Vitrin Üyesi) then
+  :İşletme Randevuları RB Panelinde Manuel Yönetir;
+  :Kullanıcı Saat Seçer -> Randevu "Onay Bekliyor" Olarak Düşer;
+  :İşletme Butona Basıp Onaylarsa 7 Günlük Provizyon Alınır;
+
+else (3. RB-BooKi - Tam Entegre SaaS Üyesi)
+  :BooKi Core API'sinden Canlı Slotlar Anlık Çekilir;
+  :Kullanıcı Slotu Seçtiği Anda Tosla 7 Günlük Provizyon Alınır;
+  :Doğrudan İşletmenin Takvimine ve İlgili Personelin Koltuğuna İşlenir;
+  :Çift Rezervasyon İhtimali Sıfırdır;
+endif
+
+|Tosla Sanal POS 7 Gün Provizyon Blokesi|
+:Müşteri Kartından Hizmet Tutarı Kadar (Örn: 1.000 TL) 7 Günlük Provizyon Blokesi Konur;
+note right: Para müşterinin limitinden düşer,\nplatform hesabına henüz geçmez.
+
+|Randevu Günü (Show-Up / No-Show)|
+if (Müşterinin Katılım Durumu?) then (Show-Up - Müşteri Geldi)
+  :İşletme Randevuyu "Tamamlandı" Olarak İşaretler;
+  :Tosla Provizyonu Kesin Tahsilata (Capture) Dönüştürülür;
+  :T+3 İş Günü Bekleme Süresi Başlar;
+
+  partition "Komisyon ve Net Hakediş Ayrıştırma" {
+    if (İşlem Türü Nedir?) then (Standart Organik RB Randevusu)
+      :Toplam Çekilen: 1.000 TL;
+      :RandevuBurada Platform Payı (%5): -50 TL;
+      :Tosla POS Altyapı Maliyeti (%5): -50 TL;
+      :YapıKredi FAST Maliyeti (%1): -10 TL;
+      :İşletmeye Net Ödenecek: **890 TL (%89)**;
+    else (RB-Only Manuel Rezervasyonda BooKi POS Kullanımı)
+      :Toplam Çekilen: 1.000 TL;
+      :Toplam Komisyon (%20): -200 TL;
+      :YapıKredi FAST Maliyeti (%1): -10 TL;
+      :İşletmeye Net Ödenecek: **790 TL (%79)**;
+    endif
+  }
+  :Net Bakiye Admin Cari Hesabına Aktarılır;
+
+else if (No-Show - Müşteri Gelmedi) then
+  if (Sözleşmede No-Show Kapora Şartı Var mı?) then (Evet)
+    :Sözleşme Cezası Kadar Kısmi Provizyon Tahsil Edilir (Partial Capture);
+    :Kalan Tutar Kart Limitine Serbest Bırakılır;
+    :Ceza Tutarı T+3 ile İşletmeye Aktarılır;
+  else (Esnek İptal)
+    :Provizyon Tamamen İptal Edilir (Void);
+  endif
+else (İşletme İptal Etti)
+  :Provizyon Anında Kaldırılır;
+endif
+stop
+@enduml
